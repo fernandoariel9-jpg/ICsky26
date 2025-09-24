@@ -4,7 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_URL = "http://192.168.2.101:4000/tareas";
+const API_URL = "https://sky26.onrender.com/tareas";
 
 // ---------- Componente Login de Usuario ----------
 function UsuarioLogin({ onLogin }) {
