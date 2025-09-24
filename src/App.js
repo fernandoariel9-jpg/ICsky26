@@ -4,7 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Apunta al backend en Render mediante variable de entorno
-const API_URL = process.env.REACT_APP_API_URL || "https://tu-backend.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL || "https://sky26.onrender.com";
 
 function App() {
   const [usuario, setUsuario] = useState(localStorage.getItem("usuario") || "");
