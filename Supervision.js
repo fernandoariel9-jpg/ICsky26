@@ -4,7 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import "react-toastify/dist/ReactToastify.css";
 
-const API_URL = "https://sky26.onrender.com";
+const API_URL = "https://sky26.onrender.com/tareas";
 
 export default function Supervision() {
   const [tareas, setTareas] = useState([]);
@@ -81,4 +81,5 @@ export default function Supervision() {
     </div>
   );
 }
+
 
