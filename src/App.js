@@ -3,8 +3,7 @@ import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Apunta al backend en Render mediante variable de entorno
-const API_URL = process.env.REACT_APP_API_URL || "https://sky26.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL || "https://sky26.onrender.com"; // backend de Render
 
 function App() {
   const [usuario, setUsuario] = useState(localStorage.getItem("usuario") || "");
@@ -27,6 +26,7 @@ function App() {
     }
   };
 
+  // Login
   const handleLogin = (e) => {
     e.preventDefault();
     if (!usuario.trim()) return toast.error("Debes ingresar un nombre de usuario");
@@ -41,6 +41,7 @@ function App() {
     setLoggedIn(false);
   };
 
+  // Imagen reducida
   const handleImagen = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -52,8 +53,11 @@ function App() {
         const max = 200;
         let width = img.width;
         let height = img.height;
-        if (width > height) { if (width > max) { height = Math.round(height * max / width); width = max; } }
-        else { if (height > max) { width = Math.round(width * max / height); height = max; } }
+        if (width > height) {
+          if (width > max) { height = Math.round(height * max / width); width = max; }
+        } else {
+          if (height > max) { width = Math.round(width * max / height); height = max; }
+        }
         canvas.width = width;
         canvas.height = height;
         canvas.getContext("2d").drawImage(img, 0, 0, width, height);
@@ -66,6 +70,7 @@ function App() {
     reader.readAsDataURL(file);
   };
 
+  // Crear / actualizar tarea
   const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = editTask ? editTask : { ...form, usuario };
@@ -148,7 +153,7 @@ function App() {
         {tareasFiltradas.map(t => (
           <li key={t.id} className={`p-3 rounded-xl shadow-sm flex items-center justify-between ${t.fin ? "bg-green-200" : "bg-blue-100"}`}>
             <div className="flex items-center space-x-3">
-              {t.imagen && <img src={`data:image/jpeg;base64,${t.imagen}`} alt="Foto" className="w-12 h-12 rounded-full object-cover" />}
+              {t.imagen && <img src={`data:image/jpeg;base64,${t.imagen}`} alt="Foto" className="w-12 h-12 rounded-full object-cover cursor-pointer" onClick={() => window.open(`data:image/jpeg;base64,${t.imagen}`, "_blank")} />}
               <div>
                 <p className={t.fin ? "line-through text-gray-600" : "text-black"}><span className="font-bold text-gray-700">#{t.id}</span> {t.usuario}: {t.tarea} {t.fin ? "✅" : "🔹"}</p>
                 <p className="text-sm text-gray-500">Fecha: {new Date(t.fecha).toLocaleString()}</p>
