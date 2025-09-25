@@ -36,8 +36,6 @@ function App() {
     </div>
   );
 }
-  return <Panel usuario={usuario} onLogout={handleLogout} />;
-}
 export default App;
 
 function UsuarioLogin({ onLogin }) {
