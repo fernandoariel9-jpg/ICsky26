@@ -306,18 +306,3 @@ function SupervisionWrapper() {
   const [loggedIn,setLoggedIn] = useState(false);
   return loggedIn ? <Supervision /> : <PanelLogin onLogin={setLoggedIn} />;
 }
-
-// ---------- Componente principal App ----------
-export default function App() {
-  const [usuario,setUsuario] = useState(localStorage.getItem("usuario")||"");
-
-  if(!usuario) return <UsuarioLogin onLogin={u=>setUsuario(u)}/> ;
-
-  return (
-    <div>
-      <FormularioUsuario usuario={usuario}/>
-      <hr className="my-4"/>
-      <SupervisionWrapper/>
-    </div>
-  );
-}
