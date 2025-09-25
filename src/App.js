@@ -104,16 +104,6 @@ function PanelLogin({ onLogin }) {
   );
 }
 
-<div className="flex justify-between items-center mb-4">
-  <p className="text-lg font-semibold">👤 {usuario}</p>
-  <button
-    onClick={onLogout}
-    className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
-  >
-    Logout
-  </button>
-</div>
-
 // ---------- Componente Formulario de Usuario ----------
 function FormularioUsuario({ usuario, onLogout }) {
   const [tareas, setTareas] = useState([]);
@@ -199,6 +189,15 @@ function FormularioUsuario({ usuario, onLogout }) {
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-2xl font-bold">📋 Solicitud de servicio RIC01</h1>
       </div>
+      <div className="flex justify-between items-center mb-4">
+  <p className="text-lg font-semibold">👤 {usuario}</p>
+  <button
+    onClick={onLogout}
+    className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
+  >
+    Logout
+  </button>
+</div>
       <div className="text-center mb-4">
         <p className="text-lg font-semibold text-red-600">Solicitudes pendientes: {pendientes}</p>
       </div>
