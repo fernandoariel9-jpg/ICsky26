@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const API_URL = process.env.REACT_APP_API_URL || "https://sky26.onrender.com/tareas"; // backend de Render
+const API_URL = process.env.REACT_APP_API_URL || "https://sky26.onrender.com"; // backend de Render
 
 function App() {
   const [usuario, setUsuario] = useState(localStorage.getItem("usuario") || "");
