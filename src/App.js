@@ -195,7 +195,7 @@ function FormularioUsuario({ usuario, onLogout }) {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white p-4 rounded-2xl shadow mb-6 flex flex-col space-y-3">
-        <p>Usuario: <b>{usuario}</b></p><button
+        <p>👤 Usuario: <b>{usuario}</b></p><button
           onClick={onLogout}
           className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
         >
