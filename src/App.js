@@ -189,21 +189,18 @@ function FormularioUsuario({ usuario, onLogout }) {
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-2xl font-bold">📋 Solicitud de servicio RIC01</h1>
       </div>
-      <div className="flex justify-between items-center mb-4">
-  <p className="text-lg font-semibold">👤 {usuario}</p>
-  <button
-    onClick={onLogout}
-    className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
-  >
-    Logout
-  </button>
-</div>
+     
       <div className="text-center mb-4">
         <p className="text-lg font-semibold text-red-600">Solicitudes pendientes: {pendientes}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white p-4 rounded-2xl shadow mb-6 flex flex-col space-y-3">
-        <p>Usuario: <b>{usuario}</b></p>
+        <p>Usuario: <b>{usuario}</b></p><button
+          onClick={onLogout}
+          className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          Logout
+        </button>
         <input type="text" placeholder="Tarea solicitada" className="w-full p-2 border rounded"
           value={editTask?editTask.tarea:form.tarea}
           onChange={e=>editTask?setEditTask({...editTask,tarea:e.target.value}):setForm({...form,tarea:e.target.value})} required/>
