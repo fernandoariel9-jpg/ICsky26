@@ -1,10 +1,10 @@
+// App.js
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
 // Apunta al backend en Render mediante variable de entorno
-const API_URL = process.env.REACT_APP_API_URL || "https://icsky26.onrender.com/tareas";
+const API_URL = process.env.REACT_APP_API_URL || "https://sky26.onrender.com/tareas";
 
 function App() {
   const [usuario, setUsuario] = useState(localStorage.getItem("usuario") || "");
@@ -13,61 +13,124 @@ function App() {
   const [form, setForm] = useState({ tarea: "", fin: false, imagen: null });
   const [editTask, setEditTask] = useState(null);
 
-  useEffect(() => { if (loggedIn) fetchTareas(); }, [loggedIn]);
+  useEffect(() => {
+    if (loggedIn) fetchTareas();
+  }, [loggedIn]);
 
   const fetchTareas = async () => {
     try {
       const res = await fetch(`${API_URL}/tareas`);
       const data = await res.json();
-      setTareas(data.sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)));
-    } catch { toast.error("Error al cargar tareas"); }
+      setTareas(data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
+    } catch {
+      toast.error("Error al cargar tareas");
+    }
   };
 
-  // Manejo login
-  const handleLogin = (e) => { e.preventDefault(); if(!usuario.trim()) return toast.error("Debes ingresar un nombre de usuario"); localStorage.setItem("usuario", usuario); setLoggedIn(true); toast.success(`Bienvenido, ${usuario} ✅`); }
-  const handleLogout = () => { localStorage.removeItem("usuario"); setUsuario(""); setLoggedIn(false); }
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (!usuario.trim()) return toast.error("Debes ingresar un nombre de usuario");
+    localStorage.setItem("usuario", usuario);
+    setLoggedIn(true);
+    toast.success(`Bienvenido, ${usuario} ✅`);
+  };
 
-  // Imagen reducida
-  const handleImagen = (e) => { /* mismo código que tenés */ }
+  const handleLogout = () => {
+    localStorage.removeItem("usuario");
+    setUsuario("");
+    setLoggedIn(false);
+  };
 
-  // Crear / actualizar tarea
-  const handleSubmit = async (e) => { /* mismo código que tenés */ }
+  const handleImagen = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      const img = new Image();
+      img.onload = function () {
+        const canvas = document.createElement("canvas");
+        const max = 200;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) { if (width > max) { height = Math.round(height * max / width); width = max; } }
+        else { if (height > max) { width = Math.round(width * max / height); height = max; } }
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        const base64 = canvas.toDataURL("image/jpeg", 0.3).split(",")[1];
+        if (editTask) setEditTask({ ...editTask, imagen: base64 });
+        else setForm({ ...form, imagen: base64 });
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
 
-  const handleToggleFin = async (task,newFin) => { /* mismo código que tenés */ }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const payload = editTask ? editTask : { ...form, usuario };
+    try {
+      if (!editTask) {
+        const res = await fetch(`${API_URL}/tareas`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        const newTask = await res.json();
+        setTareas([newTask, ...tareas]);
+        setForm({ tarea: "", fin: false, imagen: null });
+        toast.success("Tarea creada ✅");
+      } else {
+        if (editTask.fin) return toast.error("Tarea finalizada, no se puede editar ❌");
+        const res = await fetch(`${API_URL}/tareas/${editTask.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editTask) });
+        const updated = await res.json();
+        setTareas(prev => prev.map(t => t.id === updated.id ? updated : t));
+        setEditTask(null);
+        toast.success("Tarea actualizada ✅");
+      }
+    } catch {
+      toast.error("Error al guardar tarea");
+    }
+  };
 
-  const handleCloseEdit = () => { setEditTask(null); setForm({ tarea:"", fin:false, imagen:null }); }
+  const handleToggleFin = async (task, newFin) => {
+    if (task.fin) return toast.info("La tarea ya está finalizada 🔒");
+    try {
+      const res = await fetch(`${API_URL}/tareas/${task.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...task, fin: newFin }) });
+      const updated = await res.json();
+      setTareas(prev => prev.map(t => t.id === updated.id ? updated : t));
+      toast.success("Estado de tarea actualizado ✅");
+    } catch {
+      toast.error("Error al actualizar tarea");
+    }
+  };
+
+  const handleCloseEdit = () => { setEditTask(null); setForm({ tarea: "", fin: false, imagen: null }); };
 
   const tareasFiltradas = tareas.filter(t => t.usuario === usuario);
   const pendientes = tareasFiltradas.filter(t => !t.fin).length;
 
-  // --- Componentes de cada pantalla ---
+  if (!loggedIn) {
+    return (
+      <div className="p-4 max-w-md mx-auto mt-20">
+        <h1 className="text-2xl font-bold text-center mb-4">Login de Usuario</h1>
+        <form onSubmit={handleLogin} className="flex flex-col space-y-3">
+          <input type="text" placeholder="Nombre de usuario" className="w-full p-2 border rounded" value={usuario} onChange={e => setUsuario(e.target.value)} required />
+          <button type="submit" className="bg-blue-500 text-white p-2 rounded-xl">Ingresar</button>
+        </form>
+      </div>
+    );
+  }
 
-  const LoginForm = () => (
-    <div className="p-4 max-w-md mx-auto mt-20">
-      <h1 className="text-2xl font-bold text-center mb-4">Login de Usuario</h1>
-      <form onSubmit={handleLogin} className="flex flex-col space-y-3">
-        <input type="text" placeholder="Nombre de usuario" className="w-full p-2 border rounded" value={usuario} onChange={e => setUsuario(e.target.value)} required />
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded-xl">Ingresar</button>
-      </form>
-    </div>
-  );
-
-  const SolicitudForm = () => (
+  return (
     <div className="p-4 max-w-md mx-auto">
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-2xl font-bold">📋 Solicitud de servicio RIC01</h1>
-        <div>
-          <button onClick={handleLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm mr-2">Logout</button>
-          <Link to="/supervision" className="bg-green-500 text-white px-3 py-1 rounded-xl text-sm">Panel de supervisión</Link>
-        </div>
+        <button onClick={handleLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">Logout</button>
       </div>
       <div className="text-center mb-4"><p className="text-lg font-semibold text-red-600">Solicitudes pendientes: {pendientes}</p></div>
 
       <form onSubmit={handleSubmit} className="bg-white p-4 rounded-2xl shadow mb-6 flex flex-col space-y-3">
         <p>Usuario: <b>{usuario}</b></p>
-        <input type="text" placeholder="Tarea solicitada" className="w-full p-2 border rounded" value={editTask ? editTask.tarea : form.tarea} onChange={e => editTask ? setEditTask({...editTask, tarea:e.target.value}) : setForm({...form, tarea:e.target.value})} required />
+        <input type="text" placeholder="Tarea solicitada" className="w-full p-2 border rounded" value={editTask ? editTask.tarea : form.tarea} onChange={e => editTask ? setEditTask({ ...editTask, tarea: e.target.value }) : setForm({ ...form, tarea: e.target.value })} required />
         <label className="flex items-center space-x-2">
-          <input type="checkbox" checked={editTask ? editTask.fin : form.fin} onChange={e => editTask ? setEditTask({...editTask, fin:e.target.checked}) : setForm({...form, fin:e.target.checked})} disabled={editTask?.fin} />
+          <input type="checkbox" checked={editTask ? editTask.fin : form.fin} onChange={e => editTask ? setEditTask({ ...editTask, fin: e.target.checked }) : setForm({ ...form, fin: e.target.checked })} disabled={editTask?.fin} />
           <span>Finalizada</span>
         </label>
 
@@ -83,59 +146,26 @@ function App() {
 
       <ul className="space-y-3">
         {tareasFiltradas.map(t => (
-          <li key={t.id} className={`p-3 rounded-xl shadow-sm flex items-center justify-between ${t.fin ? "bg-green-200":"bg-blue-100"}`}>
+          <li key={t.id} className={`p-3 rounded-xl shadow-sm flex items-center justify-between ${t.fin ? "bg-green-200" : "bg-blue-100"}`}>
             <div className="flex items-center space-x-3">
               {t.imagen && <img src={`data:image/jpeg;base64,${t.imagen}`} alt="Foto" className="w-12 h-12 rounded-full object-cover" />}
               <div>
-                <p className={t.fin ? "line-through text-gray-600":"text-black"}><span className="font-bold text-gray-700">#{t.id}</span> {t.usuario}: {t.tarea} {t.fin ? "✅":"🔹"}</p>
+                <p className={t.fin ? "line-through text-gray-600" : "text-black"}><span className="font-bold text-gray-700">#{t.id}</span> {t.usuario}: {t.tarea} {t.fin ? "✅" : "🔹"}</p>
                 <p className="text-sm text-gray-500">Fecha: {new Date(t.fecha).toLocaleString()}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <label className="flex items-center space-x-1">
-                <input type="checkbox" checked={t.fin} onChange={e=>{e.stopPropagation(); handleToggleFin(t,e.target.checked);}} disabled={t.fin} />
+                <input type="checkbox" checked={t.fin} onChange={e => { e.stopPropagation(); handleToggleFin(t, e.target.checked); }} disabled={t.fin} />
                 <span>Finalizada</span>
               </label>
             </div>
           </li>
         ))}
       </ul>
-    </div>
-  );
 
-  const PanelSupervision = () => {
-    const pendientesGlobales = tareas.filter(t => !t.fin);
-    return (
-      <div className="p-4 max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">🛠 Panel de supervisión</h1>
-          <Link to="/" className="bg-blue-500 text-white px-3 py-1 rounded-xl text-sm">Volver</Link>
-        </div>
-        <ul className="space-y-3">
-          {pendientesGlobales.map(t => (
-            <li key={t.id} className="p-3 rounded-xl shadow-sm bg-yellow-100 flex items-center space-x-3">
-              {t.imagen && <img src={`data:image/jpeg;base64,${t.imagen}`} alt="Foto" className="w-12 h-12 rounded-full object-cover" />}
-              <div>
-                <p><span className="font-bold text-gray-700">#{t.id}</span> {t.usuario}: {t.tarea}</p>
-                <p className="text-sm text-gray-500">Fecha: {new Date(t.fecha).toLocaleString()}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
-
-  if (!loggedIn) return <LoginForm />;
-
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<SolicitudForm />} />
-        <Route path="/supervision" element={<PanelSupervision />} />
-      </Routes>
       <ToastContainer position="bottom-right" autoClose={2000} hideProgressBar={false} />
-    </Router>
+    </div>
   );
 }
 
