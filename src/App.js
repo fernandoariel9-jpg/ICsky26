@@ -4,7 +4,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
 // Apunta al backend en Render mediante variable de entorno
-const API_URL = process.env.REACT_APP_API_URL || "https://tu-backend.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL || "https://icsky26.onrender.com/tareas";
 
 function App() {
   const [usuario, setUsuario] = useState(localStorage.getItem("usuario") || "");
