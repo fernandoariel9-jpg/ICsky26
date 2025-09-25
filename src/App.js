@@ -104,8 +104,18 @@ function PanelLogin({ onLogin }) {
   );
 }
 
+<div className="flex justify-between items-center mb-4">
+  <p className="text-lg font-semibold">👤 {usuario}</p>
+  <button
+    onClick={onLogout}
+    className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
+  >
+    Logout
+  </button>
+</div>
+
 // ---------- Componente Formulario de Usuario ----------
-function FormularioUsuario({ usuario }) {
+function FormularioUsuario({ usuario, onLogout }) {
   const [tareas, setTareas] = useState([]);
   const [form, setForm] = useState({ tarea: "", fin: false, imagen: null });
   const [editTask, setEditTask] = useState(null);
