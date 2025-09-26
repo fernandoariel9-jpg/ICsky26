@@ -50,7 +50,11 @@ export default function App() {
   if (modo === "menu") {
     return (
       <div className="p-4 max-w-md mx-auto mt-20 text-center">
-      <img src="logosmall.png" alt="IClogo">
+      <img 
+    src="/logosmall.png" 
+    alt="Logo" 
+    className="mx-auto mb-4 w-24 h-auto" 
+  />
         <h1 className="text-2xl font-bold mb-6">Bienvenido al gestor de tareas de INGENIERIA CLINICA</h1>
         <div className="flex flex-col space-y-4">
           <button
