@@ -3,9 +3,29 @@ import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactDOM from "react-dom/client";
+import App from "./App";
 import RegistroUsuario from "./RegistroUsuario";
 
 const API_URL = "https://sky26.onrender.com/tareas";
+
+function Main() {
+  const [registrado, setRegistrado] = useState(false);
+  const [usuario, setUsuario] = useState(localStorage.getItem("usuario") || "");
+
+  if (!registrado && !usuario) {
+    return <RegistroUsuario onRegistrado={(nombre) => {
+      localStorage.setItem("usuario", nombre);
+      setUsuario(nombre);
+      setRegistrado(true);
+    }} />;
+  }
+
+  return <App />;
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<Main />);
 
 // ---------- Componente Login de Usuario ----------
 function App() {
