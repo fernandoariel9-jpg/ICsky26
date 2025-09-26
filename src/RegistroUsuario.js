@@ -1,85 +1,43 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 
-const API_URL = "https://sky26.onrender.com/usuarios";
+const API_URL = "https://sky26.onrender.com";
 
 export default function RegistroUsuario({ onRegister }) {
-  const [form, setForm] = useState({
-    nombre: "",
-    servicio: "",
-    movil: "",
-    mail: "",
-  });
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const [nombre, setNombre] = useState("");
+  const [servicio, setServicio] = useState("");
+  const [movil, setMovil] = useState("");
+  const [mail, setMail] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!nombre || !servicio || !movil || !mail) return toast.error("Completa todos los campos");
+
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(`${API_URL}/usuarios`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ nombre, servicio, movil, mail })
       });
 
-      if (!res.ok) throw new Error("Error en el registro");
+      if (!res.ok) return toast.error("Error al registrar usuario");
 
-      const data = await res.json();
       toast.success("Usuario registrado ✅");
-
-      // Guardar usuario en localStorage para mantener sesión
-      localStorage.setItem("usuario", data.usuario.nombre);
-
-      // Notificar al App que ya está logueado
-      onRegister(data.usuario.nombre);
-
-    } catch (err) {
-      toast.error("Error al registrar usuario ❌");
+      onRegister(nombre);
+    } catch {
+      toast.error("Error en el registro");
     }
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto mt-20">
+    <div className="p-4 max-w-md mx-auto mt-10">
       <h1 className="text-2xl font-bold text-center mb-4">Registro de Usuario</h1>
       <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
-        <input
-          type="text"
-          name="nombre"
-          placeholder="Nombre"
-          value={form.nombre}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        />
-        <input
-          type="text"
-          name="servicio"
-          placeholder="Servicio"
-          value={form.servicio}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="tel"
-          name="movil"
-          placeholder="Móvil"
-          value={form.movil}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="email"
-          name="mail"
-          placeholder="Correo electrónico"
-          value={form.mail}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-        <button type="submit" className="bg-green-500 text-white p-2 rounded-xl">
-          Registrarse
-        </button>
+        <input type="text" placeholder="Nombre" value={nombre} onChange={e => setNombre(e.target.value)} className="w-full p-2 border rounded" required/>
+        <input type="text" placeholder="Servicio" value={servicio} onChange={e => setServicio(e.target.value)} className="w-full p-2 border rounded" required/>
+        <input type="text" placeholder="Móvil" value={movil} onChange={e => setMovil(e.target.value)} className="w-full p-2 border rounded" required/>
+        <input type="email" placeholder="Email" value={mail} onChange={e => setMail(e.target.value)} className="w-full p-2 border rounded" required/>
+        <button type="submit" className="bg-blue-500 text-white p-2 rounded-xl">Registrar</button>
       </form>
     </div>
   );
