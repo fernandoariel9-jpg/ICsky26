@@ -50,7 +50,7 @@ export default function App() {
   if (modo === "menu") {
     return (
       <div className="p-4 max-w-md mx-auto mt-20 text-center">
-        <h1 className="text-2xl font-bold mb-6">Bienvenido a RIC01</h1>
+        <h1 className="text-2xl font-bold mb-6">Bienvenido al gestor de tareas de INGENIERIA CLINICA</h1>
         <div className="flex flex-col space-y-4">
           <button
             className="bg-blue-500 text-white p-2 rounded-xl"
