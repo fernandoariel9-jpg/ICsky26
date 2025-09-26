@@ -18,7 +18,7 @@ export default function Login({ onLogin }) {
       if (!res.ok) throw new Error("Usuario no encontrado");
 
       const data = await res.json();
-      toast.success(Bienvenido ${data.usuario.nombre} ✅);
+      toast.success(`Bienvenido ${data.usuario.nombre} ✅`);
 
       localStorage.setItem("usuario", data.usuario.nombre);
       onLogin(data.usuario.nombre);
@@ -46,5 +46,4 @@ export default function Login({ onLogin }) {
       </form>
     </div>
   );
-
 }
