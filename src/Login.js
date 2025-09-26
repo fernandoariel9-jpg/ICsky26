@@ -1,18 +1,31 @@
-// Login.js
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 
-export default function UsuarioLogin({ onLogin }) {
+const API_URL = "https://sky26.onrender.com/login";
+
+export default function Login({ onLogin }) {
   const [nombre, setNombre] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!nombre.trim()) {
-      toast.error("Ingresa tu nombre");
-      return;
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre }),
+      });
+
+      if (!res.ok) throw new Error("Usuario no encontrado");
+
+      const data = await res.json();
+      toast.success(Bienvenido ${data.usuario.nombre} ✅);
+
+      localStorage.setItem("usuario", data.usuario.nombre);
+      onLogin(data.usuario.nombre);
+
+    } catch (err) {
+      toast.error("Usuario no registrado ❌");
     }
-    toast.success("Bienvenido " + nombre + " ✅");
-    onLogin(nombre);
   };
 
   return (
@@ -21,7 +34,7 @@ export default function UsuarioLogin({ onLogin }) {
       <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
         <input
           type="text"
-          placeholder="Tu nombre"
+          placeholder="Nombre de usuario"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
           className="w-full p-2 border rounded"
@@ -33,4 +46,5 @@ export default function UsuarioLogin({ onLogin }) {
       </form>
     </div>
   );
+
 }
