@@ -27,34 +27,7 @@ function Main() {
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<Main />);
 
-// ---------- Componente Login de Usuario ----------
-function App() {
-  const [usuario, setUsuario] = useState(localStorage.getItem("usuario"));
 
-  const handleLogin = (nombre) => {
-    setUsuario(nombre);
-  };
-
-  const handleRegister = (nombre) => {
-    setUsuario(nombre);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("usuario");
-    setUsuario(null);
-  };
-
-  if (!usuario) return <UsuarioLogin onLogin={(u) => setUsuario(u)} />;
-
-  return (
-    <div>
-      <FormularioUsuario usuario={usuario} onLogout={handleLogout} />
-      <hr className="my-4" />
-      <SupervisionWrapper />
-    </div>
-  );
-}
-export default App;
 
 function UsuarioLogin({ onLogin }) {
   const [usuario, setUsuario] = useState("");
