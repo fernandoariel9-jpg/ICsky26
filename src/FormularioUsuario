@@ -1,7 +1,16 @@
 // src/FormularioUsuario.js
-import React from "react";
+import React, { useState } from "react";
 
 function FormularioUsuario({ usuario, onLogout }) {
+  const [tarea, setTarea] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!tarea.trim()) return alert("Debe ingresar una tarea");
+    console.log("Tarea enviada:", { usuario, tarea });
+    setTarea("");
+  };
+
   return (
     <div className="p-4 max-w-md mx-auto">
       <div className="flex justify-between items-center mb-2">
@@ -17,6 +26,26 @@ function FormularioUsuario({ usuario, onLogout }) {
           Logout
         </button>
       </div>
+
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-4 rounded-2xl shadow mb-6 flex flex-col space-y-3"
+      >
+        <input
+          type="text"
+          placeholder="Tarea solicitada"
+          className="w-full p-2 border rounded"
+          value={tarea}
+          onChange={(e) => setTarea(e.target.value)}
+          required
+        />
+        <button
+          type="submit"
+          className="bg-blue-500 text-white p-2 rounded-xl"
+        >
+          Enviar solicitud
+        </button>
+      </form>
     </div>
   );
 }
