@@ -221,11 +221,10 @@ function FormularioUsuario({ usuario, onLogout }) {
           onChange={e=>editTask?setEditTask({...editTask,tarea:e.target.value}):setForm({...form,tarea:e.target.value})} required/>
         
         <label className="bg-green-500 text-white px-3 py-2 rounded-xl cursor-pointer text-center">
-  Tomar foto
+  Subir imágen
   <input
     type="file"
     accept="image/*"
-    capture="environment"
     onChange={handleImagen}
     className="hidden"
   />
