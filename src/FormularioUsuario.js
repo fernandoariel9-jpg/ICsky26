@@ -85,6 +85,11 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   return (
     <div className="p-4 max-w-md mx-auto">
       <div className="flex justify-between items-center mb-2">
+    <img
+          src="/logosmall.png"
+          alt="Logo"
+          className="mx-auto mb-4 w-12 h-auto"
+        />
         <h1 className="text-2xl font-bold">📋 Solicitud de servicio RIC01</h1>
       </div>
 
