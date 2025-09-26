@@ -48,8 +48,6 @@ export default function App() {
   return <FormularioUsuario usuario={usuario} onLogout={handleLogout} />;
 }
 
-export default App;
-
 function UsuarioLogin({ onLogin }) {
   const [usuario, setUsuario] = useState("");
 
