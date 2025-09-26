@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "http://192.168.2.101:4000/tareas"; // cambia según tu servidor
+const API_URL = "https://sky26.onrender.com/tareas"; // cambia según tu servidor
 
 function PanelPendientes() {
   const [tareas, setTareas] = useState([]);
@@ -57,5 +57,6 @@ function PanelPendientes() {
     </div>
   );
 }
+
 
 export default PanelPendientes;
