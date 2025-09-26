@@ -48,35 +48,6 @@ export default function App() {
   return <FormularioUsuario usuario={usuario} onLogout={handleLogout} />;
 }
 
-function UsuarioLogin({ onLogin }) {
-  const [usuario, setUsuario] = useState("");
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (!usuario.trim()) return toast.error("Debes ingresar un nombre de usuario");
-    localStorage.setItem("usuario", usuario);
-    onLogin(usuario);
-    toast.success(`Bienvenido, ${usuario} ✅`);
-  };
-
-  return (
-    <div className="p-4 max-w-md mx-auto mt-20">
-      <h1 className="text-2xl font-bold text-center mb-4">Login de Usuario</h1>
-      <form onSubmit={handleLogin} className="flex flex-col space-y-3">
-        <input
-          type="text"
-          placeholder="Nombre de usuario"
-          className="w-full p-2 border rounded"
-          value={usuario}
-          onChange={(e) => setUsuario(e.target.value)}
-          required
-        />
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded-xl">Ingresar</button>
-      </form>
-    </div>
-  );
-}
-
 // ---------- Componente Login de Panel de Supervisión ----------
 function PanelLogin({ onLogin }) {
   const [password, setPassword] = useState("");
