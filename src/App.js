@@ -33,21 +33,53 @@ root.render(<Main />);
 
 export default function App() {
   const [usuario, setUsuario] = useState(localStorage.getItem("usuario") || "");
-  const [modoRegistro, setModoRegistro] = useState(true); // true = registro, false = login
+  const [modo, setModo] = useState("menu"); // "menu", "login", "registro"
 
   const handleLogout = () => {
     localStorage.removeItem("usuario");
     setUsuario("");
-    setModoRegistro(true); // volvemos a la pantalla de registro
+    setModo("menu"); // volver al menú inicial
   };
 
-  if (!usuario) {
-    return modoRegistro ? 
-      <RegistroUsuario onRegister={u => { setUsuario(u); setModoRegistro(false); }} /> 
-      : <UsuarioLogin onLogin={u => setUsuario(u)} switchToRegister={() => setModoRegistro(true)} />;
+  // Usuario logueado → muestra formulario de tareas
+  if (usuario) {
+    return <FormularioUsuario usuario={usuario} onLogout={handleLogout} />;
   }
 
-  return <FormularioUsuario usuario={usuario} onLogout={handleLogout} />;
+  // Usuario no logueado → menú inicial
+  if (modo === "menu") {
+    return (
+      <div className="p-4 max-w-md mx-auto mt-20 text-center">
+        <h1 className="text-2xl font-bold mb-6">Bienvenido a RIC01</h1>
+        <div className="flex flex-col space-y-4">
+          <button
+            className="bg-blue-500 text-white p-2 rounded-xl"
+            onClick={() => setModo("login")}
+          >
+            Ingresar
+          </button>
+          <button
+            className="bg-green-500 text-white p-2 rounded-xl"
+            onClick={() => setModo("registro")}
+          >
+            Registrarse
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar login
+  if (modo === "login") {
+    return <UsuarioLogin onLogin={(u) => setUsuario(u)} switchToRegister={() => setModo("registro")} />;
+  }
+
+  // Mostrar registro
+  if (modo === "registro") {
+    return <RegistroUsuario onRegister={(u) => setUsuario(u)} switchToLogin={() => setModo("login")} />;
+  }
+
+  return null;
 }
 
 // ---------- Componente Login de Panel de Supervisión ----------
