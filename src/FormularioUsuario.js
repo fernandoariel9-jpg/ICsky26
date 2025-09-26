@@ -126,7 +126,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
 
         <label className="bg-green-500 text-white px-3 py-2 rounded-xl cursor-pointer text-center">
           Tomar foto
-          <input type="file" accept="image/*" capture="environment" onChange={handleImagen} className="hidden" />
+          <input type="file" accept="image/*" onChange={handleImagen} className="hidden" />
         </label>
 
         {editTask?.imagen && (
