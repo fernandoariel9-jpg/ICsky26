@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 
 const API_URL = "https://sky26.onrender.com";
 
-export default function UsuarioLogin({ onLogin }) {
+export default function UsuarioLogin({ onLogin, switchToRegister }) {
   const [usuario, setUsuario] = useState("");
 
   const handleLogin = async (e) => {
@@ -35,6 +35,12 @@ export default function UsuarioLogin({ onLogin }) {
         <input type="text" placeholder="Nombre de usuario" className="w-full p-2 border rounded" value={usuario} onChange={e => setUsuario(e.target.value)} required/>
         <button type="submit" className="bg-blue-500 text-white p-2 rounded-xl">Ingresar</button>
       </form>
+      <p className="text-center mt-2">
+        ¿No tienes cuenta?{" "}
+        <span className="text-blue-500 cursor-pointer" onClick={switchToRegister}>
+          Regístrate aquí
+        </span>
+      </p>
     </div>
   );
 }
