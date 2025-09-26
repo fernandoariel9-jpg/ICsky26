@@ -99,8 +99,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
           onChange={e=>editTask?setEditTask({...editTask,tarea:e.target.value}):setForm({...form,tarea:e.target.value})} required />
 
         <label className="bg-green-500 text-white px-3 py-2 rounded-xl cursor-pointer text-center">
-          Tomar foto / Galería
-          <input type="file" accept="image/*" capture="environment" onChange={handleImagen} className="hidden"/>
+          Subir imágen
+          <input type="file" accept="image/*" onChange={handleImagen} className="hidden"/>
         </label>
 
         {editTask?.imagen && <img src={`data:image/jpeg;base64,${editTask.imagen}`} alt="Foto" className="mt-2 w-24 h-24 rounded-full object-cover cursor-pointer" onClick={()=>abrirModal(editTask.imagen)} />}
