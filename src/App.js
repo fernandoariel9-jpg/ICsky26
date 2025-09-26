@@ -28,6 +28,7 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<Main />);
 
 
+export default App;
 
 function UsuarioLogin({ onLogin }) {
   const [usuario, setUsuario] = useState("");
