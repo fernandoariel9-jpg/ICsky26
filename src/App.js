@@ -32,17 +32,18 @@ root.render(<Main />);
 
 export default function App() {
   const [usuario, setUsuario] = useState(localStorage.getItem("usuario") || "");
-  const [registrado, setRegistrado] = useState(false);
+  const [modoRegistro, setModoRegistro] = useState(true); // true = registro, false = login
 
   const handleLogout = () => {
     localStorage.removeItem("usuario");
     setUsuario("");
+    setModoRegistro(true); // volvemos a la pantalla de registro
   };
 
-  if(!usuario) {
-    return registrado ? 
-      <UsuarioLogin onLogin={u=>setUsuario(u)} /> 
-      : <RegistroUsuario onRegister={u=>{ setUsuario(u); setRegistrado(true); }} />;
+  if (!usuario) {
+    return modoRegistro ? 
+      <RegistroUsuario onRegister={u => { setUsuario(u); setModoRegistro(false); }} /> 
+      : <UsuarioLogin onLogin={u => setUsuario(u)} switchToRegister={() => setModoRegistro(true)} />;
   }
 
   return <FormularioUsuario usuario={usuario} onLogout={handleLogout} />;
