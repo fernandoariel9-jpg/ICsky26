@@ -39,7 +39,19 @@ export default function RegistroUsuario({ onRegister }) {
       <h1 className="text-2xl font-bold text-center mb-4">Registro de Usuario</h1>
       <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
         <input type="text" placeholder="Nombre" value={nombre} onChange={e => setNombre(e.target.value)} className="w-full p-2 border rounded" required/>
-        <input type="text" placeholder="Servicio" value={servicio} onChange={e => setServicio(e.target.value)} className="w-full p-2 border rounded" required/>
+         <select
+          className="w-full p-2 border rounded"
+          value={servicio}
+          onChange={(e) => setServicio(e.target.value)}
+          required
+        >
+          <option value="">Seleccione un servicio</option>
+          <option value="Ingeniería Clínica">Ingeniería Clínica</option>
+          <option value="Diagnóstico por imágenes">Diagnóstico por imágenes</option>
+          <option value="Maternidad">Maternidad</option>
+          <option value="Pediatria">Pediatria</option>
+          <option value="STI">STI</option>
+        </select>
         <input type="text" placeholder="Móvil" value={movil} onChange={e => setMovil(e.target.value)} className="w-full p-2 border rounded" required/>
         <input type="email" placeholder="Email" value={mail} onChange={e => setMail(e.target.value)} className="w-full p-2 border rounded" required/>
         <button type="submit" className="bg-blue-500 text-white p-2 rounded-xl">Registrar</button>
@@ -47,4 +59,5 @@ export default function RegistroUsuario({ onRegister }) {
     </div>
   );
 }
+
 
