@@ -1,67 +1,45 @@
-// App.js
 import React, { useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import UsuarioLogin from "./UsuarioLogin";
 import RegistroUsuario from "./RegistroUsuario";
 import FormularioUsuario from "./FormularioUsuario";
-import SupervisionWrapper from "./Supervisor";
-import UsuarioLogin from "./Login";
-
-const API_URL = "https://sky26.onrender.com";
+import SupervisionWrapper from "./SupervisionWrapper";
 
 export default function App() {
   const [usuario, setUsuario] = useState(localStorage.getItem("usuario") || "");
-  const [registrado, setRegistrado] = useState(localStorage.getItem("registrado") === "true");
+  const [showRegistro, setShowRegistro] = useState(false);
 
-  // Manejo de login
-  const handleLogin = (nombre) => {
-    localStorage.setItem("usuario", nombre);
-    setUsuario(nombre);
-  };
-
-  // Manejo de logout
   const handleLogout = () => {
     localStorage.removeItem("usuario");
-    localStorage.removeItem("registrado");
     setUsuario("");
-    setRegistrado(false);
   };
 
-  // Si no está registrado → mostrar registro
-  if (!registrado) {
-    return (
-      <div>
-        <RegistroUsuario
-          onRegistro={(nombre) => {
-            localStorage.setItem("registrado", "true");
-            localStorage.setItem("usuario", nombre);
-            setUsuario(nombre);
-            setRegistrado(true);
-          }}
-        />
-        <ToastContainer position="bottom-right" autoClose={2000} />
-      </div>
-    );
-  }
-
-  // Si no está logueado → mostrar login
+  // 👉 Si no hay usuario, mostrar login o registro
   if (!usuario) {
-    return (
-      <div>
-        <UsuarioLogin onLogin={handleLogin} />
-        <ToastContainer position="bottom-right" autoClose={2000} />
-      </div>
+    return showRegistro ? (
+      <RegistroUsuario
+        onRegister={(nombre) => {
+          setUsuario(nombre);
+          setShowRegistro(false);
+        }}
+      />
+    ) : (
+      <UsuarioLogin
+        onLogin={(u) => setUsuario(u)}
+        onSwitchToRegistro={() => setShowRegistro(true)}
+      />
     );
   }
 
-  // Usuario logueado → mostrar formulario de tareas + supervisor
+  // 👉 Si hay usuario logueado
   return (
     <div>
       <FormularioUsuario usuario={usuario} onLogout={handleLogout} />
       <hr className="my-4" />
       <SupervisionWrapper />
-      <ToastContainer position="bottom-right" autoClose={2000} />
+      <ToastContainer position="bottom-right" autoClose={2000} hideProgressBar={false} />
     </div>
   );
 }
