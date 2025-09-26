@@ -31,6 +31,11 @@ export default function RegistroUsuario({ onRegister }) {
 
   return (
     <div className="p-4 max-w-md mx-auto mt-10">
+    <img
+          src="/logosmall.png"
+          alt="Logo"
+          className="mx-auto mb-4 w-24 h-auto"
+        />
       <h1 className="text-2xl font-bold text-center mb-4">Registro de Usuario</h1>
       <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
         <input type="text" placeholder="Nombre" value={nombre} onChange={e => setNombre(e.target.value)} className="w-full p-2 border rounded" required/>
@@ -42,3 +47,4 @@ export default function RegistroUsuario({ onRegister }) {
     </div>
   );
 }
+
