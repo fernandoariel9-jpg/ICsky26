@@ -4,9 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactDOM from "react-dom/client";
-import Login from "./Login";
 import RegistroUsuario from "./RegistroUsuario";
-import Panel from "./Panel";
 import UsuarioLogin from "./UsuarioLogin";
 import FormularioUsuario from "./FormularioUsuario";
 
