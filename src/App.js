@@ -9,7 +9,6 @@ import RegistroUsuario from "./RegistroUsuario";
 import Panel from "./Panel";
 import UsuarioLogin from "./UsuarioLogin";
 import FormularioUsuario from "./FormularioUsuario";
-import Supervisor from "./Supervisor";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
