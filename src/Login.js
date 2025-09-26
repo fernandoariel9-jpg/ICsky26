@@ -1,26 +1,13 @@
+// src/Login.js
 import React, { useState } from "react";
-import { toast } from "react-toastify";
 
-const API_URL = "https://sky26.onrender.com/usuarios";
+function Login({ onLogin, onGoRegister }) {
+  const [nombre, setNombre] = useState("");
 
-export default function Login({ onLogin, onRegistro }) {
-  const [usuario, setUsuario] = useState("");
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!usuario.trim()) return toast.error("Debes ingresar un nombre");
-
-    try {
-      const res = await fetch(`${API_URL}/${usuario}`);
-      if (res.ok) {
-        onLogin(usuario);
-        toast.success(`Bienvenido, ${usuario}`);
-      } else {
-        toast.error("Usuario no registrado");
-      }
-    } catch {
-      toast.error("Error de conexión");
-    }
+    if (!nombre.trim()) return alert("Debes ingresar un nombre");
+    onLogin(nombre);
   };
 
   return (
@@ -31,8 +18,8 @@ export default function Login({ onLogin, onRegistro }) {
           type="text"
           placeholder="Nombre de usuario"
           className="w-full p-2 border rounded"
-          value={usuario}
-          onChange={(e) => setUsuario(e.target.value)}
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
           required
         />
         <button type="submit" className="bg-blue-500 text-white p-2 rounded-xl">
@@ -40,8 +27,8 @@ export default function Login({ onLogin, onRegistro }) {
         </button>
         <button
           type="button"
-          onClick={onRegistro}
-          className="bg-gray-500 text-white p-2 rounded-xl"
+          onClick={onGoRegister}
+          className="bg-green-500 text-white p-2 rounded-xl"
         >
           Registrarse
         </button>
@@ -49,3 +36,5 @@ export default function Login({ onLogin, onRegistro }) {
     </div>
   );
 }
+
+export default Login;
