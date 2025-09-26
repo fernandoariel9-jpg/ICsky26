@@ -5,7 +5,9 @@ import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+import Login from "./Login";
 import RegistroUsuario from "./RegistroUsuario";
+import Panel from "./Panel";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
@@ -27,6 +29,33 @@ function Main() {
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<Main />);
 
+function App() {
+  const [usuario, setUsuario] = useState(localStorage.getItem("usuario"));
+
+  const handleLogin = (nombre) => {
+    setUsuario(nombre);
+  };
+
+  const handleRegister = (nombre) => {
+    setUsuario(nombre);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("usuario");
+    setUsuario(null);
+  };
+
+  if (!usuario) {
+    return (
+      <>
+        <Login onLogin={handleLogin} />
+        <RegistroUsuario onRegister={handleRegister} />
+      </>
+    );
+  }
+
+  return <Panel usuario={usuario} onLogout={handleLogout} />;
+}
 
 export default App;
 
