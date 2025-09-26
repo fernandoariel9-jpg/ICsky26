@@ -1,9 +1,11 @@
 // App.js
 import React, { useState, useEffect } from "react";
+import Login from "./Login";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
 import RegistroUsuario from "./RegistroUsuario";
+import Panel from "./Panel";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
