@@ -44,12 +44,14 @@ function App() {
     setUsuario(null);
   };
 
-  if (!usuario) {
-    return (
-      <>
-        <Login onLogin={handleLogin} />
-        <RegistroUsuario onRegister={handleRegister} />
-      </>
+  if (!usuario) return <UsuarioLogin onLogin={(u) => setUsuario(u)} />;
+
+  return (
+    <div>
+      <FormularioUsuario usuario={usuario} onLogout={handleLogout} />
+      <hr className="my-4" />
+      <SupervisionWrapper />
+    </div>
     );
   }
 
