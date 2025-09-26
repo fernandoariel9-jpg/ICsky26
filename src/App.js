@@ -7,6 +7,8 @@ import ReactDOM from "react-dom/client";
 import Login from "./Login";
 import RegistroUsuario from "./RegistroUsuario";
 import Panel from "./Panel";
+import UsuarioLogin from "./UsuarioLogin";
+import FormularioUsuario from "./FormularioUsuario";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
@@ -28,32 +30,23 @@ function Main() {
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<Main />);
 
-function App() {
-  const [usuario, setUsuario] = useState(localStorage.getItem("usuario"));
-
-  const handleLogin = (nombre) => {
-    setUsuario(nombre);
-  };
-
-  const handleRegister = (nombre) => {
-    setUsuario(nombre);
-  };
+export default function App() {
+  const [usuario, setUsuario] = useState(localStorage.getItem("usuario") || "");
+  const [registrado, setRegistrado] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("usuario");
-    setUsuario(null);
+    setUsuario("");
   };
 
-  if (!usuario) return <UsuarioLogin onLogin={(u) => setUsuario(u)} />;
-
-  return (
-    <div>
-      <FormularioUsuario usuario={usuario} onLogout={handleLogout} />
-      <hr className="my-4" />
-      <SupervisionWrapper />
-    </div>
-    );
+  if(!usuario) {
+    return registrado ? 
+      <UsuarioLogin onLogin={u=>setUsuario(u)} /> 
+      : <RegistroUsuario onRegister={u=>{ setUsuario(u); setRegistrado(true); }} />;
   }
+
+  return <FormularioUsuario usuario={usuario} onLogout={handleLogout} />;
+}
 
 export default App;
 
