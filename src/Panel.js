@@ -58,7 +58,6 @@ function Supervision() {
     try {
       const res = await fetch(API_URL);
       const data = await res.json();
-      // mostrar solo pendientes
       setTareas(
         data.filter((t) => !t.fin).sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
       );
@@ -87,7 +86,7 @@ function Supervision() {
           >
             {t.imagen && (
               <img
-                src={data:image/jpeg;base64,${t.imagen}}
+                src={`data:image/jpeg;base64,${t.imagen}`}
                 alt="Foto"
                 className="w-12 h-12 rounded-full object-cover cursor-pointer"
                 onClick={() => abrirModal(t.imagen)}
@@ -117,7 +116,7 @@ function Supervision() {
             onClick={cerrarModal}
           >
             <motion.img
-              src={data:image/jpeg;base64,${modalImagen}}
+              src={`data:image/jpeg;base64,${modalImagen}`}
               alt="Ampliada"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
@@ -138,5 +137,4 @@ function Supervision() {
 export default function Panel() {
   const [loggedIn, setLoggedIn] = useState(false);
   return loggedIn ? <Supervision /> : <PanelLogin onLogin={setLoggedIn} />;
-
 }
