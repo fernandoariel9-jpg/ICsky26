@@ -1,62 +1,54 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
-const API_URL = "https://sky26.onrender.com/tareas"; // cambia según tu servidor
+const API_URL = "https://sky26.onrender.com/tareas";
 
-function PanelPendientes() {
+export default function PanelPendientes() {
   const [tareas, setTareas] = useState([]);
 
   useEffect(() => {
     fetchTareas();
-    const interval = setInterval(fetchTareas, 5000); // refresca cada 5 segundos
-    return () => clearInterval(interval);
   }, []);
 
   const fetchTareas = async () => {
     try {
       const res = await fetch(API_URL);
       const data = await res.json();
-      const pendientes = data.filter(t => !t.fin);
-      setTareas(pendientes.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
-    } catch (err) {
-      console.error("Error al cargar tareas pendientes:", err);
+      setTareas(data.filter((t) => !t.fin));
+    } catch {
+      toast.error("Error al cargar pendientes");
     }
   };
 
   return (
-    <div className="p-4 max-w-4xl mx-auto mt-4">
-      {/* Contador */}
-      <div className="mb-4 text-center">
-        <h2 className="text-2xl font-bold">📋 Panel de Tareas Pendientes</h2>
-        <p className="text-lg font-semibold text-red-600 mt-2">
-          Total pendientes: {tareas.length}
-        </p>
-      </div>
-
-      {/* Lista de tareas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {tareas.length === 0 && (
-          <p className="text-center text-gray-500 col-span-full">No hay tareas pendientes</p>
-        )}
-        {tareas.map(t => (
-          <div key={t.id} className="p-4 bg-yellow-100 rounded-2xl shadow-md flex flex-col">
-            <div className="flex justify-between items-start">
-              <p className="font-bold text-gray-700">#{t.id} - {t.usuario}</p>
-            </div>
-            <p className="mt-2 text-gray-800">{t.tarea}</p>
-            <p className="mt-1 text-sm text-gray-500">Fecha: {new Date(t.fecha).toLocaleString()}</p>
+    <div className="p-4 max-w-md mx-auto">
+      <h1 className="text-2xl font-bold text-center mb-4">
+        📋 Panel de Pendientes
+      </h1>
+      <ul className="space-y-3">
+        {tareas.map((t) => (
+          <li
+            key={t.id}
+            className="p-3 rounded-xl shadow-sm bg-blue-100 flex items-center space-x-3"
+          >
             {t.imagen && (
               <img
                 src={`data:image/jpeg;base64,${t.imagen}`}
                 alt="Foto"
-                className="mt-2 w-28 h-28 rounded object-cover self-center"
+                className="w-12 h-12 rounded-full object-cover"
               />
             )}
-          </div>
+            <div>
+              <p>
+                <span className="font-bold">#{t.id}</span> {t.usuario}: {t.tarea}
+              </p>
+              <p className="text-sm text-gray-500">
+                {new Date(t.fecha).toLocaleString()}
+              </p>
+            </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
-
-
-export default PanelPendientes;
