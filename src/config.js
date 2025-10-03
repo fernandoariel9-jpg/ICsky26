@@ -9,3 +9,5 @@ export const ENDPOINTS = {
   SERVICIOS: `${API_BASE_URL}/servicios`,
   TAREAS: `${API_BASE_URL}/tareas`,
 };
+
+export default API_BASE_URL;
