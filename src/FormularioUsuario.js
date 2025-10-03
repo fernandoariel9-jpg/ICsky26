@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "./config";
 
-const API_TAREAS = API_URL.tareas;
+const API_TAREAS = API_URL.Tareas;
 
 export default function FormularioUsuario({ usuario, onLogout }) {
   const [tareas, setTareas] = useState([]);
@@ -281,4 +281,5 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   );
 
 }
+
 
