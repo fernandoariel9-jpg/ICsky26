@@ -148,4 +148,5 @@ export default function RegistroPersonal({ onRegister, switchToLogin }) {
       </form>
     </div>
   );
+
 }
