@@ -49,4 +49,5 @@ export default function UsuarioLogin({ onLogin, switchToRegister }) {
       </p>
     </div>
   );
+
 }
