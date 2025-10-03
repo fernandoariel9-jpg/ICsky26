@@ -5,8 +5,8 @@ export default function UsuarioLogin({ onLogin, switchToRegister }) {
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
   const [recordar, setRecordar] = useState(false);
+  const [loading, setLoading] = useState(false); // 🔹 Spinner + overlay
 
-  // Cargar mail y password guardados
   useEffect(() => {
     const savedMail = localStorage.getItem("usuarioRecordado");
     const savedPassword = sessionStorage.getItem("passwordRecordado");
@@ -19,18 +19,19 @@ export default function UsuarioLogin({ onLogin, switchToRegister }) {
     }
   }, []);
 
-  // Manejar cambio de la casilla "Recordar usuario"
   const handleRecordarChange = (checked) => {
     setRecordar(checked);
     if (!checked) {
       localStorage.removeItem("usuarioRecordado");
       sessionStorage.removeItem("passwordRecordado");
-      setPassword(""); // Limpiar la contraseña en el formulario
+      setPassword("");
     }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true); // 🔹 activar overlay
+
     try {
       const res = await fetch("https://sky26.onrender.com/usuarios/login", {
         method: "POST",
@@ -47,17 +48,18 @@ export default function UsuarioLogin({ onLogin, switchToRegister }) {
           localStorage.setItem("usuarioRecordado", mail);
           sessionStorage.setItem("passwordRecordado", password);
         }
-
       } else {
         toast.error("Usuario o contraseña incorrectos ❌");
       }
     } catch {
       toast.error("Error de conexión ❌");
+    } finally {
+      setLoading(false); // 🔹 desactivar overlay
     }
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto mt-20">
+    <div className="p-4 max-w-md mx-auto mt-20 relative">
       <img
         src="/logosmall.png"
         alt="Logo"
@@ -110,6 +112,13 @@ export default function UsuarioLogin({ onLogin, switchToRegister }) {
           Registrarse
         </button>
       </p>
+
+      {/* 🔹 Overlay con spinner mientras carga */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
     </div>
   );
 }
