@@ -11,7 +11,6 @@ import RegistroPersonal from "./RegistroPersonal";
 import LoginPersonal from "./LoginPersonal";
 import FormularioUsuario from "./FormularioUsuario";
 import TareasPersonal from "./TareasPersonal";
-import PanelLogin from "./PanelLogin";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
