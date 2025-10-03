@@ -11,4 +11,4 @@ export const API_URL = {
   Areas: `${API_BASE_URL}/areas`,
   Servicios: `${API_BASE_URL}/servicios`,
   Tareas: `${API_BASE_URL}/tareas`,
-  
+};
