@@ -4,7 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { API_URL } from "./config";
 
-const API_TAREAS = API_URL.tareas;
+const API_TAREAS = API_URL.Tareas;
 
 export default function TareasPersonal({ personal, onLogout }) {
   const [tareas, setTareas] = useState([]);
