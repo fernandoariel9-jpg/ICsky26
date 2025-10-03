@@ -4,13 +4,13 @@ import ReactDOM from "react-dom/client";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
-
 import RegistroUsuario from "./RegistroUsuario";
 import UsuarioLogin from "./UsuarioLogin";
 import RegistroPersonal from "./RegistroPersonal";
 import LoginPersonal from "./LoginPersonal";
 import FormularioUsuario from "./FormularioUsuario";
 import TareasPersonal from "./TareasPersonal";
+import PanelLogin from "./PanelLogin";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
