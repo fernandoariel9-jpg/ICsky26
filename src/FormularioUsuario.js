@@ -151,7 +151,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       <h1 className="text-2xl font-bold mb-4 text-center">
         📌 Pedidos de tareas de {usuario?.nombre || usuario?.mail || "Usuario"}{" "}
        <p> <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">🔄 Actualizar lista</button>
-        <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">Logout</button> </p>
+        <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">Cerrar sesión</button> </p>
       </h1>
 
       {/* Formulario para crear nueva tarea */}
@@ -279,4 +279,5 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
   );
+
 }
