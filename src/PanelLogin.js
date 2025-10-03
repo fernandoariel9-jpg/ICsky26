@@ -1,7 +1,7 @@
 // src/PanelLogin.js
 import React, { useState } from "react";
 import UsuarioLogin from "./UsuarioLogin";
-import UsuarioRegistro from "./UsuarioRegistro";
+import RegistroUsuario from "./RegistroUsuario";
 import PersonalLogin from "./PersonalLogin";
 import PersonalRegistro from "./PersonalRegistro";
 import { ToastContainer } from "react-toastify";
