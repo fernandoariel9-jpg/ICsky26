@@ -26,13 +26,13 @@ export default function PanelLogin({ onLogin }) {
             <UsuarioLogin onLogin={handleLogin} switchToRegister={() => switchModo("usuarioRegistro")} />
           )}
           {modo === "usuarioRegistro" && (
-            <UsuarioRegistro switchToLogin={() => switchModo("usuarioLogin")} />
+            <RegistroUsuario switchToLogin={() => switchModo("usuarioLogin")} />
           )}
           {modo === "personalLogin" && (
-            <PersonalLogin onLogin={handleLogin} switchToRegister={() => switchModo("personalRegistro")} />
+            <LoginPersonal onLogin={handleLogin} switchToRegister={() => switchModo("personalRegistro")} />
           )}
           {modo === "personalRegistro" && (
-            <PersonalRegistro switchToLogin={() => switchModo("personalLogin")} />
+            <RegistroPersonal switchToLogin={() => switchModo("personalLogin")} />
           )}
 
           <div className="mt-4 text-center">
