@@ -83,4 +83,5 @@ export default function LoginPersonal({ onLogin, switchToRegister }) {
       </p>
     </div>
   );
+
 }
