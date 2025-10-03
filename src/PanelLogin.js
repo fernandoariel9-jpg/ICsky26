@@ -2,8 +2,8 @@
 import React, { useState } from "react";
 import UsuarioLogin from "./UsuarioLogin";
 import RegistroUsuario from "./RegistroUsuario";
-import PersonalLogin from "./PersonalLogin";
-import PersonalRegistro from "./PersonalRegistro";
+import LoginPersonal from "./LoginPersonal";
+import RegistroPersonal from "./RegistroPersonal";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
