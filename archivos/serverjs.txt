@@ -1,0 +1,89 @@
+// server.js
+const express = require("express");
+const cors = require("cors");
+const { Pool } = require("pg");
+
+const app = express();
+const port = 4000;
+
+const pool = new Pool({
+  user: "postgres",
+  host: "localhost",
+  database: "skybase",
+  password: "repliKat",
+  port: 5432,
+});
+
+app.use(cors());
+app.use(express.json());
+
+// Obtener todas las tareas
+app.get("/tareas", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM ric01 ORDER BY fecha DESC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error al obtener tareas:", err.message);
+    res.status(500).json({ error: "Error al obtener tareas" });
+  }
+});
+
+// Crear tarea
+app.post("/tareas", async (req, res) => {
+  try {
+    const { usuario, tarea, fin } = req.body;
+
+    const result = await pool.query(
+      `INSERT INTO ric01 (usuario, tarea, fin, fecha)
+       VALUES ($1, $2, $3, NOW())
+       RETURNING *`,
+      [usuario, tarea, fin]
+    );
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error al crear tarea:", err.message);
+    res.status(500).json({ error: "Error al crear tarea" });
+  }
+});
+
+// Actualizar tarea
+app.put("/tareas/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { usuario, tarea, fin } = req.body;
+
+    const result = await pool.query(
+      `UPDATE ric01
+       SET usuario = $1, tarea = $2, fin = $3
+       WHERE id = $4
+       RETURNING *`,
+      [usuario, tarea, fin, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Tarea no encontrada" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error al actualizar tarea:", err.message);
+    res.status(500).json({ error: "Error al actualizar tarea" });
+  }
+});
+
+// Borrar tarea
+app.delete("/tareas/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query("DELETE FROM ric01 WHERE id = $1", [id]);
+    res.json({ message: "Tarea eliminada" });
+  } catch (err) {
+    console.error("Error al eliminar tarea:", err.message);
+    res.status(500).json({ error: "Error al eliminar tarea" });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Servidor corriendo en http://localhost:${port}`);
+});
