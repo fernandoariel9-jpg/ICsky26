@@ -68,20 +68,19 @@ export default function TareasPersonal({ personal, onLogout }) {
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
         📌 Tareas pendientes{" "}
-        <button
-          onClick={onLogout}
-          className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
-        >
-          Logout
-        </button>
-      </h1>
-
+      </h1>
       <button
         onClick={fetchTareas}
         className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm mb-4"
       >
         🔄 Actualizar lista
       </button>
+<button
+          onClick={onLogout}
+          className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          Cerrar sesión
+        </button>
 
       <ul className="space-y-4">
         {tareas
