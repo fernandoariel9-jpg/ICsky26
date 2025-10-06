@@ -40,9 +40,6 @@ function Main() {
     return (
       <div className="p-4 max-w-md mx-auto mt-20 text-center">
         <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
-      function App() {
-  return <TestQR />;
-}
         <h1 className="text-2xl font-bold mb-6">Bienvenido al gestor de tareas de INGENIERÍA CLÍNICA</h1>
         <div className="flex flex-col space-y-4">
           <button className="bg-blue-500 text-white p-2 rounded-xl" onClick={() => setModo("loginUsuario")}>
@@ -54,6 +51,12 @@ function Main() {
           <button className="bg-orange-500 text-white p-2 rounded-xl" onClick={() => setModo("supervision")}>
           Panel de Supervisión
         </button>
+            <button
+  className="bg-purple-500 text-white p-2 rounded-xl"
+  onClick={() => setModo("testQR")}
+>
+  Test QR
+</button>
         </div>
       </div>
     );
@@ -70,6 +73,9 @@ function Main() {
 
   // Registro Personal
   if (modo === "registroPersonal") return <RegistroPersonal onRegister={(p) => setPersonal(p)} switchToLogin={() => setModo("loginPersonal")} />;
+
+// dentro de tu Main()
+if (modo === "testQR") return <TestQR />;
 
 // Mostrar supervisión
   if (modo === "supervision") {
