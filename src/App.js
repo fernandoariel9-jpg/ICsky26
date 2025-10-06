@@ -12,9 +12,6 @@ import FormularioUsuario from "./FormularioUsuario";
 import TareasPersonal from "./TareasPersonal";
 import PanelLogin from "./PanelLogin";
 import TestQR from "./TestQR";
-function App() {
-  return <TestQR />;
-}
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
@@ -43,6 +40,9 @@ function Main() {
     return (
       <div className="p-4 max-w-md mx-auto mt-20 text-center">
         <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
+      function App() {
+  return <TestQR />;
+}
         <h1 className="text-2xl font-bold mb-6">Bienvenido al gestor de tareas de INGENIERÍA CLÍNICA</h1>
         <div className="flex flex-col space-y-4">
           <button className="bg-blue-500 text-white p-2 rounded-xl" onClick={() => setModo("loginUsuario")}>
