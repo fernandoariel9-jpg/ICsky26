@@ -4,7 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "./config";
-import QrReader from "react-qr-scanner"; // 🔹 lector QR
+import QrReader from "react-qr-scanner";
 
 const API_TAREAS = API_URL.Tareas;
 
@@ -15,26 +15,25 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const [nuevaImagen, setNuevaImagen] = useState(null);
   const [previewImagen, setPreviewImagen] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  // 🔹 estado lector QR
   const [showQR, setShowQR] = useState(false);
 
+  // ---------- Manejo de conexión offline/online ----------
   useEffect(() => {
     fetchTareas();
+    window.addEventListener("online", enviarTareasPendientes);
+    return () => window.removeEventListener("online", enviarTareasPendientes);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ---------- Fetch tareas ----------
   const fetchTareas = async () => {
     setLoading(true);
     try {
       if (!usuario) return;
-
       const areaParam = encodeURIComponent(usuario.area || "");
       const url = areaParam ? `${API_TAREAS}/${areaParam}` : API_TAREAS;
-
       const res = await fetch(url);
       if (!res.ok) throw new Error("Error HTTP " + res.status);
-
       const data = await res.json();
       const userIdentifier =
         typeof usuario === "string"
@@ -46,7 +45,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
           .filter((t) => t.usuario === userIdentifier)
           .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
       );
-    } catch (err) {
+    } catch {
       toast.error("Error al cargar tareas ❌");
     } finally {
       setLoading(false);
@@ -77,7 +76,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const handleImagenChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onloadend = () => {
       const parts = reader.result.split(",");
@@ -92,10 +90,10 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     setPreviewImagen(null);
   };
 
+  // ---------- Crear tarea (soporte offline) ----------
   const handleCrearTarea = async (e) => {
     e.preventDefault();
-    if (!nuevaTarea.trim())
-      return toast.error("Ingrese una descripción de tarea");
+    if (!nuevaTarea.trim()) return toast.error("Ingrese una descripción de tarea");
     if (!usuario) return toast.error("Usuario no disponible");
 
     let userIdentifier =
@@ -116,6 +114,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
 
     setLoading(true);
     try {
+      if (!navigator.onLine) throw new Error("offline");
+
       const res = await fetch(API_TAREAS, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -147,13 +147,43 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       setPreviewImagen(null);
       toast.success("✅ Tarea creada");
     } catch (err) {
-      toast.error("❌ Error al crear tarea: " + (err.message || ""));
+      // Guardar localmente si no hay conexión
+      let pendientes = JSON.parse(localStorage.getItem("tareasPendientes") || "[]");
+      pendientes.push(bodyToSend);
+      localStorage.setItem("tareasPendientes", JSON.stringify(pendientes));
+      setNuevaTarea("");
+      setNuevaImagen(null);
+      setPreviewImagen(null);
+      toast.info("⚠️ Sin conexión: tarea guardada localmente");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔹 Funciones QR
+  // ---------- Enviar tareas pendientes cuando vuelva conexión ----------
+  const enviarTareasPendientes = async () => {
+    let pendientes = JSON.parse(localStorage.getItem("tareasPendientes") || "[]");
+    if (!pendientes.length) return;
+
+    for (const tarea of pendientes) {
+      try {
+        await fetch(API_TAREAS, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(tarea),
+        });
+      } catch {
+        toast.error("❌ No se pudieron enviar algunas tareas");
+        return;
+      }
+    }
+
+    localStorage.removeItem("tareasPendientes");
+    toast.success("✅ Tareas pendientes enviadas");
+    fetchTareas();
+  };
+
+  // ---------- Funciones QR ----------
   const handleScan = (data) => {
     if (data) {
       let qrData;
@@ -182,21 +212,11 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         📌 Pedidos de tareas de {usuario?.nombre || usuario?.mail || "Usuario"}{" "}
       </h1>
       <p>
-        <button
-          onClick={fetchTareas}
-          className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm"
-        >
-          🔄 Actualizar lista
-        </button>
-        <button
-          onClick={onLogout}
-          className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
-        >
-          Cerrar sesión
-        </button>
+        <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">🔄 Actualizar lista</button>
+        <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">Cerrar sesión</button>
       </p>
 
-      {/* 🔹 Botón para abrir cámara QR */}
+      {/* Botón QR */}
       <button
         type="button"
         onClick={() => setShowQR(!showQR)}
@@ -205,26 +225,21 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         {showQR ? "Cerrar lector QR" : "Solicitar asistencia mediante QR"}
       </button>
 
-      {/* 🔹 Mostrar lector QR */}
+      {/* Lector QR trasero */}
       {showQR && (
         <div className="mt-4">
           <QrReader
-  constraints={{
-    video: { facingMode: { exact: "environment" } }
-  }}
-  delay={300}
-  style={{ width: "100%" }}
-  onError={handleError}
-  onScan={handleScan}
-/>
+            constraints={{ video: { facingMode: { exact: "environment" } } }}
+            delay={300}
+            style={{ width: "100%" }}
+            onError={handleError}
+            onScan={handleScan}
+          />
         </div>
       )}
 
       {/* Formulario original */}
-      <form
-        onSubmit={handleCrearTarea}
-        className="mb-6 bg-gray-50 p-4 rounded-xl shadow space-y-3"
-      >
+      <form onSubmit={handleCrearTarea} className="mb-6 bg-gray-50 p-4 rounded-xl shadow space-y-3">
         <textarea
           className="w-full p-2 border rounded"
           placeholder="Descripción de la nueva tarea..."
@@ -234,36 +249,17 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         />
         <label className="bg-green-200 px-3 py-2 rounded cursor-pointer inline-block">
           Subir imagen
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImagenChange}
-            className="hidden"
-          />
+          <input type="file" accept="image/*" onChange={handleImagenChange} className="hidden" />
         </label>
 
         {previewImagen && (
           <div className="mt-2 relative inline-block">
-            <img
-              src={previewImagen}
-              alt="preview"
-              className="w-24 h-24 object-cover rounded shadow"
-            />
-            <button
-              type="button"
-              onClick={quitarImagen}
-              className="absolute top-0 right-0 bg-red-600 text-white rounded-full px-1 text-xs"
-            >
-              ❌
-            </button>
+            <img src={previewImagen} alt="preview" className="w-24 h-24 object-cover rounded shadow" />
+            <button type="button" onClick={quitarImagen} className="absolute top-0 right-0 bg-red-600 text-white rounded-full px-1 text-xs">❌</button>
           </div>
         )}
 
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded-xl"
-          disabled={loading}
-        >
+        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-xl" disabled={loading}>
           {loading ? "Enviando..." : "Enviar pedido"}
         </button>
       </form>
@@ -275,42 +271,18 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       ) : (
         <ul className="space-y-4">
           {tareas.map((tarea) => (
-            <motion.li
-              key={tarea.id}
-              className="border p-4 rounded-xl shadow bg-white"
-              whileHover={{ scale: 1.02 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
+            <motion.li key={tarea.id} className="border p-4 rounded-xl shadow bg-white" whileHover={{ scale: 1.02 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
               <p className="font-semibold">📝 {tarea.tarea}</p>
               {tarea.imagen && (
-                <img
-                  src={`data:image/jpeg;base64,${tarea.imagen}`}
-                  alt="tarea"
-                  className="w-32 h-32 object-cover mt-2 cursor-pointer rounded"
-                  onClick={() =>
-                    abrirModal(`data:image/jpeg;base64,${tarea.imagen}`)
-                  }
-                />
+                <img src={`data:image/jpeg;base64,${tarea.imagen}`} alt="tarea" className="w-32 h-32 object-cover mt-2 cursor-pointer rounded" onClick={() => abrirModal(`data:image/jpeg;base64,${tarea.imagen}`)} />
               )}
               {tarea.solucion && (
-                <motion.p
-                  className="mt-2 p-2 bg-gray-100 rounded text-sm"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
+                <motion.p className="mt-2 p-2 bg-gray-100 rounded text-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                   💡 Solución: {tarea.solucion}
                 </motion.p>
               )}
               {!tarea.fin ? (
-                <button
-                  onClick={() => handleFinalizar(tarea.id)}
-                  className="bg-green-600 text-white px-3 py-1 rounded mt-2"
-                >
-                  ✅ Finalizar
-                </button>
+                <button onClick={() => handleFinalizar(tarea.id)} className="bg-green-600 text-white px-3 py-1 rounded mt-2">✅ Finalizar</button>
               ) : (
                 <p className="text-green-600 font-bold mt-2">✔️ Tarea finalizada</p>
               )}
@@ -321,23 +293,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
 
       <AnimatePresence>
         {modalImagen && (
-          <motion.div
-            key="modal"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
-            onClick={cerrarModal}
-          >
-            <motion.img
-              src={modalImagen}
-              alt="Ampliada"
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-              className="max-w-full max-h-full rounded-xl shadow-lg"
-              onClick={(e) => e.stopPropagation()}
-            />
+          <motion.div key="modal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50" onClick={cerrarModal}>
+            <motion.img src={modalImagen} alt="Ampliada" initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }} className="max-w-full max-h-full rounded-xl shadow-lg" onClick={(e) => e.stopPropagation()} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -346,5 +303,3 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
-
-
