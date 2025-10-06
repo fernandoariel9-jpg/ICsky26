@@ -1,10 +1,10 @@
 // src/FormularioUsuario.js
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "./config";
-import jsQR from "jsqr";
+import QrScanner from "react-qr-scanner";
 
 const API_TAREAS = API_URL.Tareas;
 
@@ -12,14 +12,11 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const [tareas, setTareas] = useState([]);
   const [modalImagen, setModalImagen] = useState(null);
   const [nuevaTarea, setNuevaTarea] = useState("");
-  const [nuevaImagen, setNuevaImagen] = useState(null);
-  const [previewImagen, setPreviewImagen] = useState(null);
+  const [nuevaImagen, setNuevaImagen] = useState(null); // base64
+  const [previewImagen, setPreviewImagen] = useState(null); // para vista previa
   const [loading, setLoading] = useState(false);
-
-  const [qrModalOpen, setQrModalOpen] = useState(false);
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const [qrScanActive, setQrScanActive] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false); // 🔹 estado modal QR
+  const [qrScanResult, setQrScanResult] = useState(null);
 
   useEffect(() => {
     fetchTareas();
@@ -47,63 +44,20 @@ export default function FormularioUsuario({ usuario, onLogout }) {
           .filter((t) => t.usuario === userIdentifier)
           .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
       );
-    } catch {
+    } catch (err) {
       toast.error("Error al cargar tareas ❌");
     } finally {
       setLoading(false);
     }
   };
 
-  // ------------------- QR Scanner con cámara trasera -------------------
-  const startQrScanner = async () => {
-    setQrModalOpen(true);
-    setQrScanActive(true);
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { exact: "environment" } }, // 🔹 cámara trasera
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.setAttribute("playsinline", true); // necesario en iOS
-        await videoRef.current.play();
-        requestAnimationFrame(scanFrame);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("No se pudo acceder a la cámara trasera ❌");
+  // ---------------- QR Scanner ----------------
+  const handleQrScan = async (data) => {
+    if (data) {
+      setQrScanResult(data.text);
       setQrModalOpen(false);
+      crearTareaDesdeQR(data.text);
     }
-  };
-
-  const stopQrScanner = () => {
-    setQrScanActive(false);
-    if (videoRef.current && videoRef.current.srcObject) {
-      videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
-    }
-    setQrModalOpen(false);
-  };
-
-  const scanFrame = () => {
-    if (!qrScanActive || !videoRef.current || videoRef.current.readyState !== 4) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-    if (code) {
-      stopQrScanner();
-      crearTareaDesdeQR(code.data);
-      return;
-    }
-
-    requestAnimationFrame(scanFrame);
   };
 
   const crearTareaDesdeQR = async (qrData) => {
@@ -131,7 +85,25 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         body: JSON.stringify(bodyToSend),
       });
 
-      const payload = await res.json();
+      const text = await res.text();
+      let payload;
+      try {
+        payload = text ? JSON.parse(text) : null;
+      } catch {
+        payload = text;
+      }
+
+      if (!res.ok) {
+        const serverMsg =
+          payload && typeof payload === "object" && payload.error
+            ? payload.error
+            : typeof payload === "string"
+            ? payload
+            : `HTTP ${res.status}`;
+        toast.error("❌ Error al crear tarea: " + serverMsg);
+        return;
+      }
+
       setTareas((prev) => [payload, ...prev]);
       toast.success("✅ Tarea creada automáticamente desde QR");
     } catch (err) {
@@ -141,10 +113,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     }
   };
 
-  // ------------------- resto de tu código existente -------------------
-  // handleFinalizar, handleImagenChange, quitarImagen, handleCrearTarea, etc.
-  // se mantiene exactamente igual que antes
-
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
@@ -152,8 +120,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         📌 Pedidos de tareas de {usuario?.nombre || usuario?.mail || "Usuario"}{" "}
         <p>
           <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">🔄 Actualizar lista</button>
-          <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm ml-2">Cerrar sesión</button>
-          <button onClick={startQrScanner} className="bg-purple-600 text-white px-3 py-1 rounded-xl text-sm ml-2">📷 Escanear QR</button>
+          <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">Cerrar sesión</button>
+          <button onClick={() => setQrModalOpen(true)} className="bg-purple-600 text-white px-3 py-1 rounded-xl text-sm ml-2">📷 Escanear QR</button>
         </p>
       </h1>
 
@@ -165,13 +133,18 @@ export default function FormularioUsuario({ usuario, onLogout }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
           >
-            <video ref={videoRef} className="rounded-xl shadow-lg w-72 h-72 object-cover" />
-            <canvas ref={canvasRef} style={{ display: "none" }} />
+            <QrScanner
+              delay={300}
+              onError={(err) => console.error(err)}
+              onScan={handleQrScan}
+              style={{ width: "300px", height: "300px" }}
+              facingMode="environment" // 🔹 cámara trasera
+            />
             <button
-              onClick={stopQrScanner}
-              className="mt-4 text-white bg-red-600 px-4 py-2 rounded-xl"
+              onClick={() => setQrModalOpen(false)}
+              className="absolute top-5 right-5 text-white bg-red-600 p-2 rounded"
             >
               Cerrar
             </button>
@@ -179,11 +152,46 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         )}
       </AnimatePresence>
 
-      {/* Aquí sigue tu formulario de creación de tareas manual y lista de tareas */}
-      {/* ... se mantiene igual que antes ... */}
+      {/* Formulario de creación de tarea manual */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (nuevaTarea.trim() === "") return toast.error("Ingrese una descripción");
+          setNuevaTarea(nuevaTarea); // opcional, ya está
+        }}
+        className="mb-6 bg-gray-50 p-4 rounded-xl shadow space-y-3"
+      >
+        {/* Aquí va tu textarea y subida de imagen sin cambios */}
+      </form>
+
+      {/* Lista de tareas */}
+      <ul className="space-y-4">
+        {tareas.map((tarea) => (
+          <motion.li key={tarea.id} className="border p-4 rounded-xl shadow bg-white">
+            <p className="font-semibold">📝 {tarea.tarea}</p>
+            {tarea.imagen && (
+              <img
+                src={`data:image/jpeg;base64,${tarea.imagen}`}
+                alt="tarea"
+                className="w-32 h-32 object-cover mt-2 cursor-pointer rounded"
+                onClick={() => setModalImagen(`data:image/jpeg;base64,${tarea.imagen}`)}
+              />
+            )}
+            {!tarea.fin ? (
+              <button
+                onClick={() => {}} // tu handleFinalizar
+                className="bg-green-600 text-white px-3 py-1 rounded mt-2"
+              >
+                ✅ Finalizar
+              </button>
+            ) : (
+              <p className="text-green-600 font-bold mt-2">✔️ Tarea finalizada</p>
+            )}
+          </motion.li>
+        ))}
+      </ul>
 
       <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
   );
 }
-
