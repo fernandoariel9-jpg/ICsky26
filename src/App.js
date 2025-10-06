@@ -11,6 +11,10 @@ import LoginPersonal from "./LoginPersonal";
 import FormularioUsuario from "./FormularioUsuario";
 import TareasPersonal from "./TareasPersonal";
 import PanelLogin from "./PanelLogin";
+import TestQR from "./TestQR";
+function App() {
+  return <TestQR />;
+}
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
