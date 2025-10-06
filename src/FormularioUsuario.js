@@ -202,7 +202,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         onClick={() => setShowQR(!showQR)}
         className="bg-purple-500 text-white px-3 py-1 rounded-xl my-2"
       >
-        {showQR ? "Cerrar lector QR" : "Abrir cámara QR"}
+        {showQR ? "Cerrar lector QR" : "Solicitar asistencia mediante QR"}
       </button>
 
       {/* 🔹 Mostrar lector QR */}
@@ -346,4 +346,5 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
+
 
