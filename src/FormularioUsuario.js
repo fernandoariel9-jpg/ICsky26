@@ -209,12 +209,14 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       {showQR && (
         <div className="mt-4">
           <QrReader
-            delay={300}
-            onError={handleError}
-            onScan={handleScan}
-            style={{ width: "100%" }}
-            facingMode="environment" // cámara trasera
-          />
+  constraints={{
+    video: { facingMode: { exact: "environment" } }
+  }}
+  delay={300}
+  style={{ width: "100%" }}
+  onError={handleError}
+  onScan={handleScan}
+/>
         </div>
       )}
 
@@ -344,3 +346,4 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
+
