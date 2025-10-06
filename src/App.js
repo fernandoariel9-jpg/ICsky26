@@ -11,7 +11,6 @@ import LoginPersonal from "./LoginPersonal";
 import FormularioUsuario from "./FormularioUsuario";
 import TareasPersonal from "./TareasPersonal";
 import PanelLogin from "./PanelLogin";
-import TestQR from "./TestQR";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
@@ -73,9 +72,6 @@ function Main() {
 
   // Registro Personal
   if (modo === "registroPersonal") return <RegistroPersonal onRegister={(p) => setPersonal(p)} switchToLogin={() => setModo("loginPersonal")} />;
-
-// dentro de tu Main()
-if (modo === "testQR") return <TestQR />;
 
 // Mostrar supervisión
   if (modo === "supervision") {
