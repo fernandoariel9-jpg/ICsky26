@@ -50,12 +50,6 @@ function Main() {
           <button className="bg-orange-500 text-white p-2 rounded-xl" onClick={() => setModo("supervision")}>
           Panel de Supervisión
         </button>
-            <button
-  className="bg-purple-500 text-white p-2 rounded-xl"
-  onClick={() => setModo("testQR")}
->
-  Test QR
-</button>
         </div>
       </div>
     );
