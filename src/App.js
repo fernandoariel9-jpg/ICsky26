@@ -45,7 +45,7 @@ function Main() {
             Ingreso de Usuario
           </button>
           <button className="bg-green-500 text-white p-2 rounded-xl" onClick={() => setModo("loginPersonal")}>
-            Ingreso de Personal Técnico
+            Ingreso de Personal de Ingeniería Clínica
           </button>
           <button className="bg-orange-500 text-white p-2 rounded-xl" onClick={() => setModo("supervision")}>
           Panel de Supervisión
