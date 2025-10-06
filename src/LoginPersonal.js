@@ -65,7 +65,7 @@ export default function LoginPersonal({ onLogin, switchToRegister }) {
         alt="Logo"
         className="mx-auto mb-4 w-24 h-auto"
       />
-      <h1 className="text-2xl font-bold text-center mb-4">🔑 Login de Personal</h1>
+      <h1 className="text-2xl font-bold text-center mb-4">🔑 Ingreso de personal de Ingeniería clínica</h1>
 
       <form onSubmit={handleLogin} className="flex flex-col space-y-3">
         <input
