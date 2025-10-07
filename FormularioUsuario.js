@@ -99,12 +99,14 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     const areaValor = typeof usuario === "object" ? usuario.area || null : null;
 
     const bodyToSend = {
-      usuario: userIdentifier,
-      tarea: nuevaTarea,
-      area: areaValor,
-      imagen: nuevaImagen,
-      fin: false,
-    };
+  usuario: userIdentifier,
+  tarea: nuevaTarea,
+  area: areaValor,
+  servicio: usuario.servicio || null,
+  subservicio: usuario.subservicio || null,
+  imagen: nuevaImagen,
+  fin: false,
+};
 
     setLoading(true);
     try {
@@ -279,4 +281,5 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
   );
+
 }
