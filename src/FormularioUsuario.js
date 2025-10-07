@@ -106,75 +106,78 @@ export default function FormularioUsuario({ usuario, onLogout }) {
 
   // ✅ GUARDA también servicio y subservicio automáticamente
   const handleCrearTarea = async (e) => {
-    e.preventDefault();
-    if (!nuevaTarea.trim()) return toast.error("Ingrese una descripción de tarea");
-    if (!usuario) return toast.error("Usuario no disponible");
+  e.preventDefault();
+  if (!nuevaTarea.trim()) return toast.error("Ingrese una descripción de tarea");
+  if (!usuario) return toast.error("Usuario no disponible");
 
-    let userIdentifier =
-      typeof usuario === "string"
-        ? usuario
-        : usuario.nombre || usuario.mail || String(usuario);
+  // Identificador del usuario
+  const userIdentifier =
+    typeof usuario === "string"
+      ? usuario
+      : usuario.nombre || usuario.mail || String(usuario);
 
-    const areaValor = typeof usuario === "object" ? usuario.area || null : null;
-    const servicioValor = typeof usuario === "object" ? usuario.servicio || null : null;
-    const subservicioValor = typeof usuario === "object" ? usuario.subservicio || null : null;
+  // Tomar los valores reales del usuario logueado
+  const areaValor = usuario?.area ?? null;
+  const servicioValor = usuario?.servicio ?? null;
+  const subservicioValor = usuario?.subservicio ?? null;
 
-    const bodyToSend = {
-      usuario: userIdentifier,
-      tarea: nuevaTarea,
-      area: areaValor,
-      servicio: servicioValor,       // ✅ agregado
-      subservicio: subservicioValor, // ✅ agregado
-      imagen: nuevaImagen,
-      fin: false,
-    };
-
-    setLoading(true);
-    try {
-      if (!navigator.onLine) throw new Error("offline");
-
-      const res = await fetch(API_TAREAS, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bodyToSend),
-      });
-
-      const text = await res.text();
-      let payload;
-      try {
-        payload = text ? JSON.parse(text) : null;
-      } catch {
-        payload = text;
-      }
-
-      if (!res.ok) {
-        const serverMsg =
-          payload && typeof payload === "object" && payload.error
-            ? payload.error
-            : typeof payload === "string"
-            ? payload
-            : `HTTP ${res.status}`;
-        toast.error("❌ Error al crear tarea: " + serverMsg);
-        return;
-      }
-
-      setTareas((prev) => [payload, ...prev]);
-      setNuevaTarea("");
-      setNuevaImagen(null);
-      setPreviewImagen(null);
-      toast.success("✅ Tarea creada");
-    } catch (err) {
-      let pendientes = JSON.parse(localStorage.getItem("tareasPendientes") || "[]");
-      pendientes.push(bodyToSend);
-      localStorage.setItem("tareasPendientes", JSON.stringify(pendientes));
-      setNuevaTarea("");
-      setNuevaImagen(null);
-      setPreviewImagen(null);
-      toast.info("⚠️ Sin conexión: tarea guardada localmente");
-    } finally {
-      setLoading(false);
-    }
+  const bodyToSend = {
+    usuario: userIdentifier,
+    tarea: nuevaTarea,
+    area: areaValor,
+    servicio: servicioValor,
+    subservicio: subservicioValor,
+    imagen: nuevaImagen,
+    fin: false,
   };
+
+  setLoading(true);
+  try {
+    if (!navigator.onLine) throw new Error("offline");
+
+    const res = await fetch(API_TAREAS, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bodyToSend),
+    });
+
+    const text = await res.text();
+    let payload;
+    try {
+      payload = text ? JSON.parse(text) : null;
+    } catch {
+      payload = text;
+    }
+
+    if (!res.ok) {
+      const serverMsg =
+        payload && typeof payload === "object" && payload.error
+          ? payload.error
+          : typeof payload === "string"
+          ? payload
+          : `HTTP ${res.status}`;
+      toast.error("❌ Error al crear tarea: " + serverMsg);
+      return;
+    }
+
+    setTareas((prev) => [payload, ...prev]);
+    setNuevaTarea("");
+    setNuevaImagen(null);
+    setPreviewImagen(null);
+    toast.success("✅ Tarea creada");
+  } catch (err) {
+    let pendientes = JSON.parse(localStorage.getItem("tareasPendientes") || "[]");
+    pendientes.push(bodyToSend);
+    localStorage.setItem("tareasPendientes", JSON.stringify(pendientes));
+    setNuevaTarea("");
+    setNuevaImagen(null);
+    setPreviewImagen(null);
+    toast.info("⚠️ Sin conexión: tarea guardada localmente");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const enviarTareasPendientes = async () => {
     let pendientes = JSON.parse(localStorage.getItem("tareasPendientes") || "[]");
@@ -389,4 +392,5 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
+
 
