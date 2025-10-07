@@ -116,10 +116,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         : usuario.nombre || usuario.mail || String(usuario);
 
     const areaValor = typeof usuario === "object" ? usuario.area || null : null;
-    const servicioValor =
-      typeof usuario === "object" ? usuario.servicio || null : null;
-    const subservicioValor =
-      typeof usuario === "object" ? usuario.subservicio || null : null;
+    const servicioValor = typeof usuario === "object" ? usuario.servicio || null : null;
+    const subservicioValor = typeof usuario === "object" ? usuario.subservicio || null : null;
 
     const bodyToSend = {
       usuario: userIdentifier,
@@ -391,3 +389,4 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
+
