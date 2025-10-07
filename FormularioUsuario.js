@@ -102,8 +102,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   usuario: userIdentifier,
   tarea: nuevaTarea,
   area: areaValor,
-  servicio: usuario.servicio || null,
-  subservicio: usuario.subservicio || null,
+  servicio: usuario.servicio,
+  subservicio: usuario.subservicio,
   imagen: nuevaImagen,
   fin: false,
 };
@@ -283,3 +283,4 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   );
 
 }
+
