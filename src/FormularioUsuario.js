@@ -16,16 +16,14 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const [previewImagen, setPreviewImagen] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [filtro, setFiltro] = useState("pendientes"); // 👈 NUEVO estado para pestañas
 
-  // ---------- Manejo de conexión offline/online ----------
   useEffect(() => {
     fetchTareas();
     window.addEventListener("online", enviarTareasPendientes);
     return () => window.removeEventListener("online", enviarTareasPendientes);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---------- Fetch tareas ----------
   const fetchTareas = async () => {
     setLoading(true);
     try {
@@ -90,7 +88,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     setPreviewImagen(null);
   };
 
-  // ---------- Crear tarea (soporte offline) ----------
   const handleCrearTarea = async (e) => {
     e.preventDefault();
     if (!nuevaTarea.trim()) return toast.error("Ingrese una descripción de tarea");
@@ -104,12 +101,20 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     const areaValor =
       typeof usuario === "object" ? usuario.area || null : null;
 
-    const bodyToSend = {
+const bodyToSend = {
       usuario: userIdentifier,
       tarea: nuevaTarea,
       area: usuario.area || null,
       servicio: usuario.servicio || null,
       subservicio: usuario.subservicio || null,
+      imagen: nuevaImagen,
+      fin: false,
+    };
+    
+    const bodyToSend = {
+      usuario: userIdentifier,
+      tarea: nuevaTarea,
+      area: areaValor,
       imagen: nuevaImagen,
       fin: false,
     };
@@ -149,7 +154,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       setPreviewImagen(null);
       toast.success("✅ Tarea creada");
     } catch (err) {
-      // Guardar localmente si no hay conexión
       let pendientes = JSON.parse(localStorage.getItem("tareasPendientes") || "[]");
       pendientes.push(bodyToSend);
       localStorage.setItem("tareasPendientes", JSON.stringify(pendientes));
@@ -162,7 +166,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     }
   };
 
-  // ---------- Enviar tareas pendientes cuando vuelva conexión ----------
   const enviarTareasPendientes = async () => {
     let pendientes = JSON.parse(localStorage.getItem("tareasPendientes") || "[]");
     if (!pendientes.length) return;
@@ -185,7 +188,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     fetchTareas();
   };
 
-  // ---------- Funciones QR ----------
   const handleScan = (data) => {
     if (data) {
       let qrData;
@@ -207,6 +209,14 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     toast.error("Error al leer QR ❌");
   };
 
+  // 👇 Filtro de tareas por pestaña
+  const tareasFiltradas = tareas.filter((t) => {
+    if (filtro === "pendientes") return !t.solucion && !t.fin;
+    if (filtro === "enProceso") return t.solucion && !t.fin;
+    if (filtro === "finalizadas") return t.fin;
+    return true;
+  });
+
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
@@ -227,7 +237,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         {showQR ? "Cerrar lector QR" : "Solicitar asistencia mediante QR"}
       </button>
 
-      {/* Lector QR trasero */}
       {showQR && (
         <div className="mt-4">
           <QrReader
@@ -239,6 +248,28 @@ export default function FormularioUsuario({ usuario, onLogout }) {
           />
         </div>
       )}
+
+      {/* Pestañas de estado 👇 */}
+      <div className="flex justify-center space-x-2 my-4">
+        <button
+          className={`px-3 py-1 rounded-xl ${filtro === "pendientes" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+          onClick={() => setFiltro("pendientes")}
+        >
+          Pendientes
+        </button>
+        <button
+          className={`px-3 py-1 rounded-xl ${filtro === "enProceso" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+          onClick={() => setFiltro("enProceso")}
+        >
+          En proceso
+        </button>
+        <button
+          className={`px-3 py-1 rounded-xl ${filtro === "finalizadas" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+          onClick={() => setFiltro("finalizadas")}
+        >
+          Finalizadas
+        </button>
+      </div>
 
       {/* Formulario original */}
       <form onSubmit={handleCrearTarea} className="mb-6 bg-gray-50 p-4 rounded-xl shadow space-y-3">
@@ -272,7 +303,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         </div>
       ) : (
         <ul className="space-y-4">
-          {tareas.map((tarea) => (
+          {tareasFiltradas.map((tarea) => (
             <motion.li key={tarea.id} className="border p-4 rounded-xl shadow bg-white" whileHover={{ scale: 1.02 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
               <p className="font-semibold">📝 {tarea.tarea}</p>
               {tarea.imagen && (
@@ -305,4 +336,3 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
-
