@@ -88,7 +88,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     setPreviewImagen(null);
   };
 
-  const handleCrearTarea = async (e) => {
+   const handleCrearTarea = async (e) => {
     e.preventDefault();
     if (!nuevaTarea.trim()) return toast.error("Ingrese una descripción de tarea");
     if (!usuario) return toast.error("Usuario no disponible");
@@ -101,10 +101,18 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     const areaValor =
       typeof usuario === "object" ? usuario.area || null : null;
 
+    // 🔹 NUEVO: tomamos servicio y subservicio del usuario logueado
+    const servicioValor =
+      typeof usuario === "object" ? usuario.servicio || null : null;
+    const subservicioValor =
+      typeof usuario === "object" ? usuario.subservicio || null : null;
+
     const bodyToSend = {
       usuario: userIdentifier,
       tarea: nuevaTarea,
       area: areaValor,
+      servicio: servicioValor,       // ✅ agregado
+      subservicio: subservicioValor, // ✅ agregado
       imagen: nuevaImagen,
       fin: false,
     };
@@ -326,3 +334,4 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
+
