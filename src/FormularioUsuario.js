@@ -74,11 +74,32 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const handleImagenChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const parts = reader.result.split(",");
-      setNuevaImagen(parts.length > 1 ? parts[1] : parts[0]);
-      setPreviewImagen(reader.result);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        // Redimensionar proporcionalmente si la imagen es muy grande (opcional)
+        const MAX_WIDTH = 800;
+        const scale = Math.min(1, MAX_WIDTH / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // Exportar como JPEG con 60 % de calidad
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.6);
+
+        // Guardar versión base64 sin encabezado (para enviar al backend)
+        const base64Data = compressedDataUrl.split(",")[1];
+
+        setNuevaImagen(base64Data);
+        setPreviewImagen(compressedDataUrl);
+      };
+      img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   };
@@ -334,4 +355,5 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
+
 
