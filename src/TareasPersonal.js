@@ -43,32 +43,37 @@ export default function TareasPersonal({ personal, onLogout }) {
   };
 
   const handleCompletar = async (id) => {
-    try {
-      const solucion = soluciones[id] || "";
-      const url = `${API_TAREAS}/${id}/solucion`;
-      const res = await fetch(url, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ solucion }),
-      });
+  try {
+    const solucion = soluciones[id] || "";
+    const url = `${API_TAREAS}/${id}/solucion`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ solucion, asignado: personal.nombre }),
+    });
 
-      if (!res.ok) throw new Error("Error HTTP " + res.status);
+    if (!res.ok) throw new Error("Error HTTP " + res.status);
 
-      setTareas((prev) => prev.map((t) => (t.id === id ? { ...t, solucion } : t)));
+    setTareas((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, solucion, asignado: personal.nombre } : t
+      )
+    );
 
-      toast.success("✅ Solución guardada");
-    } catch (err) {
-      console.error("Error al guardar solución", err);
-      toast.error("❌ Error al guardar solución");
-    }
-  };
+    toast.success("✅ Solución guardada");
+  } catch (err) {
+    console.error("Error al guardar solución", err);
+    toast.error("❌ Error al guardar solución");
+  }
+};
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
         📌 Tareas pendientes{" "}
-      </h1>
+      </h1>
+
       <button
         onClick={fetchTareas}
         className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm mb-4"
@@ -143,4 +148,5 @@ export default function TareasPersonal({ personal, onLogout }) {
   );
 
 }
+
 
