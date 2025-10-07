@@ -1,4 +1,3 @@
-// src/FormularioUsuario.js
 import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,13 +10,12 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const [tareas, setTareas] = useState([]);
   const [modalImagen, setModalImagen] = useState(null);
   const [nuevaTarea, setNuevaTarea] = useState("");
-  const [nuevaImagen, setNuevaImagen] = useState(null); // base64
-  const [previewImagen, setPreviewImagen] = useState(null); // 👈 para vista previa
+  const [nuevaImagen, setNuevaImagen] = useState(null);
+  const [previewImagen, setPreviewImagen] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchTareas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchTareas = async () => {
@@ -75,8 +73,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     const reader = new FileReader();
     reader.onloadend = () => {
       const parts = reader.result.split(",");
-      setNuevaImagen(parts.length > 1 ? parts[1] : parts[0]); // base64
-      setPreviewImagen(reader.result); // 👈 guardamos la URL para preview
+      setNuevaImagen(parts.length > 1 ? parts[1] : parts[0]);
+      setPreviewImagen(reader.result);
     };
     reader.readAsDataURL(file);
   };
@@ -99,14 +97,14 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     const areaValor = typeof usuario === "object" ? usuario.area || null : null;
 
     const bodyToSend = {
-  usuario: userIdentifier,
-  tarea: nuevaTarea,
-  area: areaValor,
-  servicio: usuario.servicio,
-  subservicio: usuario.subservicio,
-  imagen: nuevaImagen,
-  fin: false,
-};
+      usuario: userIdentifier,
+      tarea: nuevaTarea,
+      area: areaValor,
+      servicio: usuario.servicio || null,
+      subservicio: usuario.subservicio || null,
+      imagen: nuevaImagen,
+      fin: false,
+    };
 
     setLoading(true);
     try {
@@ -138,7 +136,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       setTareas((prev) => [payload, ...prev]);
       setNuevaTarea("");
       setNuevaImagen(null);
-      setPreviewImagen(null); // 👈 limpiamos preview al enviar
+      setPreviewImagen(null);
       toast.success("✅ Tarea creada");
     } catch (err) {
       toast.error("❌ Error al crear tarea: " + (err.message || ""));
@@ -147,16 +145,34 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     }
   };
 
+  // 🔹 División de tareas por estado
+  const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
+  const terminadas = tareas.filter((t) => t.solucion && !t.fin);
+  const finalizadas = tareas.filter((t) => t.fin);
+
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
-        📌 Pedidos de tareas de {usuario?.nombre || usuario?.mail || "Usuario"}{" "}
-       <p> <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">🔄 Actualizar lista</button>
-        <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">Logout</button> </p>
+        📌 Pedidos de tareas de {usuario?.nombre || usuario?.mail || "Usuario"}
       </h1>
 
-      {/* Formulario para crear nueva tarea */}
+      <div className="flex justify-center gap-2 mb-4">
+        <button
+          onClick={fetchTareas}
+          className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          🔄 Actualizar lista
+        </button>
+        <button
+          onClick={onLogout}
+          className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          Logout
+        </button>
+      </div>
+
+      {/* Formulario de nueva tarea */}
       <form
         onSubmit={handleCrearTarea}
         className="mb-6 bg-gray-50 p-4 rounded-xl shadow space-y-3"
@@ -174,7 +190,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
           <input type="file" accept="image/*" onChange={handleImagenChange} className="hidden" />
         </label>
 
-        {/* Vista previa de imagen con botón ❌ */}
         {previewImagen && (
           <div className="mt-2 relative inline-block">
             <img
@@ -206,53 +221,19 @@ export default function FormularioUsuario({ usuario, onLogout }) {
           <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : (
-        <ul className="space-y-4">
-          {tareas.map((tarea) => (
-            <motion.li
-              key={tarea.id}
-              className="border p-4 rounded-xl shadow bg-white"
-              whileHover={{ scale: 1.02 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <p className="font-semibold">📝 {tarea.tarea}</p>
+        <>
+          {/* 🕓 Pendientes */}
+          <h2 className="text-lg font-semibold mt-6 mb-2 text-yellow-700">🕓 Pendientes</h2>
+          <ListaTareas tareas={pendientes} onFinalizar={handleFinalizar} abrirModal={abrirModal} />
 
-              {tarea.imagen && (
-                <img
-                  src={`data:image/jpeg;base64,${tarea.imagen}`}
-                  alt="tarea"
-                  className="w-32 h-32 object-cover mt-2 cursor-pointer rounded"
-                  onClick={() =>
-                    abrirModal(`data:image/jpeg;base64,${tarea.imagen}`)
-                  }
-                />
-              )}
+          {/* 🧩 Terminadas */}
+          <h2 className="text-lg font-semibold mt-6 mb-2 text-blue-700">🧩 Terminadas</h2>
+          <ListaTareas tareas={terminadas} onFinalizar={handleFinalizar} abrirModal={abrirModal} />
 
-              {tarea.solucion && (
-                <motion.p
-                  className="mt-2 p-2 bg-gray-100 rounded text-sm"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  💡 Solución: {tarea.solucion}
-                </motion.p>
-              )}
-
-              {!tarea.fin ? (
-                <button
-                  onClick={() => handleFinalizar(tarea.id)}
-                  className="bg-green-600 text-white px-3 py-1 rounded mt-2"
-                >
-                  ✅ Finalizar
-                </button>
-              ) : (
-                <p className="text-green-600 font-bold mt-2">✔️ Tarea finalizada</p>
-              )}
-            </motion.li>
-          ))}
-        </ul>
+          {/* ✅ Finalizadas */}
+          <h2 className="text-lg font-semibold mt-6 mb-2 text-green-700">✅ Finalizadas</h2>
+          <ListaTareas tareas={finalizadas} abrirModal={abrirModal} finalizadas />
+        </>
       )}
 
       <AnimatePresence>
@@ -281,6 +262,59 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
   );
-
 }
 
+// 🔹 Componente auxiliar para renderizar lista de tareas
+function ListaTareas({ tareas, onFinalizar, abrirModal, finalizadas }) {
+  if (tareas.length === 0) return <p className="text-gray-500">No hay tareas.</p>;
+
+  return (
+    <ul className="space-y-4">
+      {tareas.map((tarea) => (
+        <motion.li
+          key={tarea.id}
+          className="border p-4 rounded-xl shadow bg-white"
+          whileHover={{ scale: 1.02 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <p className="font-semibold">📝 {tarea.tarea}</p>
+
+          {tarea.imagen && (
+            <img
+              src={`data:image/jpeg;base64,${tarea.imagen}`}
+              alt="tarea"
+              className="w-32 h-32 object-cover mt-2 cursor-pointer rounded"
+              onClick={() => abrirModal(`data:image/jpeg;base64,${tarea.imagen}`)}
+            />
+          )}
+
+          {tarea.solucion && (
+            <motion.p
+              className="mt-2 p-2 bg-gray-100 rounded text-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              💡 Solución: {tarea.solucion}
+            </motion.p>
+          )}
+
+          {!finalizadas && (
+            !tarea.fin ? (
+              <button
+                onClick={() => onFinalizar(tarea.id)}
+                className="bg-green-600 text-white px-3 py-1 rounded mt-2"
+              >
+                ✅ Finalizar
+              </button>
+            ) : (
+              <p className="text-green-600 font-bold mt-2">✔️ Tarea finalizada</p>
+            )
+          )}
+        </motion.li>
+      ))}
+    </ul>
+  );
+}
