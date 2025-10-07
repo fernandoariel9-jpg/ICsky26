@@ -110,14 +110,6 @@ const bodyToSend = {
       imagen: nuevaImagen,
       fin: false,
     };
-    
-    const bodyToSend = {
-      usuario: userIdentifier,
-      tarea: nuevaTarea,
-      area: areaValor,
-      imagen: nuevaImagen,
-      fin: false,
-    };
 
     setLoading(true);
     try {
@@ -336,3 +328,4 @@ const bodyToSend = {
     </div>
   );
 }
+
