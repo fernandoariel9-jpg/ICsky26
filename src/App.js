@@ -11,18 +11,8 @@ import LoginPersonal from "./LoginPersonal";
 import FormularioUsuario from "./FormularioUsuario";
 import TareasPersonal from "./TareasPersonal";
 import PanelLogin from "./PanelLogin";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const API_URL = "https://sky26.onrender.com/tareas";
-const clientId = "TU_CLIENT_ID_DE_GOOGLE"; // lo obtenés en https://console.cloud.google.com/apis/credentials
-
-function App() {
-  return (
-    <GoogleOAuthProvider clientId={clientId}>
-      <RegistroUsuario />
-    </GoogleOAuthProvider>
-  );
-}
 
 function Main() {
   const [modo, setModo] = useState("menu"); // "menu", "loginUsuario", "registroUsuario", "loginPersonal", "registroPersonal"
