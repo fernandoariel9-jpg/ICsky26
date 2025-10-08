@@ -86,13 +86,11 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
         // 2️⃣ Enviar correo de verificación
         try {
           const verifyRes = await fetch(
-            "https://sky26.onrender.com/usuarios/enviar-verificacion",
-            {
+            "https://sky26.onrender.com/usuarios/enviar-verificacion", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ mail }),
-            }
-          );
+            });
 
           if (verifyRes.ok) {
             toast.success(
