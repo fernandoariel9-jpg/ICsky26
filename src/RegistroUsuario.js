@@ -64,6 +64,8 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
 
     try {
       setLoading(true);
+
+      // 1️⃣ Registrar usuario
       const res = await fetch("https://sky26.onrender.com/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -71,35 +73,45 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
           nombre,
           servicio,
           subservicio,
-          area, // agregado automáticamente
+          area,
           movil,
           mail,
           password,
         }),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (res.ok) {
-        // 🔹 NUEVO: Enviar correo de verificación
+        // 2️⃣ Enviar correo de verificación
         try {
-          const verifyRes = await fetch("https://sky26.onrender.com/usuarios/enviar-verificacion", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mail }),
-          });
+          const verifyRes = await fetch(
+            "https://sky26.onrender.com/usuarios/enviar-verificacion",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ mail }),
+            }
+          );
 
           if (verifyRes.ok) {
-            toast.success("Usuario registrado ✅\nRevisa tu correo para verificar la cuenta 📩");
+            toast.success(
+              "Usuario registrado ✅\nRevisa tu correo para verificar la cuenta 📩"
+            );
           } else {
-            toast.warning("Usuario creado, pero no se pudo enviar el correo de verificación ⚠️");
+            toast.warning(
+              "Usuario creado, pero no se pudo enviar el correo de verificación ⚠️"
+            );
           }
         } catch {
-          toast.warning("Usuario creado, pero ocurrió un error al enviar el correo ⚠️");
+          toast.warning(
+            "Usuario creado, pero ocurrió un error al enviar el correo ⚠️"
+          );
         }
 
         onRegister(nombre);
       } else {
-        const data = await res.json().catch(() => ({}));
-        toast.error(data.message || "Error al registrar ❌");
+        toast.error(data.error || "Error al registrar ❌");
       }
     } catch {
       toast.error("Error de conexión ❌");
@@ -126,13 +138,12 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
           className="w-full p-2 border rounded"
         />
 
-        {/* Select Servicio */}
         <select
           className="w-full p-2 border rounded"
           value={servicio}
           onChange={(e) => {
             setServicio(e.target.value);
-            setSubservicio(""); // reset cuando cambia servicio
+            setSubservicio("");
             setArea("");
           }}
           required
@@ -147,7 +158,6 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
           )}
         </select>
 
-        {/* Select Subservicio dependiente */}
         {servicio && (
           <select
             className="w-full p-2 border rounded"
