@@ -107,7 +107,6 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
           );
         }
 
-        onRegister(nombre);
       } else {
         toast.error(data.error || "Error al registrar ❌");
       }
