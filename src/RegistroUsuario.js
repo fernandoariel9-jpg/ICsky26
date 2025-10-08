@@ -1,12 +1,14 @@
 // src/RegistroUsuario.js
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { GoogleLogin, googleLogout } from "@react-oauth/google";
+import jwt_decode from "jwt-decode";
 
 export default function RegistroUsuario({ onRegister, switchToLogin }) {
   const [nombre, setNombre] = useState("");
   const [servicio, setServicio] = useState("");
   const [subservicio, setSubservicio] = useState("");
-  const [area, setArea] = useState(""); // se guarda automáticamente
+  const [area, setArea] = useState("");
   const [movil, setMovil] = useState("");
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +17,7 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
   const [loading, setLoading] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
 
-  // Obtener todos los registros de la tabla servicios
+  // --- Cargar servicios ---
   useEffect(() => {
     const fetchServicios = async () => {
       try {
@@ -31,12 +33,11 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
     fetchServicios();
   }, []);
 
-  // Subservicios según el servicio seleccionado
+  // --- Subservicios dependientes ---
   const subserviciosDisponibles = serviciosDisponibles.filter(
     (s) => s.servicio === servicio
   );
 
-  // Actualizar área al elegir subservicio
   useEffect(() => {
     if (subservicio) {
       const seleccionado = serviciosDisponibles.find(
@@ -46,6 +47,7 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
     }
   }, [servicio, subservicio, serviciosDisponibles]);
 
+  // --- Registro clásico ---
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -71,7 +73,7 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
           nombre,
           servicio,
           subservicio,
-          area, // agregado automáticamente
+          area,
           movil,
           mail,
           password,
@@ -79,7 +81,7 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
       });
 
       if (res.ok) {
-        toast.success("Usuario registrado ✅");
+        toast.success("Usuario registrado ✅\nRevisa tu correo para verificar tu cuenta.");
         onRegister(nombre);
       } else {
         const data = await res.json().catch(() => ({}));
@@ -87,6 +89,33 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
       }
     } catch {
       toast.error("Error de conexión ❌");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- Registro rápido con Google ---
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const decoded = jwt_decode(credentialResponse.credential);
+      const { name, email, picture } = decoded;
+
+      setLoading(true);
+      const res = await fetch("https://sky26.onrender.com/usuarios/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: name, mail: email }),
+      });
+
+      if (res.ok) {
+        toast.success(`Bienvenido ${name} 👋 (Google Login)`);
+        onRegister(name);
+      } else {
+        toast.error("Error al registrar con Google ❌");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error en autenticación con Google ❌");
     } finally {
       setLoading(false);
     }
@@ -100,6 +129,17 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
       <h1 className="text-2xl font-bold text-center mb-4">
         📝 Registro de Usuario
       </h1>
+
+      {/* --- Opción 1: Google Login --- */}
+      <div className="flex flex-col items-center mb-6 space-y-2">
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => toast.error("Error al iniciar con Google")}
+        />
+        <p className="text-gray-500 text-sm">o regístrate manualmente</p>
+      </div>
+
+      {/* --- Opción 2: Registro clásico --- */}
       <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
         <input
           type="text"
@@ -110,13 +150,12 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
           className="w-full p-2 border rounded"
         />
 
-        {/* Select Servicio */}
         <select
           className="w-full p-2 border rounded"
           value={servicio}
           onChange={(e) => {
             setServicio(e.target.value);
-            setSubservicio(""); // reset cuando cambia servicio
+            setSubservicio("");
             setArea("");
           }}
           required
@@ -131,7 +170,6 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
           )}
         </select>
 
-        {/* Select Subservicio dependiente */}
         {servicio && (
           <select
             className="w-full p-2 border rounded"
