@@ -103,16 +103,6 @@ export default function UsuarioLogin({ onLogin, switchToRegister }) {
         </button>
       </form>
 
-      <p className="text-center mt-4 text-sm">
-        ¿No tienes cuenta?{" "}
-        <button
-          className="text-green-600 underline"
-          onClick={switchToRegister}
-        >
-          Registrarse
-        </button>
-      </p>
-
       {/* 🔹 Overlay con spinner mientras carga */}
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -122,4 +112,5 @@ export default function UsuarioLogin({ onLogin, switchToRegister }) {
     </div>
   );
 }
+
 
