@@ -19,6 +19,11 @@ function Main() {
   const [usuario, setUsuario] = useState(null);
   const [personal, setPersonal] = useState(null);
 
+  useEffect(() => {
+    // 🔹 Exponer función global para permitir cambiar modo desde Supervision
+    window.setModoGlobal = setModo;
+  }, [setModo]);
+
   // Logout para ambos tipos
   const handleLogout = () => {
     setUsuario(null);
@@ -48,38 +53,36 @@ function Main() {
             Ingreso de Personal de Ingeniería Clínica
           </button>
           <button className="bg-orange-500 text-white p-2 rounded-xl" onClick={() => setModo("supervision")}>
-          Panel de Supervisión
-        </button>
+            Panel de Supervisión
+          </button>
         </div>
       </div>
     );
   }
 
   // Login Usuario
-  if (modo === "loginUsuario") return <UsuarioLogin onLogin={(u) => setUsuario(u)} switchToRegister={() => setModo("registroUsuario")} switchToMenu={() => setModo("menu")}/>;
+  if (modo === "loginUsuario") return <UsuarioLogin onLogin={(u) => setUsuario(u)} switchToRegister={() => setModo("registroUsuario")} switchToMenu={() => setModo("menu")} />;
 
   // Registro Usuario
   if (modo === "registroUsuario") return <RegistroUsuario onRegister={(u) => setUsuario(u)} switchToLogin={() => setModo("loginUsuario")} />;
 
   // Login Personal
-  if (modo === "loginPersonal") return <LoginPersonal onLogin={(p) => setPersonal(p)} switchToRegister={() => setModo("registroPersonal")} switchToMenu={() => setModo("menu")}/>;
+  if (modo === "loginPersonal") return <LoginPersonal onLogin={(p) => setPersonal(p)} switchToRegister={() => setModo("registroPersonal")} switchToMenu={() => setModo("menu")} />;
 
   // Registro Personal
   if (modo === "registroPersonal") return <RegistroPersonal onRegister={(p) => setPersonal(p)} switchToLogin={() => setModo("loginPersonal")} />;
 
-// Mostrar supervisión
-if (modo === "supervision") {
-  return (
-    <SupervisionWrapper
-      switchToMenu={() => setModo("menu")}
-      switchToRegistroUsuario={() => setModo("registroUsuario")}
-      switchToRegistroPersonal={() => setModo("registroPersonal")}
-    />
-  );
-}
-useEffect(() => {
-  window.setModoGlobal = setModo;
-}, [setModo]);
+  // Mostrar supervisión
+  if (modo === "supervision") {
+    return (
+      <SupervisionWrapper
+        switchToMenu={() => setModo("menu")}
+        switchToRegistroUsuario={() => setModo("registroUsuario")}
+        switchToRegistroPersonal={() => setModo("registroPersonal")}
+      />
+    );
+  }
+
   return null;
 }
 
@@ -89,10 +92,12 @@ export default Main;
 export function Toast() {
   return <ToastContainer position="bottom-right" autoClose={2000} hideProgressBar={false} />;
 }
+
 // ---------- Panel de Supervisión ----------
 function Supervision() {
   const [tareas, setTareas] = useState([]);
   const [modalImagen, setModalImagen] = useState(null);
+  const setModoGlobal = window.setModoGlobal; // 🔹 acceder al modo global
 
   useEffect(() => {
     fetchTareas();
@@ -111,7 +116,7 @@ function Supervision() {
       toast.error("Error al cargar tareas ❌");
     }
   };
-const setModoGlobal = window.setModoGlobal;
+
   return (
     <div className="p-4 max-w-md mx-auto">
       <img
@@ -156,7 +161,7 @@ const setModoGlobal = window.setModoGlobal;
       {/* 🔹 Botones añadidos aquí */}
       <div className="mt-6 flex flex-col space-y-2">
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => setModoGlobal("menu")}
           className="bg-gray-400 text-white px-4 py-2 rounded-xl w-full"
         >
           Volver al menú
@@ -203,38 +208,16 @@ const setModoGlobal = window.setModoGlobal;
       <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
   );
+}
+
 function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToRegistroPersonal }) {
   const [loggedIn, setLoggedIn] = useState(false);
 
   return loggedIn ? (
     <div className="p-4 max-w-md mx-auto">
       <Supervision />
-
-      <div className="mt-4 flex flex-col space-y-2">
-        <button
-          onClick={switchToMenu}
-          className="bg-gray-400 text-white px-4 py-2 rounded-xl w-full"
-        >
-          Volver al menú
-        </button>
-
-        <button
-          onClick={switchToRegistroUsuario}
-          className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full"
-        >
-          Registrar nuevo usuario
-        </button>
-
-        <button
-          onClick={switchToRegistroPersonal}
-          className="bg-green-500 text-white px-4 py-2 rounded-xl w-full"
-        >
-          Registrar nuevo personal
-        </button>
-      </div>
     </div>
   ) : (
     <PanelLogin onLogin={setLoggedIn} />
   );
 }
-
