@@ -78,10 +78,10 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
         }),
       });
 
-      if (res.ok) {
-        toast.success("Usuario registrado ✅");
-        onRegister(nombre);
-      } else {
+     if (res.ok) {
+  toast.success("✅ Registro exitoso. Revisá tu correo para verificar la cuenta.");
+  onRegister(nombre);
+} else {
         const data = await res.json().catch(() => ({}));
         toast.error(data.message || "Error al registrar ❌");
       }
