@@ -77,6 +77,9 @@ if (modo === "supervision") {
     />
   );
 }
+useEffect(() => {
+  window.setModoGlobal = setModo;
+}, [setModo]);
   return null;
 }
 
@@ -108,14 +111,14 @@ function Supervision() {
       toast.error("Error al cargar tareas ❌");
     }
   };
-
+const setModoGlobal = window.setModoGlobal;
   return (
     <div className="p-4 max-w-md mx-auto">
-    <img
-          src="/logosmall.png"
-          alt="Logo"
-          className="mx-auto mb-4 w-24 h-auto"
-        />
+      <img
+        src="/logosmall.png"
+        alt="Logo"
+        className="mx-auto mb-4 w-24 h-auto"
+      />
       <h1 className="text-2xl font-bold text-center mb-4">
         📋 Panel de Supervisión
       </h1>
@@ -150,6 +153,30 @@ function Supervision() {
         ))}
       </ul>
 
+      {/* 🔹 Botones añadidos aquí */}
+      <div className="mt-6 flex flex-col space-y-2">
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-gray-400 text-white px-4 py-2 rounded-xl w-full"
+        >
+          Volver al menú
+        </button>
+
+        <button
+          onClick={() => setModoGlobal("registroUsuario")}
+          className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full"
+        >
+          Registrar nuevo usuario
+        </button>
+
+        <button
+          onClick={() => setModoGlobal("registroPersonal")}
+          className="bg-green-500 text-white px-4 py-2 rounded-xl w-full"
+        >
+          Registrar nuevo personal
+        </button>
+      </div>
+
       <AnimatePresence>
         {modalImagen && (
           <motion.div
@@ -176,8 +203,6 @@ function Supervision() {
       <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
   );
-}
-
 function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToRegistroPersonal }) {
   const [loggedIn, setLoggedIn] = useState(false);
 
