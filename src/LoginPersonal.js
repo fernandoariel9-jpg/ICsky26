@@ -19,6 +19,7 @@ export default function LoginPersonal({ onLogin, switchToRegister, switchToMenu 
     }
   }, []);
 
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
