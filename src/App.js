@@ -172,7 +172,23 @@ function Supervision() {
   );
 }
 
-function SupervisionWrapper() {
+function SupervisionWrapper({ switchToMenu }) {
   const [loggedIn, setLoggedIn] = useState(false);
-  return loggedIn ? <Supervision /> : <PanelLogin onLogin={setLoggedIn} />;
+
+  return loggedIn ? (
+    <div>
+      <Supervision />
+      {/* 🔹 Botón Volver */}
+      <div className="p-4 max-w-md mx-auto text-center">
+        <button
+          onClick={switchToMenu}
+          className="bg-gray-400 text-white px-4 py-2 rounded-xl mt-4"
+        >
+          Volver al menú
+        </button>
+      </div>
+    </div>
+  ) : (
+    <PanelLogin onLogin={setLoggedIn} />
+  );
 }
