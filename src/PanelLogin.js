@@ -229,3 +229,4 @@ export default function Panel() {
   const [loggedIn, setLoggedIn] = useState(false);
   return loggedIn ? <Supervision /> : <PanelLogin onLogin={setLoggedIn} />;
 }
+
