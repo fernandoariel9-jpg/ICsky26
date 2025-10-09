@@ -115,15 +115,7 @@ export default function LoginPersonal({ onLogin, switchToRegister }) {
         </button>
       </form>
 
-      <p className="text-center mt-4 text-sm">
-        ¿No tienes cuenta?{" "}
-        <button
-          className="text-green-600 underline"
-          onClick={switchToRegister}
-        >
-          Registrarse
-        </button>
-      </p>
     </div>
   );
 }
+
