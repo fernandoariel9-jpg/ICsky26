@@ -113,9 +113,17 @@ export default function LoginPersonal({ onLogin, switchToRegister }) {
         >
           {loading ? "Ingresando..." : "Ingresar"}
         </button>
+          <button
+          type="button"
+          onClick={switchToMenu}
+          className="bg-gray-400 text-white p-2 rounded-xl mt-2"
+        >
+          Volver
+        </button>
       </form>
 
     </div>
   );
 }
+
 
