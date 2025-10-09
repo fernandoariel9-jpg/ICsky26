@@ -182,19 +182,17 @@ function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToReg
   const [loggedIn, setLoggedIn] = useState(false);
 
   return loggedIn ? (
-    <div>
+    <div className="p-4 max-w-md mx-auto">
       <Supervision />
 
-      <div className="p-4 max-w-md mx-auto text-center space-y-2">
-        {/* Botón volver al menú */}
+      <div className="mt-4 flex flex-col space-y-2">
         <button
           onClick={switchToMenu}
-          className="bg-gray-400 text-white px-4 py-2 rounded-xl mt-2 w-full"
+          className="bg-gray-400 text-white px-4 py-2 rounded-xl w-full"
         >
           Volver al menú
         </button>
 
-        {/* Botón para registro de usuario */}
         <button
           onClick={switchToRegistroUsuario}
           className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full"
@@ -202,7 +200,6 @@ function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToReg
           Registrar nuevo usuario
         </button>
 
-        {/* Botón para registro de personal */}
         <button
           onClick={switchToRegistroPersonal}
           className="bg-green-500 text-white px-4 py-2 rounded-xl w-full"
