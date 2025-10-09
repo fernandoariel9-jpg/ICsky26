@@ -212,3 +212,4 @@ function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToReg
     <PanelLogin onLogin={setLoggedIn} />
   );
 }
+
