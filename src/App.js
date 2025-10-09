@@ -62,7 +62,7 @@ function Main() {
   if (modo === "registroUsuario") return <RegistroUsuario onRegister={(u) => setUsuario(u)} switchToLogin={() => setModo("loginUsuario")} />;
 
   // Login Personal
-  if (modo === "loginPersonal") return <LoginPersonal onLogin={(p) => setPersonal(p)} switchToRegister={() => setModo("registroPersonal")} switchToMenu={() => setModo("menu")/>;
+  if (modo === "loginPersonal") return <LoginPersonal onLogin={(p) => setPersonal(p)} switchToRegister={() => setModo("registroPersonal")} switchToMenu={() => setModo("menu")}/>;
 
   // Registro Personal
   if (modo === "registroPersonal") return <RegistroPersonal onRegister={(p) => setPersonal(p)} switchToLogin={() => setModo("loginPersonal")} />;
