@@ -101,6 +101,14 @@ export default function UsuarioLogin({ onLogin, switchToRegister }) {
         >
           Ingresar
         </button>
+            {/* 🔹 Botón volver al menú */}
+        <button
+          type="button"
+          onClick={switchToMenu}
+          className="bg-gray-400 text-white p-2 rounded-xl mt-2"
+        >
+          Volver
+        </button>
       </form>
 
       {/* 🔹 Overlay con spinner mientras carga */}
@@ -112,5 +120,6 @@ export default function UsuarioLogin({ onLogin, switchToRegister }) {
     </div>
   );
 }
+
 
 
