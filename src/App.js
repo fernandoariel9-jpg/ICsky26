@@ -68,9 +68,9 @@ function Main() {
   if (modo === "registroPersonal") return <RegistroPersonal onRegister={(p) => setPersonal(p)} switchToLogin={() => setModo("loginPersonal")} />;
 
 // Mostrar supervisión
-  if (modo === "supervision") {
-    return <SupervisionWrapper />;
-  }
+ if (modo === "supervision") {
+  return <SupervisionWrapper switchToMenu={() => setModo("menu")} />;
+}
   return null;
 }
 
