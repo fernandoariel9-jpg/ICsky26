@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
-export default function LoginPersonal({ onLogin, switchToRegister }) {
+export default function LoginPersonal({ onLogin, switchToRegister, switchToMenu }) {
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
   const [recordar, setRecordar] = useState(false);
@@ -125,5 +125,6 @@ export default function LoginPersonal({ onLogin, switchToRegister }) {
     </div>
   );
 }
+
 
 
