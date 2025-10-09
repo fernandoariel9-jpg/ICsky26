@@ -56,7 +56,7 @@ function Main() {
   }
 
   // Login Usuario
-  if (modo === "loginUsuario") return <UsuarioLogin onLogin={(u) => setUsuario(u)} switchToRegister={() => setModo("registroUsuario")} />;
+  if (modo === "loginUsuario") return <UsuarioLogin onLogin={(u) => setUsuario(u)} switchToRegister={() => setModo("registroUsuario")} switchToMenu={() => setModo("menu")}/>;
 
   // Registro Usuario
   if (modo === "registroUsuario") return <RegistroUsuario onRegister={(u) => setUsuario(u)} switchToLogin={() => setModo("loginUsuario")} />;
