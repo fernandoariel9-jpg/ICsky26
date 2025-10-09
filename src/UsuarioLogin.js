@@ -65,7 +65,7 @@ export default function UsuarioLogin({ onLogin, switchToRegister }) {
         alt="Logo"
         className="mx-auto mb-4 w-24 h-auto"
       />
-      <h1 className="text-2xl font-bold text-center mb-4">🔑 Login de Usuario</h1>
+      <h1 className="text-2xl font-bold text-center mb-4">🔑 Ingreso de Usuario</h1>
 
       <form onSubmit={handleLogin} className="flex flex-col space-y-3">
         <input
@@ -122,3 +122,4 @@ export default function UsuarioLogin({ onLogin, switchToRegister }) {
     </div>
   );
 }
+
