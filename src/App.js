@@ -68,8 +68,14 @@ function Main() {
   if (modo === "registroPersonal") return <RegistroPersonal onRegister={(p) => setPersonal(p)} switchToLogin={() => setModo("loginPersonal")} />;
 
 // Mostrar supervisión
- if (modo === "supervision") {
-  return <SupervisionWrapper switchToMenu={() => setModo("menu")} />;
+if (modo === "supervision") {
+  return (
+    <SupervisionWrapper
+      switchToMenu={() => setModo("menu")}
+      switchToRegistroUsuario={() => setModo("registroUsuario")}
+      switchToRegistroPersonal={() => setModo("registroPersonal")}
+    />
+  );
 }
   return null;
 }
@@ -172,19 +178,36 @@ function Supervision() {
   );
 }
 
-function SupervisionWrapper({ switchToMenu }) {
+function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToRegistroPersonal }) {
   const [loggedIn, setLoggedIn] = useState(false);
 
   return loggedIn ? (
     <div>
       <Supervision />
-      {/* 🔹 Botón Volver */}
-      <div className="p-4 max-w-md mx-auto text-center">
+
+      <div className="p-4 max-w-md mx-auto text-center space-y-2">
+        {/* Botón volver al menú */}
         <button
           onClick={switchToMenu}
-          className="bg-gray-400 text-white px-4 py-2 rounded-xl mt-4"
+          className="bg-gray-400 text-white px-4 py-2 rounded-xl mt-2 w-full"
         >
           Volver al menú
+        </button>
+
+        {/* Botón para registro de usuario */}
+        <button
+          onClick={switchToRegistroUsuario}
+          className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full"
+        >
+          Registrar nuevo usuario
+        </button>
+
+        {/* Botón para registro de personal */}
+        <button
+          onClick={switchToRegistroPersonal}
+          className="bg-green-500 text-white px-4 py-2 rounded-xl w-full"
+        >
+          Registrar nuevo personal
         </button>
       </div>
     </div>
