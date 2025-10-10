@@ -219,13 +219,6 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
           {loading ? "Registrando..." : "Registrarse"}
         </button>
       </form>
-
-      <p className="text-center mt-4 text-sm">
-        ¿Ya tienes cuenta?{" "}
-        <button className="text-blue-600 underline" onClick={switchToLogin}>
-          Ingresar
-        </button>
-      </p>
     </div>
   );
 }
