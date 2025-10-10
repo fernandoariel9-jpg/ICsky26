@@ -105,7 +105,7 @@ export default function RegistroPersonal({ onRegister, switchToLogin }) {
         >
           <option value="">Seleccione un área</option>
           {areas.map(a => (
-            <option key={a.id} value={a.nombre}>{a.nombre}</option>
+            <option key={a.id} value={a.area}>{a.area}</option>
           ))}
         </select>
 
@@ -145,5 +145,6 @@ export default function RegistroPersonal({ onRegister, switchToLogin }) {
   );
 
 }
+
 
 
