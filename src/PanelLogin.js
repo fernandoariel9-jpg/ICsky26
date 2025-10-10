@@ -1,7 +1,12 @@
+// src/PanelLogin.js
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
+
+// 🔹 Importar tus formularios
+import RegistroUsuario from "./RegistroUsuario";
+import RegistroPersonal from "./RegistroPersonal";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
@@ -57,7 +62,7 @@ function PanelLogin({ onLogin }) {
 }
 
 // ---------- Panel de Supervisión ----------
-function Supervision() {
+function Supervision({ setVista }) {
   const [tareas, setTareas] = useState([]);
   const [modalImagen, setModalImagen] = useState(null);
   const [tab, setTab] = useState("pendientes");
@@ -83,7 +88,6 @@ function Supervision() {
   const abrirModal = (img) => setModalImagen(img);
   const cerrarModal = () => setModalImagen(null);
 
-  // 🔹 Filtrado por pestañas
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const terminadas = tareas.filter((t) => t.solucion && !t.fin);
   const finalizadas = tareas.filter((t) => t.fin);
@@ -100,15 +104,15 @@ function Supervision() {
       <h1 className="text-2xl font-bold text-center mb-2">📋 Panel de Supervisión</h1>
 
       {/* 🔹 Botones debajo del título */}
-      <div className="flex justify-center space-x-2 mb-4">
+      <div className="flex justify-center space-x-2 mb-6">
         <button
-          onClick={() => window.location.href = "/registro-usuario"}
+          onClick={() => setVista("usuario")}
           className="bg-blue-500 text-white px-4 py-2 rounded-xl"
         >
           Registrar Usuario
         </button>
         <button
-          onClick={() => window.location.href = "/registro-personal"}
+          onClick={() => setVista("personal")}
           className="bg-green-500 text-white px-4 py-2 rounded-xl"
         >
           Registrar Personal
@@ -242,5 +246,36 @@ function Supervision() {
 // ---------- Wrapper que combina login + panel ----------
 export default function Panel() {
   const [loggedIn, setLoggedIn] = useState(false);
-  return loggedIn ? <Supervision /> : <PanelLogin onLogin={setLoggedIn} />;
+  const [vista, setVista] = useState("panel"); // 🔹 controla qué mostrar
+
+  if (!loggedIn) return <PanelLogin onLogin={setLoggedIn} />;
+
+  // 🔹 Mostrar según la vista actual
+  if (vista === "usuario")
+    return (
+      <div className="p-4 max-w-md mx-auto">
+        <button
+          onClick={() => setVista("panel")}
+          className="bg-gray-400 text-white px-4 py-2 rounded-xl mb-4"
+        >
+          ← Volver al Panel
+        </button>
+        <RegistroUsuario />
+      </div>
+    );
+
+  if (vista === "personal")
+    return (
+      <div className="p-4 max-w-md mx-auto">
+        <button
+          onClick={() => setVista("panel")}
+          className="bg-gray-400 text-white px-4 py-2 rounded-xl mb-4"
+        >
+          ← Volver al Panel
+        </button>
+        <RegistroPersonal />
+      </div>
+    );
+
+  return <Supervision setVista={setVista} />;
 }
