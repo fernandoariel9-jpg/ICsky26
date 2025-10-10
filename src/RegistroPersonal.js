@@ -48,9 +48,12 @@ export default function RegistroPersonal({ onRegister, switchToLogin }) {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  };
+  const { name, value } = e.target;
+  setForm({
+    ...form,
+    [name]: name === "nombre" ? value.toUpperCase() : value, // 🔹 convierte solo el nombre a mayúsculas
+  });
+};
 
   // Estado para mostrar coincidencia de contraseñas en tiempo real
   const contrasenasCoinciden = password2.length === 0 ? null : form.password === password2;
@@ -142,4 +145,5 @@ export default function RegistroPersonal({ onRegister, switchToLogin }) {
   );
 
 }
+
 
