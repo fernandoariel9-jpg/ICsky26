@@ -1,4 +1,3 @@
-// src/PanelLogin.js
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -99,6 +98,22 @@ function Supervision() {
   return (
     <div className="p-4 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold text-center mb-2">📋 Panel de Supervisión</h1>
+
+      {/* 🔹 Botones debajo del título */}
+      <div className="flex justify-center space-x-2 mb-4">
+        <button
+          onClick={() => window.location.href = "/registro-usuario"}
+          className="bg-blue-500 text-white px-4 py-2 rounded-xl"
+        >
+          Registrar Usuario
+        </button>
+        <button
+          onClick={() => window.location.href = "/registro-personal"}
+          className="bg-green-500 text-white px-4 py-2 rounded-xl"
+        >
+          Registrar Personal
+        </button>
+      </div>
 
       <div className="flex justify-center space-x-2 mb-4">
         <button
@@ -229,4 +244,3 @@ export default function Panel() {
   const [loggedIn, setLoggedIn] = useState(false);
   return loggedIn ? <Supervision /> : <PanelLogin onLogin={setLoggedIn} />;
 }
-
