@@ -137,16 +137,9 @@ export default function RegistroPersonal({ onRegister, switchToLogin }) {
         >
           Registrar
         </button>
-
-        <button 
-          type="button" 
-          className="text-blue-600 underline mt-2" 
-          onClick={switchToLogin}
-        >
-          Ya registrado? Ingresar
-        </button>
       </form>
     </div>
   );
 
 }
+
