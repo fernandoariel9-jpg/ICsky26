@@ -264,26 +264,40 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         </div>
       )}
 
-      <div className="flex justify-center space-x-2 my-4">
-        <button
-          className={`px-3 py-1 rounded-xl ${filtro === "pendientes" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-          onClick={() => setFiltro("pendientes")}
-        >
-          Pendientes
-        </button>
-        <button
-          className={`px-3 py-1 rounded-xl ${filtro === "enProceso" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-          onClick={() => setFiltro("enProceso")}
-        >
-          En proceso
-        </button>
-        <button
-          className={`px-3 py-1 rounded-xl ${filtro === "finalizadas" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-          onClick={() => setFiltro("finalizadas")}
-        >
-          Finalizadas
-        </button>
-      </div>
+      <div className="flex justify-center space-x-2 mb-4">
+  <button
+    onClick={() => setFiltro("pendientes")}
+    className={`px-3 py-1 rounded-xl ${
+      filtro === "pendientes"
+        ? "bg-yellow-400 text-white"
+        : "bg-gray-200 text-gray-700"
+    }`}
+  >
+    🕓 Pendientes
+  </button>
+
+  <button
+    onClick={() => setFiltro("enProceso")}
+    className={`px-3 py-1 rounded-xl ${
+      filtro === "enProceso"
+        ? "bg-blue-400 text-white"
+        : "bg-gray-200 text-gray-700"
+    }`}
+  >
+    🧩 En proceso
+  </button>
+
+  <button
+    onClick={() => setFiltro("finalizadas")}
+    className={`px-3 py-1 rounded-xl ${
+      filtro === "finalizadas"
+        ? "bg-green-500 text-white"
+        : "bg-gray-200 text-gray-700"
+    }`}
+  >
+    ✅ Finalizadas
+  </button>
+</div>
 
       <form onSubmit={handleCrearTarea} className="mb-6 bg-gray-50 p-4 rounded-xl shadow space-y-3">
         <textarea
@@ -392,5 +406,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
+
 
 
