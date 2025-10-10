@@ -213,6 +213,10 @@ function Supervision() {
 function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToRegistroPersonal }) {
   const [loggedIn, setLoggedIn] = useState(false);
 
+  const handleLoginSuccess = () => {
+    setLoggedIn(true);
+  };
+
   return loggedIn ? (
     <div className="p-4 max-w-md mx-auto">
       <Supervision />
@@ -242,6 +246,7 @@ function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToReg
       </div>
     </div>
   ) : (
-    <PanelLogin onLogin={setLoggedIn} />
+    // 🔹 Pasamos la función de éxito al login del supervisor
+    <PanelLogin onLogin={handleLoginSuccess} />
   );
 }
