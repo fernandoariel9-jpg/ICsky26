@@ -145,7 +145,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     }
   };
 
-  // 🔹 División de tareas por estado
+  // 🔹 Clasificación de tareas por estado
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const terminadas = tareas.filter((t) => t.solucion && !t.fin);
   const finalizadas = tareas.filter((t) => t.fin);
@@ -156,6 +156,13 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       <h1 className="text-2xl font-bold mb-4 text-center">
         📌 Pedidos de tareas de {usuario?.nombre || usuario?.mail || "Usuario"}
       </h1>
+
+      {/* 🔹 Contadores de tareas */}
+      <div className="flex justify-center gap-2 mb-4 text-sm">
+        <span className="bg-yellow-200 px-3 py-1 rounded-xl">🕓 Pendientes: {pendientes.length}</span>
+        <span className="bg-blue-200 px-3 py-1 rounded-xl">🧩 En proceso: {terminadas.length}</span>
+        <span className="bg-green-200 px-3 py-1 rounded-xl">✅ Finalizadas: {finalizadas.length}</span>
+      </div>
 
       <div className="flex justify-center gap-2 mb-4">
         <button
@@ -226,8 +233,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
           <h2 className="text-lg font-semibold mt-6 mb-2 text-yellow-700">🕓 Pendientes</h2>
           <ListaTareas tareas={pendientes} onFinalizar={handleFinalizar} abrirModal={abrirModal} />
 
-          {/* 🧩 Terminadas */}
-          <h2 className="text-lg font-semibold mt-6 mb-2 text-blue-700">🧩 Terminadas</h2>
+          {/* 🧩 En proceso */}
+          <h2 className="text-lg font-semibold mt-6 mb-2 text-blue-700">🧩 En proceso</h2>
           <ListaTareas tareas={terminadas} onFinalizar={handleFinalizar} abrirModal={abrirModal} />
 
           {/* ✅ Finalizadas */}
