@@ -218,12 +218,15 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     toast.error("Error al leer QR ❌");
   };
 
-  const tareasFiltradas = tareas.filter((t) => {
-    if (filtro === "pendientes") return !t.solucion && !t.fin;
-    if (filtro === "enProceso") return t.solucion && !t.fin;
-    if (filtro === "finalizadas") return t.fin;
-    return true;
-  });
+  const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
+  const enProceso = tareas.filter((t) => t.solucion && !t.fin);
+  const finalizadas = tareas.filter((t) => t.fin);
+
+  const tareasFiltradas = filtro === "pendientes"
+    ? pendientes
+    : filtro === "enProceso"
+    ? enProceso
+    : finalizadas;
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
@@ -260,7 +263,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         </div>
       )}
 
-      {/* ✅ Botones para filtrar tareas */}
+      {/* ✅ Pestañas con contadores */}
       <div className="flex justify-center space-x-2 mb-4">
         <button
           onClick={() => setFiltro("pendientes")}
@@ -270,7 +273,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
               : "bg-gray-200 text-gray-700"
           }`}
         >
-          🕓 Pendientes
+          🕓 Pendientes ({pendientes.length})
         </button>
 
         <button
@@ -281,7 +284,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
               : "bg-gray-200 text-gray-700"
           }`}
         >
-          🧩 En proceso
+          🧩 En proceso ({enProceso.length})
         </button>
 
         <button
@@ -292,7 +295,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
               : "bg-gray-200 text-gray-700"
           }`}
         >
-          ✅ Finalizadas
+          ✅ Finalizadas ({finalizadas.length})
         </button>
       </div>
 
