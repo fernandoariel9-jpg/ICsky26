@@ -232,8 +232,11 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     <div className="p-4 max-w-2xl mx-auto">
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
-        📌 Pedidos de tareas de {usuario?.nombre || usuario?.mail || "Usuario"}{" "}
-      </h1>
+  📌 Pedidos de tareas de{" "}
+  <span className="text-blue-700">
+    {usuario?.nombre || usuario?.mail || "Usuario"}
+  </span>
+</h1>
       <p>
         <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">
           🔄 Actualizar lista
@@ -406,3 +409,4 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
+
