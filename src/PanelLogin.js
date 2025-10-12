@@ -175,27 +175,54 @@ function Supervision({ setVista }) {
             </p>
           )}
           {tareasPorTab.map((t) => (
-            <motion.li
-              key={t.id}
-              className="p-3 rounded-xl shadow bg-white"
-              whileHover={{ scale: 1.02 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex items-center space-x-3">
-                {t.imagen && (
-                  <img
-                    src={`data:image/jpeg;base64,${t.imagen}`}
-                    alt="Foto"
-                    className="w-14 h-14 rounded-lg object-cover cursor-pointer"
-                    onClick={() => abrirModal(t.imagen)}
-                  />
-                )}
-                <div>
-                  <p className="font-semibold">
-                    #{t.id} — {t.usuario}: {t.tarea}
-                  </p>
+  <motion.li
+    key={t.id}
+    className="p-3 rounded-xl shadow bg-white"
+    whileHover={{ scale: 1.02 }}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3 }}
+  >
+    <div className="flex items-center space-x-3">
+      {t.imagen && (
+        <img
+          src={`data:image/jpeg;base64,${t.imagen}`}
+          alt="Foto"
+          className="w-14 h-14 rounded-lg object-cover cursor-pointer"
+          onClick={() => abrirModal(t.imagen)}
+        />
+      )}
+      <div>
+        <p className="font-semibold">
+          #{t.id} — {t.usuario}: {t.tarea}
+        </p>
+
+        {/* 🏷️ Mostrar área y servicio */}
+        <p className="text-sm text-gray-700 mt-1">
+          🏢 Área: <span className="font-medium">{t.area || "—"}</span>
+        </p>
+        <p className="text-sm text-gray-700">
+          🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
+        </p>
+
+        <p className="text-sm text-gray-600 mt-1">
+          📅 {new Date(t.fecha).toLocaleString()}
+        </p>
+
+        {t.solucion && (
+          <p className="text-sm bg-gray-100 p-1 rounded mt-1">
+            💡 Solución: {t.solucion}
+          </p>
+        )}
+        {t.fin && (
+          <p className="text-green-600 font-semibold mt-1">
+            ✔️ Finalizada por el usuario
+          </p>
+        )}
+      </div>
+    </div>
+  </motion.li>
+))}
                   <p className="text-sm text-gray-600">
                     📅 {new Date(t.fecha).toLocaleString()}
                   </p>
