@@ -104,80 +104,76 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     setPreviewImagen(null);
   };
 
-  // ✅ GUARDA también servicio y subservicio automáticamente
   const handleCrearTarea = async (e) => {
-  e.preventDefault();
-  if (!nuevaTarea.trim()) return toast.error("Ingrese una descripción de tarea");
-  if (!usuario) return toast.error("Usuario no disponible");
+    e.preventDefault();
+    if (!nuevaTarea.trim()) return toast.error("Ingrese una descripción de tarea");
+    if (!usuario) return toast.error("Usuario no disponible");
 
-  // Identificador del usuario
-  const userIdentifier =
-    typeof usuario === "string"
-      ? usuario
-      : usuario.nombre || usuario.mail || String(usuario);
+    const userIdentifier =
+      typeof usuario === "string"
+        ? usuario
+        : usuario.nombre || usuario.mail || String(usuario);
 
-  // Tomar los valores reales del usuario logueado
-  const areaValor = usuario?.area ?? null;
-  const servicioValor = usuario?.servicio ?? null;
-  const subservicioValor = usuario?.subservicio ?? null;
+    const areaValor = usuario?.area ?? null;
+    const servicioValor = usuario?.servicio ?? null;
+    const subservicioValor = usuario?.subservicio ?? null;
 
-  const bodyToSend = {
-    usuario: userIdentifier,
-    tarea: nuevaTarea,
-    area: areaValor,
-    servicio: servicioValor,
-    subservicio: subservicioValor,
-    imagen: nuevaImagen,
-    fin: false,
-  };
+    const bodyToSend = {
+      usuario: userIdentifier,
+      tarea: nuevaTarea,
+      area: areaValor,
+      servicio: servicioValor,
+      subservicio: subservicioValor,
+      imagen: nuevaImagen,
+      fin: false,
+    };
 
-  setLoading(true);
-  try {
-    if (!navigator.onLine) throw new Error("offline");
-
-    const res = await fetch(API_TAREAS, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(bodyToSend),
-    });
-
-    const text = await res.text();
-    let payload;
+    setLoading(true);
     try {
-      payload = text ? JSON.parse(text) : null;
-    } catch {
-      payload = text;
+      if (!navigator.onLine) throw new Error("offline");
+
+      const res = await fetch(API_TAREAS, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyToSend),
+      });
+
+      const text = await res.text();
+      let payload;
+      try {
+        payload = text ? JSON.parse(text) : null;
+      } catch {
+        payload = text;
+      }
+
+      if (!res.ok) {
+        const serverMsg =
+          payload && typeof payload === "object" && payload.error
+            ? payload.error
+            : typeof payload === "string"
+            ? payload
+            : `HTTP ${res.status}`;
+        toast.error("❌ Error al crear tarea: " + serverMsg);
+        return;
+      }
+
+      setTareas((prev) => [payload, ...prev]);
+      setNuevaTarea("");
+      setNuevaImagen(null);
+      setPreviewImagen(null);
+      toast.success("✅ Tarea creada");
+    } catch (err) {
+      let pendientes = JSON.parse(localStorage.getItem("tareasPendientes") || "[]");
+      pendientes.push(bodyToSend);
+      localStorage.setItem("tareasPendientes", JSON.stringify(pendientes));
+      setNuevaTarea("");
+      setNuevaImagen(null);
+      setPreviewImagen(null);
+      toast.info("⚠️ Sin conexión: tarea guardada localmente");
+    } finally {
+      setLoading(false);
     }
-
-    if (!res.ok) {
-      const serverMsg =
-        payload && typeof payload === "object" && payload.error
-          ? payload.error
-          : typeof payload === "string"
-          ? payload
-          : `HTTP ${res.status}`;
-      toast.error("❌ Error al crear tarea: " + serverMsg);
-      return;
-    }
-
-    setTareas((prev) => [payload, ...prev]);
-    setNuevaTarea("");
-    setNuevaImagen(null);
-    setPreviewImagen(null);
-    toast.success("✅ Tarea creada");
-  } catch (err) {
-    let pendientes = JSON.parse(localStorage.getItem("tareasPendientes") || "[]");
-    pendientes.push(bodyToSend);
-    localStorage.setItem("tareasPendientes", JSON.stringify(pendientes));
-    setNuevaTarea("");
-    setNuevaImagen(null);
-    setPreviewImagen(null);
-    toast.info("⚠️ Sin conexión: tarea guardada localmente");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const enviarTareasPendientes = async () => {
     let pendientes = JSON.parse(localStorage.getItem("tareasPendientes") || "[]");
@@ -264,40 +260,41 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         </div>
       )}
 
+      {/* ✅ Botones para filtrar tareas */}
       <div className="flex justify-center space-x-2 mb-4">
-  <button
-    onClick={() => setFiltro("pendientes")}
-    className={`px-3 py-1 rounded-xl ${
-      filtro === "pendientes"
-        ? "bg-yellow-400 text-white"
-        : "bg-gray-200 text-gray-700"
-    }`}
-  >
-    🕓 Pendientes
-  </button>
+        <button
+          onClick={() => setFiltro("pendientes")}
+          className={`px-3 py-1 rounded-xl ${
+            filtro === "pendientes"
+              ? "bg-yellow-400 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
+        >
+          🕓 Pendientes
+        </button>
 
-  <button
-    onClick={() => setFiltro("enProceso")}
-    className={`px-3 py-1 rounded-xl ${
-      filtro === "enProceso"
-        ? "bg-blue-400 text-white"
-        : "bg-gray-200 text-gray-700"
-    }`}
-  >
-    🧩 En proceso
-  </button>
+        <button
+          onClick={() => setFiltro("enProceso")}
+          className={`px-3 py-1 rounded-xl ${
+            filtro === "enProceso"
+              ? "bg-blue-400 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
+        >
+          🧩 En proceso
+        </button>
 
-  <button
-    onClick={() => setFiltro("finalizadas")}
-    className={`px-3 py-1 rounded-xl ${
-      filtro === "finalizadas"
-        ? "bg-green-500 text-white"
-        : "bg-gray-200 text-gray-700"
-    }`}
-  >
-    ✅ Finalizadas
-  </button>
-</div>
+        <button
+          onClick={() => setFiltro("finalizadas")}
+          className={`px-3 py-1 rounded-xl ${
+            filtro === "finalizadas"
+              ? "bg-green-500 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
+        >
+          ✅ Finalizadas
+        </button>
+      </div>
 
       <form onSubmit={handleCrearTarea} className="mb-6 bg-gray-50 p-4 rounded-xl shadow space-y-3">
         <textarea
@@ -406,6 +403,3 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
-
-
-
