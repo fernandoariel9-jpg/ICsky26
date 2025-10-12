@@ -223,23 +223,6 @@ function Supervision({ setVista }) {
     </div>
   </motion.li>
 ))}
-                  <p className="text-sm text-gray-600">
-                    📅 {new Date(t.fecha).toLocaleString()}
-                  </p>
-                  {t.solucion && (
-                    <p className="text-sm bg-gray-100 p-1 rounded mt-1">
-                      💡 Solución: {t.solucion}
-                    </p>
-                  )}
-                  {t.fin && (
-                    <p className="text-green-600 font-semibold mt-1">
-                      ✔️ Finalizada por el usuario
-                    </p>
-                  )}
-                </div>
-              </div>
-            </motion.li>
-          ))}
         </ul>
       )}
 
