@@ -139,52 +139,61 @@ export default function TareasPersonal({ personal, onLogout }) {
         </button>
       </div>
 
-      <ul className="space-y-4">
-        {tareasFiltradas.map((tarea) => {
-          const completada = !!tarea.solucion;
-          return (
-            <li key={tarea.id} className="border p-4 rounded-xl shadow bg-white">
-              <p className="font-semibold">📝 {tarea.tarea}</p>
-              <p className="text-sm text-gray-600">Usuario: {tarea.usuario}</p>
+     <ul className="space-y-4">
+  {tareasFiltradas.map((tarea) => {
+    const completada = !!tarea.solucion;
+    return (
+      <li key={tarea.id} className="border p-4 rounded-xl shadow bg-white">
+        <p className="font-semibold">📝 {tarea.tarea}</p>
+        <p className="text-sm text-gray-600">👤 Usuario: {tarea.usuario}</p>
 
-              {tarea.imagen && (
-                <img
-                  src={`data:image/jpeg;base64,${tarea.imagen}`}
-                  alt="tarea"
-                  className="w-32 h-32 object-cover mt-2 cursor-pointer rounded"
-                  onClick={() =>
-                    setImagenAmpliada(`data:image/jpeg;base64,${tarea.imagen}`)
-                  }
-                />
-              )}
+        {/* 👇 NUEVO: mostrar servicio y subservicio */}
+        <p className="text-sm text-gray-600">
+          🧰 Servicio: {tarea.servicio || "—"}
+        </p>
+        <p className="text-sm text-gray-600">
+          🔧 Subservicio: {tarea.subservicio || "—"}
+        </p>
+        {/* 👆 FIN NUEVO */}
 
-              <textarea
-                className="w-full p-2 border rounded mt-2"
-                placeholder="Escriba la solución..."
-                value={soluciones[tarea.id] || tarea.solucion || ""}
-                onChange={(e) => handleSolucionChange(tarea.id, e.target.value)}
-                disabled={completada}
-              />
+        {tarea.imagen && (
+          <img
+            src={`data:image/jpeg;base64,${tarea.imagen}`}
+            alt="tarea"
+            className="w-32 h-32 object-cover mt-2 cursor-pointer rounded"
+            onClick={() =>
+              setImagenAmpliada(`data:image/jpeg;base64,${tarea.imagen}`)
+            }
+          />
+        )}
 
-              <button
-                onClick={() => handleCompletar(tarea.id)}
-                className={`mt-2 px-3 py-1 rounded text-white ${
-                  completada ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"
-                }`}
-                disabled={completada}
-              >
-                ✅ Completar
-              </button>
+        <textarea
+          className="w-full p-2 border rounded mt-2"
+          placeholder="Escriba la solución..."
+          value={soluciones[tarea.id] || tarea.solucion || ""}
+          onChange={(e) => handleSolucionChange(tarea.id, e.target.value)}
+          disabled={completada}
+        />
 
-              {completada && (
-                <p className="mt-1 text-green-700 font-semibold">
-                  Solución registrada
-                </p>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+        <button
+          onClick={() => handleCompletar(tarea.id)}
+          className={`mt-2 px-3 py-1 rounded text-white ${
+            completada ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"
+          }`}
+          disabled={completada}
+        >
+          ✅ Completar
+        </button>
+
+        {completada && (
+          <p className="mt-1 text-green-700 font-semibold">
+            Solución registrada
+          </p>
+        )}
+      </li>
+    );
+  })}
+</ul>
 
       {imagenAmpliada && (
         <div
@@ -203,4 +212,5 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
