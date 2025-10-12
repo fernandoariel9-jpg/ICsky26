@@ -81,7 +81,12 @@ export default function TareasPersonal({ personal, onLogout }) {
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
-      <h1 className="text-2xl font-bold mb-4 text-center">📌 Tareas</h1>
+     <h1 className="text-2xl font-bold mb-4 text-center">
+  📌 Registro de tareas de{" "}
+  <span className="text-blue-700">
+    {personal?.nombre || personal?.mail || "Personal"}
+  </span>
+</h1>
 
       {/* 🔹 Filtros con contadores */}
       <div className="flex justify-center space-x-2 mb-4">
@@ -198,3 +203,4 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
