@@ -9,7 +9,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [tareas, setTareas] = useState([]);
   const [soluciones, setSoluciones] = useState({});
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
-  const [filtro, setFiltro] = useState("pendientes"); // 🔹 Nuevo estado para el filtro
+  const [filtro, setFiltro] = useState("pendientes");
 
   const fetchTareas = async () => {
     try {
@@ -65,20 +65,25 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
-  // 🔹 Filtrado según el estado
-  const tareasFiltradas = tareas.filter((t) => {
-    if (filtro === "pendientes") return !t.solucion && !t.fin;
-    if (filtro === "enProceso") return t.solucion && !t.fin;
-    if (filtro === "finalizadas") return t.fin;
-    return true;
-  });
+  // 🔹 Contadores
+  const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
+  const enProceso = tareas.filter((t) => t.solucion && !t.fin);
+  const finalizadas = tareas.filter((t) => t.fin);
+
+  // 🔹 Filtrado
+  const tareasFiltradas =
+    filtro === "pendientes"
+      ? pendientes
+      : filtro === "enProceso"
+      ? enProceso
+      : finalizadas;
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">📌 Tareas</h1>
 
-      {/* 🔹 Filtros con el mismo estilo que el panel de supervisión */}
+      {/* 🔹 Filtros con contadores */}
       <div className="flex justify-center space-x-2 mb-4">
         <button
           onClick={() => setFiltro("pendientes")}
@@ -88,7 +93,7 @@ export default function TareasPersonal({ personal, onLogout }) {
               : "bg-gray-200 text-gray-700"
           }`}
         >
-          🕓 Pendientes
+          🕓 Pendientes ({pendientes.length})
         </button>
 
         <button
@@ -99,7 +104,7 @@ export default function TareasPersonal({ personal, onLogout }) {
               : "bg-gray-200 text-gray-700"
           }`}
         >
-          🧩 En proceso
+          🧩 En proceso ({enProceso.length})
         </button>
 
         <button
@@ -110,7 +115,7 @@ export default function TareasPersonal({ personal, onLogout }) {
               : "bg-gray-200 text-gray-700"
           }`}
         >
-          ✅ Finalizadas
+          ✅ Finalizadas ({finalizadas.length})
         </button>
       </div>
 
