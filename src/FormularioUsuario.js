@@ -231,10 +231,10 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
-      <h1 className="text-2xl font-bold mb-4 text-center">
+     <h1 className="text-2xl font-bold mb-4 text-center">
   📌 Pedidos de tareas de{" "}
   <span className="text-blue-700">
-    {usuario?.nombre || usuario?.mail || "Usuario"}
+    {typeof usuario === "string" ? usuario : usuario?.nombre || usuario?.mail || "Usuario"}
   </span>
 </h1>
       <p>
@@ -409,4 +409,5 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
+
 
