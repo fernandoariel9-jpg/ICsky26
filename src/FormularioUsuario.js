@@ -237,14 +237,28 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     {typeof usuario === "string" ? usuario : usuario?.nombre || usuario?.mail || "Usuario"}
   </span>
 </h1>
-      <p>
-        <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">
-          🔄 Actualizar lista
-        </button>
-        <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
-          Cerrar sesión
-        </button>
-      </p>
+      <p className="flex space-x-2 mb-4 justify-center">
+  <button
+    onClick={fetchTareas}
+    className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm"
+  >
+    🔄 Actualizar lista
+  </button>
+
+  <button
+    onClick={onLogout}
+    className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
+  >
+    Cerrar sesión
+  </button>
+
+  <button
+    onClick={() => navigate("/manual-usuario")}
+    className="bg-green-500 text-white px-3 py-1 rounded-xl text-sm"
+  >
+    Manual de usuario
+  </button>
+</p>
 
       <button
         type="button"
@@ -409,5 +423,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
+
 
 
