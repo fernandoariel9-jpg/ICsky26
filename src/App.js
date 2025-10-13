@@ -11,8 +11,14 @@ import LoginPersonal from "./LoginPersonal";
 import FormularioUsuario from "./FormularioUsuario";
 import TareasPersonal from "./TareasPersonal";
 import PanelLogin from "./PanelLogin";
+import ManualUsuario from "./ManualUsuario";
 
 const API_URL = "https://sky26.onrender.com/tareas";
+
+<Routes>
+  <Route path="/" element={<FormularioUsuario />} />
+  <Route path="/manual-usuario" element={<ManualUsuario />} />
+</Routes>
 
 function Main() {
   const [modo, setModo] = useState("menu"); // "menu", "loginUsuario", "registroUsuario", "loginPersonal", "registroPersonal"
