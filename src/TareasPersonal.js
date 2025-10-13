@@ -88,7 +88,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   </span>
 </h1>
 
-<div className="flex space-x-2 mb-4">
+<div className="flex space-x-2 mb-4 justify-center">
         <button
           onClick={fetchTareas}
           className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm"
@@ -213,6 +213,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
