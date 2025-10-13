@@ -12,21 +12,8 @@ import FormularioUsuario from "./FormularioUsuario";
 import TareasPersonal from "./TareasPersonal";
 import PanelLogin from "./PanelLogin";
 import ManualUsuario from "./ManualUsuario";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 const API_URL = "https://sky26.onrender.com/tareas";
-
-function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<FormularioUsuario />} />
-        <Route path="/tareas" element={<TareasPersonal />} />
-        <Route path="/manual-usuario" element={<ManualUsuario />} />
-      </Routes>
-    </Router>
-  );
-}
 
 function Main() {
   const [modo, setModo] = useState("menu"); // "menu", "loginUsuario", "registroUsuario", "loginPersonal", "registroPersonal"
