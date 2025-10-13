@@ -252,7 +252,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     Cerrar sesión
   </button>
 </p>
-
+<p className="flex space-x-2 mb-4 justify-center">
       <button
         type="button"
         onClick={() => setShowQR(!showQR)}
@@ -260,7 +260,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       >
         {showQR ? "Cerrar lector QR" : "Solicitar asistencia mediante QR"}
       </button>
-
+</p>
       {showQR && (
         <div className="mt-4">
           <QrReader
@@ -416,6 +416,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
+
 
 
 
