@@ -88,6 +88,20 @@ export default function TareasPersonal({ personal, onLogout }) {
   </span>
 </h1>
 
+<div className="flex space-x-2 mb-4">
+        <button
+          onClick={fetchTareas}
+          className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          🔄 Actualizar lista
+        </button>
+        <button
+          onClick={onLogout}
+          className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          Cerrar sesión
+        </button>
+      </div>
       {/* 🔹 Filtros con contadores */}
       <div className="flex justify-center space-x-2 mb-4">
         <button
@@ -124,20 +138,7 @@ export default function TareasPersonal({ personal, onLogout }) {
         </button>
       </div>
 
-      <div className="flex space-x-2 mb-4">
-        <button
-          onClick={fetchTareas}
-          className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm"
-        >
-          🔄 Actualizar lista
-        </button>
-        <button
-          onClick={onLogout}
-          className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
-        >
-          Cerrar sesión
-        </button>
-      </div>
+      
 
      <ul className="space-y-4">
   {tareasFiltradas.map((tarea) => {
@@ -212,5 +213,6 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
