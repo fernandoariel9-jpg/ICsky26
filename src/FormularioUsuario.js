@@ -5,10 +5,12 @@ import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "./config";
 import QrReader from "react-qr-scanner";
+import { useNavigate } from "react-router-dom";
 
 const API_TAREAS = API_URL.Tareas;
 
 export default function FormularioUsuario({ usuario, onLogout }) {
+  const navigate = useNavigate();
   const [tareas, setTareas] = useState([]);
   const [modalImagen, setModalImagen] = useState(null);
   const [nuevaTarea, setNuevaTarea] = useState("");
@@ -423,6 +425,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     </div>
   );
 }
+
 
 
 
