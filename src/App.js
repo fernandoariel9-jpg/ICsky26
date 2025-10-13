@@ -28,8 +28,6 @@ function App() {
   );
 }
 
-export default App;
-
 function Main() {
   const [modo, setModo] = useState("menu"); // "menu", "loginUsuario", "registroUsuario", "loginPersonal", "registroPersonal"
   const [usuario, setUsuario] = useState(null);
