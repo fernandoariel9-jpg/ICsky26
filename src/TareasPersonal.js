@@ -88,17 +88,17 @@ export default function TareasPersonal({ personal, onLogout }) {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-          nueva_area: nuevaArea, // 👈 convertir a número
+        nueva_area: nuevaArea,
         reasignado_por: personal.nombre,
       }),
     });
 
     if (!res.ok) throw new Error("Error HTTP " + res.status);
 
-    toast.success(`🔄 Tarea #${id} reasignada`);
+    toast.success(`🔄 Tarea #${id} reasignada a ${nuevaArea}`);
     setModal(null);
     setNuevaArea("");
-    fetchTareas();
+    fetchTareas(); // recargar lista
   } catch (err) {
     console.error("Error al reasignar tarea:", err);
     toast.error("❌ Error al reasignar tarea");
@@ -222,9 +222,7 @@ export default function TareasPersonal({ personal, onLogout }) {
 >
   <option value="">Seleccione...</option>
   {areas.map((a) => (
-    <option key={a.id} value={a.id}> {/* enviar id en vez de nombre */}
-      {a.area}
-    </option>
+    <option key={a.id} value={a.area}>{a.area}</option>
   ))}
 </select>
             <div className="flex justify-end space-x-2">
@@ -249,6 +247,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
