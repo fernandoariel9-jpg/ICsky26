@@ -88,7 +88,7 @@ export default function TareasPersonal({ personal, onLogout }) {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        nuevo_area: parseInt(nuevaArea), // 👈 convertir a número
+          nueva_area: nuevaArea, // 👈 convertir a número
         reasignado_por: personal.nombre,
       }),
     });
@@ -249,6 +249,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
