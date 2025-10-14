@@ -77,33 +77,33 @@ export default function TareasPersonal({ personal, onLogout }) {
 
   // 🆕 Nueva función para reasignar tarea
   const handleReasignar = async (id) => {
-    try {
-      if (!nuevaArea) {
-        toast.warn("Seleccione una nueva área antes de confirmar");
-        return;
-      }
-
-      const url = `${API_TAREAS}/${id}/reasignar`;
-      const res = await fetch(url, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nuevo_area: nuevaArea,
-          reasignado_por: personal.nombre,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Error HTTP " + res.status);
-
-      toast.success(`🔄 Tarea #${id} reasignada a ${nuevaArea}`);
-      setModal(null);
-      setNuevaArea("");
-      fetchTareas();
-    } catch (err) {
-      console.error("Error al reasignar tarea:", err);
-      toast.error("❌ Error al reasignar tarea");
+  try {
+    if (!nuevaArea) {
+      toast.warn("Seleccione una nueva área antes de confirmar");
+      return;
     }
-  };
+
+    const url = `${API_TAREAS}/${id}/reasignar`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nuevo_area: parseInt(nuevaArea), // 👈 convertir a número
+        reasignado_por: personal.nombre,
+      }),
+    });
+
+    if (!res.ok) throw new Error("Error HTTP " + res.status);
+
+    toast.success(`🔄 Tarea #${id} reasignada`);
+    setModal(null);
+    setNuevaArea("");
+    fetchTareas();
+  } catch (err) {
+    console.error("Error al reasignar tarea:", err);
+    toast.error("❌ Error al reasignar tarea");
+  }
+};
 
   // Filtrado
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
@@ -215,19 +215,18 @@ export default function TareasPersonal({ personal, onLogout }) {
           <div className="bg-white p-6 rounded-xl shadow-xl w-80">
             <h2 className="text-lg font-bold mb-3">🔄 Reasignar tarea #{modal.id}</h2>
             <label className="block mb-2">Seleccionar nueva área:</label>
-            <select
-              className="border rounded p-2 w-full mb-4"
-              value={nuevaArea}
-              onChange={(e) => setNuevaArea(e.target.value)}
-            >
-              <option value="">Seleccione...</option>
-              {areas.map((a) => (
-                <option key={a.id} value={a.area}>
-                  {a.area}
-                </option>
-              ))}
-            </select>
-
+           <select
+  className="border rounded p-2 w-full mb-4"
+  value={nuevaArea}
+  onChange={(e) => setNuevaArea(e.target.value)}
+>
+  <option value="">Seleccione...</option>
+  {areas.map((a) => (
+    <option key={a.id} value={a.id}> {/* enviar id en vez de nombre */}
+      {a.area}
+    </option>
+  ))}
+</select>
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setModal(null)}
@@ -250,5 +249,6 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
