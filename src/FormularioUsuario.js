@@ -252,11 +252,8 @@ return (
   </button>  <button
 onClick={onLogout}
 className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
-
-> 
-
+    > 
 Cerrar sesión
-
   </button>  
 </p>  
 <p className="flex space-x-2 mb-4 justify-center">  
