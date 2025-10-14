@@ -56,7 +56,7 @@ const cerrarModal = () => setModalImagen(null);
 
 const handleFinalizar = async (id) => {
 try {
-const res = await fetch(${API_TAREAS}/${id}, {
+const res = await fetch(`${API_TAREAS}/${id}`, {
 method: "PUT",
 headers: { "Content-Type": "application/json" },
 body: JSON.stringify({ fin: true }),
