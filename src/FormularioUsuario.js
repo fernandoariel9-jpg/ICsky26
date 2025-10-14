@@ -29,7 +29,7 @@ setLoading(true);
 try {
 if (!usuario) return;
 const areaParam = encodeURIComponent(usuario.area || "");
-const url = areaParam ? ${API_TAREAS}/${areaParam} : API_TAREAS;
+const url = areaParam ? `${API_TAREAS}/${areaParam}` : API_TAREAS;
 const res = await fetch(url);
 if (!res.ok) throw new Error("Error HTTP " + res.status);
 const data = await res.json();
