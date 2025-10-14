@@ -211,7 +211,7 @@ qrData = JSON.parse(data.text || data);
 qrData = { info: data.text || data };
 }
 setNuevaTarea(
-Solicitud automática de asistencia para: ${qrData.marca || qrData.info} - ${qrData.numeroSerie || ""} - ${qrData.servicio || ""}
+`Solicitud automática de asistencia para: ${qrData.marca || qrData.info} - ${qrData.numeroSerie || ""} - ${qrData.servicio || ""}`
 );
 toast.success("QR leído ✅ Tarea generada automáticamente");
 setShowQR(false);
