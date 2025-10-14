@@ -193,33 +193,40 @@ function Supervision({ setVista }) {
         />
       )}
       <div>
-        <p className="font-semibold">
-          #{t.id} — {t.usuario}: {t.tarea}
-        </p>
+  <p className="font-semibold">
+    #{t.id} — {t.usuario}: {t.tarea}
+  </p>
 
-        {/* 🏷️ Mostrar área y servicio */}
-        <p className="text-sm text-gray-700 mt-1">
-          🏢 Área: <span className="font-medium">{t.area || "—"}</span>
-        </p>
-        <p className="text-sm text-gray-700">
-          🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
-        </p>
+  {/* 🏷️ Mostrar área y servicio */}
+  <p className="text-sm text-gray-700 mt-1">
+    🏢 Área: <span className="font-medium">{t.area || "—"}</span>
+  </p>
+  <p className="text-sm text-gray-700">
+    🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
+  </p>
 
-        <p className="text-sm text-gray-600 mt-1">
-          📅 {new Date(t.fecha).toLocaleString()}
-        </p>
+  {/* 👷 Mostrar nombre del personal que realizó la tarea */}
+  {t.asignado && (
+    <p className="text-sm text-gray-700 mt-1">
+      👷‍♂️ Realizada por: <span className="font-semibold">{t.asignado}</span>
+    </p>
+  )}
 
-        {t.solucion && (
-          <p className="text-sm bg-gray-100 p-1 rounded mt-1">
-            💡 Solución: {t.solucion}
-          </p>
-        )}
-        {t.fin && (
-          <p className="text-green-600 font-semibold mt-1">
-            ✔️ Finalizada por el usuario
-          </p>
-        )}
-      </div>
+  <p className="text-sm text-gray-600 mt-1">
+    📅 {new Date(t.fecha).toLocaleString()}
+  </p>
+
+  {t.solucion && (
+    <p className="text-sm bg-gray-100 p-1 rounded mt-1">
+      💡 Solución: {t.solucion}
+    </p>
+  )}
+  {t.fin && (
+    <p className="text-green-600 font-semibold mt-1">
+      ✔️ Finalizada por el usuario
+    </p>
+  )}
+</div>
     </div>
   </motion.li>
 ))}
