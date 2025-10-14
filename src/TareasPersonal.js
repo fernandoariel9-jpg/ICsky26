@@ -179,6 +179,13 @@ export default function TareasPersonal({ personal, onLogout }) {
             <p className="text-sm text-gray-600">👤 Usuario: {tarea.usuario}</p>
             <p className="text-sm text-gray-600">🧰 Servicio: {tarea.servicio || "—"}</p>
             <p className="text-sm text-gray-600">🔧 Subservicio: {tarea.subservicio || "—"}</p>
+            {/* 🆕 Mostrar información de reasignación si aplica */}
+{tarea.reasignado_a && (
+  <p className="text-sm text-purple-600 mt-1">
+    🔄 Reasignada desde <strong>{tarea.area}</strong> por{" "}
+    <strong>{tarea.reasignado_por}</strong>
+  </p>
+)}
 
             {/* 🆕 Botón para reasignar */}
             <button
@@ -247,6 +254,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
