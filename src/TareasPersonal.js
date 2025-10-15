@@ -267,25 +267,65 @@ export default function TareasPersonal({ personal, onLogout }) {
       </div>
 
       {/* Lista de tareas */}
-      <ul className="space-y-4">
-        {tareasFiltradas.map((tarea) => (
-          <li key={tarea.id} className="border p-4 rounded-xl shadow bg-white">
-            <p className="font-semibold">📝 {tarea.tarea}</p>
-            <p className="text-sm text-gray-600">👤 Usuario: {tarea.usuario}</p>
-            <p className="text-sm text-gray-600">🧰 Servicio: {tarea.servicio || "—"}</p>
-            <p className="text-sm text-gray-600">
-              🔧 Subservicio: {tarea.subservicio || "—"}
-            </p>
-            {tarea.reasignado_a && (
-              <p className="text-sm text-purple-600 mt-1">
-                🔄 Reasignada desde <strong>{tarea.area}</strong> por{" "}
-                <strong>{tarea.reasignado_por}</strong>
-              </p>
-            )}
+      <ul className="space-y-3">
+  {tareasFiltradas.length === 0 && (
+    <p className="text-center text-gray-500 italic">
+      No hay tareas en esta categoría.
+    </p>
+  )}
 
+  {tareasFiltradas.map((t) => (
+    <li key={t.id} className="p-3 rounded-xl shadow bg-white">
+      <div className="flex items-start space-x-3">
+        {t.imagen && (
+          <img
+            src={`data:image/jpeg;base64,${t.imagen}`}
+            alt="Foto"
+            className="w-14 h-14 rounded-lg object-cover cursor-pointer"
+          />
+        )}
+        <div className="flex-1">
+          <p className="font-semibold text-base">
+            🆔 #{t.id} — 📝 {t.tarea}
+          </p>
+
+          <p className="text-sm text-gray-700">
+            👤 Usuario: <span className="font-medium">{t.usuario}</span>
+          </p>
+          <p className="text-sm text-gray-700">
+            🏢 Área: <span className="font-medium">{t.area || "—"}</span>
+          </p>
+          <p className="text-sm text-gray-700">
+            🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
+          </p>
+          {t.subservicio && (
+            <p className="text-sm text-gray-700">
+              🧩 Subservicio: <span className="font-medium">{t.subservicio}</span>
+            </p>
+          )}
+
+          {t.reasignado_a && (
+            <p className="text-sm text-purple-700 mt-1">
+              🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
+              <strong>{t.reasignado_por}</strong> (desde {t.area})
+            </p>
+          )}
+
+          <p className="text-sm text-gray-600 mt-1">
+            📅 {t.fecha ? new Date(t.fecha).toLocaleString() : "Sin fecha"}
+          </p>
+
+          {t.solucion && (
+            <p className="text-sm bg-gray-100 p-1 rounded mt-1">
+              💡 Solución: {t.solucion}
+            </p>
+          )}
+
+          {/* Botones y textarea */}
+          <div className="mt-3">
             <button
-              onClick={() => setModal(tarea)}
-              className="mt-2 px-3 py-1 bg-purple-500 text-white rounded text-sm"
+              onClick={() => setModal(t)}
+              className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2"
             >
               🔄 Reasignar
             </button>
@@ -293,23 +333,26 @@ export default function TareasPersonal({ personal, onLogout }) {
             <textarea
               className="w-full p-2 border rounded mt-2"
               placeholder="Escriba la solución..."
-              value={soluciones[tarea.id] || tarea.solucion || ""}
-              onChange={(e) => handleSolucionChange(tarea.id, e.target.value)}
-              disabled={!!tarea.solucion}
+              value={soluciones[t.id] || t.solucion || ""}
+              onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+              disabled={!!t.solucion}
             />
 
             <button
-              onClick={() => handleCompletar(tarea.id)}
+              onClick={() => handleCompletar(t.id)}
               className={`mt-2 px-3 py-1 rounded text-white ${
-                tarea.solucion ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"
+                t.solucion ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"
               }`}
-              disabled={!!tarea.solucion}
+              disabled={!!t.solucion}
             >
               ✅ Completar
             </button>
-          </li>
-        ))}
-      </ul>
+          </div>
+        </div>
+      </div>
+    </li>
+  ))}
+</ul>
 
       {/* Modal de reasignación */}
       {modal && (
@@ -353,5 +396,6 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
