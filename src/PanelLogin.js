@@ -206,7 +206,12 @@ function Supervision({ setVista }) {
   </p>
 
   {/* 👷 Mostrar nombre del personal que realizó la tarea */}
-  {t.asignado && (
+  {t.reasignado_por && (
+    <p className="text-sm text-gray-700 mt-1">
+      🔄 Reasignada por: <span className="font-semibold">{t.reasignado_por}</span>
+    </p>
+  )}
+{t.asignado && (
     <p className="text-sm text-gray-700 mt-1">
       👷‍♂️ Realizada por: <span className="font-semibold">{t.asignado}</span>
     </p>
