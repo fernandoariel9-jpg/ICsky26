@@ -270,9 +270,15 @@ export default function TareasPersonal({ personal, onLogout }) {
       <ul className="space-y-4">
         {tareasFiltradas.map((tarea) => (
           <li key={tarea.id} className="border p-4 rounded-xl shadow bg-white">
+            <p className="font-semibold">
+    #{t.id} — {t.usuario}: {t.tarea}
+  </p>
             <p className="font-semibold">📝 {tarea.tarea}</p>
             <p className="text-sm text-gray-600">👤 Usuario: {tarea.usuario}</p>
             <p className="text-sm text-gray-600">🧰 Servicio: {tarea.servicio || "—"}</p>
+            <p className="text-sm text-gray-600 mt-1">
+    📅 {new Date(t.fecha).toLocaleString()}
+  </p>
             <p className="text-sm text-gray-600">
               🔧 Subservicio: {tarea.subservicio || "—"}
             </p>
@@ -353,3 +359,4 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
