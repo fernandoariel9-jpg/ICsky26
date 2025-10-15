@@ -211,6 +211,11 @@ function Supervision({ setVista }) {
       🔄 Reasignada por: <span className="font-semibold">{t.reasignado_por}</span>
     </p>
   )}
+{t.reasignado_a && (
+    <p className="text-sm text-gray-700 mt-1">
+      📋 Reasignada a: <span className="font-semibold">{t.reasignado_a}</span>
+    </p>
+  )}
 {t.asignado && (
     <p className="text-sm text-gray-700 mt-1">
       👷‍♂️ Realizada por: <span className="font-semibold">{t.asignado}</span>
