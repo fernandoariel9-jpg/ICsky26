@@ -70,7 +70,7 @@ export default function RegistroPersonal({ onRegister, switchToLogin }) {
         <input 
           type="text" 
           name="nombre" 
-          placeholder="Nombre" 
+          placeholder="Nombre completo" 
           value={form.nombre} 
           onChange={handleChange} 
           required 
@@ -145,6 +145,7 @@ export default function RegistroPersonal({ onRegister, switchToLogin }) {
   );
 
 }
+
 
 
 
