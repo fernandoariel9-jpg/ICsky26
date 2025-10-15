@@ -347,48 +347,83 @@ Cerrar sesión
       <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>  
     </div>  
   ) : (  
-    <ul className="space-y-4">  
-      {tareasFiltradas.map((tarea) => (  
-        <motion.li  
-          key={tarea.id}  
-          className="border p-4 rounded-xl shadow bg-white"  
-          whileHover={{ scale: 1.02 }}  
-          initial={{ opacity: 0, y: 20 }}  
-          animate={{ opacity: 1, y: 0 }}  
-          transition={{ duration: 0.3 }}  
-        >  
-          <p className="font-semibold">📝 {tarea.tarea}</p>  
-          {tarea.imagen && (  
-            <img  
-              src={`data:image/jpeg;base64,${tarea.imagen}`}  
-              alt="tarea"  
-              className="w-32 h-32 object-cover mt-2 cursor-pointer rounded"  
-              onClick={() => abrirModal(`data:image/jpeg;base64,${tarea.imagen}`)}  
-            />  
-          )}  
-          {tarea.solucion && (  
-            <motion.p  
-              className="mt-2 p-2 bg-gray-100 rounded text-sm"  
-              initial={{ opacity: 0 }}  
-              animate={{ opacity: 1 }}  
-              transition={{ duration: 0.3 }}  
-            >  
-              💡 Solución: {tarea.solucion}  
-            </motion.p>  
-          )}  
-          {!tarea.fin ? (  
-            <button  
-              onClick={() => handleFinalizar(tarea.id)}  
-              className="bg-green-600 text-white px-3 py-1 rounded mt-2"  
-            >  
-              ✅ Finalizar  
-            </button>  
-          ) : (  
-            <p className="text-green-600 font-bold mt-2">✔️ Tarea finalizada</p>  
-          )}  
-        </motion.li>  
-      ))}  
-    </ul>  
+    <ul className="space-y-3">
+  {tareasFiltradas.length === 0 && (
+    <p className="text-center text-gray-500 italic">
+      No hay tareas en esta categoría.
+    </p>
+  )}
+
+  {tareasFiltradas.map((t) => (
+    <motion.li
+      key={t.id}
+      className="p-3 rounded-xl shadow bg-white"
+      whileHover={{ scale: 1.02 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="flex items-center space-x-3">
+        {t.imagen && (
+          <img
+            src={`data:image/jpeg;base64,${t.imagen}`}
+            alt="Foto"
+            className="w-14 h-14 rounded-lg object-cover cursor-pointer"
+            onClick={() => abrirModal(`data:image/jpeg;base64,${t.imagen}`)}
+          />
+        )}
+        <div>
+          <p className="font-semibold">
+            #{t.id} — {t.usuario}: {t.tarea}
+          </p>
+
+          <p className="text-sm text-gray-700 mt-1">
+            🏢 Área: <span className="font-medium">{t.area || "—"}</span>
+          </p>
+          <p className="text-sm text-gray-700">
+            🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
+          </p>
+
+          {t.subservicio && (
+            <p className="text-sm text-gray-700">
+              🧩 Subservicio:{" "}
+              <span className="font-medium">{t.subservicio}</span>
+            </p>
+          )}
+
+          {t.asignado && (
+            <p className="text-sm text-gray-700 mt-1">
+              👷‍♂️ Asignado a: <span className="font-semibold">{t.asignado}</span>
+            </p>
+          )}
+
+          <p className="text-sm text-gray-600 mt-1">
+            📅 {t.fecha ? new Date(t.fecha).toLocaleString() : "Sin fecha"}
+          </p>
+
+          {t.solucion && (
+            <p className="text-sm bg-gray-100 p-1 rounded mt-1">
+              💡 Solución: {t.solucion}
+            </p>
+          )}
+
+          {t.fin ? (
+            <p className="text-green-600 font-semibold mt-1">
+              ✔️ Tarea finalizada
+            </p>
+          ) : (
+            <button
+              onClick={() => handleFinalizar(t.id)}
+              className="bg-green-600 text-white px-3 py-1 rounded mt-2"
+            >
+              ✅ Finalizar
+            </button>
+          )}
+        </div>
+      </div>
+    </motion.li>
+  ))}
+</ul>  
   )}  
 
   <AnimatePresence>  
