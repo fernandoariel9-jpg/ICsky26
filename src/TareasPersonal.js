@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { API_URL } from "./config";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas; // 🆕 Para listar las áreas posibles
@@ -147,8 +147,8 @@ const handleExportarPDF = () => {
   );
 
   // Tabla
-  doc.autoTable({
-    startY: 28,
+  autoTable(doc, {
+  startY: 28,
     head: [
       [
         "ID",
@@ -330,6 +330,7 @@ const handleExportarPDF = () => {
     </div>
   );
 }
+
 
 
 
