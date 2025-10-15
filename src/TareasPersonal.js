@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { API_URL } from "./config";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas; // 🆕 Para listar las áreas posibles
@@ -126,6 +128,69 @@ export default function TareasPersonal({ personal, onLogout }) {
           {personal?.nombre || personal?.mail || "Personal"}
         </span>
       </h1>
+// 🧾 Exportar lista actual a PDF
+const handleExportarPDF = () => {
+  const nombreLista =
+    filtro === "pendientes"
+      ? "Pendientes"
+      : filtro === "enProceso"
+      ? "En proceso"
+      : "Finalizadas";
+
+  const dataExportar = tareasFiltradas.map((t) => [
+    t.id,
+    t.tarea,
+    t.usuario,
+    t.servicio || "",
+    t.subservicio || "",
+    t.area || "",
+    t.reasignado_a || "",
+    t.reasignado_por || "",
+    t.solucion || "",
+  ]);
+
+  if (dataExportar.length === 0) {
+    toast.info("No hay tareas para exportar 📭");
+    return;
+  }
+
+  const doc = new jsPDF({ orientation: "landscape" });
+
+  doc.setFontSize(16);
+  doc.text(`📋 Tareas ${nombreLista}`, 14, 15);
+  doc.setFontSize(10);
+  doc.text(
+    `Generado el: ${new Date().toLocaleString()} - Área: ${
+      personal?.area || "—"
+    }`,
+    14,
+    22
+  );
+
+  // Tabla
+  doc.autoTable({
+    startY: 28,
+    head: [
+      [
+        "ID",
+        "Tarea",
+        "Usuario",
+        "Servicio",
+        "Subservicio",
+        "Área",
+        "Reasignada a",
+        "Reasignada por",
+        "Solución",
+      ],
+    ],
+    body: dataExportar,
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [66, 139, 202] },
+  });
+
+  doc.save(`Tareas_${nombreLista}_${new Date().toISOString().slice(0, 10)}.pdf`);
+  toast.success(`✅ Exportado en PDF (${nombreLista})`);
+};
 
       {/* Botones superiores */}
       <div className="flex space-x-2 mb-4 justify-center">
@@ -135,6 +200,16 @@ export default function TareasPersonal({ personal, onLogout }) {
         >
           🔄 Actualizar lista
         </button>
+            <button
+  onClick={handleExportarPDF}
+  className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm"
+>
+  📄 Exportar {filtro === "pendientes"
+    ? "pendientes"
+    : filtro === "enProceso"
+    ? "en proceso"
+    : "finalizadas"} en PDF
+</button>
         <button
           onClick={onLogout}
           className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
@@ -254,6 +329,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
