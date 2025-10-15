@@ -107,28 +107,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   }
 };
 
-  // Filtrado
-  const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
-  const enProceso = tareas.filter((t) => t.solucion && !t.fin);
-  const finalizadas = tareas.filter((t) => t.fin);
-
-  const tareasFiltradas =
-    filtro === "pendientes"
-      ? pendientes
-      : filtro === "enProceso"
-      ? enProceso
-      : finalizadas;
-
-  return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
-      <h1 className="text-2xl font-bold mb-4 text-center">
-        📌 Registro de tareas de{" "}
-        <span className="text-blue-700">
-          {personal?.nombre || personal?.mail || "Personal"}
-        </span>
-      </h1>
-// 🧾 Exportar lista actual a PDF
+  // 🧾 Exportar lista actual a PDF
 const handleExportarPDF = () => {
   const nombreLista =
     filtro === "pendientes"
@@ -191,6 +170,28 @@ const handleExportarPDF = () => {
   doc.save(`Tareas_${nombreLista}_${new Date().toISOString().slice(0, 10)}.pdf`);
   toast.success(`✅ Exportado en PDF (${nombreLista})`);
 };
+
+  // Filtrado
+  const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
+  const enProceso = tareas.filter((t) => t.solucion && !t.fin);
+  const finalizadas = tareas.filter((t) => t.fin);
+
+  const tareasFiltradas =
+    filtro === "pendientes"
+      ? pendientes
+      : filtro === "enProceso"
+      ? enProceso
+      : finalizadas;
+
+  return (
+    <div className="p-4 max-w-2xl mx-auto">
+      <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
+      <h1 className="text-2xl font-bold mb-4 text-center">
+        📌 Registro de tareas de{" "}
+        <span className="text-blue-700">
+          {personal?.nombre || personal?.mail || "Personal"}
+        </span>
+      </h1>
 
       {/* Botones superiores */}
       <div className="flex space-x-2 mb-4 justify-center">
@@ -329,6 +330,7 @@ const handleExportarPDF = () => {
     </div>
   );
 }
+
 
 
 
