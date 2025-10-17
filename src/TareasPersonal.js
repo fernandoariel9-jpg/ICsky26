@@ -322,7 +322,7 @@ export default function TareasPersonal({ personal, onLogout }) {
           )}
           {t.fecha_comp && (
   <p className="text-xs text-gray-500 mt-1">
-    ⏰ Solucionado el {new Date(t.fecha_comp).toLocaleString("es-AR")}
+    ⏰ Solucionado el {t.fecha_comp}
   </p>
 )}
  {t.fecha_fin && (
@@ -405,6 +405,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
