@@ -59,7 +59,7 @@ export default function TareasPersonal({ personal, onLogout }) {
       const res = await fetch(url, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ solucion, asignado: personal.nombre }),
+        body: JSON.stringify({ solucion, asignado: personal.nombrem, fecha_comp }),
       });
 
       if (!res.ok) throw new Error("Error HTTP " + res.status);
@@ -396,6 +396,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
