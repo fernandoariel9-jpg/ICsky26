@@ -72,7 +72,7 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu }
           type="text"
           placeholder="Mail"
           className="w-full p-2 border rounded"
-          value={mail}
+          value={form.mail} 
           onChange={(e) => setMail(e.target.value)}
           required
         />
@@ -119,6 +119,8 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu }
       )}
     </div>
   );
-}
+}
+
+
 
 
