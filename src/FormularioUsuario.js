@@ -414,7 +414,7 @@ Cerrar sesión
 )}
 {t.fecha_fin && (
   <p className="text-xs text-gray-500 mt-1">
-    ⏰ Solucionado el {new Date(t.fecha_fin).toLocaleString("es-AR")}
+    ⏰ Finalizado el {new Date(t.fecha_fin).toLocaleString("es-AR")}
   </p>
 )}
           {t.fin ? (
