@@ -320,7 +320,11 @@ export default function TareasPersonal({ personal, onLogout }) {
               💡 Solución: {t.solucion}
             </p>
           )}
-
+          {t.fecha_comp && (
+  <p className="text-xs text-gray-500 mt-1">
+    ⏰ Finalizado el {new Date(t.fecha_comp).toLocaleString("es-AR")}
+  </p>
+)}
           {/* Botones y textarea */}
           <div className="mt-3">
             <button
@@ -396,6 +400,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
