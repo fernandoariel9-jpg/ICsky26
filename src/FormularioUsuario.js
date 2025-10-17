@@ -407,6 +407,11 @@ Cerrar sesión
             </p>
           )}
 
+        {t.fecha_comp && (
+  <p className="text-xs text-gray-500 mt-1">
+    ⏰ Finalizado el {new Date(t.fecha_comp).toLocaleString("es-AR")}
+  </p>
+)}
           {t.fin ? (
             <p className="text-green-600 font-semibold mt-1">
               ✔️ Tarea finalizada
