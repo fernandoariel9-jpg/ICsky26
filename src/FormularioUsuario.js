@@ -56,10 +56,13 @@ const cerrarModal = () => setModalImagen(null);
 
 const handleFinalizar = async (id) => {
 try {
+const fechaLocalFin = new Date();
+fechaLocalFin.setSeconds(0, 0);
+const fecha_fin = fechaLocalFin.toISOString().slice(0, 16);
 const res = await fetch(`${API_TAREAS}/${id}`, {
 method: "PUT",
 headers: { "Content-Type": "application/json" },
-body: JSON.stringify({ fin: true }),
+body: JSON.stringify({ fin: true, fecha_fin }),
 });
 if (!res.ok) throw new Error("Error HTTP " + res.status);
 
@@ -120,6 +123,9 @@ const userIdentifier =
 const areaValor = usuario?.area ?? null;  
 const servicioValor = usuario?.servicio ?? null;  
 const subservicioValor = usuario?.subservicio ?? null;  
+const fechaLocal = new Date();
+fechaLocal.setSeconds(0, 0); // quitar segundos y milisegundos
+const fecha = fechaLocal.toISOString().slice(0, 16); // formato ISO corto
 
 const bodyToSend = {  
   usuario: userIdentifier,  
@@ -128,7 +134,8 @@ const bodyToSend = {
   servicio: servicioValor,  
   subservicio: subservicioValor,  
   imagen: nuevaImagen,  
-  fin: false,  
+  fin: false,
+  fecha,
 };  
 
 setLoading(true);  
