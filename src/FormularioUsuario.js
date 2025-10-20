@@ -56,14 +56,15 @@ const cerrarModal = () => setModalImagen(null);
 
 function formatTimestamp(ts) {
   if (!ts) return "";
-  const d = new Date(ts);
-  const año = d.getFullYear();
-  const mes = String(d.getMonth() + 1).padStart(2, "0");
-  const dia = String(d.getDate()).padStart(2, "0");
-  const hora = String(d.getHours()).padStart(2, "0");
-  const min = String(d.getMinutes()).padStart(2, "0");
-  const seg = String(d.getSeconds()).padStart(2, "0");
-  return `${dia}/${mes}/${año}, ${hora}:${min}:${seg}`;
+  // ts puede venir como "2025-10-20 08:41:00" (sin TZ)
+  const [fechaPart, horaPart] = ts.split(" ");
+  if (!fechaPart || !horaPart) return ts;
+
+  const [year, month, day] = fechaPart.split("-").map(Number);
+  const [hour, min, sec] = horaPart.split(":").map(Number);
+
+  // Retornamos con formato dd/mm/yyyy, hh:mm:ss sin ajustar zona
+  return `${String(day).padStart(2,"0")}/${String(month).padStart(2,"0")}/${year}, ${String(hour).padStart(2,"0")}:${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
 }
 
 function getFechaLocal() {
