@@ -58,7 +58,7 @@ const handleFinalizar = async (id) => {
 try {
 const fechaLocalFin = new Date();
 fechaLocalFin.setSeconds(0, 0);
-const fecha_fin = fechaLocalFin.toISOString().slice(0, 16);
+const fecha_fin = `${fechaLocalFin.getFullYear()}-${String(fechaLocalFin.getMonth() + 1).padStart(2, "0")}-${String(fechaLocalFin.getDate()).padStart(2, "0")} ${String(fechaLocalFin.getHours()).padStart(2, "0")}:${String(fechaLocalFin.getMinutes()).padStart(2, "0")}`;
 const res = await fetch(`${API_TAREAS}/${id}`, {
 method: "PUT",
 headers: { "Content-Type": "application/json" },
@@ -125,7 +125,7 @@ const servicioValor = usuario?.servicio ?? null;
 const subservicioValor = usuario?.subservicio ?? null;  
 const fechaLocal = new Date();
 fechaLocal.setSeconds(0, 0); // quitar segundos y milisegundos
-const fecha = fechaLocal.toISOString().slice(0, 16); // formato ISO corto
+const fecha_registro = `${fechaLocal.getFullYear()}-${String(fechaLocal.getMonth() + 1).padStart(2, "0")}-${String(fechaLocal.getDate()).padStart(2, "0")} ${String(fechaLocal.getHours()).padStart(2, "0")}:${String(fechaLocal.getMinutes()).padStart(2, "0")}`;
 
 const bodyToSend = {  
   usuario: userIdentifier,  
