@@ -336,7 +336,7 @@ export default function TareasPersonal({ personal, onLogout }) {
 
          {t.fecha && (
   <p className="text-sm text-gray-600 mt-1">
-    📅 {formatTimestamp(t.fecha)}
+    📅 {getFechaLocal(t.fecha)}
   </p>
 )}
 
@@ -347,7 +347,7 @@ export default function TareasPersonal({ personal, onLogout }) {
           )}
          {t.fecha_comp && (
   <p className="text-xs text-gray-500 mt-1">
-    ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
+    ⏰ Solucionado el {getFechaLocal(t.fecha_comp)}
   </p>
 )}
 {t.fecha_fin && (
@@ -430,6 +430,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
