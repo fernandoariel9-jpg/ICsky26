@@ -336,7 +336,7 @@ export default function TareasPersonal({ personal, onLogout }) {
 
          {t.fecha && (
   <p className="text-sm text-gray-600 mt-1">
-    📅 {getFechaLocal(t.fecha)}
+    📅 {formatTimestamp(t.fecha)}
   </p>
 )}
 
@@ -347,12 +347,12 @@ export default function TareasPersonal({ personal, onLogout }) {
           )}
          {t.fecha_comp && (
   <p className="text-xs text-gray-500 mt-1">
-    ⏰ Solucionado el {getFechaLocal(t.fecha_comp)}
+    ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
   </p>
 )}
 {t.fecha_fin && (
   <p className="text-xs text-gray-500 mt-1">
-    ⏰ Finalizado el {getFechaLocal(t.fecha_fin)}
+    ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
   </p>
 )}
           {/* Botones y textarea */}
@@ -430,6 +430,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
