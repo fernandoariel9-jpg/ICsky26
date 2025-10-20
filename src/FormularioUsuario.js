@@ -54,11 +54,20 @@ setTareas(
 const abrirModal = (img) => setModalImagen(img);
 const cerrarModal = () => setModalImagen(null);
 
+function getFechaLocal() {
+  const d = new Date();
+  d.setSeconds(0, 0);
+  const año = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  const hora = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${año}-${mes}-${dia} ${hora}:${min}`;
+}
+
 const handleFinalizar = async (id) => {
 try {
-const fechaLocalFin = new Date();
-fechaLocalFin.setSeconds(0, 0);
-const fecha_fin = `${fechaLocalFin.getFullYear()}-${String(fechaLocalFin.getMonth() + 1).padStart(2, "0")}-${String(fechaLocalFin.getDate()).padStart(2, "0")} ${String(fechaLocalFin.getHours()).padStart(2, "0")}:${String(fechaLocalFin.getMinutes()).padStart(2, "0")}`;
+const fecha_fin = getFechaLocal();
 const res = await fetch(`${API_TAREAS}/${id}`, {
 method: "PUT",
 headers: { "Content-Type": "application/json" },
@@ -123,10 +132,8 @@ const userIdentifier =
 const areaValor = usuario?.area ?? null;  
 const servicioValor = usuario?.servicio ?? null;  
 const subservicioValor = usuario?.subservicio ?? null;  
-const fechaLocal = new Date();
-fechaLocal.setSeconds(0, 0); // quitar segundos y milisegundos
-const fecha = `${fechaLocal.getFullYear()}-${String(fechaLocal.getMonth() + 1).padStart(2, "0")}-${String(fechaLocal.getDate()).padStart(2, "0")} ${String(fechaLocal.getHours()).padStart(2, "0")}:${String(fechaLocal.getMinutes()).padStart(2, "0")}`;
-
+const fecha = getFechaLocal();
+    
 const bodyToSend = {  
   usuario: userIdentifier,  
   tarea: nuevaTarea,  
