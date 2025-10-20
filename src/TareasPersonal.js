@@ -334,12 +334,12 @@ export default function TareasPersonal({ personal, onLogout }) {
           )}
           {t.fecha_comp && (
   <p className="text-xs text-gray-500 mt-1">
-    ⏰ Solucionado el {t.fecha_comp}
+    ⏰ Solucionado el {new Date(t.fecha_comp).toLocaleString("es-AR")}
   </p>
 )}
- {t.fecha_fin && (
+{t.fecha_fin && (
   <p className="text-xs text-gray-500 mt-1">
-    ⏰ Finalizado el {t.fecha_fin}
+    ⏰ Finalizado el {new Date(t.fecha_fin).toLocaleString("es-AR")}
   </p>
 )}
           {/* Botones y textarea */}
@@ -417,6 +417,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
