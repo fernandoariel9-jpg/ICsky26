@@ -352,7 +352,7 @@ export default function TareasPersonal({ personal, onLogout }) {
 )}
 {t.fecha_fin && (
   <p className="text-xs text-gray-500 mt-1">
-    ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
+    ⏰ Finalizado el {t.fecha_fin}
   </p>
 )}
           {/* Botones y textarea */}
@@ -430,6 +430,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
