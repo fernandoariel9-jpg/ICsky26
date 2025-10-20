@@ -17,6 +17,17 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [modal, setModal] = useState(null);
   const [nuevaArea, setNuevaArea] = useState("");
 
+  function getFechaLocal() {
+  const d = new Date();
+  d.setSeconds(0, 0);
+  const año = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  const hora = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${año}-${mes}-${dia} ${hora}:${min}`;
+}
+
   // Cargar tareas
   const fetchTareas = async () => {
     try {
@@ -54,12 +65,13 @@ export default function TareasPersonal({ personal, onLogout }) {
 
   const handleCompletar = async (id) => {
     try {
+      const fecha_comp = getFechaLocal();
       const solucion = soluciones[id] || "";
       const url = `${API_TAREAS}/${id}/solucion`;
       const res = await fetch(url, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ solucion, asignado: personal.nombre }),
+        body: JSON.stringify({ solucion, asignado: personal.nombre, fecha_comp }),
       });
 
       if (!res.ok) throw new Error("Error HTTP " + res.status);
@@ -405,6 +417,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
