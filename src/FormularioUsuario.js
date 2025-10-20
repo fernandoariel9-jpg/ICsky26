@@ -125,7 +125,7 @@ const servicioValor = usuario?.servicio ?? null;
 const subservicioValor = usuario?.subservicio ?? null;  
 const fechaLocal = new Date();
 fechaLocal.setSeconds(0, 0); // quitar segundos y milisegundos
-const fecha_registro = `${fechaLocal.getFullYear()}-${String(fechaLocal.getMonth() + 1).padStart(2, "0")}-${String(fechaLocal.getDate()).padStart(2, "0")} ${String(fechaLocal.getHours()).padStart(2, "0")}:${String(fechaLocal.getMinutes()).padStart(2, "0")}`;
+const fecha = `${fechaLocal.getFullYear()}-${String(fechaLocal.getMonth() + 1).padStart(2, "0")}-${String(fechaLocal.getDate()).padStart(2, "0")} ${String(fechaLocal.getHours()).padStart(2, "0")}:${String(fechaLocal.getMinutes()).padStart(2, "0")}`;
 
 const bodyToSend = {  
   usuario: userIdentifier,  
