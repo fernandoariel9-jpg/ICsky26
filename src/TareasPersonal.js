@@ -28,6 +28,17 @@ export default function TareasPersonal({ personal, onLogout }) {
   return `${año}-${mes}-${dia} ${hora}:${min}`;
 }
 
+  function formatTimestamp(ts) {
+  if (!ts) return "";
+  const d = new Date(ts);
+  const año = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  const hora = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  const seg = String(d.getSeconds()).padStart(2, "0");
+  return `${dia}/${mes}/${año}, ${hora}:${min}:${seg}`;
+}
   // Cargar tareas
   const fetchTareas = async () => {
     try {
@@ -323,23 +334,25 @@ export default function TareasPersonal({ personal, onLogout }) {
             </p>
           )}
 
-          <p className="text-sm text-gray-600 mt-1">
-            📅 {t.fecha ? new Date(t.fecha).toLocaleString() : "Sin fecha"}
-          </p>
+         {t.fecha && (
+  <p className="text-sm text-gray-600 mt-1">
+    📅 {formatTimestamp(t.fecha)}
+  </p>
+)}
 
           {t.solucion && (
             <p className="text-sm bg-gray-100 p-1 rounded mt-1">
               💡 Solución: {t.solucion}
             </p>
           )}
-          {t.fecha_comp && (
+         {t.fecha_comp && (
   <p className="text-xs text-gray-500 mt-1">
-    ⏰ Solucionado el {new Date(t.fecha_comp).toLocaleString("es-AR")}
+    ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
   </p>
 )}
 {t.fecha_fin && (
   <p className="text-xs text-gray-500 mt-1">
-    ⏰ Finalizado el {new Date(t.fecha_fin).toLocaleString("es-AR")}
+    ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
   </p>
 )}
           {/* Botones y textarea */}
@@ -417,6 +430,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
