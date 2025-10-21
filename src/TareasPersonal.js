@@ -75,7 +75,7 @@ export default function TareasPersonal({ personal, onLogout }) {
         (t) => !tareasPrevias.some((prev) => prev.id === t.id)
       );
       nuevasTareas.forEach((t) => {
-        toast.info(`🆕 Nueva tarea: #${t.id} — ${t.usuario}`, { autoClose: 4000 });
+        toast.info(`🆕 Nueva tarea: #${t.id} — ${t.usuario}`, { autoClose: 15000 });
       });
     }
 
@@ -459,5 +459,6 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
