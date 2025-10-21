@@ -287,97 +287,138 @@ export default function TareasPersonal({ personal, onLogout }) {
 
       {/* Lista de tareas */}
       <ul className="space-y-3">
-        {tareasFiltradas.length === 0 && (
-          <p className="text-center text-gray-500 italic">No hay tareas en esta categoría.</p>
+  {tareasFiltradas.length === 0 && (
+    <p className="text-center text-gray-500 italic">
+      No hay tareas en esta categoría.
+    </p>
+  )}
+
+  {tareasFiltradas.map((t) => (
+    <li key={t.id} className="p-3 rounded-xl shadow bg-white">
+      <div className="flex items-start space-x-3">
+        {/* Imagen clickeable para ampliar */}
+        {t.imagen && (
+          <img
+            src={`data:image/jpeg;base64,${t.imagen}`}
+            alt="Foto de tarea"
+            className="w-14 h-14 rounded-lg object-cover cursor-pointer"
+            onClick={() =>
+              setImagenAmpliada(`data:image/jpeg;base64,${t.imagen}`)
+            }
+          />
         )}
 
-        {tareasFiltradas.map((t) => (
-          <li key={t.id} className="p-3 rounded-xl shadow bg-white">
-            <div className="flex items-start space-x-3">
-              {t.imagen && (
-                <img
-                  src={`data:image/jpeg;base64,${t.imagen}`}
-                  alt="Foto"
-                  className="w-14 h-14 rounded-lg object-cover cursor-pointer"
+        <div className="flex-1">
+          <p className="font-semibold text-base">
+            🆔 #{t.id} — 📝 {t.tarea}
+          </p>
+
+          <p className="text-sm text-gray-700">
+            👤 Usuario: <span className="font-medium">{t.usuario}</span>
+          </p>
+          <p className="text-sm text-gray-700">
+            🏢 Área: <span className="font-medium">{t.area || "—"}</span>
+          </p>
+          <p className="text-sm text-gray-700">
+            🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
+          </p>
+          {t.subservicio && (
+            <p className="text-sm text-gray-700">
+              🧩 Subservicio: <span className="font-medium">{t.subservicio}</span>
+            </p>
+          )}
+
+          {t.reasignado_a && (
+            <p className="text-sm text-purple-700 mt-1">
+              🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
+              <strong>{t.reasignado_por}</strong> (desde {t.area})
+            </p>
+          )}
+
+          {t.fecha && (
+            <p className="text-sm text-gray-600 mt-1">
+              📅 {formatTimestamp(t.fecha)}
+            </p>
+          )}
+
+          {t.solucion && (
+            <p className="text-sm bg-gray-100 p-1 rounded mt-1">
+              💡 Solución: {t.solucion}
+            </p>
+          )}
+
+          {t.fecha_comp && (
+            <p className="text-xs text-gray-500 mt-1">
+              ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
+            </p>
+          )}
+          {t.fecha_fin && (
+            <p className="text-xs text-gray-500 mt-1">
+              ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
+            </p>
+          )}
+
+          {/* Botones según tipo de lista */}
+          <div className="mt-3">
+            {filtro === "pendientes" && (
+              <>
+                <button
+                  onClick={() => setModal(t)}
+                  className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2"
+                >
+                  🔄 Reasignar
+                </button>
+
+                <textarea
+                  className="w-full p-2 border rounded mt-2"
+                  placeholder="Escriba la solución..."
+                  value={soluciones[t.id] || t.solucion || ""}
+                  onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+                  disabled={!!t.solucion}
                 />
-              )}
-              <div className="flex-1">
-                <p className="font-semibold text-base">🆔 #{t.id} — 📝 {t.tarea}</p>
-                <p className="text-sm text-gray-700">👤 Usuario: <span className="font-medium">{t.usuario}</span></p>
-                <p className="text-sm text-gray-700">🏢 Área: <span className="font-medium">{t.area || "—"}</span></p>
-                <p className="text-sm text-gray-700">🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span></p>
-                {t.subservicio && <p className="text-sm text-gray-700">🧩 Subservicio: <span className="font-medium">{t.subservicio}</span></p>}
-                {t.reasignado_a && <p className="text-sm text-purple-700 mt-1">🔄 Reasignada a <strong>{t.reasignado_a}</strong> por <strong>{t.reasignado_por}</strong> (desde {t.area})</p>}
-                {t.fecha && <p className="text-sm text-gray-600 mt-1">📅 {formatTimestamp(t.fecha)}</p>}
-                {t.solucion && <p className="text-sm bg-gray-100 p-1 rounded mt-1">💡 Solución: {t.solucion}</p>}
-                {t.fecha_comp && <p className="text-xs text-gray-500 mt-1">⏰ Solucionado el {formatTimestamp(t.fecha_comp)}</p>}
-                {t.fecha_fin && <p className="text-xs text-gray-500 mt-1">⏰ Finalizado el {formatTimestamp(t.fecha_fin)}</p>}
 
-                {/* Botones según tipo de lista */}
-                <div className="mt-3">
-                  {filtro === "pendientes" && (
-                    <>
-                      <button onClick={() => setModal(t)} className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2">🔄 Reasignar</button>
-                      <textarea
-                        className="w-full p-2 border rounded mt-2"
-                        placeholder="Escriba la solución..."
-                        value={soluciones[t.id] || t.solucion || ""}
-                        onChange={(e) => handleSolucionChange(t.id, e.target.value)}
-                        disabled={!!t.solucion}
-                      />
-                      <button
-                        onClick={() => handleCompletar(t.id)}
-                        className={`mt-2 px-3 py-1 rounded text-white ${t.solucion ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"}`}
-                        disabled={!!t.solucion}
-                      >
-                        ✅ Completar
-                      </button>
-                    </>
-                  )}
+                <button
+                  onClick={() => handleCompletar(t.id)}
+                  className={`mt-2 px-3 py-1 rounded text-white ${
+                    t.solucion
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-green-500"
+                  }`}
+                  disabled={!!t.solucion}
+                >
+                  ✅ Completar
+                </button>
+              </>
+            )}
 
-                  {filtro === "enProceso" && (
-                    <>
-                      {!editando[t.id] ? (
-                        <button
-                          onClick={() => setEditando(prev => ({ ...prev, [t.id]: true }))}
-                          className="mt-2 px-3 py-1 rounded bg-blue-500 text-white text-sm"
-                        >
-                          ✏️ Editar solución
-                        </button>
-                      ) : (
-                        <div className="mt-2">
-                          <textarea
-                            className="w-full p-2 border rounded"
-                            value={soluciones[t.id] || t.solucion || ""}
-                            onChange={(e) => handleSolucionChange(t.id, e.target.value)}
-                          />
-                          <div className="flex space-x-2 mt-2">
-                            <button
-                              onClick={() => {
-                                handleEditarSolucion(t.id);
-                                setEditando(prev => ({ ...prev, [t.id]: false }));
-                              }}
-                              className="px-3 py-1 bg-green-500 text-white rounded text-sm"
-                            >
-                              💾 Guardar
-                            </button>
-                            <button
-                              onClick={() => setEditando(prev => ({ ...prev, [t.id]: false }))}
-                              className="px-3 py-1 bg-gray-400 text-white rounded text-sm"
-                            >
-                              ❌ Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+            {filtro === "enProceso" && !t.fin && (
+              <button
+                onClick={() => handleEditarSolucion(t.id)}
+                className="mt-2 px-3 py-1 rounded bg-blue-500 text-white text-sm"
+              >
+                ✏️ Editar solución
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </li>
+  ))}
+</ul>
+
+{/* Modal de imagen ampliada */}
+{imagenAmpliada && (
+  <div
+    className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+    onClick={() => setImagenAmpliada(null)}
+  >
+    <img
+      src={imagenAmpliada}
+      alt="Ampliada"
+      className="max-w-full max-h-full rounded-lg shadow-lg"
+    />
+  </div>
+)}
 
       {/* Modal de reasignación */}
       {modal && (
@@ -403,3 +444,4 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
