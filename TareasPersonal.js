@@ -65,6 +65,32 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
+  const handleEditarSolucion = async (id) => {
+  try {
+    const nuevaSolucion = prompt("Editar solución:");
+    if (nuevaSolucion === null) return; // Cancelado
+    const url = `${API_TAREAS}/${id}/solucion`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ solucion: nuevaSolucion, asignado: personal.nombre }),
+    });
+
+    if (!res.ok) throw new Error("Error HTTP " + res.status);
+
+    setTareas((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, solucion: nuevaSolucion } : t
+      )
+    );
+
+    toast.success("✏️ Solución actualizada");
+  } catch (err) {
+    console.error("Error al editar solución", err);
+    toast.error("❌ Error al editar solución");
+  }
+};
+
   // 🔹 Clasificación de tareas
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
@@ -168,22 +194,36 @@ export default function TareasPersonal({ personal, onLogout }) {
                 disabled={completada}
               />
 
-              <button
-                onClick={() => handleCompletar(tarea.id)}
-                className={`mt-2 px-3 py-1 rounded text-white ${
-                  completada ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"
-                }`}
-                disabled={completada}
-              >
-                ✅ Completar
-              </button>
-               {!tarea.solucion && !tarea.fin && (
+              {/* 🔹 Botones según estado de la tarea */}
+{!tarea.solucion && !tarea.fin && (
+  <>
+    <button
+      onClick={() => handleCompletar(tarea.id)}
+      className="mt-2 px-3 py-1 rounded text-white bg-green-500"
+    >
+      ✅ Completar
+    </button>
+
+    <button
+      onClick={() => handleReasignar(tarea.id)}
+      className="mt-2 ml-2 px-3 py-1 rounded bg-yellow-500 text-white"
+    >
+      🔄 Reasignar
+    </button>
+  </>
+)}
+
+{tarea.solucion && !tarea.fin && (
   <button
-    onClick={() => handleReasignar(tarea.id)}
-    className="mt-2 ml-2 px-3 py-1 rounded bg-yellow-500 text-white"
+    onClick={() => handleEditarSolucion(tarea.id)}
+    className="mt-2 px-3 py-1 rounded bg-blue-500 text-white"
   >
-    🔄 Reasignar
+    ✏️ Editar solución
   </button>
+)}
+
+{tarea.fin && (
+  <p className="mt-2 text-green-700 font-semibold">✔️ Tarea finalizada</p>
 )}
               {completada && (
                 <p className="mt-1 text-green-700 font-semibold">
