@@ -9,6 +9,7 @@ const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
 
 export default function TareasPersonal({ personal, onLogout }) {
+  const alertaAudio = new Audio("/alerta.mp3"); // ← coloca tu archivo de sonido en public/
   const [tareas, setTareas] = useState([]);
   const [tareasPrevias, setTareasPrevias] = useState([]);
   const [soluciones, setSoluciones] = useState({});
@@ -71,13 +72,14 @@ export default function TareasPersonal({ personal, onLogout }) {
 
     // Detectar nuevas tareas
     if (tareasPrevias.length > 0) {
-      const nuevasTareas = data.filter(
-        (t) => !tareasPrevias.some((prev) => prev.id === t.id)
-      );
-      nuevasTareas.forEach((t) => {
-        toast.info(`🆕 Nueva tarea: #${t.id} — ${t.usuario}`, { autoClose: 15000 });
-      });
-    }
+  const nuevasTareas = data.filter(
+    (t) => !tareasPrevias.some((prev) => prev.id === t.id)
+  );
+  nuevasTareas.forEach((t) => {
+    toast.info(`🆕 Nueva tarea: #${t.id} — ${t.usuario}`, { autoClose: 4000 });
+    alertaAudio.play().catch(() => {}); // Reproducir sonido de alerta
+  });
+}
 
     setTareas(data);
     setTareasPrevias(data); // actualizar lista previa
@@ -459,6 +461,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
