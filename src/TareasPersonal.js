@@ -125,6 +125,33 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
+  const handleEditarSolucion = async (id) => {
+  try {
+    const nuevaSolucion = prompt("Editar solución:");
+    if (nuevaSolucion === null) return;
+
+    const url = `${API_TAREAS}/${id}/solucion`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ solucion: nuevaSolucion, asignado: personal.nombre }),
+    });
+
+    if (!res.ok) throw new Error("Error HTTP " + res.status);
+
+    setTareas((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, solucion: nuevaSolucion } : t
+      )
+    );
+
+    toast.success("✏️ Solución actualizada");
+  } catch (err) {
+    console.error("Error al editar solución", err);
+    toast.error("❌ Error al editar solución");
+  }
+};
+
   const handleReasignar = async (id) => {
     try {
       if (!nuevaArea) {
@@ -315,7 +342,7 @@ export default function TareasPersonal({ personal, onLogout }) {
       </div>
 
       {/* Lista de tareas */}
-      <ul className="space-y-3">
+     <ul className="space-y-3">
   {tareasFiltradas.length === 0 && (
     <p className="text-center text-gray-500 italic">
       No hay tareas en esta categoría.
@@ -359,53 +386,70 @@ export default function TareasPersonal({ personal, onLogout }) {
             </p>
           )}
 
-         {t.fecha && (
-  <p className="text-sm text-gray-600 mt-1">
-    📅 {formatTimestamp(t.fecha)}
-  </p>
-)}
+          {t.fecha && (
+            <p className="text-sm text-gray-600 mt-1">
+              📅 {formatTimestamp(t.fecha)}
+            </p>
+          )}
 
           {t.solucion && (
             <p className="text-sm bg-gray-100 p-1 rounded mt-1">
               💡 Solución: {t.solucion}
             </p>
           )}
-         {t.fecha_comp && (
-  <p className="text-xs text-gray-500 mt-1">
-    ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
-  </p>
-)}
-{t.fecha_fin && (
-  <p className="text-xs text-gray-500 mt-1">
-    ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
-  </p>
-)}
-          {/* Botones y textarea */}
+
+          {t.fecha_comp && (
+            <p className="text-xs text-gray-500 mt-1">
+              ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
+            </p>
+          )}
+          {t.fecha_fin && (
+            <p className="text-xs text-gray-500 mt-1">
+              ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
+            </p>
+          )}
+
+          {/* 🔹 Botones según tipo de lista */}
           <div className="mt-3">
-            <button
-              onClick={() => setModal(t)}
-              className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2"
-            >
-              🔄 Reasignar
-            </button>
+            {filtro === "pendientes" && (
+              <>
+                <button
+                  onClick={() => setModal(t)}
+                  className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2"
+                >
+                  🔄 Reasignar
+                </button>
 
-            <textarea
-              className="w-full p-2 border rounded mt-2"
-              placeholder="Escriba la solución..."
-              value={soluciones[t.id] || t.solucion || ""}
-              onChange={(e) => handleSolucionChange(t.id, e.target.value)}
-              disabled={!!t.solucion}
-            />
+                <textarea
+                  className="w-full p-2 border rounded mt-2"
+                  placeholder="Escriba la solución..."
+                  value={soluciones[t.id] || t.solucion || ""}
+                  onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+                  disabled={!!t.solucion}
+                />
 
-            <button
-              onClick={() => handleCompletar(t.id)}
-              className={`mt-2 px-3 py-1 rounded text-white ${
-                t.solucion ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"
-              }`}
-              disabled={!!t.solucion}
-            >
-              ✅ Completar
-            </button>
+                <button
+                  onClick={() => handleCompletar(t.id)}
+                  className={`mt-2 px-3 py-1 rounded text-white ${
+                    t.solucion
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-green-500"
+                  }`}
+                  disabled={!!t.solucion}
+                >
+                  ✅ Completar
+                </button>
+              </>
+            )}
+
+            {filtro === "enProceso" && (
+              <button
+                onClick={() => handleEditarSolucion(t.id)}
+                className="mt-2 px-3 py-1 rounded bg-blue-500 text-white text-sm"
+              >
+                ✏️ Editar solución
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -455,6 +499,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
