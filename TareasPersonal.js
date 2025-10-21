@@ -177,6 +177,14 @@ export default function TareasPersonal({ personal, onLogout }) {
               >
                 ✅ Completar
               </button>
+                {filtro === "pendientes" && (
+  <button
+    onClick={() => handleReasignar(tarea.id)}
+    className="mt-2 ml-2 px-3 py-1 rounded bg-yellow-500 text-white"
+  >
+    🔄 Reasignar
+  </button>
+)}
 
               {completada && (
                 <p className="mt-1 text-green-700 font-semibold">
