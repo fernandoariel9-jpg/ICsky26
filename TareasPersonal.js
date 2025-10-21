@@ -68,7 +68,8 @@ export default function TareasPersonal({ personal, onLogout }) {
   const handleEditarSolucion = async (id) => {
   try {
     const nuevaSolucion = prompt("Editar solución:");
-    if (nuevaSolucion === null) return; // Cancelado
+    if (nuevaSolucion === null) return;
+
     const url = `${API_TAREAS}/${id}/solucion`;
     const res = await fetch(url, {
       method: "PUT",
