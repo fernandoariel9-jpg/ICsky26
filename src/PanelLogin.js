@@ -174,7 +174,7 @@ function Supervision({ setVista }) {
               No hay tareas en esta categoría.
             </p>
           )}
-          {tareasPorTab.map((t) => (
+         {tareasPorTab.map((t) => (
   <motion.li
     key={t.id}
     className="p-3 rounded-xl shadow bg-white"
@@ -193,50 +193,63 @@ function Supervision({ setVista }) {
         />
       )}
       <div>
-  <p className="font-semibold">
-    #{t.id} — {t.usuario}: {t.tarea}
-  </p>
+        <p className="font-semibold">
+          #{t.id} — {t.usuario}: {t.tarea}
+        </p>
 
-  {/* 🏷️ Mostrar área y servicio */}
-  <p className="text-sm text-gray-700 mt-1">
-    🏢 Área: <span className="font-medium">{t.area || "—"}</span>
-  </p>
-  <p className="text-sm text-gray-700">
-    🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
-  </p>
+        <p className="text-sm text-gray-700 mt-1">
+          🏢 Área: <span className="font-medium">{t.area || "—"}</span>
+        </p>
+        <p className="text-sm text-gray-700">
+          🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
+        </p>
 
-  {/* 👷 Mostrar nombre del personal que realizó la tarea */}
-  {t.reasignado_por && (
-    <p className="text-sm text-gray-700 mt-1">
-      🔄 Reasignada por: <span className="font-semibold">{t.reasignado_por}</span>
-    </p>
-  )}
-{t.reasignado_a && (
-    <p className="text-sm text-gray-700 mt-1">
-      📋 Reasignada a: <span className="font-semibold">{t.reasignado_a}</span>
-    </p>
-  )}
-{t.asignado && (
-    <p className="text-sm text-gray-700 mt-1">
-      👷‍♂️ Realizada por: <span className="font-semibold">{t.asignado}</span>
-    </p>
-  )}
+        {t.reasignado_por && (
+          <p className="text-sm text-gray-700 mt-1">
+            🔄 Reasignada por: <span className="font-semibold">{t.reasignado_por}</span>
+          </p>
+        )}
+        {t.reasignado_a && (
+          <p className="text-sm text-gray-700 mt-1">
+            📋 Reasignada a: <span className="font-semibold">{t.reasignado_a}</span>
+          </p>
+        )}
+        {t.asignado && (
+          <p className="text-sm text-gray-700 mt-1">
+            👷‍♂️ Realizada por: <span className="font-semibold">{t.asignado}</span>
+          </p>
+        )}
 
-  <p className="text-sm text-gray-600 mt-1">
-    📅 {new Date(t.fecha).toLocaleString()}
-  </p>
+        <p className="text-sm text-gray-600 mt-1">
+          📅 {new Date(t.fecha).toLocaleString()}
+        </p>
 
-  {t.solucion && (
-    <p className="text-sm bg-gray-100 p-1 rounded mt-1">
-      💡 Solución: {t.solucion}
-    </p>
-  )}
-  {t.fin && (
-    <p className="text-green-600 font-semibold mt-1">
-      ✔️ Finalizada por el usuario
-    </p>
-  )}
-</div>
+        {t.solucion && (
+          <p className="text-sm bg-gray-100 p-1 rounded mt-1">
+            💡 Solución: {t.solucion}
+          </p>
+        )}
+
+        {/* 🔹 Mostrar fecha de tarea completada */}
+        {t.fecha_comp && (
+          <p className="text-xs text-gray-500 mt-1">
+            ⏰ Completada: {new Date(t.fecha_comp).toLocaleString()}
+          </p>
+        )}
+
+        {/* 🔹 Mostrar fecha de tarea finalizada */}
+        {t.fecha_fin && (
+          <p className="text-xs text-gray-500 mt-1">
+            ⏰ Finalizada: {new Date(t.fecha_fin).toLocaleString()}
+          </p>
+        )}
+
+        {t.fin && (
+          <p className="text-green-600 font-semibold mt-1">
+            ✔️ Finalizada por el usuario
+          </p>
+        )}
+      </div>
     </div>
   </motion.li>
 ))}
