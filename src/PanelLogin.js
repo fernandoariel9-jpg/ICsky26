@@ -51,10 +51,7 @@ function PanelLogin({ onLogin }) {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button
-          type="submit"
-          className="bg-green-500 text-white p-2 rounded-xl"
-        >
+        <button type="submit" className="bg-green-500 text-white p-2 rounded-xl">
           Ingresar
         </button>
       </form>
@@ -68,6 +65,7 @@ function Supervision({ setVista }) {
   const [modalImagen, setModalImagen] = useState(null);
   const [tab, setTab] = useState("pendientes");
   const [loading, setLoading] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
     fetchTareas();
@@ -89,20 +87,30 @@ function Supervision({ setVista }) {
   const abrirModal = (img) => setModalImagen(img);
   const cerrarModal = () => setModalImagen(null);
 
-  const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
-  const terminadas = tareas.filter((t) => t.solucion && !t.fin);
-  const finalizadas = tareas.filter((t) => t.fin);
+  // 🔍 Filtro de búsqueda
+  const filtrarBusqueda = (t) => {
+    const texto = busqueda.trim().toLowerCase();
+    if (!texto) return true;
+    return (
+      (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
+      (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
+      (t.area && t.area.toLowerCase().includes(texto)) ||
+      (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
+      (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
+      (t.asignado && t.asignado.toLowerCase().includes(texto))
+    );
+  };
+
+  const pendientes = tareas.filter((t) => !t.solucion && !t.fin && filtrarBusqueda(t));
+  const terminadas = tareas.filter((t) => t.solucion && !t.fin && filtrarBusqueda(t));
+  const finalizadas = tareas.filter((t) => t.fin && filtrarBusqueda(t));
 
   const tareasPorTab =
-    tab === "pendientes"
-      ? pendientes
-      : tab === "terminadas"
-      ? terminadas
-      : finalizadas;
+    tab === "pendientes" ? pendientes : tab === "terminadas" ? terminadas : finalizadas;
 
   return (
     <div className="p-4 max-w-3xl mx-auto">
-    <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
+      <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
       <h1 className="text-2xl font-bold text-center mb-2">📋 Panel de Supervisión</h1>
 
       {/* 🔹 Botones debajo del título */}
@@ -121,13 +129,23 @@ function Supervision({ setVista }) {
         </button>
       </div>
 
+      {/* 🔍 Cuadro de búsqueda */}
+      <div className="flex justify-center mb-4">
+        <input
+          type="text"
+          placeholder="🔍 Buscar en todas las tareas..."
+          className="w-full max-w-md p-2 border rounded-xl shadow-sm focus:ring focus:ring-blue-300"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </div>
+
+      {/* 🔹 Filtros con contadores */}
       <div className="flex justify-center space-x-2 mb-4">
         <button
           onClick={() => setTab("pendientes")}
           className={`px-3 py-1 rounded-xl ${
-            tab === "pendientes"
-              ? "bg-yellow-400 text-white"
-              : "bg-gray-200 text-gray-700"
+            tab === "pendientes" ? "bg-yellow-400 text-white" : "bg-gray-200 text-gray-700"
           }`}
         >
           🕓 Pendientes ({pendientes.length})
@@ -135,9 +153,7 @@ function Supervision({ setVista }) {
         <button
           onClick={() => setTab("terminadas")}
           className={`px-3 py-1 rounded-xl ${
-            tab === "terminadas"
-              ? "bg-blue-400 text-white"
-              : "bg-gray-200 text-gray-700"
+            tab === "terminadas" ? "bg-blue-400 text-white" : "bg-gray-200 text-gray-700"
           }`}
         >
           🧩 Terminadas ({terminadas.length})
@@ -145,9 +161,7 @@ function Supervision({ setVista }) {
         <button
           onClick={() => setTab("finalizadas")}
           className={`px-3 py-1 rounded-xl ${
-            tab === "finalizadas"
-              ? "bg-green-500 text-white"
-              : "bg-gray-200 text-gray-700"
+            tab === "finalizadas" ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700"
           }`}
         >
           ✅ Finalizadas ({finalizadas.length})
@@ -174,85 +188,85 @@ function Supervision({ setVista }) {
               No hay tareas en esta categoría.
             </p>
           )}
-         {tareasPorTab.map((t) => (
-  <motion.li
-    key={t.id}
-    className="p-3 rounded-xl shadow bg-white"
-    whileHover={{ scale: 1.02 }}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3 }}
-  >
-    <div className="flex items-center space-x-3">
-      {t.imagen && (
-        <img
-          src={`data:image/jpeg;base64,${t.imagen}`}
-          alt="Foto"
-          className="w-14 h-14 rounded-lg object-cover cursor-pointer"
-          onClick={() => abrirModal(t.imagen)}
-        />
-      )}
-      <div>
-        <p className="font-semibold">
-          #{t.id} — {t.usuario}: {t.tarea}
-        </p>
+          {tareasPorTab.map((t) => (
+            <motion.li
+              key={t.id}
+              className="p-3 rounded-xl shadow bg-white"
+              whileHover={{ scale: 1.02 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="flex items-center space-x-3">
+                {t.imagen && (
+                  <img
+                    src={`data:image/jpeg;base64,${t.imagen}`}
+                    alt="Foto"
+                    className="w-14 h-14 rounded-lg object-cover cursor-pointer"
+                    onClick={() => abrirModal(t.imagen)}
+                  />
+                )}
+                <div>
+                  <p className="font-semibold">
+                    #{t.id} — {t.usuario}: {t.tarea}
+                  </p>
 
-        <p className="text-sm text-gray-700 mt-1">
-          🏢 Área: <span className="font-medium">{t.area || "—"}</span>
-        </p>
-        <p className="text-sm text-gray-700">
-          🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
-        </p>
+                  <p className="text-sm text-gray-700 mt-1">
+                    🏢 Área: <span className="font-medium">{t.area || "—"}</span>
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
+                  </p>
 
-        {t.reasignado_por && (
-          <p className="text-sm text-gray-700 mt-1">
-            🔄 Reasignada por: <span className="font-semibold">{t.reasignado_por}</span>
-          </p>
-        )}
-        {t.reasignado_a && (
-          <p className="text-sm text-gray-700 mt-1">
-            📋 Reasignada a: <span className="font-semibold">{t.reasignado_a}</span>
-          </p>
-        )}
-        {t.asignado && (
-          <p className="text-sm text-gray-700 mt-1">
-            👷‍♂️ Realizada por: <span className="font-semibold">{t.asignado}</span>
-          </p>
-        )}
+                  {t.reasignado_por && (
+                    <p className="text-sm text-gray-700 mt-1">
+                      🔄 Reasignada por:{" "}
+                      <span className="font-semibold">{t.reasignado_por}</span>
+                    </p>
+                  )}
+                  {t.reasignado_a && (
+                    <p className="text-sm text-gray-700 mt-1">
+                      📋 Reasignada a:{" "}
+                      <span className="font-semibold">{t.reasignado_a}</span>
+                    </p>
+                  )}
+                  {t.asignado && (
+                    <p className="text-sm text-gray-700 mt-1">
+                      👷‍♂️ Realizada por:{" "}
+                      <span className="font-semibold">{t.asignado}</span>
+                    </p>
+                  )}
 
-        <p className="text-sm text-gray-600 mt-1">
-          📅 {new Date(t.fecha).toLocaleString()}
-        </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    📅 {new Date(t.fecha).toLocaleString()}
+                  </p>
 
-        {t.solucion && (
-          <p className="text-sm bg-gray-100 p-1 rounded mt-1">
-            💡 Solución: {t.solucion}
-          </p>
-        )}
+                  {/* 🔹 Mostrar fechas adicionales */}
+                  {t.fecha_comp && (
+                    <p className="text-sm text-blue-700 mt-1">
+                      ⏰ Solucionado el: {new Date(t.fecha_comp).toLocaleString()}
+                    </p>
+                  )}
+                  {t.fecha_fin && (
+                    <p className="text-sm text-green-700 mt-1">
+                      ⏰ Finalizado el: {new Date(t.fecha_fin).toLocaleString()}
+                    </p>
+                  )}
 
-        {/* 🔹 Mostrar fecha de tarea completada */}
-        {t.fecha_comp && (
-          <p className="text-xs text-gray-500 mt-1">
-            ⏰ Completada: {new Date(t.fecha_comp).toLocaleString()}
-          </p>
-        )}
-
-        {/* 🔹 Mostrar fecha de tarea finalizada */}
-        {t.fecha_fin && (
-          <p className="text-xs text-gray-500 mt-1">
-            ⏰ Finalizada: {new Date(t.fecha_fin).toLocaleString()}
-          </p>
-        )}
-
-        {t.fin && (
-          <p className="text-green-600 font-semibold mt-1">
-            ✔️ Finalizada por el usuario
-          </p>
-        )}
-      </div>
-    </div>
-  </motion.li>
-))}
+                  {t.solucion && (
+                    <p className="text-sm bg-gray-100 p-1 rounded mt-1">
+                      💡 Solución: {t.solucion}
+                    </p>
+                  )}
+                  {t.fin && (
+                    <p className="text-green-600 font-semibold mt-1">
+                      ✔️ Finalizada por el usuario
+                    </p>
+                  )}
+                </div>
+              </div>
+            </motion.li>
+          ))}
         </ul>
       )}
 
@@ -288,11 +302,10 @@ function Supervision({ setVista }) {
 // ---------- Wrapper que combina login + panel ----------
 export default function Panel() {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [vista, setVista] = useState("panel"); // 🔹 controla qué mostrar
+  const [vista, setVista] = useState("panel");
 
   if (!loggedIn) return <PanelLogin onLogin={setLoggedIn} />;
 
-  // 🔹 Mostrar según la vista actual
   if (vista === "usuario")
     return (
       <div className="p-4 max-w-md mx-auto">
