@@ -10,6 +10,7 @@ const API_AREAS = API_URL.Areas;
 
 export default function TareasPersonal({ personal, onLogout }) {
   const [tareas, setTareas] = useState([]);
+  const [tareasPrevias, setTareasPrevias] = useState([]);
   const [soluciones, setSoluciones] = useState({});
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
   const [filtro, setFiltro] = useState("pendientes");
@@ -62,17 +63,29 @@ export default function TareasPersonal({ personal, onLogout }) {
 
   // Cargar tareas
   const fetchTareas = async () => {
-    try {
-      if (!personal?.area) return;
-      const res = await fetch(`${API_TAREAS}/${encodeURIComponent(personal.area)}`);
-      if (!res.ok) throw new Error("Error HTTP " + res.status);
-      const data = await res.json();
-      setTareas(data);
-    } catch (err) {
-      console.error("Error al cargar tareas:", err);
-      toast.error("Error al cargar tareas ❌");
+  try {
+    if (!personal?.area) return;
+    const res = await fetch(`${API_TAREAS}/${encodeURIComponent(personal.area)}`);
+    if (!res.ok) throw new Error("Error HTTP " + res.status);
+    const data = await res.json();
+
+    // Detectar nuevas tareas
+    if (tareasPrevias.length > 0) {
+      const nuevasTareas = data.filter(
+        (t) => !tareasPrevias.some((prev) => prev.id === t.id)
+      );
+      nuevasTareas.forEach((t) => {
+        toast.info(`🆕 Nueva tarea: #${t.id} — ${t.usuario}`, { autoClose: 4000 });
+      });
     }
-  };
+
+    setTareas(data);
+    setTareasPrevias(data); // actualizar lista previa
+  } catch (err) {
+    console.error("Error al cargar tareas:", err);
+    toast.error("Error al cargar tareas ❌");
+  }
+};
 
   // Cargar áreas
   const fetchAreas = async () => {
@@ -87,9 +100,11 @@ export default function TareasPersonal({ personal, onLogout }) {
   };
 
   useEffect(() => {
-    fetchTareas();
-    fetchAreas();
-  }, [personal]);
+  fetchTareas();
+  fetchAreas();
+  const interval = setInterval(fetchTareas, 30000); // cada 30 segundos
+  return () => clearInterval(interval);
+}, [personal]);
 
   const handleSolucionChange = (id, value) => {
     setSoluciones((prev) => ({ ...prev, [id]: value }));
@@ -444,4 +459,5 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
