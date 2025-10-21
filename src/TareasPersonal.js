@@ -28,7 +28,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   return `${año}-${mes}-${dia} ${hora}:${min}`;
 }
 
-  function formatTimestamp(ts) {
+ function formatTimestamp(ts) {
   if (!ts) return "";
 
   // Si ya viene en formato dd/mm/yyyy, devolvemos tal cual
@@ -455,6 +455,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
