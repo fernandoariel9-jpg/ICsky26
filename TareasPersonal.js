@@ -209,7 +209,7 @@ export default function TareasPersonal({ personal, onLogout }) {
         onClick={() => handleReasignar(tarea.id)}
         className="mt-2 ml-2 px-3 py-1 rounded bg-yellow-500 text-white"
       >
-        🔄 Reasignar
+        🔄 Re_signar
       </button>
     </>
   )}
