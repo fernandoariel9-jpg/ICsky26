@@ -349,7 +349,40 @@ export default function TareasPersonal({ personal, onLogout }) {
     </p>
   )}
 
-  {tareasFiltradas.map((t) => (
+ {tareasFiltradas.map((t) => {
+  const esPendiente = !t.solucion && !t.fin;
+  const esEnProceso = t.solucion && !t.fin;
+  const esFinalizada = t.fin;
+
+  const [editando, setEditando] = useState(false);
+  const [solucionEditada, setSolucionEditada] = useState(t.solucion || "");
+
+  // Función para guardar edición
+  const guardarEdicion = async () => {
+    try {
+      const url = `${API_TAREAS}/${t.id}/solucion`;
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          solucion: solucionEditada,
+          asignado: personal.nombre,
+          fecha_comp: getFechaLocal(),
+        }),
+      });
+
+      if (!res.ok) throw new Error("Error HTTP " + res.status);
+
+      toast.success("✅ Solución actualizada");
+      setEditando(false);
+      fetchTareas(); // recarga para reflejar cambios
+    } catch (err) {
+      console.error(err);
+      toast.error("❌ Error al guardar solución");
+    }
+  };
+
+  return (
     <li key={t.id} className="p-3 rounded-xl shadow bg-white">
       <div className="flex items-start space-x-3">
         {t.imagen && (
@@ -379,13 +412,6 @@ export default function TareasPersonal({ personal, onLogout }) {
             </p>
           )}
 
-          {t.reasignado_a && (
-            <p className="text-sm text-purple-700 mt-1">
-              🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
-              <strong>{t.reasignado_por}</strong> (desde {t.area})
-            </p>
-          )}
-
           {t.fecha && (
             <p className="text-sm text-gray-600 mt-1">
               📅 {formatTimestamp(t.fecha)}
@@ -409,13 +435,14 @@ export default function TareasPersonal({ personal, onLogout }) {
             </p>
           )}
 
-          {/* 🔹 Botones según tipo de lista */}
-          <div className="mt-3">
-            {filtro === "pendientes" && (
+          {/* 🔹 Botones según estado */}
+          <div className="mt-3 space-x-2">
+            {/* Solo en pendientes */}
+            {esPendiente && (
               <>
                 <button
                   onClick={() => setModal(t)}
-                  className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2"
+                  className="px-3 py-1 bg-purple-500 text-white rounded text-sm"
                 >
                   🔄 Reasignar
                 </button>
@@ -423,38 +450,60 @@ export default function TareasPersonal({ personal, onLogout }) {
                 <textarea
                   className="w-full p-2 border rounded mt-2"
                   placeholder="Escriba la solución..."
-                  value={soluciones[t.id] || t.solucion || ""}
+                  value={soluciones[t.id] || ""}
                   onChange={(e) => handleSolucionChange(t.id, e.target.value)}
-                  disabled={!!t.solucion}
                 />
 
                 <button
                   onClick={() => handleCompletar(t.id)}
-                  className={`mt-2 px-3 py-1 rounded text-white ${
-                    t.solucion
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-500"
-                  }`}
-                  disabled={!!t.solucion}
+                  className="mt-2 px-3 py-1 rounded text-white bg-green-500"
                 >
                   ✅ Completar
                 </button>
               </>
             )}
 
-            {filtro === "enProceso" && (
-              <button
-                onClick={() => handleEditarSolucion(t.id)}
-                className="mt-2 px-3 py-1 rounded bg-blue-500 text-white text-sm"
-              >
-                ✏️ Editar solución
-              </button>
+            {/* Solo en proceso */}
+            {esEnProceso && (
+              <>
+                {!editando ? (
+                  <button
+                    onClick={() => setEditando(true)}
+                    className="px-3 py-1 bg-yellow-500 text-white rounded text-sm"
+                  >
+                    ✏️ Editar solución
+                  </button>
+                ) : (
+                  <div className="mt-2">
+                    <textarea
+                      className="w-full p-2 border rounded"
+                      value={solucionEditada}
+                      onChange={(e) => setSolucionEditada(e.target.value)}
+                    />
+                    <div className="flex space-x-2 mt-2">
+                      <button
+                        onClick={guardarEdicion}
+                        className="bg-green-500 text-white px-3 py-1 rounded text-sm"
+                      >
+                        💾 Guardar
+                      </button>
+                      <button
+                        onClick={() => setEditando(false)}
+                        className="bg-gray-400 text-white px-3 py-1 rounded text-sm"
+                      >
+                        ❌ Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
       </div>
     </li>
-  ))}
+  );
+})}
 </ul>
 
       {/* Modal de reasignación */}
@@ -499,6 +548,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
