@@ -4,13 +4,12 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
 
-// 🔹 Importar tus formularios
 import RegistroUsuario from "./RegistroUsuario";
 import RegistroPersonal from "./RegistroPersonal";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
-// ---------- Login del Panel ----------
+// ---------- Login ----------
 function PanelLogin({ onLogin }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,7 +36,6 @@ function PanelLogin({ onLogin }) {
           <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
-
       <h1 className="text-2xl font-bold text-center mb-4">
         <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
         🔒 Acceso Panel de Supervisión
@@ -59,7 +57,7 @@ function PanelLogin({ onLogin }) {
   );
 }
 
-// ---------- Panel de Supervisión ----------
+// ---------- Panel principal ----------
 function Supervision({ setVista }) {
   const [tareas, setTareas] = useState([]);
   const [modalImagen, setModalImagen] = useState(null);
@@ -87,7 +85,7 @@ function Supervision({ setVista }) {
   const abrirModal = (img) => setModalImagen(img);
   const cerrarModal = () => setModalImagen(null);
 
-  // 🔍 Filtro de búsqueda
+  // 🔍 Búsqueda global
   const filtrarBusqueda = (t) => {
     const texto = busqueda.trim().toLowerCase();
     if (!texto) return true;
@@ -113,7 +111,7 @@ function Supervision({ setVista }) {
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
       <h1 className="text-2xl font-bold text-center mb-2">📋 Panel de Supervisión</h1>
 
-      {/* 🔹 Botones debajo del título */}
+      {/* Botones principales */}
       <div className="flex justify-center space-x-2 mb-6">
         <button
           onClick={() => setVista("usuario")}
@@ -129,18 +127,26 @@ function Supervision({ setVista }) {
         </button>
       </div>
 
-      {/* 🔍 Cuadro de búsqueda */}
-      <div className="flex justify-center mb-4">
+      {/* 🔍 Cuadro de búsqueda con botón limpiar */}
+      <div className="relative flex justify-center mb-4">
         <input
           type="text"
           placeholder="🔍 Buscar en todas las tareas..."
-          className="w-full max-w-md p-2 border rounded-xl shadow-sm focus:ring focus:ring-blue-300"
+          className="w-full max-w-md p-2 border rounded-xl shadow-sm focus:ring focus:ring-blue-300 pr-10"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+        {busqueda && (
+          <button
+            onClick={() => setBusqueda("")}
+            className="absolute right-[calc(50%-11rem)] sm:right-[calc(50%-12rem)] md:right-[calc(50%-13rem)] lg:right-[calc(50%-14rem)] text-gray-500 hover:text-red-500"
+          >
+            ❌
+          </button>
+        )}
       </div>
 
-      {/* 🔹 Filtros con contadores */}
+      {/* Filtros */}
       <div className="flex justify-center space-x-2 mb-4">
         <button
           onClick={() => setTab("pendientes")}
@@ -203,7 +209,7 @@ function Supervision({ setVista }) {
                     src={`data:image/jpeg;base64,${t.imagen}`}
                     alt="Foto"
                     className="w-14 h-14 rounded-lg object-cover cursor-pointer"
-                    onClick={() => abrirModal(t.imagen)}
+                    onClick={() => setModalImagen(t.imagen)}
                   />
                 )}
                 <div>
@@ -218,18 +224,6 @@ function Supervision({ setVista }) {
                     🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
                   </p>
 
-                  {t.reasignado_por && (
-                    <p className="text-sm text-gray-700 mt-1">
-                      🔄 Reasignada por:{" "}
-                      <span className="font-semibold">{t.reasignado_por}</span>
-                    </p>
-                  )}
-                  {t.reasignado_a && (
-                    <p className="text-sm text-gray-700 mt-1">
-                      📋 Reasignada a:{" "}
-                      <span className="font-semibold">{t.reasignado_a}</span>
-                    </p>
-                  )}
                   {t.asignado && (
                     <p className="text-sm text-gray-700 mt-1">
                       👷‍♂️ Realizada por:{" "}
@@ -241,7 +235,6 @@ function Supervision({ setVista }) {
                     📅 {new Date(t.fecha).toLocaleString()}
                   </p>
 
-                  {/* 🔹 Mostrar fechas adicionales */}
                   {t.fecha_comp && (
                     <p className="text-sm text-blue-700 mt-1">
                       ⏰ Solucionado el: {new Date(t.fecha_comp).toLocaleString()}
@@ -270,7 +263,7 @@ function Supervision({ setVista }) {
         </ul>
       )}
 
-      {/* Modal para imagen ampliada */}
+      {/* Modal imagen */}
       <AnimatePresence>
         {modalImagen && (
           <motion.div
@@ -279,7 +272,7 @@ function Supervision({ setVista }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
-            onClick={cerrarModal}
+            onClick={() => setModalImagen(null)}
           >
             <motion.img
               src={`data:image/jpeg;base64,${modalImagen}`}
@@ -299,7 +292,7 @@ function Supervision({ setVista }) {
   );
 }
 
-// ---------- Wrapper que combina login + panel ----------
+// ---------- Wrapper ----------
 export default function Panel() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [vista, setVista] = useState("panel");
