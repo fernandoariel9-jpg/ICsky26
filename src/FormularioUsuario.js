@@ -55,17 +55,29 @@ export default function FormularioUsuario({ usuario, onLogout }) {
 
   // ✅ FUNCIÓN CORREGIDA PARA MOSTRAR HORAS EXACTAS
   function formatTimestamp(ts) {
-    if (!ts) return "";
-    // ts puede venir como "2025-10-20 08:41:00" (sin TZ)
-    const [fechaPart, horaPart] = ts.split(" ");
-    if (!fechaPart || !horaPart) return ts;
+  if (!ts) return "";
 
-    const [year, month, day] = fechaPart.split("-").map(Number);
-    const [hour, min, sec] = horaPart.split(":").map(Number);
-
-    // Retornamos con formato dd/mm/yyyy, hh:mm:ss sin ajustar zona
-    return `${String(day).padStart(2,"0")}/${String(month).padStart(2,"0")}/${year}, ${String(hour).padStart(2,"0")}:${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+  // Si tiene formato ISO con "T", convertir normalmente a hora local
+  if (ts.includes("T")) {
+    const d = new Date(ts);
+    const año = d.getFullYear();
+    const mes = String(d.getMonth() + 1).padStart(2, "0");
+    const dia = String(d.getDate()).padStart(2, "0");
+    const hora = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+    const seg = String(d.getSeconds()).padStart(2, "0");
+    return `${dia}/${mes}/${año}, ${hora}:${min}:${seg}`;
   }
+
+  // Si viene como "YYYY-MM-DD HH:mm:ss"
+  const [fechaPart, horaPart] = ts.split(" ");
+  if (!fechaPart || !horaPart) return ts;
+
+  const [year, month, day] = fechaPart.split("-").map(Number);
+  const [hour, min, sec] = horaPart.split(":").map(Number);
+
+  return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}, ${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+}
 
   function getFechaLocal() {
     const d = new Date();
