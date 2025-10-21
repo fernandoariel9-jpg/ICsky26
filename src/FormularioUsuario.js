@@ -394,7 +394,7 @@ Cerrar sesión
       <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>  
     </div>  
   ) : (  
-    <ul className="space-y-3">
+     <ul className="space-y-3">
   {tareasFiltradas.length === 0 && (
     <p className="text-center text-gray-500 italic">
       No hay tareas en esta categoría.
@@ -433,8 +433,7 @@ Cerrar sesión
 
           {t.subservicio && (
             <p className="text-sm text-gray-700">
-              🧩 Subservicio:{" "}
-              <span className="font-medium">{t.subservicio}</span>
+              🧩 Subservicio: <span className="font-medium">{t.subservicio}</span>
             </p>
           )}
 
@@ -445,43 +444,64 @@ Cerrar sesión
           )}
 
           {t.fecha && (
-  <p className="text-sm text-gray-600 mt-1">
-    📅 {formatTimestamp(t.fecha)}
-  </p>
-)}
+            <p className="text-sm text-gray-600 mt-1">
+              📅 {formatTimestamp(t.fecha)}
+            </p>
+          )}
+
           {t.solucion && (
             <p className="text-sm bg-gray-100 p-1 rounded mt-1">
               💡 Solución: {t.solucion}
             </p>
           )}
 
-           {t.fecha_comp && (
-  <p className="text-xs text-gray-500 mt-1">
-    ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
-  </p>
-)}
-{t.fecha_fin && (
-  <p className="text-xs text-gray-500 mt-1">
-    ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
-  </p>
-)}
-          {t.fin ? (
-            <p className="text-green-600 font-semibold mt-1">
-              ✔️ Tarea finalizada
+          {t.fecha_comp && (
+            <p className="text-xs text-gray-500 mt-1">
+              ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
             </p>
-          ) : (
-            <button
-              onClick={() => handleFinalizar(t.id)}
-              className="bg-green-600 text-white px-3 py-1 rounded mt-2"
-            >
-              ✅ Finalizar
-            </button>
           )}
+          {t.fecha_fin && (
+            <p className="text-xs text-gray-500 mt-1">
+              ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
+            </p>
+          )}
+
+          {/* 🔹 Botones según tipo de lista */}
+          <div className="mt-3 space-x-2">
+            {filtro === "pendientes" && (
+              <button
+                onClick={() => {
+                  const nuevaDescripcion = prompt("Editar tarea:", t.tarea);
+                  if (!nuevaDescripcion) return;
+                  // Actualiza localmente solo, puedes integrar PUT después
+                  setTareas((prev) =>
+                    prev.map((task) =>
+                      task.id === t.id ? { ...task, tarea: nuevaDescripcion } : task
+                    )
+                  );
+                  toast.success("✏️ Tarea editada");
+                }}
+                className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
+              >
+                ✏️ Editar tarea
+              </button>
+            )}
+
+            {filtro === "enProceso" && !t.fin && (
+              <button
+                onClick={() => handleFinalizar(t.id)}
+                className="bg-green-600 text-white px-3 py-1 rounded text-sm"
+              >
+                ✅ Finalizar
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </motion.li>
   ))}
-</ul>  
+</ul>
+
   )}  
 
   <AnimatePresence>  
