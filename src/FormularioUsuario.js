@@ -54,29 +54,38 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const cerrarModal = () => setModalImagen(null);
 
   // ✅ FUNCIÓN CORREGIDA PARA MOSTRAR HORAS EXACTAS
-  function formatTimestamp(ts) {
+ function formatTimestamp(ts) {
   if (!ts) return "";
 
-  // Si tiene formato ISO con "T", convertir normalmente a hora local
-  if (ts.includes("T")) {
-    const d = new Date(ts);
-    const año = d.getFullYear();
-    const mes = String(d.getMonth() + 1).padStart(2, "0");
-    const dia = String(d.getDate()).padStart(2, "0");
-    const hora = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    const seg = String(d.getSeconds()).padStart(2, "0");
-    return `${dia}/${mes}/${año}, ${hora}:${min}:${seg}`;
-  }
+  // Convertimos el string a un objeto Date
+  const d = new Date(ts);
 
-  // Si viene como "YYYY-MM-DD HH:mm:ss"
-  const [fechaPart, horaPart] = ts.split(" ");
-  if (!fechaPart || !horaPart) return ts;
+  // Forzamos la conversión al huso horario de Argentina (GMT-3)
+  const opciones = {
+    timeZone: "America/Argentina/Buenos_Aires",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  };
 
-  const [year, month, day] = fechaPart.split("-").map(Number);
-  const [hour, min, sec] = horaPart.split(":").map(Number);
+  // Usamos Intl.DateTimeFormat para formatear correctamente
+  const formateador = new Intl.DateTimeFormat("es-AR", opciones);
+  const partes = formateador.formatToParts(d);
 
-  return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}, ${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  const get = (tipo) => partes.find((p) => p.type === tipo)?.value || "00";
+
+  const dia = get("day");
+  const mes = get("month");
+  const año = get("year");
+  const hora = get("hour");
+  const min = get("minute");
+  const seg = get("second");
+
+  return `${dia}/${mes}/${año}, ${hora}:${min}:${seg}`;
 }
 
   function getFechaLocal() {
