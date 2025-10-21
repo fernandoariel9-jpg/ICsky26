@@ -172,65 +172,60 @@ export default function TareasPersonal({ personal, onLogout }) {
           const completada = !!tarea.solucion;
           return (
             <li key={tarea.id} className="border p-4 rounded-xl shadow bg-white">
-              <p className="font-semibold">📝 {tarea.tarea}</p>
-              <p className="text-sm text-gray-600">Usuario: {tarea.usuario}</p>
+  <p className="font-semibold">📝 {tarea.tarea}</p>
+  <p className="text-sm text-gray-600">Usuario: {tarea.usuario}</p>
 
-              {tarea.imagen && (
-                <img
-                  src={`data:image/jpeg;base64,${tarea.imagen}`}
-                  alt="tarea"
-                  className="w-32 h-32 object-cover mt-2 cursor-pointer rounded"
-                  onClick={() =>
-                    setImagenAmpliada(`data:image/jpeg;base64,${tarea.imagen}`)
-                  }
-                />
-              )}
+  {tarea.imagen && (
+    <img
+      src={`data:image/jpeg;base64,${tarea.imagen}`}
+      alt="tarea"
+      className="w-32 h-32 object-cover mt-2 cursor-pointer rounded"
+      onClick={() =>
+        setImagenAmpliada(`data:image/jpeg;base64,${tarea.imagen}`)
+      }
+    />
+  )}
 
-              <textarea
-                className="w-full p-2 border rounded mt-2"
-                placeholder="Escriba la solución..."
-                value={soluciones[tarea.id] || tarea.solucion || ""}
-                onChange={(e) => handleSolucionChange(tarea.id, e.target.value)}
-                disabled={completada}
-              />
+  <textarea
+    className="w-full p-2 border rounded mt-2"
+    placeholder="Escriba la solución..."
+    value={soluciones[tarea.id] || tarea.solucion || ""}
+    onChange={(e) => handleSolucionChange(tarea.id, e.target.value)}
+    disabled={tarea.fin} // 🔹 Bloquea solo si está finalizada
+  />
 
-              {/* 🔹 Botones según estado de la tarea */}
-{!tarea.solucion && !tarea.fin && (
-  <>
+  {/* 🔹 Botones según el estado */}
+  {!tarea.solucion && !tarea.fin && (
+    <>
+      <button
+        onClick={() => handleCompletar(tarea.id)}
+        className="mt-2 px-3 py-1 rounded text-white bg-green-500"
+      >
+        ✅ Completar
+      </button>
+
+      <button
+        onClick={() => handleReasignar(tarea.id)}
+        className="mt-2 ml-2 px-3 py-1 rounded bg-yellow-500 text-white"
+      >
+        🔄 Reasignar
+      </button>
+    </>
+  )}
+
+  {tarea.solucion && !tarea.fin && (
     <button
-      onClick={() => handleCompletar(tarea.id)}
-      className="mt-2 px-3 py-1 rounded text-white bg-green-500"
+      onClick={() => handleEditarSolucion(tarea.id)}
+      className="mt-2 px-3 py-1 rounded bg-blue-500 text-white"
     >
-      ✅ Completar
+      ✏️ Editar solución
     </button>
+  )}
 
-    <button
-      onClick={() => handleReasignar(tarea.id)}
-      className="mt-2 ml-2 px-3 py-1 rounded bg-yellow-500 text-white"
-    >
-      🔄 Reasignar
-    </button>
-  </>
-)}
-
-{tarea.solucion && !tarea.fin && (
-  <button
-    onClick={() => handleEditarSolucion(tarea.id)}
-    className="mt-2 px-3 py-1 rounded bg-blue-500 text-white"
-  >
-    ✏️ Editar solución
-  </button>
-)}
-
-{tarea.fin && (
-  <p className="mt-2 text-green-700 font-semibold">✔️ Tarea finalizada</p>
-)}
-              {completada && (
-                <p className="mt-1 text-green-700 font-semibold">
-                  Solución registrada
-                </p>
-              )}
-            </li>
+  {tarea.fin && (
+    <p className="mt-2 text-green-700 font-semibold">✔️ Tarea finalizada</p>
+  )}
+</li>
           );
         })}
       </ul>
