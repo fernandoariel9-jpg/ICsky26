@@ -57,35 +57,38 @@ export default function FormularioUsuario({ usuario, onLogout }) {
  function formatTimestamp(ts) {
   if (!ts) return "";
 
-  // Convertimos el string a un objeto Date
-  const d = new Date(ts);
+  // Si ya viene en formato dd/mm/yyyy, devolvemos tal cual
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(ts)) return ts;
 
-  // Forzamos la conversión al huso horario de Argentina (GMT-3)
-  const opciones = {
-    timeZone: "America/Argentina/Buenos_Aires",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  };
+  // Si viene como "YYYY-MM-DD HH:mm[:ss]" (string que vamos a respetar como hora local guardada)
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?$/.test(ts)) {
+    const [fechaPart, horaPart] = ts.split(" ");
+    const [year, month, day] = fechaPart.split("-").map(Number);
+    const [hour, min, sec = "00"] = horaPart.split(":");
+    return `${String(day).padStart(2,"0")}/${String(month).padStart(2,"0")}/${year}, ${String(hour).padStart(2,"0")}:${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+  }
 
-  // Usamos Intl.DateTimeFormat para formatear correctamente
-  const formateador = new Intl.DateTimeFormat("es-AR", opciones);
-  const partes = formateador.formatToParts(d);
-
-  const get = (tipo) => partes.find((p) => p.type === tipo)?.value || "00";
-
-  const dia = get("day");
-  const mes = get("month");
-  const año = get("year");
-  const hora = get("hour");
-  const min = get("minute");
-  const seg = get("second");
-
-  return `${dia}/${mes}/${año}, ${hora}:${min}:${seg}`;
+  // Si viene como ISO (contiene "T"), la convertimos interpretando la fecha y formateamos en zona Argentina
+  try {
+    const d = new Date(ts);
+    const opciones = {
+      timeZone: "America/Argentina/Buenos_Aires",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    };
+    const partes = new Intl.DateTimeFormat("es-AR", opciones).formatToParts(d);
+    const get = (t) => (partes.find(p => p.type === t) || {}).value || "00";
+    const dia = get("day"), mes = get("month"), año = get("year");
+    const hora = get("hour"), min = get("minute"), seg = get("second");
+    return `${dia}/${mes}/${año}, ${hora}:${min}:${seg}`;
+  } catch {
+    return String(ts);
+  }
 }
 
   function getFechaLocal() {
