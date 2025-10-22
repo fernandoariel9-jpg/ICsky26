@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { API_URL } from "./config";
@@ -10,19 +10,12 @@ const API_AREAS = API_URL.Areas;
 
 export default function TareasPersonal({ personal, onLogout }) {
   const [tareas, setTareas] = useState([]);
-  const [tareasPrevias, setTareasPrevias] = useState([]); // 🔹 para comparar
   const [soluciones, setSoluciones] = useState({});
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
   const [filtro, setFiltro] = useState("pendientes");
   const [areas, setAreas] = useState([]);
   const [modal, setModal] = useState(null);
   const [nuevaArea, setNuevaArea] = useState("");
-  const alertaAudioRef = useRef(null); // 🔹 referencia del audio
-
-  // Crear el objeto de audio una vez montado el componente
-  useEffect(() => {
-    alertaAudioRef.current = new Audio("/alerta.mp3");
-  }, []);
 
   function getFechaLocal() {
     const d = new Date();
@@ -55,36 +48,13 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   }
 
-  // 🔹 Cargar tareas y detectar nuevas
   const fetchTareas = async () => {
     try {
       if (!personal?.area) return;
       const res = await fetch(`${API_TAREAS}/${encodeURIComponent(personal.area)}`);
       if (!res.ok) throw new Error("Error HTTP " + res.status);
       const data = await res.json();
-
-      // 🔸 Detectar nuevas tareas (solo si ya había alguna)
-      if (tareasPrevias.length > 0) {
-        const nuevasTareas = data.filter(
-          (t) => !tareasPrevias.some((prev) => prev.id === t.id)
-        );
-        if (nuevasTareas.length > 0) {
-          nuevasTareas.forEach((t) => {
-            toast.info(`🆕 Nueva tarea: #${t.id} — ${t.usuario}`, { autoClose: 4000 });
-          });
-
-          // 🔊 Reproducir sonido una vez por grupo de nuevas tareas
-          if (alertaAudioRef.current) {
-            alertaAudioRef.current.currentTime = 0;
-            alertaAudioRef.current.play().catch((err) => {
-              console.warn("No se pudo reproducir el sonido:", err);
-            });
-          }
-        }
-      }
-
       setTareas(data);
-      setTareasPrevias(data);
     } catch (err) {
       console.error("Error al cargar tareas:", err);
       toast.error("Error al cargar tareas ❌");
@@ -102,7 +72,6 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
-  // 🔁 Cargar al inicio y refrescar cada 30 seg
   useEffect(() => {
     fetchTareas();
     fetchAreas();
@@ -180,7 +149,6 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
-  // Filtrado
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
   const finalizadas = tareas.filter((t) => t.fin);
@@ -192,7 +160,6 @@ export default function TareasPersonal({ personal, onLogout }) {
       ? enProceso
       : finalizadas;
 
-  // Exportar PDF (igual que antes)
   const handleExportarPDF = async () => {
     const nombreLista =
       filtro === "pendientes"
@@ -269,7 +236,6 @@ export default function TareasPersonal({ personal, onLogout }) {
         <span className="text-blue-700">{personal?.nombre || personal?.mail || "Personal"}</span>
       </h1>
 
-      {/* Botones superiores */}
       <div className="flex space-x-2 mb-4 justify-center">
         <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">
           🔄 Actualizar lista
@@ -282,7 +248,6 @@ export default function TareasPersonal({ personal, onLogout }) {
         </button>
       </div>
 
-      {/* Filtros */}
       <div className="flex justify-center space-x-2 mb-4">
         <button
           onClick={() => setFiltro("pendientes")}
@@ -304,142 +269,137 @@ export default function TareasPersonal({ personal, onLogout }) {
         </button>
       </div>
 
-      {/* Lista de tareas */}
       <ul className="space-y-3">
-  {tareasFiltradas.length === 0 && (
-    <p className="text-center text-gray-500 italic">
-      No hay tareas en esta categoría.
-    </p>
-  )}
-
-  {tareasFiltradas.map((t) => (
-    <li key={t.id} className="p-3 rounded-xl shadow bg-white">
-      <div className="flex items-start space-x-3">
-        {/* Imagen clickeable para ampliar */}
-        {t.imagen && (
-          <img
-            src={`data:image/jpeg;base64,${t.imagen}`}
-            alt="Foto de tarea"
-            className="w-14 h-14 rounded-lg object-cover cursor-pointer"
-            onClick={() =>
-              setImagenAmpliada(`data:image/jpeg;base64,${t.imagen}`)
-            }
-          />
+        {tareasFiltradas.length === 0 && (
+          <p className="text-center text-gray-500 italic">
+            No hay tareas en esta categoría.
+          </p>
         )}
 
-        <div className="flex-1">
-          <p className="font-semibold text-base">
-            🆔 #{t.id} — 📝 {t.tarea}
-          </p>
-
-          <p className="text-sm text-gray-700">
-            👤 Usuario: <span className="font-medium">{t.usuario}</span>
-          </p>
-          <p className="text-sm text-gray-700">
-            🏢 Área: <span className="font-medium">{t.area || "—"}</span>
-          </p>
-          <p className="text-sm text-gray-700">
-            🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
-          </p>
-          {t.subservicio && (
-            <p className="text-sm text-gray-700">
-              🧩 Subservicio: <span className="font-medium">{t.subservicio}</span>
-            </p>
-          )}
-
-          {t.reasignado_a && (
-            <p className="text-sm text-purple-700 mt-1">
-              🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
-              <strong>{t.reasignado_por}</strong> (desde {t.area})
-            </p>
-          )}
-
-          {t.fecha && (
-            <p className="text-sm text-gray-600 mt-1">
-              📅 {formatTimestamp(t.fecha)}
-            </p>
-          )}
-
-          {t.solucion && (
-            <p className="text-sm bg-gray-100 p-1 rounded mt-1">
-              💡 Solución: {t.solucion}
-            </p>
-          )}
-
-          {t.fecha_comp && (
-            <p className="text-xs text-gray-500 mt-1">
-              ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
-            </p>
-          )}
-          {t.fecha_fin && (
-            <p className="text-xs text-gray-500 mt-1">
-              ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
-            </p>
-          )}
-
-          {/* Botones según tipo de lista */}
-          <div className="mt-3">
-            {filtro === "pendientes" && (
-              <>
-                <button
-                  onClick={() => setModal(t)}
-                  className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2"
-                >
-                  🔄 Reasignar
-                </button>
-
-                <textarea
-                  className="w-full p-2 border rounded mt-2"
-                  placeholder="Escriba la solución..."
-                  value={soluciones[t.id] || t.solucion || ""}
-                  onChange={(e) => handleSolucionChange(t.id, e.target.value)}
-                  disabled={!!t.solucion}
+        {tareasFiltradas.map((t) => (
+          <li key={t.id} className="p-3 rounded-xl shadow bg-white">
+            <div className="flex items-start space-x-3">
+              {t.imagen && (
+                <img
+                  src={`data:image/jpeg;base64,${t.imagen}`}
+                  alt="Foto de tarea"
+                  className="w-14 h-14 rounded-lg object-cover cursor-pointer"
+                  onClick={() =>
+                    setImagenAmpliada(`data:image/jpeg;base64,${t.imagen}`)
+                  }
                 />
+              )}
 
-                <button
-                  onClick={() => handleCompletar(t.id)}
-                  className={`mt-2 px-3 py-1 rounded text-white ${
-                    t.solucion
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-500"
-                  }`}
-                  disabled={!!t.solucion}
-                >
-                  ✅ Completar
-                </button>
-              </>
-            )}
+              <div className="flex-1">
+                <p className="font-semibold text-base">
+                  🆔 #{t.id} — 📝 {t.tarea}
+                </p>
 
-            {filtro === "enProceso" && !t.fin && (
-              <button
-                onClick={() => handleEditarSolucion(t.id)}
-                className="mt-2 px-3 py-1 rounded bg-blue-500 text-white text-sm"
-              >
-                ✏️ Editar solución
-              </button>
-            )}
-          </div>
+                <p className="text-sm text-gray-700">
+                  👤 Usuario: <span className="font-medium">{t.usuario}</span>
+                </p>
+                <p className="text-sm text-gray-700">
+                  🏢 Área: <span className="font-medium">{t.area || "—"}</span>
+                </p>
+                <p className="text-sm text-gray-700">
+                  🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
+                </p>
+                {t.subservicio && (
+                  <p className="text-sm text-gray-700">
+                    🧩 Subservicio: <span className="font-medium">{t.subservicio}</span>
+                  </p>
+                )}
+
+                {t.reasignado_a && (
+                  <p className="text-sm text-purple-700 mt-1">
+                    🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
+                    <strong>{t.reasignado_por}</strong> (desde {t.area})
+                  </p>
+                )}
+
+                {t.fecha && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    📅 {formatTimestamp(t.fecha)}
+                  </p>
+                )}
+
+                {t.solucion && (
+                  <p className="text-sm bg-gray-100 p-1 rounded mt-1">
+                    💡 Solución: {t.solucion}
+                  </p>
+                )}
+
+                {t.fecha_comp && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
+                  </p>
+                )}
+                {t.fecha_fin && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
+                  </p>
+                )}
+
+                <div className="mt-3">
+                  {filtro === "pendientes" && (
+                    <>
+                      <button
+                        onClick={() => setModal(t)}
+                        className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2"
+                      >
+                        🔄 Reasignar
+                      </button>
+
+                      <textarea
+                        className="w-full p-2 border rounded mt-2"
+                        placeholder="Escriba la solución..."
+                        value={soluciones[t.id] || t.solucion || ""}
+                        onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+                        disabled={!!t.solucion}
+                      />
+
+                      <button
+                        onClick={() => handleCompletar(t.id)}
+                        className={`mt-2 px-3 py-1 rounded text-white ${
+                          t.solucion
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-green-500"
+                        }`}
+                        disabled={!!t.solucion}
+                      >
+                        ✅ Completar
+                      </button>
+                    </>
+                  )}
+
+                  {filtro === "enProceso" && !t.fin && (
+                    <button
+                      onClick={() => handleEditarSolucion(t.id)}
+                      className="mt-2 px-3 py-1 rounded bg-blue-500 text-white text-sm"
+                    >
+                      ✏️ Editar solución
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {imagenAmpliada && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          onClick={() => setImagenAmpliada(null)}
+        >
+          <img
+            src={imagenAmpliada}
+            alt="Ampliada"
+            className="max-w-full max-h-full rounded-lg shadow-lg"
+          />
         </div>
-      </div>
-    </li>
-  ))}
-</ul>
+      )}
 
-{/* Modal de imagen ampliada */}
-{imagenAmpliada && (
-  <div
-    className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-    onClick={() => setImagenAmpliada(null)}
-  >
-    <img
-      src={imagenAmpliada}
-      alt="Ampliada"
-      className="max-w-full max-h-full rounded-lg shadow-lg"
-    />
-  </div>
-)}
-
-      {/* Modal de reasignación */}
       {modal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl shadow-xl w-80">
@@ -463,9 +423,3 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
-
-
-
-
-
-
