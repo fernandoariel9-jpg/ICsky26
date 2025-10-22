@@ -16,6 +16,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [areas, setAreas] = useState([]);
   const [modal, setModal] = useState(null);
   const [nuevaArea, setNuevaArea] = useState("");
+  const [editando, setEditando] = useState({}); // Para edición inline
 
   function getFechaLocal() {
     const d = new Date();
@@ -30,6 +31,13 @@ export default function TareasPersonal({ personal, onLogout }) {
 
   function formatTimestamp(ts) {
     if (!ts) return "";
+    if (/^\d{2}\/\d{2}\/\d{4}/.test(ts)) return ts;
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?$/.test(ts)) {
+      const [fechaPart, horaPart] = ts.split(" ");
+      const [year, month, day] = fechaPart.split("-").map(Number);
+      const [hour, min, sec = "00"] = horaPart.split(":");
+      return `${String(day).padStart(2,"0")}/${String(month).padStart(2,"0")}/${year}, ${String(hour).padStart(2,"0")}:${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+    }
     try {
       const d = new Date(ts);
       const opciones = {
@@ -42,12 +50,17 @@ export default function TareasPersonal({ personal, onLogout }) {
         second: "2-digit",
         hour12: false,
       };
-      return new Intl.DateTimeFormat("es-AR", opciones).format(d);
+      const partes = new Intl.DateTimeFormat("es-AR", opciones).formatToParts(d);
+      const get = (t) => (partes.find(p => p.type === t) || {}).value || "00";
+      const dia = get("day"), mes = get("month"), año = get("year");
+      const hora = get("hour"), min = get("minute"), seg = get("second");
+      return `${dia}/${mes}/${año}, ${hora}:${min}:${seg}`;
     } catch {
       return String(ts);
     }
   }
 
+  // Cargar tareas
   const fetchTareas = async () => {
     try {
       if (!personal?.area) return;
@@ -61,6 +74,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
+  // Cargar áreas
   const fetchAreas = async () => {
     try {
       const res = await fetch(API_AREAS);
@@ -75,8 +89,6 @@ export default function TareasPersonal({ personal, onLogout }) {
   useEffect(() => {
     fetchTareas();
     fetchAreas();
-    const interval = setInterval(fetchTareas, 30000);
-    return () => clearInterval(interval);
   }, [personal]);
 
   const handleSolucionChange = (id, value) => {
@@ -149,6 +161,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
+  // Filtrado
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
   const finalizadas = tareas.filter((t) => t.fin);
@@ -160,6 +173,7 @@ export default function TareasPersonal({ personal, onLogout }) {
       ? enProceso
       : finalizadas;
 
+  // Exportar PDF (igual que antes)
   const handleExportarPDF = async () => {
     const nombreLista =
       filtro === "pendientes"
@@ -236,6 +250,7 @@ export default function TareasPersonal({ personal, onLogout }) {
         <span className="text-blue-700">{personal?.nombre || personal?.mail || "Personal"}</span>
       </h1>
 
+      {/* Botones superiores */}
       <div className="flex space-x-2 mb-4 justify-center">
         <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">
           🔄 Actualizar lista
@@ -248,6 +263,7 @@ export default function TareasPersonal({ personal, onLogout }) {
         </button>
       </div>
 
+      {/* Filtros */}
       <div className="flex justify-center space-x-2 mb-4">
         <button
           onClick={() => setFiltro("pendientes")}
@@ -269,11 +285,10 @@ export default function TareasPersonal({ personal, onLogout }) {
         </button>
       </div>
 
+      {/* Lista de tareas */}
       <ul className="space-y-3">
         {tareasFiltradas.length === 0 && (
-          <p className="text-center text-gray-500 italic">
-            No hay tareas en esta categoría.
-          </p>
+          <p className="text-center text-gray-500 italic">No hay tareas en esta categoría.</p>
         )}
 
         {tareasFiltradas.map((t) => (
@@ -282,74 +297,27 @@ export default function TareasPersonal({ personal, onLogout }) {
               {t.imagen && (
                 <img
                   src={`data:image/jpeg;base64,${t.imagen}`}
-                  alt="Foto de tarea"
+                  alt="Foto"
                   className="w-14 h-14 rounded-lg object-cover cursor-pointer"
-                  onClick={() =>
-                    setImagenAmpliada(`data:image/jpeg;base64,${t.imagen}`)
-                  }
                 />
               )}
-
               <div className="flex-1">
-                <p className="font-semibold text-base">
-                  🆔 #{t.id} — 📝 {t.tarea}
-                </p>
+                <p className="font-semibold text-base">🆔 #{t.id} — 📝 {t.tarea}</p>
+                <p className="text-sm text-gray-700">👤 Usuario: <span className="font-medium">{t.usuario}</span></p>
+                <p className="text-sm text-gray-700">🏢 Área: <span className="font-medium">{t.area || "—"}</span></p>
+                <p className="text-sm text-gray-700">🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span></p>
+                {t.subservicio && <p className="text-sm text-gray-700">🧩 Subservicio: <span className="font-medium">{t.subservicio}</span></p>}
+                {t.reasignado_a && <p className="text-sm text-purple-700 mt-1">🔄 Reasignada a <strong>{t.reasignado_a}</strong> por <strong>{t.reasignado_por}</strong> (desde {t.area})</p>}
+                {t.fecha && <p className="text-sm text-gray-600 mt-1">📅 {formatTimestamp(t.fecha)}</p>}
+                {t.solucion && <p className="text-sm bg-gray-100 p-1 rounded mt-1">💡 Solución: {t.solucion}</p>}
+                {t.fecha_comp && <p className="text-xs text-gray-500 mt-1">⏰ Solucionado el {formatTimestamp(t.fecha_comp)}</p>}
+                {t.fecha_fin && <p className="text-xs text-gray-500 mt-1">⏰ Finalizado el {formatTimestamp(t.fecha_fin)}</p>}
 
-                <p className="text-sm text-gray-700">
-                  👤 Usuario: <span className="font-medium">{t.usuario}</span>
-                </p>
-                <p className="text-sm text-gray-700">
-                  🏢 Área: <span className="font-medium">{t.area || "—"}</span>
-                </p>
-                <p className="text-sm text-gray-700">
-                  🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
-                </p>
-                {t.subservicio && (
-                  <p className="text-sm text-gray-700">
-                    🧩 Subservicio: <span className="font-medium">{t.subservicio}</span>
-                  </p>
-                )}
-
-                {t.reasignado_a && (
-                  <p className="text-sm text-purple-700 mt-1">
-                    🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
-                    <strong>{t.reasignado_por}</strong> (desde {t.area})
-                  </p>
-                )}
-
-                {t.fecha && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    📅 {formatTimestamp(t.fecha)}
-                  </p>
-                )}
-
-                {t.solucion && (
-                  <p className="text-sm bg-gray-100 p-1 rounded mt-1">
-                    💡 Solución: {t.solucion}
-                  </p>
-                )}
-
-                {t.fecha_comp && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
-                  </p>
-                )}
-                {t.fecha_fin && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
-                  </p>
-                )}
-
+                {/* Botones según tipo de lista */}
                 <div className="mt-3">
                   {filtro === "pendientes" && (
                     <>
-                      <button
-                        onClick={() => setModal(t)}
-                        className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2"
-                      >
-                        🔄 Reasignar
-                      </button>
-
+                      <button onClick={() => setModal(t)} className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2">🔄 Reasignar</button>
                       <textarea
                         className="w-full p-2 border rounded mt-2"
                         placeholder="Escriba la solución..."
@@ -357,14 +325,9 @@ export default function TareasPersonal({ personal, onLogout }) {
                         onChange={(e) => handleSolucionChange(t.id, e.target.value)}
                         disabled={!!t.solucion}
                       />
-
                       <button
                         onClick={() => handleCompletar(t.id)}
-                        className={`mt-2 px-3 py-1 rounded text-white ${
-                          t.solucion
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-green-500"
-                        }`}
+                        className={`mt-2 px-3 py-1 rounded text-white ${t.solucion ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"}`}
                         disabled={!!t.solucion}
                       >
                         ✅ Completar
@@ -372,13 +335,42 @@ export default function TareasPersonal({ personal, onLogout }) {
                     </>
                   )}
 
-                  {filtro === "enProceso" && !t.fin && (
-                    <button
-                      onClick={() => handleEditarSolucion(t.id)}
-                      className="mt-2 px-3 py-1 rounded bg-blue-500 text-white text-sm"
-                    >
-                      ✏️ Editar solución
-                    </button>
+                  {filtro === "enProceso" && (
+                    <>
+                      {!editando[t.id] ? (
+                        <button
+                          onClick={() => setEditando(prev => ({ ...prev, [t.id]: true }))}
+                          className="mt-2 px-3 py-1 rounded bg-blue-500 text-white text-sm"
+                        >
+                          ✏️ Editar solución
+                        </button>
+                      ) : (
+                        <div className="mt-2">
+                          <textarea
+                            className="w-full p-2 border rounded"
+                            value={soluciones[t.id] || t.solucion || ""}
+                            onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+                          />
+                          <div className="flex space-x-2 mt-2">
+                            <button
+                              onClick={() => {
+                                handleEditarSolucion(t.id);
+                                setEditando(prev => ({ ...prev, [t.id]: false }));
+                              }}
+                              className="px-3 py-1 bg-green-500 text-white rounded text-sm"
+                            >
+                              💾 Guardar
+                            </button>
+                            <button
+                              onClick={() => setEditando(prev => ({ ...prev, [t.id]: false }))}
+                              className="px-3 py-1 bg-gray-400 text-white rounded text-sm"
+                            >
+                              ❌ Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -387,19 +379,7 @@ export default function TareasPersonal({ personal, onLogout }) {
         ))}
       </ul>
 
-      {imagenAmpliada && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-          onClick={() => setImagenAmpliada(null)}
-        >
-          <img
-            src={imagenAmpliada}
-            alt="Ampliada"
-            className="max-w-full max-h-full rounded-lg shadow-lg"
-          />
-        </div>
-      )}
-
+      {/* Modal de reasignación */}
       {modal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl shadow-xl w-80">
