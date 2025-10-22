@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { API_URL } from "./config";
@@ -9,16 +9,20 @@ const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
 
 export default function TareasPersonal({ personal, onLogout }) {
-  const alertaAudio = new Audio("/alerta.mp3"); // ← coloca tu archivo de sonido en public/
   const [tareas, setTareas] = useState([]);
-  const [tareasPrevias, setTareasPrevias] = useState([]);
+  const [tareasPrevias, setTareasPrevias] = useState([]); // 🔹 para comparar
   const [soluciones, setSoluciones] = useState({});
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
   const [filtro, setFiltro] = useState("pendientes");
   const [areas, setAreas] = useState([]);
   const [modal, setModal] = useState(null);
   const [nuevaArea, setNuevaArea] = useState("");
-  const [editando, setEditando] = useState({}); // Para edición inline
+  const alertaAudioRef = useRef(null); // 🔹 referencia del audio
+
+  // Crear el objeto de audio una vez montado el componente
+  useEffect(() => {
+    alertaAudioRef.current = new Audio("/alerta.mp3");
+  }, []);
 
   function getFechaLocal() {
     const d = new Date();
@@ -33,13 +37,6 @@ export default function TareasPersonal({ personal, onLogout }) {
 
   function formatTimestamp(ts) {
     if (!ts) return "";
-    if (/^\d{2}\/\d{2}\/\d{4}/.test(ts)) return ts;
-    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?$/.test(ts)) {
-      const [fechaPart, horaPart] = ts.split(" ");
-      const [year, month, day] = fechaPart.split("-").map(Number);
-      const [hour, min, sec = "00"] = horaPart.split(":");
-      return `${String(day).padStart(2,"0")}/${String(month).padStart(2,"0")}/${year}, ${String(hour).padStart(2,"0")}:${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
-    }
     try {
       const d = new Date(ts);
       const opciones = {
@@ -52,44 +49,48 @@ export default function TareasPersonal({ personal, onLogout }) {
         second: "2-digit",
         hour12: false,
       };
-      const partes = new Intl.DateTimeFormat("es-AR", opciones).formatToParts(d);
-      const get = (t) => (partes.find(p => p.type === t) || {}).value || "00";
-      const dia = get("day"), mes = get("month"), año = get("year");
-      const hora = get("hour"), min = get("minute"), seg = get("second");
-      return `${dia}/${mes}/${año}, ${hora}:${min}:${seg}`;
+      return new Intl.DateTimeFormat("es-AR", opciones).format(d);
     } catch {
       return String(ts);
     }
   }
 
-  // Cargar tareas
+  // 🔹 Cargar tareas y detectar nuevas
   const fetchTareas = async () => {
-  try {
-    if (!personal?.area) return;
-    const res = await fetch(`${API_TAREAS}/${encodeURIComponent(personal.area)}`);
-    if (!res.ok) throw new Error("Error HTTP " + res.status);
-    const data = await res.json();
+    try {
+      if (!personal?.area) return;
+      const res = await fetch(`${API_TAREAS}/${encodeURIComponent(personal.area)}`);
+      if (!res.ok) throw new Error("Error HTTP " + res.status);
+      const data = await res.json();
 
-    // Detectar nuevas tareas
-    if (tareasPrevias.length > 0) {
-  const nuevasTareas = data.filter(
-    (t) => !tareasPrevias.some((prev) => prev.id === t.id)
-  );
-  nuevasTareas.forEach((t) => {
-    toast.info(`🆕 Nueva tarea: #${t.id} — ${t.usuario}`, { autoClose: 10000 });
-    alertaAudio.play().catch(() => {}); // Reproducir sonido de alerta
-  });
-}
+      // 🔸 Detectar nuevas tareas (solo si ya había alguna)
+      if (tareasPrevias.length > 0) {
+        const nuevasTareas = data.filter(
+          (t) => !tareasPrevias.some((prev) => prev.id === t.id)
+        );
+        if (nuevasTareas.length > 0) {
+          nuevasTareas.forEach((t) => {
+            toast.info(`🆕 Nueva tarea: #${t.id} — ${t.usuario}`, { autoClose: 4000 });
+          });
 
-    setTareas(data);
-    setTareasPrevias(data); // actualizar lista previa
-  } catch (err) {
-    console.error("Error al cargar tareas:", err);
-    toast.error("Error al cargar tareas ❌");
-  }
-};
+          // 🔊 Reproducir sonido una vez por grupo de nuevas tareas
+          if (alertaAudioRef.current) {
+            alertaAudioRef.current.currentTime = 0;
+            alertaAudioRef.current.play().catch((err) => {
+              console.warn("No se pudo reproducir el sonido:", err);
+            });
+          }
+        }
+      }
 
-  // Cargar áreas
+      setTareas(data);
+      setTareasPrevias(data);
+    } catch (err) {
+      console.error("Error al cargar tareas:", err);
+      toast.error("Error al cargar tareas ❌");
+    }
+  };
+
   const fetchAreas = async () => {
     try {
       const res = await fetch(API_AREAS);
@@ -101,12 +102,13 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
+  // 🔁 Cargar al inicio y refrescar cada 30 seg
   useEffect(() => {
-  fetchTareas();
-  fetchAreas();
-  const interval = setInterval(fetchTareas, 30000); // cada 30 segundos
-  return () => clearInterval(interval);
-}, [personal]);
+    fetchTareas();
+    fetchAreas();
+    const interval = setInterval(fetchTareas, 30000);
+    return () => clearInterval(interval);
+  }, [personal]);
 
   const handleSolucionChange = (id, value) => {
     setSoluciones((prev) => ({ ...prev, [id]: value }));
@@ -461,6 +463,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
