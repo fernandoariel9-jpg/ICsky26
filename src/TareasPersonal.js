@@ -16,53 +16,8 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [areas, setAreas] = useState([]);
   const [modal, setModal] = useState(null);
   const [nuevaArea, setNuevaArea] = useState("");
-  const [editando, setEditando] = useState({}); // Para edición inline
+  const [editando, setEditando] = useState({});
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
-
-  async function registrarPush(userId) {
-    try {
-      if (!("serviceWorker" in navigator)) return;
-
-      const registration = await navigator.serviceWorker.register("/sw.js");
-      const permission = await Notification.requestPermission();
-
-      if (permission !== "granted") {
-        setNotificacionesActivas(false);
-        return;
-      }
-
-      setNotificacionesActivas(true); // 🔹 marca que están activadas
-
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(process.env.REACT_APP_VAPID_PUBLIC_KEY),
-      });
-
-      await fetch(`${API_URL.Base}/suscribir`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, subscription }),
-      });
-
-      toast.success("✅ Notificaciones activadas correctamente");
-    } catch (error) {
-      console.error("Error al registrar notificaciones:", error);
-    }
-  }
-
-  function urlBase64ToUint8Array(base64String) {
-    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding)
-      .replace(/-/g, "+")
-      .replace(/_/g, "/");
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  }
 
   function getFechaLocal() {
     const d = new Date();
@@ -106,6 +61,73 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   }
 
+  function urlBase64ToUint8Array(base64String) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  async function registrarPush(userId) {
+    if (!("serviceWorker" in navigator)) return;
+
+    const registration = await navigator.serviceWorker.register("/sw.js");
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      setNotificacionesActivas(false);
+      return;
+    }
+
+    setNotificacionesActivas(true);
+
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(process.env.REACT_APP_VAPID_PUBLIC_KEY),
+    });
+
+    await fetch(`${API_URL.Base}/suscribir`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, subscription }),
+    });
+
+    toast.success("✅ Notificaciones activadas correctamente");
+  }
+
+  async function toggleNotificaciones(userId) {
+    try {
+      if (notificacionesActivas) {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          const subscription = await registration.pushManager.getSubscription();
+          if (subscription) {
+            await subscription.unsubscribe();
+            await fetch(`${API_URL.Base}/desuscribir`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId }),
+            });
+          }
+        }
+        setNotificacionesActivas(false);
+        toast.info("🔕 Notificaciones desactivadas");
+      } else {
+        await registrarPush(userId);
+      }
+    } catch (error) {
+      console.error("Error al alternar notificaciones:", error);
+      toast.error("❌ Error al alternar notificaciones");
+    }
+  }
+
   const fetchTareas = async () => {
     try {
       if (!personal?.area) return;
@@ -142,19 +164,19 @@ export default function TareasPersonal({ personal, onLogout }) {
         .then(() => console.log("✅ Ping al backend exitoso"))
         .catch(() => console.warn("⚠️ Falló el ping al backend"));
     };
+
+    if ("Notification" in window) {
+      setNotificacionesActivas(Notification.permission === "granted");
+    }
+
     mantenerActivo();
     const interval = setInterval(mantenerActivo, 8 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    if ("Notification" in window) {
-      setNotificacionesActivas(Notification.permission === "granted");
-    }
-  }, []);
-
-  useEffect(() => {
     if (!personal?.id) return;
+
     if (Notification.permission === "granted") {
       registrarPush(personal.id);
     } else if (Notification.permission === "default") {
@@ -281,19 +303,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     ]);
     autoTable(doc, {
       startY: 35,
-      head: [
-        [
-          "ID",
-          "Tarea",
-          "Usuario",
-          "Servicio",
-          "Subservicio",
-          "Área",
-          "Reasignada a",
-          "Reasignada por",
-          "Solución",
-        ],
-      ],
+      head: [["ID", "Tarea", "Usuario", "Servicio", "Subservicio", "Área", "Reasignada a", "Reasignada por", "Solución"]],
       body: dataExportar,
       styles: { fontSize: 8, cellPadding: 2 },
       headStyles: { fillColor: [0, 102, 204], textColor: 255 },
@@ -313,11 +323,10 @@ export default function TareasPersonal({ personal, onLogout }) {
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
-      <p className={`text-center mb-4 font-semibold ${
-        notificacionesActivas ? "text-green-600" : "text-red-600"
-      }`}>
-        🔔 Notificaciones: {notificacionesActivas ? "Activadas" : "Desactivadas"}
+      <p className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
+        {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
       </p>
+
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
         📌 Registro de tareas de{" "}
@@ -330,13 +339,18 @@ export default function TareasPersonal({ personal, onLogout }) {
         </button>
         <button onClick={handleExportarPDF} className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm">
           📄 Exportar {filtro === "pendientes" ? "pendientes" : filtro === "enProceso" ? "en proceso" : "finalizadas"} en PDF
-        <button   onClick={() => toggleNotificaciones(personal.id)} className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm">
-  {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
-</button>
+        </button>
+        <button
+          onClick={() => toggleNotificaciones(personal.id)}
+          className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
+        </button>
         <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
           Cerrar sesión
         </button>
       </div>
+      
 
       {/* filtros y lista de tareas tal como la tenías */}
       {/* ...resto del código sin cambios ... */}
