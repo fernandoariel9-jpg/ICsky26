@@ -12,8 +12,36 @@ import FormularioUsuario from "./FormularioUsuario";
 import TareasPersonal from "./TareasPersonal";
 import PanelLogin from "./PanelLogin";
 import ManualUsuario from "./ManualUsuario";
+import { API_URL } from "./config";
 
 const API_URL = "https://sky26.onrender.com/tareas";
+
+async function registrarPush(userId) {
+  if (!("serviceWorker" in navigator)) return;
+  
+  const registration = await navigator.serviceWorker.register("/sw.js");
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") return;
+
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(process.env.REACT_APP_VAPID_PUBLIC_KEY),
+  });
+
+  await fetch(`${API_URL.Base}/suscribir`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, subscription }),
+  });
+}
+
+// Helper
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+}
 
 function Main() {
   const [modo, setModo] = useState("menu"); // "menu", "loginUsuario", "registroUsuario", "loginPersonal", "registroPersonal"
