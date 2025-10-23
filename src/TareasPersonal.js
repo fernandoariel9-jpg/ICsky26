@@ -134,6 +134,19 @@ export default function TareasPersonal({ personal, onLogout }) {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+  if (!personal?.id) return;
+
+  // Si ya tiene permiso, registrar directamente
+  if (Notification.permission === "granted") {
+    registrarPush(personal.id);
+  } 
+  // Si todavía no respondió, sugerirle activarlas
+  else if (Notification.permission === "default") {
+    toast.info("🔔 Activa las notificaciones para recibir nuevas tareas");
+  }
+}, [personal]);
+
   const handleSolucionChange = (id, value) => {
     setSoluciones((prev) => ({ ...prev, [id]: value }));
   };
@@ -304,6 +317,12 @@ export default function TareasPersonal({ personal, onLogout }) {
         <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
           Cerrar sesión
         </button>
+        <button
+  onClick={() => registrarPush(personal.id)}
+  className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm"
+>
+  🔔 Activar notificaciones
+</button>
       </div>
 
       {/* Filtros */}
@@ -446,6 +465,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
