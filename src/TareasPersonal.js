@@ -8,6 +8,8 @@ import autoTable from "jspdf-autotable";
 const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
 
+const [notificacionesActivas, setNotificacionesActivas] = useState(false);
+
 async function registrarPush(userId) {
   try {
     const permission = await Notification.requestPermission();
@@ -33,7 +35,7 @@ async function registrarPush(userId) {
     await fetch(`${API_URL.Base}/api/suscribir`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, subscription }),
+      body: JSON.stringify({ userId, subscripcion }),
     });
 
     toast.success("✅ Notificaciones activadas correctamente");
@@ -148,6 +150,12 @@ export default function TareasPersonal({ personal, onLogout }) {
         .then(() => console.log("✅ Ping al backend exitoso"))
         .catch(() => console.warn("⚠️ Falló el ping al backend"));
     };
+
+    useEffect(() => {
+  if ("Notification" in window) {
+    setNotificacionesActivas(Notification.permission === "granted");
+  }
+}, []);
 
     mantenerActivo(); // primer ping inmediato
     const interval = setInterval(mantenerActivo, 8 * 60 * 1000); // cada 8 minutos
@@ -321,6 +329,12 @@ export default function TareasPersonal({ personal, onLogout }) {
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
+      {/* Etiqueta de estado de notificaciones */}
+<p className={`text-center mb-4 font-semibold ${
+      notificacionesActivas ? "text-green-600" : "text-red-600"
+}`}>
+  🔔 Notificaciones: {notificacionesActivas ? "Activadas" : "Desactivadas"}
+</p>
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
         📌 Registro de tareas de{" "}
@@ -483,6 +497,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
