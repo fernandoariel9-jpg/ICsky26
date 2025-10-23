@@ -11,32 +11,30 @@ const API_AREAS = API_URL.Areas;
 const [notificacionesActivas, setNotificacionesActivas] = useState(false);
 
 async function registrarPush(userId) {
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") {
-      toast.warn("No se activaron las notificaciones");
-      return;
-    }
+  if (!("serviceWorker" in navigator)) return;
+  
+  const registration = await navigator.serviceWorker.register("/sw.js");
+  const permission = await Notification.requestPermission();
 
-    // Registrar el Service Worker (Render sirve public/sw.js automáticamente)
-    const registration = await navigator.serviceWorker.register("/sw.js");
+  if (permission !== "granted") {
+    setNotificacionesActivas(false);
+    return;
+  }
 
-    // Obtener clave pública desde variable de entorno
-    const vapidPublicKey = process.env.REACT_APP_VAPID_PUBLIC_KEY;
-    const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
+  setNotificacionesActivas(true); // 🔹 marca que están activadas
 
-    // Crear suscripción
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: convertedKey,
-    });
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(process.env.REACT_APP_VAPID_PUBLIC_KEY),
+  });
 
-    // Enviar al backend
-    await fetch(`${API_URL.Base}/api/suscribir`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, subscripcion }),
-    });
+  await fetch(`${API_URL.Base}/suscribir`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, subscription }),
+  });
+}
+
 
     toast.success("✅ Notificaciones activadas correctamente");
   } catch (error) {
@@ -497,6 +495,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
