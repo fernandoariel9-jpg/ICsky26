@@ -91,6 +91,22 @@ export default function TareasPersonal({ personal, onLogout }) {
     fetchAreas();
   }, [personal]);
 
+    // 🔄 Mantener el backend activo (Render standby fix)
+  useEffect(() => {
+    const BACKEND_URL = "https://sky26.onrender.com"; // tu backend en Render
+
+    const mantenerActivo = () => {
+      fetch(BACKEND_URL)
+        .then(() => console.log("✅ Ping al backend exitoso"))
+        .catch(() => console.warn("⚠️ Falló el ping al backend"));
+    };
+
+    mantenerActivo(); // primer ping inmediato
+    const interval = setInterval(mantenerActivo, 8 * 60 * 1000); // cada 8 minutos
+
+    return () => clearInterval(interval);
+  }, []);
+
   const handleSolucionChange = (id, value) => {
     setSoluciones((prev) => ({ ...prev, [id]: value }));
   };
@@ -403,3 +419,4 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
