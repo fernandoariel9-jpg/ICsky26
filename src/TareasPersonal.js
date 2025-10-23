@@ -314,11 +314,11 @@ export default function TareasPersonal({ personal, onLogout }) {
         <button onClick={handleExportarPDF} className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm">
           📄 Exportar {filtro === "pendientes" ? "pendientes" : filtro === "enProceso" ? "en proceso" : "finalizadas"} en PDF
         </button>
-        <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
-          Cerrar sesión
-        </button>
         <button onClick={() => registrarPush(personal.id)} className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm">
          🔔 Activar notificaciones
+        </button>
+        <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
+          Cerrar sesión
         </button>
       </div>
 
@@ -462,6 +462,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
