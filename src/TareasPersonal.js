@@ -317,12 +317,9 @@ export default function TareasPersonal({ personal, onLogout }) {
         <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
           Cerrar sesión
         </button>
-        <button
-  onClick={() => registrarPush(personal.id)}
-  className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm"
->
-  🔔 Activar notificaciones
-</button>
+        <button onClick={() => registrarPush(personal.id)} className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm">
+         🔔 Activar notificaciones
+        </button>
       </div>
 
       {/* Filtros */}
@@ -465,6 +462,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
