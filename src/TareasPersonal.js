@@ -4,7 +4,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { API_URL } from "./config";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { API_URL } from "./config";
 
 const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
@@ -447,6 +446,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
