@@ -42,6 +42,28 @@ async function registrarPush(userId) {
   }
 }
 
+const registrarPush = async (userId) => {
+  try {
+    const registro = await navigator.serviceWorker.register("/sw.js");
+
+    const subscription = await registro.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey),
+    });
+
+    await fetch(`${API_URL.Base}/api/suscribir`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, subscription }),
+    });
+
+    toast.success("Notificaciones activadas correctamente");
+  } catch (err) {
+    console.error("Error al registrar push:", err);
+    toast.error("No se pudo activar las notificaciones");
+  }
+};
+
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding)
@@ -483,6 +505,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
