@@ -341,8 +341,185 @@ export default function TareasPersonal({ personal, onLogout }) {
 
       {/* filtros y lista de tareas tal como la tenías */}
       {/* ...resto del código sin cambios ... */}
+ {/* Filtros */}
+      <div className="flex justify-center space-x-2 mb-4">
+        <button
+          onClick={() => setFiltro("pendientes")}
+          className={`px-3 py-1 rounded-xl ${filtro === "pendientes" ? "bg-yellow-400 text-white" : "bg-gray-200 text-gray-700"}`}
+        >
+          🕓 Pendientes ({pendientes.length})
+        </button>
+        <button
+          onClick={() => setFiltro("enProceso")}
+          className={`px-3 py-1 rounded-xl ${filtro === "enProceso" ? "bg-blue-400 text-white" : "bg-gray-200 text-gray-700"}`}
+        >
+          🧩 En proceso ({enProceso.length})
+        </button>
+        <button
+          onClick={() => setFiltro("finalizadas")}
+          className={`px-3 py-1 rounded-xl ${filtro === "finalizadas" ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700"}`}
+        >
+          ✅ Finalizadas ({finalizadas.length})
+        </button>
+      </div>
+
+      {/* Lista de tareas */}
+      <ul className="space-y-3">
+  {tareasFiltradas.length === 0 && (
+    <p className="text-center text-gray-500 italic">
+      No hay tareas en esta categoría.
+    </p>
+  )}
+
+  {tareasFiltradas.map((t) => (
+    <li key={t.id} className="p-3 rounded-xl shadow bg-white">
+      <div className="flex items-start space-x-3">
+        {/* Imagen clickeable para ampliar */}
+        {t.imagen && (
+          <img
+            src={`data:image/jpeg;base64,${t.imagen}`}
+            alt="Foto de tarea"
+            className="w-14 h-14 rounded-lg object-cover cursor-pointer"
+            onClick={() =>
+              setImagenAmpliada(`data:image/jpeg;base64,${t.imagen}`)
+            }
+          />
+        )}
+
+        <div className="flex-1">
+          <p className="font-semibold text-base">
+            🆔 #{t.id} — 📝 {t.tarea}
+          </p>
+
+          <p className="text-sm text-gray-700">
+            👤 Usuario: <span className="font-medium">{t.usuario}</span>
+          </p>
+          <p className="text-sm text-gray-700">
+            🏢 Área: <span className="font-medium">{t.area || "—"}</span>
+          </p>
+          <p className="text-sm text-gray-700">
+            🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
+          </p>
+          {t.subservicio && (
+            <p className="text-sm text-gray-700">
+              🧩 Subservicio: <span className="font-medium">{t.subservicio}</span>
+            </p>
+          )}
+
+          {t.reasignado_a && (
+            <p className="text-sm text-purple-700 mt-1">
+              🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
+              <strong>{t.reasignado_por}</strong> (desde {t.area})
+            </p>
+          )}
+
+          {t.fecha && (
+            <p className="text-sm text-gray-600 mt-1">
+              📅 {formatTimestamp(t.fecha)}
+            </p>
+          )}
+
+          {t.solucion && (
+            <p className="text-sm bg-gray-100 p-1 rounded mt-1">
+              💡 Solución: {t.solucion}
+            </p>
+          )}
+
+          {t.fecha_comp && (
+            <p className="text-xs text-gray-500 mt-1">
+              ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
+            </p>
+          )}
+          {t.fecha_fin && (
+            <p className="text-xs text-gray-500 mt-1">
+              ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
+            </p>
+          )}
+
+          {/* Botones según tipo de lista */}
+          <div className="mt-3">
+            {filtro === "pendientes" && (
+              <>
+                <button
+                  onClick={() => setModal(t)}
+                  className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2"
+                >
+                  🔄 Reasignar
+                </button>
+
+                <textarea
+                  className="w-full p-2 border rounded mt-2"
+                  placeholder="Escriba la solución..."
+                  value={soluciones[t.id] || t.solucion || ""}
+                  onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+                  disabled={!!t.solucion}
+                />
+
+                <button
+                  onClick={() => handleCompletar(t.id)}
+                  className={`mt-2 px-3 py-1 rounded text-white ${
+                    t.solucion
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-green-500"
+                  }`}
+                  disabled={!!t.solucion}
+                >
+                  ✅ Completar
+                </button>
+              </>
+            )}
+
+            {filtro === "enProceso" && !t.fin && (
+              <button
+                onClick={() => handleEditarSolucion(t.id)}
+                className="mt-2 px-3 py-1 rounded bg-blue-500 text-white text-sm"
+              >
+                ✏️ Editar solución
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </li>
+  ))}
+</ul>
+
+{/* Modal de imagen ampliada */}
+{imagenAmpliada && (
+  <div
+    className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+    onClick={() => setImagenAmpliada(null)}
+  >
+    <img
+      src={imagenAmpliada}
+      alt="Ampliada"
+      className="max-w-full max-h-full rounded-lg shadow-lg"
+    />
+  </div>
+)}
+
+      {/* Modal de reasignación */}
+      {modal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-xl w-80">
+            <h2 className="text-lg font-bold mb-3">🔄 Reasignar tarea #{modal.id}</h2>
+            <label className="block mb-2">Seleccionar nueva área:</label>
+            <select className="border rounded p-2 w-full mb-4" value={nuevaArea} onChange={(e) => setNuevaArea(e.target.value)}>
+              <option value="">Seleccione...</option>
+              {areas.map((a) => (
+                <option key={a.id} value={a.area}>{a.area}</option>
+              ))}
+            </select>
+            <div className="flex justify-end space-x-2">
+              <button onClick={() => setModal(null)} className="bg-gray-300 px-3 py-1 rounded">Cancelar</button>
+              <button onClick={() => handleReasignar(modal.id)} className="bg-purple-600 text-white px-3 py-1 rounded">Confirmar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
   );
 }
+
