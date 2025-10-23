@@ -9,30 +9,51 @@ const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
 
 async function registrarPush(userId) {
-  if (!("serviceWorker" in navigator)) return;
-  
-  const registration = await navigator.serviceWorker.register("/sw.js");
-  const permission = await Notification.requestPermission();
-  if (permission !== "granted") return;
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      toast.warn("No se activaron las notificaciones");
+      return;
+    }
 
-  const subscription = await registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(process.env.REACT_APP_VAPID_PUBLIC_KEY),
-  });
+    // Registrar el Service Worker (Render sirve public/sw.js automáticamente)
+    const registration = await navigator.serviceWorker.register("/sw.js");
 
-  await fetch(`${API_URL.Base}/suscribir`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, subscription }),
-  });
+    // Obtener clave pública desde variable de entorno
+    const vapidPublicKey = process.env.REACT_APP_VAPID_PUBLIC_KEY;
+    const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
+
+    // Crear suscripción
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: convertedKey,
+    });
+
+    // Enviar al backend
+    await fetch(`${API_URL.Base}/api/suscribir`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, subscription }),
+    });
+
+    toast.success("✅ Notificaciones activadas correctamente");
+  } catch (error) {
+    console.error("Error al registrar notificaciones:", error);
+  }
 }
 
-// Helper
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const base64 = (base64String + padding)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
   const rawData = window.atob(base64);
-  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
 }
 
 export default function TareasPersonal({ personal, onLogout }) {
@@ -462,6 +483,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
