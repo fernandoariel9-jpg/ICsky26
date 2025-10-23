@@ -19,6 +19,34 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [editando, setEditando] = useState({}); // Para edición inline
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
 
+  async function toggleNotificaciones(userId) {
+  try {
+    if (notificacionesActivas) {
+      // 🚫 Desactivar notificaciones
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration) {
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+          await fetch(`${API_URL.Base}/desuscribir`, {  // Endpoint para desuscribir en backend
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId }),
+          });
+        }
+      }
+      setNotificacionesActivas(false);
+      toast.info("🔕 Notificaciones desactivadas");
+    } else {
+      // 🔔 Activar notificaciones
+      await registrarPush(userId);
+    }
+  } catch (error) {
+    console.error("Error al alternar notificaciones:", error);
+    toast.error("❌ Error al alternar notificaciones");
+  }
+}
+
   async function registrarPush(userId) {
     try {
       if (!("serviceWorker" in navigator)) return;
@@ -330,10 +358,9 @@ export default function TareasPersonal({ personal, onLogout }) {
         </button>
         <button onClick={handleExportarPDF} className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm">
           📄 Exportar {filtro === "pendientes" ? "pendientes" : filtro === "enProceso" ? "en proceso" : "finalizadas"} en PDF
-        </button>
-        <button onClick={() => registrarPush(personal.id)} className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm">
-          🔔 Activar notificaciones
-        </button>
+        <button   onClick={() => toggleNotificaciones(personal.id)} className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm">
+  {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
+</button>
         <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
           Cerrar sesión
         </button>
@@ -522,4 +549,5 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
