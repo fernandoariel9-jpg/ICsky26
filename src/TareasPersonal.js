@@ -92,6 +92,8 @@ export default function TareasPersonal({ personal, onLogout }) {
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(process.env.REACT_APP_VAPID_PUBLIC_KEY),
     });
+    console.log("📬 Suscripción creada:", subscription);
+    console.log("Enviando suscripción al backend:", { userId, subscription });
 
     await fetch(`${API_URL.Base}/suscribir`, {
       method: "POST",
@@ -535,6 +537,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
