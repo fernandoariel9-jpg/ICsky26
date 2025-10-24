@@ -9,12 +9,16 @@ import RegistroPersonal from "./RegistroPersonal";
 
 // --- imports extra para gráficos ---
 import {
-  PieChart,
-  Pie,
-  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 
 const API_URL = "https://sky26.onrender.com/tareas";
