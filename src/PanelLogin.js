@@ -6,18 +6,15 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import RegistroUsuario from "./RegistroUsuario";
 import RegistroPersonal from "./RegistroPersonal";
-// --- imports extra ---
+
+// --- imports extra para gráficos ---
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from "recharts";
 
 const API_URL = "https://sky26.onrender.com/tareas";
@@ -53,108 +50,6 @@ function PanelLogin({ onLogin }) {
         <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
         🔒 Acceso Panel de Supervisión
       </h1>
-        {/* 📊 TABLERO DE CONTROL */}
-<div className="bg-white shadow-md rounded-xl p-4 mb-6">
-  <h2 className="text-xl font-semibold mb-4 text-center">📈 Tablero de Control</h2>
-  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-    <div className="bg-blue-100 p-3 rounded-xl">
-      <p className="text-gray-600 text-sm">Total de tareas</p>
-      <p className="text-2xl font-bold">{tareas.length}</p>
-    </div>
-    <div className="bg-yellow-100 p-3 rounded-xl">
-      <p className="text-gray-600 text-sm">Pendientes</p>
-      <p className="text-2xl font-bold">{pendientes.length}</p>
-    </div>
-    <div className="bg-blue-200 p-3 rounded-xl">
-      <p className="text-gray-600 text-sm">Terminadas</p>
-      <p className="text-2xl font-bold">{terminadas.length}</p>
-    </div>
-    <div className="bg-green-200 p-3 rounded-xl">
-      <p className="text-gray-600 text-sm">Finalizadas</p>
-      <p className="text-2xl font-bold">{finalizadas.length}</p>
-    </div>
-  </div>
-
-  {/* 🕓 Calcular tiempos promedio */}
-  {tareas.length > 0 && (
-    <div className="mt-4 text-center">
-      {(() => {
-        const tareasConComp = tareas.filter((t) => t.fecha && t.fecha_comp);
-        const tareasConFin = tareas.filter((t) => t.fecha_comp && t.fecha_fin);
-
-        const promedioSolucion =
-          tareasConComp.length > 0
-            ? (
-                tareasConComp.reduce(
-                  (acc, t) =>
-                    acc +
-                    (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60),
-                  0
-                ) / tareasConComp.length
-              ).toFixed(1)
-            : "—";
-
-        const promedioFinalizacion =
-          tareasConFin.length > 0
-            ? (
-                tareasConFin.reduce(
-                  (acc, t) =>
-                    acc +
-                    (new Date(t.fecha_fin) - new Date(t.fecha_comp)) /
-                      (1000 * 60 * 60),
-                  0
-                ) / tareasConFin.length
-              ).toFixed(1)
-            : "—";
-
-        return (
-          <>
-            <p className="text-sm text-gray-600">
-              ⏱️ Tiempo promedio de solución:{" "}
-              <span className="font-semibold">
-                {promedioSolucion !== "—" ? `${promedioSolucion} h` : "Sin datos"}
-              </span>
-            </p>
-            <p className="text-sm text-gray-600">
-              🕒 Tiempo promedio hasta finalización:{" "}
-              <span className="font-semibold">
-                {promedioFinalizacion !== "—"
-                  ? `${promedioFinalizacion} h`
-                  : "Sin datos"}
-              </span>
-            </p>
-          </>
-        );
-      })()}
-    </div>
-  )}
-
-  {/* 📊 Gráfico de distribución */}
-  <div className="mt-6 h-64">
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie
-          data={[
-            { name: "Pendientes", value: pendientes.length },
-            { name: "Terminadas", value: terminadas.length },
-            { name: "Finalizadas", value: finalizadas.length },
-          ]}
-          cx="50%"
-          cy="50%"
-          outerRadius={80}
-          dataKey="value"
-          label
-        >
-          <Cell fill="#FACC15" />
-          <Cell fill="#60A5FA" />
-          <Cell fill="#34D399" />
-        </Pie>
-        <Tooltip />
-        <Legend />
-      </PieChart>
-    </ResponsiveContainer>
-  </div>
-</div>
       <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
         <input
           type="password"
@@ -225,6 +120,106 @@ function Supervision({ setVista }) {
     <div className="p-4 max-w-3xl mx-auto">
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
       <h1 className="text-2xl font-bold text-center mb-2">📋 Panel de Supervisión</h1>
+
+      {/* 📊 TABLERO DE CONTROL */}
+      <div className="bg-white shadow-md rounded-xl p-4 mb-6">
+        <h2 className="text-xl font-semibold mb-4 text-center">📈 Tablero de Control</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="bg-blue-100 p-3 rounded-xl">
+            <p className="text-gray-600 text-sm">Total de tareas</p>
+            <p className="text-2xl font-bold">{tareas.length}</p>
+          </div>
+          <div className="bg-yellow-100 p-3 rounded-xl">
+            <p className="text-gray-600 text-sm">Pendientes</p>
+            <p className="text-2xl font-bold">{pendientes.length}</p>
+          </div>
+          <div className="bg-blue-200 p-3 rounded-xl">
+            <p className="text-gray-600 text-sm">Terminadas</p>
+            <p className="text-2xl font-bold">{terminadas.length}</p>
+          </div>
+          <div className="bg-green-200 p-3 rounded-xl">
+            <p className="text-gray-600 text-sm">Finalizadas</p>
+            <p className="text-2xl font-bold">{finalizadas.length}</p>
+          </div>
+        </div>
+
+        {/* 🕓 Calcular tiempos promedio */}
+        {tareas.length > 0 && (
+          <div className="mt-4 text-center">
+            {(() => {
+              const tareasConComp = tareas.filter((t) => t.fecha && t.fecha_comp);
+              const tareasConFin = tareas.filter((t) => t.fecha_comp && t.fecha_fin);
+
+              const promedioSolucion =
+                tareasConComp.length > 0
+                  ? (
+                      tareasConComp.reduce(
+                        (acc, t) =>
+                          acc + (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60),
+                        0
+                      ) / tareasConComp.length
+                    ).toFixed(1)
+                  : "—";
+
+              const promedioFinalizacion =
+                tareasConFin.length > 0
+                  ? (
+                      tareasConFin.reduce(
+                        (acc, t) =>
+                          acc + (new Date(t.fecha_fin) - new Date(t.fecha_comp)) / (1000 * 60 * 60),
+                        0
+                      ) / tareasConFin.length
+                    ).toFixed(1)
+                  : "—";
+
+              return (
+                <>
+                  <p className="text-sm text-gray-600">
+                    ⏱️ Tiempo promedio de solución:{" "}
+                    <span className="font-semibold">
+                      {promedioSolucion !== "—" ? `${promedioSolucion} h` : "Sin datos"}
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    🕒 Tiempo promedio hasta finalización:{" "}
+                    <span className="font-semibold">
+                      {promedioFinalizacion !== "—"
+                        ? `${promedioFinalizacion} h`
+                        : "Sin datos"}
+                    </span>
+                  </p>
+                </>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* 📊 Gráfico de distribución */}
+        <div className="mt-6 h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={[
+                  { name: "Pendientes", value: pendientes.length },
+                  { name: "Terminadas", value: terminadas.length },
+                  { name: "Finalizadas", value: finalizadas.length },
+                ]}
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                dataKey="value"
+                label
+              >
+                <Cell fill="#FACC15" />
+                <Cell fill="#60A5FA" />
+                <Cell fill="#34D399" />
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
       {/* Botones principales */}
       <div className="flex justify-center space-x-2 mb-6">
