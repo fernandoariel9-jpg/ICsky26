@@ -23,7 +23,7 @@ const API_URL = "https://sky26.onrender.com/tareas";
 function PanelLogin({ onLogin }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const PASS = "super123";
+  const PASS = "repliKat";
 
   const handleSubmit = (e) => {
     e.preventDefault();
