@@ -127,7 +127,8 @@ function Supervision({ setVista }) {
       <h1 className="text-2xl font-bold text-center mb-2">📋 Panel de Supervisión</h1>
 
       {/* 📊 TABLERO DE CONTROL */}
-     <div className="bg-white shadow-md rounded-xl p-4 mb-6">
+    {/* 📊 TABLERO DE CONTROL */}
+<div className="bg-white shadow-md rounded-xl p-4 mb-6">
   <h2 className="text-xl font-semibold mb-4 text-center">📈 Tablero de Control</h2>
 
   {/* Contadores */}
@@ -227,85 +228,87 @@ function Supervision({ setVista }) {
     </ResponsiveContainer>
   </div>
 
-{/* 📊 NUEVO: Gráfico de barras por área / personal / servicio */}
-{tareas.length > 0 && (
-  <div className="mt-10">
-    <h3 className="text-lg font-semibold text-center mb-3">
-      🧩 Distribución de tareas
-    </h3>
+  {/* 📊 NUEVO: Gráfico de barras por área / personal / servicio */}
+  {tareas.length > 0 && (
+    <div className="mt-10">
+      <h3 className="text-lg font-semibold text-center mb-3">
+        🧩 Distribución de tareas
+      </h3>
 
-    {/* 🔽 Selector */}
-    <div className="flex justify-center mb-4">
-      <select
-        className="border rounded-xl p-2 shadow-sm text-sm"
-        value={vistaGrafico}
-        onChange={(e) => setVistaGrafico(e.target.value)}
-      >
-        <option value="area">Por área</option>
-        <option value="personal">Por personal</option>
-        <option value="servicio">Por servicio</option>
-      </select>
+      {/* 🔽 Selector */}
+      <div className="flex justify-center mb-4">
+        <select
+          className="border rounded-xl p-2 shadow-sm text-sm"
+          value={vistaGrafico}
+          onChange={(e) => setVistaGrafico(e.target.value)}
+        >
+          <option value="area">Por área</option>
+          <option value="personal">Por personal</option>
+          <option value="servicio">Por servicio</option>
+        </select>
+      </div>
+
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart
+          data={(() => {
+            const conteo = {};
+            if (vistaGrafico === "area") {
+              tareas.forEach((t) => {
+                const clave = t.area || "Sin área";
+                conteo[clave] = (conteo[clave] || 0) + 1;
+              });
+            } else if (vistaGrafico === "personal") {
+              tareas.forEach((t) => {
+                const clave = t.asignado || "Sin asignar";
+                conteo[clave] = (conteo[clave] || 0) + 1;
+              });
+            } else if (vistaGrafico === "servicio") {
+              tareas.forEach((t) => {
+                const clave = t.servicio || "Sin servicio";
+                conteo[clave] = (conteo[clave] || 0) + 1;
+              });
+            }
+            return Object.keys(conteo).map((k) => ({ nombre: k, total: conteo[k] }));
+          })()}
+          margin={{ top: 10, right: 20, left: 0, bottom: 50 }}
+        >
+          <XAxis dataKey="nombre" angle={-20} textAnchor="end" interval={0} height={70} />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar
+            dataKey="total"
+            fill={
+              vistaGrafico === "area"
+                ? "#60A5FA"
+                : vistaGrafico === "personal"
+                ? "#34D399"
+                : "#F59E0B"
+            }
+            radius={[8, 8, 0, 0]}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+
+      {/* Etiqueta de color */}
+      <p className="text-center text-xs text-gray-500 mt-2">
+        Color actual:{" "}
+        <span
+          className="inline-block w-3 h-3 rounded-full"
+          style={{
+            backgroundColor:
+              vistaGrafico === "area"
+                ? "#60A5FA"
+                : vistaGrafico === "personal"
+                ? "#34D399"
+                : "#F59E0B",
+          }}
+        ></span>{" "}
+        {vistaGrafico.charAt(0).toUpperCase() + vistaGrafico.slice(1)}
+      </p>
     </div>
-
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart
-        data={(() => {
-          const conteo = {};
-          if (vistaGrafico === "area") {
-            tareas.forEach((t) => {
-              const clave = t.area || "Sin área";
-              conteo[clave] = (conteo[clave] || 0) + 1;
-            });
-          } else if (vistaGrafico === "personal") {
-            tareas.forEach((t) => {
-              const clave = t.asignado || "Sin asignar";
-              conteo[clave] = (conteo[clave] || 0) + 1;
-            });
-          } else if (vistaGrafico === "servicio") {
-            tareas.forEach((t) => {
-              const clave = t.servicio || "Sin servicio";
-              conteo[clave] = (conteo[clave] || 0) + 1;
-            });
-          }
-          return Object.keys(conteo).map((k) => ({ nombre: k, total: conteo[k] }));
-        })()}
-        margin={{ top: 10, right: 20, left: 0, bottom: 50 }}
-      >
-        <XAxis dataKey="nombre" angle={-20} textAnchor="end" interval={0} height={70} />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Bar
-          dataKey="total"
-          fill={
-            vistaGrafico === "area"
-              ? "#60A5FA" // azul
-              : vistaGrafico === "personal"
-              ? "#34D399" // verde
-              : "#F59E0B" // naranja
-          }
-          radius={[8, 8, 0, 0]}
-        />
-      </BarChart>
-    </ResponsiveContainer>
-
-    {/* Etiqueta de color */}
-    <p className="text-center text-xs text-gray-500 mt-2">
-      Color actual:{" "}
-      <span
-        className="inline-block w-3 h-3 rounded-full"
-        style={{
-          backgroundColor:
-            vistaGrafico === "area"
-              ? "#60A5FA"
-              : vistaGrafico === "personal"
-              ? "#34D399"
-              : "#F59E0B",
-        }}
-      ></span>{" "}
-      {vistaGrafico.charAt(0).toUpperCase() + vistaGrafico.slice(1)}
-    </p>
-  </div>
+  )}
+</div>
 )}
 
       {/* Botones principales */}
