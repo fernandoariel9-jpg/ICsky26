@@ -309,7 +309,6 @@ function Supervision({ setVista }) {
     </div>
   )}
 </div>
-)}
 
       {/* Botones principales */}
       <div className="flex justify-center space-x-2 mb-6">
