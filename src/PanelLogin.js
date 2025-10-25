@@ -9,16 +9,12 @@ import RegistroPersonal from "./RegistroPersonal";
 
 // --- imports extra para gráficos ---
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
+  Tooltip,
+  Legend,
 } from "recharts";
 
 const API_URL = "https://sky26.onrender.com/tareas";
@@ -126,204 +122,186 @@ function Supervision({ setVista }) {
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
       <h1 className="text-2xl font-bold text-center mb-2">📋 Panel de Supervisión</h1>
 
-    {/* 📊 TABLERO DE CONTROL */}
-<div className="bg-white shadow-md rounded-xl p-4 mb-6">
-  <h2 className="text-xl font-semibold mb-4 text-center">📈 Tablero de Control</h2>
+      {/* 📊 TABLERO DE CONTROL */}
+      <div className="bg-white shadow-md rounded-xl p-4 mb-6">
+        <h2 className="text-xl font-semibold mb-4 text-center">📈 Tablero de Control</h2>
 
-  {/* Contadores */}
-  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-    <div className="bg-blue-100 p-3 rounded-xl">
-      <p className="text-gray-600 text-sm">Total de tareas</p>
-      <p className="text-2xl font-bold">{tareas.length}</p>
-    </div>
-    <div className="bg-yellow-100 p-3 rounded-xl">
-      <p className="text-gray-600 text-sm">Pendientes</p>
-      <p className="text-2xl font-bold">{pendientes.length}</p>
-    </div>
-    <div className="bg-blue-200 p-3 rounded-xl">
-      <p className="text-gray-600 text-sm">Terminadas</p>
-      <p className="text-2xl font-bold">{terminadas.length}</p>
-    </div>
-    <div className="bg-green-200 p-3 rounded-xl">
-      <p className="text-gray-600 text-sm">Finalizadas</p>
-      <p className="text-2xl font-bold">{finalizadas.length}</p>
-    </div>
-  </div>
+        {/* Contadores */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="bg-blue-100 p-3 rounded-xl">
+            <p className="text-gray-600 text-sm">Total de tareas</p>
+            <p className="text-2xl font-bold">{tareas.length}</p>
+          </div>
+          <div className="bg-yellow-100 p-3 rounded-xl">
+            <p className="text-gray-600 text-sm">Pendientes</p>
+            <p className="text-2xl font-bold">{pendientes.length}</p>
+          </div>
+          <div className="bg-blue-200 p-3 rounded-xl">
+            <p className="text-gray-600 text-sm">Terminadas</p>
+            <p className="text-2xl font-bold">{terminadas.length}</p>
+          </div>
+          <div className="bg-green-200 p-3 rounded-xl">
+            <p className="text-gray-600 text-sm">Finalizadas</p>
+            <p className="text-2xl font-bold">{finalizadas.length}</p>
+          </div>
+        </div>
 
-  {/* 🕓 Tiempos promedio */}
-  {tareas.length > 0 && (
-    <div className="mt-4 text-center">
-      {(() => {
-        const tareasConComp = tareas.filter((t) => t.fecha && t.fecha_comp);
-        const tareasConFin = tareas.filter((t) => t.fecha_comp && t.fecha_fin);
+        {/* 🕓 Tiempos promedio */}
+        {tareas.length > 0 && (
+          <div className="mt-4 text-center">
+            {(() => {
+              const tareasConComp = tareas.filter((t) => t.fecha && t.fecha_comp);
+              const tareasConFin = tareas.filter((t) => t.fecha_comp && t.fecha_fin);
 
-        const promedioSolucion =
-          tareasConComp.length > 0
-            ? (
-                tareasConComp.reduce(
-                  (acc, t) =>
-                    acc + (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60),
-                  0
-                ) / tareasConComp.length
-              ).toFixed(1)
-            : "—";
+              const promedioSolucion =
+                tareasConComp.length > 0
+                  ? (
+                      tareasConComp.reduce(
+                        (acc, t) =>
+                          acc + (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60),
+                        0
+                      ) / tareasConComp.length
+                    ).toFixed(1)
+                  : "—";
 
-        const promedioFinalizacion =
-          tareasConFin.length > 0
-            ? (
-                tareasConFin.reduce(
-                  (acc, t) =>
-                    acc + (new Date(t.fecha_fin) - new Date(t.fecha_comp)) / (1000 * 60 * 60),
-                  0
-                ) / tareasConFin.length
-              ).toFixed(1)
-            : "—";
+              const promedioFinalizacion =
+                tareasConFin.length > 0
+                  ? (
+                      tareasConFin.reduce(
+                        (acc, t) =>
+                          acc + (new Date(t.fecha_fin) - new Date(t.fecha_comp)) / (1000 * 60 * 60),
+                        0
+                      ) / tareasConFin.length
+                    ).toFixed(1)
+                  : "—";
 
-        return (
-          <>
-            <p className="text-sm text-gray-600">
-              ⏱️ Promedio de solución:{" "}
+              return (
+                <>
+                  <p className="text-sm text-gray-600">
+                    ⏱️ Promedio de solución:{" "}
+                    <span className="font-semibold">
+                      {promedioSolucion !== "—" ? `${promedioSolucion} h` : "Sin datos"}
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    🕒 Promedio hasta finalización:{" "}
+                    <span className="font-semibold">
+                      {promedioFinalizacion !== "—"
+                        ? `${promedioFinalizacion} h`
+                        : "Sin datos"}
+                    </span>
+                  </p>
+                </>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* 📊 Gráfico circular de estado */}
+        <div className="mt-6 h-64 md:h-72 lg:h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={[
+                  { name: "Pendientes", value: pendientes.length },
+                  { name: "Terminadas", value: terminadas.length },
+                  { name: "Finalizadas", value: finalizadas.length },
+                ]}
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                dataKey="value"
+                label
+              >
+                <Cell fill="#FACC15" />
+                <Cell fill="#60A5FA" />
+                <Cell fill="#34D399" />
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* 📊 Gráfico circular dinámico por área / personal / servicio */}
+        {tareas.length > 0 && (
+          <div className="mt-10">
+            <h3 className="text-lg font-semibold text-center mb-3">
+              🧩 Distribución de tareas
+            </h3>
+
+            {/* 🔽 Selector */}
+            <div className="flex justify-center mb-4">
+              <select
+                className="border rounded-xl p-2 shadow-sm text-sm"
+                value={vistaGrafico}
+                onChange={(e) => setVistaGrafico(e.target.value)}
+              >
+                <option value="area">Por área</option>
+                <option value="personal">Por personal</option>
+                <option value="servicio">Por servicio</option>
+              </select>
+            </div>
+
+            {/* 📈 Gráfico circular dinámico */}
+            <ResponsiveContainer width="100%" height={350}>
+              <PieChart>
+                <Pie
+                  data={(() => {
+                    const conteo = {};
+                    if (vistaGrafico === "area") {
+                      tareas.forEach((t) => {
+                        const clave = t.area || "Sin área";
+                        conteo[clave] = (conteo[clave] || 0) + 1;
+                      });
+                    } else if (vistaGrafico === "personal") {
+                      tareas.forEach((t) => {
+                        const clave = t.asignado || "Sin asignar";
+                        conteo[clave] = (conteo[clave] || 0) + 1;
+                      });
+                    } else if (vistaGrafico === "servicio") {
+                      tareas.forEach((t) => {
+                        const clave = t.servicio || "Sin servicio";
+                        conteo[clave] = (conteo[clave] || 0) + 1;
+                      });
+                    }
+                    return Object.keys(conteo).map((k) => ({
+                      name: k,
+                      value: conteo[k],
+                    }));
+                  })()}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={120}
+                  dataKey="value"
+                  label
+                >
+                  {(() => {
+                    const colores =
+                      vistaGrafico === "area"
+                        ? ["#60A5FA", "#3B82F6", "#1E40AF", "#93C5FD"]
+                        : vistaGrafico === "personal"
+                        ? ["#34D399", "#10B981", "#047857", "#6EE7B7"]
+                        : ["#FBBF24", "#F59E0B", "#B45309", "#FCD34D"];
+                    return Object.keys(colores).map((i) => (
+                      <Cell key={i} fill={colores[i % colores.length]} />
+                    ));
+                  })()}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+
+            <p className="text-center text-xs text-gray-500 mt-2">
+              Vista actual:{" "}
               <span className="font-semibold">
-                {promedioSolucion !== "—" ? `${promedioSolucion} h` : "Sin datos"}
+                {vistaGrafico.charAt(0).toUpperCase() + vistaGrafico.slice(1)}
               </span>
             </p>
-            <p className="text-sm text-gray-600">
-              🕒 Promedio hasta finalización:{" "}
-              <span className="font-semibold">
-                {promedioFinalizacion !== "—"
-                  ? `${promedioFinalizacion} h`
-                  : "Sin datos"}
-              </span>
-            </p>
-          </>
-        );
-      })()}
-    </div>
-  )}
-
-  {/* 📊 Gráfico circular de estado */}
-  <div className="mt-6 h-64">
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie
-          data={[
-            { name: "Pendientes", value: pendientes.length },
-            { name: "Terminadas", value: terminadas.length },
-            { name: "Finalizadas", value: finalizadas.length },
-          ]}
-          cx="50%"
-          cy="50%"
-          outerRadius={80}
-          dataKey="value"
-          label
-        >
-          <Cell fill="#FACC15" />
-          <Cell fill="#60A5FA" />
-          <Cell fill="#34D399" />
-        </Pie>
-        <Tooltip />
-        <Legend />
-      </PieChart>
-    </ResponsiveContainer>
-  </div>
-
- {/* 📊 NUEVO: Gráfico circular por área / personal / servicio */}
-{tareas.length > 0 && (
-  <div className="mt-10">
-    <h3 className="text-lg font-semibold text-center mb-3">
-      🧩 Distribución de tareas
-    </h3>
-
-    {/* 🔽 Selector */}
-    <div className="flex justify-center mb-4">
-      <select
-        className="border rounded-xl p-2 shadow-sm text-sm"
-        value={vistaGrafico}
-        onChange={(e) => setVistaGrafico(e.target.value)}
-      >
-        <option value="area">Por área</option>
-        <option value="personal">Por personal</option>
-        <option value="servicio">Por servicio</option>
-      </select>
-    </div>
-
-    {/* 📈 Gráfico circular dinámico */}
-    <ResponsiveContainer width="100%" height={350}>
-      <PieChart>
-        <Pie
-          data={(() => {
-            const conteo = {};
-            if (vistaGrafico === "area") {
-              tareas.forEach((t) => {
-                const clave = t.area || "Sin área";
-                conteo[clave] = (conteo[clave] || 0) + 1;
-              });
-            } else if (vistaGrafico === "personal") {
-              tareas.forEach((t) => {
-                const clave = t.asignado || "Sin asignar";
-                conteo[clave] = (conteo[clave] || 0) + 1;
-              });
-            } else if (vistaGrafico === "servicio") {
-              tareas.forEach((t) => {
-                const clave = t.servicio || "Sin servicio";
-                conteo[clave] = (conteo[clave] || 0) + 1;
-              });
-            }
-            return Object.keys(conteo).map((k) => ({
-              name: k,
-              value: conteo[k],
-            }));
-          })()}
-          cx="50%"
-          cy="50%"
-          outerRadius={120}
-          dataKey="value"
-          label
-        >
-          {(() => {
-            const colores =
-              vistaGrafico === "area"
-                ? ["#60A5FA", "#3B82F6", "#1E40AF", "#93C5FD"]
-                : vistaGrafico === "personal"
-                ? ["#34D399", "#10B981", "#047857", "#6EE7B7"]
-                : ["#FBBF24", "#F59E0B", "#B45309", "#FCD34D"];
-            return Object.keys(colores).map((i) => (
-              <Cell key={i} fill={colores[i % colores.length]} />
-            ));
-          })()}
-        </Pie>
-        <Tooltip />
-        <Legend />
-      </PieChart>
-    </ResponsiveContainer>
-
-    <p className="text-center text-xs text-gray-500 mt-2">
-      Vista actual:{" "}
-      <span className="font-semibold">
-        {vistaGrafico.charAt(0).toUpperCase() + vistaGrafico.slice(1)}
-      </span>
-    </p>
-  </div>
-)}
-      {/* Etiqueta de color */}
-      <p className="text-center text-xs text-gray-500 mt-2">
-        Color actual:{" "}
-        <span
-          className="inline-block w-3 h-3 rounded-full"
-          style={{
-            backgroundColor:
-              vistaGrafico === "area"
-                ? "#60A5FA"
-                : vistaGrafico === "personal"
-                ? "#34D399"
-                : "#F59E0B",
-          }}
-        ></span>{" "}
-        {vistaGrafico.charAt(0).toUpperCase() + vistaGrafico.slice(1)}
-      </p>
-    </div>
-  )}
-</div>
+          </div>
+        )}
+      </div>
 
       {/* Botones principales */}
       <div className="flex justify-center space-x-2 mb-6">
@@ -501,7 +479,7 @@ function Supervision({ setVista }) {
         )}
       </AnimatePresence>
 
-<ToastContainer position="bottom-right" autoClose={2000} />
+      <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
   );
 }
