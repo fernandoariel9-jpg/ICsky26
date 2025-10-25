@@ -245,36 +245,42 @@ function Supervision({ setVista }) {
 
             {/* 📈 Gráfico circular dinámico */}
             <ResponsiveContainer width="100%" height={350}>
-              <Pie
-  data={/* tus datos */}
-  cx="50%"
-  cy="50%"
-  outerRadius={120}
-  dataKey="value"
-  label
->
-  {(() => {
-    const conteo = (() => {
-      const c = {};
-      if (vistaGrafico === "area") {
-        tareas.forEach(t => { const k = t.area || "Sin área"; c[k] = (c[k] || 0) + 1; });
-      } else if (vistaGrafico === "personal") {
-        tareas.forEach(t => { const k = t.asignado || "Sin asignar"; c[k] = (c[k] || 0) + 1; });
-      } else if (vistaGrafico === "servicio") {
-        tareas.forEach(t => { const k = t.servicio || "Sin servicio"; c[k] = (c[k] || 0) + 1; });
-      }
-      return c;
-    })();
-
-    const nombres = Object.keys(conteo);
-    return nombres.map((_, i) => {
-      // Genera color HSL aleatorio basado en el índice
-      const hue = (i * 360 / nombres.length) % 360;
-      const color = `hsl(${hue}, 70%, 50%)`;
-      return <Cell key={i} fill={color} />;
-    });
-  })()}
-</Pie>
+              <PieChart>
+                <Pie
+                  data={(() => {
+                    const conteo = {};
+                    if (vistaGrafico === "area") {
+                      tareas.forEach(t => { const k = t.area || "Sin área"; conteo[k] = (conteo[k] || 0) + 1; });
+                    } else if (vistaGrafico === "personal") {
+                      tareas.forEach(t => { const k = t.asignado || "Sin asignar"; conteo[k] = (conteo[k] || 0) + 1; });
+                    } else if (vistaGrafico === "servicio") {
+                      tareas.forEach(t => { const k = t.servicio || "Sin servicio"; conteo[k] = (conteo[k] || 0) + 1; });
+                    }
+                    return Object.keys(conteo).map(k => ({ name: k, value: conteo[k] }));
+                  })()}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={120}
+                  dataKey="value"
+                  label
+                >
+                  {(() => {
+                    const conteo = {};
+                    if (vistaGrafico === "area") {
+                      tareas.forEach(t => { const k = t.area || "Sin área"; conteo[k] = (conteo[k] || 0) + 1; });
+                    } else if (vistaGrafico === "personal") {
+                      tareas.forEach(t => { const k = t.asignado || "Sin asignar"; conteo[k] = (conteo[k] || 0) + 1; });
+                    } else if (vistaGrafico === "servicio") {
+                      tareas.forEach(t => { const k = t.servicio || "Sin servicio"; conteo[k] = (conteo[k] || 0) + 1; });
+                    }
+                    const nombres = Object.keys(conteo);
+                    return nombres.map((_, i) => {
+                      const hue = (i * 360 / nombres.length) % 360;
+                      const color = `hsl(${hue}, 70%, 50%)`;
+                      return <Cell key={i} fill={color} />;
+                    });
+                  })()}
+                </Pie>
                 <Tooltip />
                 <Legend />
               </PieChart>
