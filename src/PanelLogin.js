@@ -126,7 +126,6 @@ function Supervision({ setVista }) {
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
       <h1 className="text-2xl font-bold text-center mb-2">📋 Panel de Supervisión</h1>
 
-      {/* 📊 TABLERO DE CONTROL */}
     {/* 📊 TABLERO DE CONTROL */}
 <div className="bg-white shadow-md rounded-xl p-4 mb-6">
   <h2 className="text-xl font-semibold mb-4 text-center">📈 Tablero de Control</h2>
@@ -228,28 +227,30 @@ function Supervision({ setVista }) {
     </ResponsiveContainer>
   </div>
 
-  {/* 📊 NUEVO: Gráfico de barras por área / personal / servicio */}
-  {tareas.length > 0 && (
-    <div className="mt-10">
-      <h3 className="text-lg font-semibold text-center mb-3">
-        🧩 Distribución de tareas
-      </h3>
+ {/* 📊 NUEVO: Gráfico circular por área / personal / servicio */}
+{tareas.length > 0 && (
+  <div className="mt-10">
+    <h3 className="text-lg font-semibold text-center mb-3">
+      🧩 Distribución de tareas
+    </h3>
 
-      {/* 🔽 Selector */}
-      <div className="flex justify-center mb-4">
-        <select
-          className="border rounded-xl p-2 shadow-sm text-sm"
-          value={vistaGrafico}
-          onChange={(e) => setVistaGrafico(e.target.value)}
-        >
-          <option value="area">Por área</option>
-          <option value="personal">Por personal</option>
-          <option value="servicio">Por servicio</option>
-        </select>
-      </div>
+    {/* 🔽 Selector */}
+    <div className="flex justify-center mb-4">
+      <select
+        className="border rounded-xl p-2 shadow-sm text-sm"
+        value={vistaGrafico}
+        onChange={(e) => setVistaGrafico(e.target.value)}
+      >
+        <option value="area">Por área</option>
+        <option value="personal">Por personal</option>
+        <option value="servicio">Por servicio</option>
+      </select>
+    </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart
+    {/* 📈 Gráfico circular dinámico */}
+    <ResponsiveContainer width="100%" height={350}>
+      <PieChart>
+        <Pie
           data={(() => {
             const conteo = {};
             if (vistaGrafico === "area") {
@@ -268,28 +269,42 @@ function Supervision({ setVista }) {
                 conteo[clave] = (conteo[clave] || 0) + 1;
               });
             }
-            return Object.keys(conteo).map((k) => ({ nombre: k, total: conteo[k] }));
+            return Object.keys(conteo).map((k) => ({
+              name: k,
+              value: conteo[k],
+            }));
           })()}
-          margin={{ top: 10, right: 20, left: 0, bottom: 50 }}
+          cx="50%"
+          cy="50%"
+          outerRadius={120}
+          dataKey="value"
+          label
         >
-          <XAxis dataKey="nombre" angle={-20} textAnchor="end" interval={0} height={70} />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar
-            dataKey="total"
-            fill={
+          {(() => {
+            const colores =
               vistaGrafico === "area"
-                ? "#60A5FA"
+                ? ["#60A5FA", "#3B82F6", "#1E40AF", "#93C5FD"]
                 : vistaGrafico === "personal"
-                ? "#34D399"
-                : "#F59E0B"
-            }
-            radius={[8, 8, 0, 0]}
-          />
-        </BarChart>
-      </ResponsiveContainer>
+                ? ["#34D399", "#10B981", "#047857", "#6EE7B7"]
+                : ["#FBBF24", "#F59E0B", "#B45309", "#FCD34D"];
+            return Object.keys(colores).map((i) => (
+              <Cell key={i} fill={colores[i % colores.length]} />
+            ));
+          })()}
+        </Pie>
+        <Tooltip />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
 
+    <p className="text-center text-xs text-gray-500 mt-2">
+      Vista actual:{" "}
+      <span className="font-semibold">
+        {vistaGrafico.charAt(0).toUpperCase() + vistaGrafico.slice(1)}
+      </span>
+    </p>
+  </div>
+)}
       {/* Etiqueta de color */}
       <p className="text-center text-xs text-gray-500 mt-2">
         Color actual:{" "}
