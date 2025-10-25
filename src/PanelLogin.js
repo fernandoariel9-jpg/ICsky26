@@ -246,7 +246,7 @@ function Supervision({ setVista }) {
             {/* 📈 Gráfico circular dinámico */}
             <ResponsiveContainer width="100%" height={350}>
               <Pie
-  data={/* ... */} 
+  data={/* tus datos */}
   cx="50%"
   cy="50%"
   outerRadius={120}
@@ -254,25 +254,25 @@ function Supervision({ setVista }) {
   label
 >
   {(() => {
-    const colores = [
-      "#60A5FA", "#3B82F6", "#1E40AF", "#93C5FD",
-      "#34D399", "#10B981", "#047857", "#6EE7B7",
-      "#FBBF24", "#F59E0B", "#B45309", "#FCD34D",
-      "#F87171", "#EF4444", "#B91C1C", "#A78BFA", "#8B5CF6"
-    ];
-    return Array.from({ length: Object.keys(
-      (() => {
-        const conteo = {};
-        if (vistaGrafico === "area") {
-          tareas.forEach((t) => { const clave = t.area || "Sin área"; conteo[clave] = (conteo[clave] || 0) + 1; });
-        } else if (vistaGrafico === "personal") {
-          tareas.forEach((t) => { const clave = t.asignado || "Sin asignar"; conteo[clave] = (conteo[clave] || 0) + 1; });
-        } else if (vistaGrafico === "servicio") {
-          tareas.forEach((t) => { const clave = t.servicio || "Sin servicio"; conteo[clave] = (conteo[clave] || 0) + 1; });
-        }
-        return conteo;
-      })()
-    ).length }).map((_, i) => <Cell key={i} fill={colores[i % colores.length]} />)
+    const conteo = (() => {
+      const c = {};
+      if (vistaGrafico === "area") {
+        tareas.forEach(t => { const k = t.area || "Sin área"; c[k] = (c[k] || 0) + 1; });
+      } else if (vistaGrafico === "personal") {
+        tareas.forEach(t => { const k = t.asignado || "Sin asignar"; c[k] = (c[k] || 0) + 1; });
+      } else if (vistaGrafico === "servicio") {
+        tareas.forEach(t => { const k = t.servicio || "Sin servicio"; c[k] = (c[k] || 0) + 1; });
+      }
+      return c;
+    })();
+
+    const nombres = Object.keys(conteo);
+    return nombres.map((_, i) => {
+      // Genera color HSL aleatorio basado en el índice
+      const hue = (i * 360 / nombres.length) % 360;
+      const color = `hsl(${hue}, 70%, 50%)`;
+      return <Cell key={i} fill={color} />;
+    });
   })()}
 </Pie>
                 <Tooltip />
