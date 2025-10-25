@@ -484,7 +484,7 @@ function Supervision({ setVista }) {
         )}
       </AnimatePresence>
 
-      <ToastContainer position="bottom-right" autoClose={2000} />
+<ToastContainer position="bottom-right" autoClose={2000} />
     </div>
   );
 }
