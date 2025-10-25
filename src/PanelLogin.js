@@ -245,49 +245,36 @@ function Supervision({ setVista }) {
 
             {/* 📈 Gráfico circular dinámico */}
             <ResponsiveContainer width="100%" height={350}>
-              <PieChart>
-                <Pie
-                  data={(() => {
-                    const conteo = {};
-                    if (vistaGrafico === "area") {
-                      tareas.forEach((t) => {
-                        const clave = t.area || "Sin área";
-                        conteo[clave] = (conteo[clave] || 0) + 1;
-                      });
-                    } else if (vistaGrafico === "personal") {
-                      tareas.forEach((t) => {
-                        const clave = t.asignado || "Sin asignar";
-                        conteo[clave] = (conteo[clave] || 0) + 1;
-                      });
-                    } else if (vistaGrafico === "servicio") {
-                      tareas.forEach((t) => {
-                        const clave = t.servicio || "Sin servicio";
-                        conteo[clave] = (conteo[clave] || 0) + 1;
-                      });
-                    }
-                    return Object.keys(conteo).map((k) => ({
-                      name: k,
-                      value: conteo[k],
-                    }));
-                  })()}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={120}
-                  dataKey="value"
-                  label
-                >
-                  {(() => {
-                    const colores =
-                      vistaGrafico === "area"
-                        ? ["#60A5FA", "#3B82F6", "#1E40AF", "#93C5FD"]
-                        : vistaGrafico === "personal"
-                        ? ["#34D399", "#10B981", "#047857", "#6EE7B7"]
-                        : ["#FBBF24", "#F59E0B", "#B45309", "#FCD34D"];
-                    return Object.keys(colores).map((i) => (
-                      <Cell key={i} fill={colores[i % colores.length]} />
-                    ));
-                  })()}
-                </Pie>
+              <Pie
+  data={/* ... */} 
+  cx="50%"
+  cy="50%"
+  outerRadius={120}
+  dataKey="value"
+  label
+>
+  {(() => {
+    const colores = [
+      "#60A5FA", "#3B82F6", "#1E40AF", "#93C5FD",
+      "#34D399", "#10B981", "#047857", "#6EE7B7",
+      "#FBBF24", "#F59E0B", "#B45309", "#FCD34D",
+      "#F87171", "#EF4444", "#B91C1C", "#A78BFA", "#8B5CF6"
+    ];
+    return Array.from({ length: Object.keys(
+      (() => {
+        const conteo = {};
+        if (vistaGrafico === "area") {
+          tareas.forEach((t) => { const clave = t.area || "Sin área"; conteo[clave] = (conteo[clave] || 0) + 1; });
+        } else if (vistaGrafico === "personal") {
+          tareas.forEach((t) => { const clave = t.asignado || "Sin asignar"; conteo[clave] = (conteo[clave] || 0) + 1; });
+        } else if (vistaGrafico === "servicio") {
+          tareas.forEach((t) => { const clave = t.servicio || "Sin servicio"; conteo[clave] = (conteo[clave] || 0) + 1; });
+        }
+        return conteo;
+      })()
+    ).length }).map((_, i) => <Cell key={i} fill={colores[i % colores.length]} />)
+  })()}
+</Pie>
                 <Tooltip />
                 <Legend />
               </PieChart>
