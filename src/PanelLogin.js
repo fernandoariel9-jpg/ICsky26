@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
+import AsistenteIA from "./AsistenteIA";
 
 import RegistroUsuario from "./RegistroUsuario";
 import RegistroPersonal from "./RegistroPersonal";
@@ -18,6 +19,14 @@ import {
 } from "recharts";
 
 const API_URL = "https://sky26.onrender.com/tareas";
+
+function PanelLogin() {
+  return (
+    <div>
+      <AsistenteIA />
+    </div>
+  );
+}
 
 // ---------- Login ----------
 function PanelLogin({ onLogin }) {
