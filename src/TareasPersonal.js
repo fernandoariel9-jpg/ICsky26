@@ -334,7 +334,13 @@ export default function TareasPersonal({ personal, onLogout }) {
     <div className="p-4 max-w-2xl mx-auto">
       <p className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
         {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
-      </p>
+     <button
+  onClick={() => setMostrarRegistro(true)}
+  className="bg-purple-500 text-white px-2 py-1 rounded-xl text-sm"
+>
+  ➕ Registrar Usuario
+</button>
+</p>
 
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
@@ -355,13 +361,7 @@ export default function TareasPersonal({ personal, onLogout }) {
         >
           {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
         </button>
-          <button
-  onClick={() => setMostrarRegistro(true)}
-  className="bg-purple-500 text-white px-3 py-1 rounded-xl text-sm"
->
-  ➕ Registrar Usuario
-</button>
-        <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
+          <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
           Cerrar sesión
         </button>
       </div>
@@ -550,6 +550,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
