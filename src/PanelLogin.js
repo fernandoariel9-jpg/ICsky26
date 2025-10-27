@@ -475,7 +475,7 @@ function Supervision({ setVista }) {
 
 {/* 🤖 Asistente de IA */}
 <div className="mt-10">
-  <AsistenteIA />
+  <AsistenteIAFlotante />
 </div>
   
       <ToastContainer position="bottom-right" autoClose={2000} />
