@@ -20,14 +20,6 @@ import {
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
-function PanelLogin() {
-  return (
-    <div>
-      <AsistenteIA />
-    </div>
-  );
-}
-
 // ---------- Login ----------
 function PanelLogin({ onLogin }) {
   const [password, setPassword] = useState("");
@@ -49,6 +41,9 @@ function PanelLogin({ onLogin }) {
   };
 
   return (
+    <div>
+      <AsistenteIA />
+    </div>
     <div className="p-4 max-w-md mx-auto mt-20 relative">
       {loading && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
