@@ -335,11 +335,11 @@ export default function TareasPersonal({ personal, onLogout }) {
       <p className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
         {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
      <button
-  onClick={() => setMostrarRegistro(true)}
-  className="bg-purple-500 text-white px-2 py-1 rounded-xl text-sm"
->
-  ➕ Registrar Usuario
-</button>
+          onClick={() => toggleNotificaciones(personal.id)}
+          className="bg-yellow-500 text-white px-2 py-1 rounded-xl text-sm"
+        >
+          {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
+        </button>
 </p>
 
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
@@ -355,12 +355,13 @@ export default function TareasPersonal({ personal, onLogout }) {
         <button onClick={handleExportarPDF} className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm">
           📄 Exportar {filtro === "pendientes" ? "pendientes" : filtro === "enProceso" ? "en proceso" : "finalizadas"} en PDF
         </button>
-        <button
-          onClick={() => toggleNotificaciones(personal.id)}
-          className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm"
-        >
-          {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
-        </button>
+        
+          <button
+  onClick={() => setMostrarRegistro(true)}
+  className="bg-purple-500 text-white px-3 py-1 rounded-xl text-sm"
+>
+  ➕ Registrar Usuario
+</button>
           <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
           Cerrar sesión
         </button>
@@ -550,6 +551,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
