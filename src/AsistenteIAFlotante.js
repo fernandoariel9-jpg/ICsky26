@@ -15,38 +15,40 @@ export default function AsistenteIAFlotante() {
     },
   ]);
   const [cargando, setCargando] = useState(false);
+  const sessionId = localStorage.getItem("sessionId") || crypto.randomUUID();
+localStorage.setItem("sessionId", sessionId);
 
-  const enviarMensaje = async () => {
-    if (!input.trim()) return;
-    const nuevoMensaje = { remitente: "usuario", texto: input };
-    setMensajes((prev) => [...prev, nuevoMensaje]);
-    setInput("");
-    setCargando(true);
+  const enviarMensaje = async (filtros = {}) => {
+  if (!input.trim()) return;
+  const nuevoMensaje = { remitente: "usuario", texto: input };
+  setMensajes((prev) => [...prev, nuevoMensaje]);
+  setInput("");
+  setCargando(true);
 
-    try {
-      const res = await fetch(API_IA, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pregunta: input }),
-      });
+  try {
+    const res = await fetch(API_IA, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pregunta: input, sessionId, filtros }),
+    });
 
-      if (!res.ok) throw new Error("Error en la respuesta del servidor");
-      const data = await res.json();
+    if (!res.ok) throw new Error("Error en la respuesta del servidor");
+    const data = await res.json();
 
-      setMensajes((prev) => [
-        ...prev,
-        { remitente: "bot", texto: data.respuesta || "🤖 No tengo información sobre eso." },
-      ]);
-    } catch (err) {
-      console.error("Error al consultar IA:", err);
-      setMensajes((prev) => [
-        ...prev,
-        { remitente: "bot", texto: "❌ Error al conectar con el servidor." },
-      ]);
-    } finally {
-      setCargando(false);
-    }
-  };
+    setMensajes((prev) => [
+      ...prev,
+      { remitente: "bot", texto: data.respuesta || "🤖 No tengo información sobre eso." },
+    ]);
+  } catch (err) {
+    console.error("Error al consultar IA:", err);
+    setMensajes((prev) => [
+      ...prev,
+      { remitente: "bot", texto: "❌ Error al conectar con el servidor." },
+    ]);
+  } finally {
+    setCargando(false);
+  }
+};
 
   return (
     <>
