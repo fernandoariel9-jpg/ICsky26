@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
-export default function RegistroUsuario({ onRegister, switchToLogin, onCancelar }) {
+export default function RegistroUsuario({ onRegister, onCancelar }) {
   const [nombre, setNombre] = useState("");
   const [servicio, setServicio] = useState("");
   const [subservicio, setSubservicio] = useState("");
@@ -77,11 +77,9 @@ export default function RegistroUsuario({ onRegister, switchToLogin, onCancelar 
       });
 
       if (res.ok) {
-        toast.success("Usuario registrado ✅");
-        if (typeof switchToLogin === "function") {
-          setTimeout(() => switchToLogin(), 1000); // pasa al login tras 1s
-        }
+        toast.success("✅ Usuario registrado con éxito");
         if (typeof onRegister === "function") onRegister(nombre);
+        // No redirige al login automáticamente
       } else {
         const data = await res.json().catch(() => ({}));
         toast.error(data.message || "Error al registrar ❌");
@@ -107,7 +105,7 @@ export default function RegistroUsuario({ onRegister, switchToLogin, onCancelar 
       {onCancelar && (
         <button
           onClick={onCancelar}
-          className="bg-gray-500 text-white px-3 py-1 rounded mb-4"
+          className="bg-gray-500 text-white px-3 py-1 rounded mb-4 hover:bg-gray-600 transition"
         >
           ⬅️ Volver
         </button>
@@ -225,8 +223,8 @@ export default function RegistroUsuario({ onRegister, switchToLogin, onCancelar 
           type="submit"
           disabled={loading}
           className={`bg-green-500 text-white p-2 rounded-xl ${
-            loading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+            loading ? "opacity-50 cursor-not-allowed" : "hover:bg-green-600"
+          } transition`}
         >
           {loading ? "Registrando..." : "Registrarse"}
         </button>
