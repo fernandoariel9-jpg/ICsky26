@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Bot, X } from "lucide-react";
 import { API_URL } from "./config";
@@ -15,40 +15,46 @@ export default function AsistenteIAFlotante() {
     },
   ]);
   const [cargando, setCargando] = useState(false);
-  const sessionId = localStorage.getItem("sessionId") || crypto.randomUUID();
-localStorage.setItem("sessionId", sessionId);
+
+  // ✅ sessionId seguro, solo se genera una vez
+  const sessionIdRef = useRef(localStorage.getItem("sessionId") || crypto.randomUUID());
+  localStorage.setItem("sessionId", sessionIdRef.current);
 
   const enviarMensaje = async (filtros = {}) => {
-  if (!input.trim()) return;
-  const nuevoMensaje = { remitente: "usuario", texto: input };
-  setMensajes((prev) => [...prev, nuevoMensaje]);
-  setInput("");
-  setCargando(true);
+    if (!input.trim()) return;
 
-  try {
-    const res = await fetch(API_IA, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pregunta: input, sessionId, filtros }),
-    });
+    // Guardamos la pregunta en variable local para evitar referencias circulares
+    const textoPregunta = input;
 
-    if (!res.ok) throw new Error("Error en la respuesta del servidor");
-    const data = await res.json();
+    const nuevoMensaje = { remitente: "usuario", texto: textoPregunta };
+    setMensajes((prev) => [...prev, nuevoMensaje]);
+    setInput("");
+    setCargando(true);
 
-    setMensajes((prev) => [
-      ...prev,
-      { remitente: "bot", texto: data.respuesta || "🤖 No tengo información sobre eso." },
-    ]);
-  } catch (err) {
-    console.error("Error al consultar IA:", err);
-    setMensajes((prev) => [
-      ...prev,
-      { remitente: "bot", texto: "❌ Error al conectar con el servidor." },
-    ]);
-  } finally {
-    setCargando(false);
-  }
-};
+    try {
+      const res = await fetch(API_IA, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pregunta: textoPregunta, sessionId: sessionIdRef.current, filtros }),
+      });
+
+      if (!res.ok) throw new Error("Error en la respuesta del servidor");
+      const data = await res.json();
+
+      setMensajes((prev) => [
+        ...prev,
+        { remitente: "bot", texto: data.respuesta || "🤖 No tengo información sobre eso." },
+      ]);
+    } catch (err) {
+      console.error("Error al consultar IA:", err);
+      setMensajes((prev) => [
+        ...prev,
+        { remitente: "bot", texto: `❌ Error al conectar con el servidor.` },
+      ]);
+    } finally {
+      setCargando(false);
+    }
+  };
 
   return (
     <>
@@ -104,7 +110,7 @@ localStorage.setItem("sessionId", sessionId);
                 className="flex-1 p-2 text-sm outline-none"
               />
               <button
-                onClick={enviarMensaje}
+                onClick={() => enviarMensaje()}
                 className="p-2 text-blue-600 hover:text-blue-800"
               >
                 <Send size={18} />
