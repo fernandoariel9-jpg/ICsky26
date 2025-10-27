@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
-export default function RegistroUsuario({ onRegister, switchToLogin }) {
+export default function RegistroUsuario({ onRegister, switchToLogin, onCancelar }) {
   const [nombre, setNombre] = useState("");
   const [servicio, setServicio] = useState("");
   const [subservicio, setSubservicio] = useState("");
-  const [area, setArea] = useState(""); // se guarda automáticamente
+  const [area, setArea] = useState("");
   const [movil, setMovil] = useState("");
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,12 +31,10 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
     fetchServicios();
   }, []);
 
-  // Subservicios según el servicio seleccionado
   const subserviciosDisponibles = serviciosDisponibles.filter(
     (s) => s.servicio === servicio
   );
 
-  // Actualizar área al elegir subservicio
   useEffect(() => {
     if (subservicio) {
       const seleccionado = serviciosDisponibles.find(
@@ -71,7 +69,7 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
           nombre,
           servicio,
           subservicio,
-          area, // agregado automáticamente
+          area,
           movil,
           mail,
           password,
@@ -80,7 +78,10 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
 
       if (res.ok) {
         toast.success("Usuario registrado ✅");
-        onRegister(nombre);
+        if (typeof switchToLogin === "function") {
+          setTimeout(() => switchToLogin(), 1000); // pasa al login tras 1s
+        }
+        if (typeof onRegister === "function") onRegister(nombre);
       } else {
         const data = await res.json().catch(() => ({}));
         toast.error(data.message || "Error al registrar ❌");
@@ -97,10 +98,21 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
 
   return (
     <div className="p-4 max-w-md mx-auto mt-10">
-    <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
+      <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
       <h1 className="text-2xl font-bold text-center mb-4">
         📝 Registro de Usuario
       </h1>
+
+      {/* 🔙 Botón Volver */}
+      {onCancelar && (
+        <button
+          onClick={onCancelar}
+          className="bg-gray-500 text-white px-3 py-1 rounded mb-4"
+        >
+          ⬅️ Volver
+        </button>
+      )}
+
       <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
         <input
           type="text"
@@ -117,7 +129,7 @@ export default function RegistroUsuario({ onRegister, switchToLogin }) {
           value={servicio}
           onChange={(e) => {
             setServicio(e.target.value);
-            setSubservicio(""); // reset cuando cambia servicio
+            setSubservicio("");
             setArea("");
           }}
           required
