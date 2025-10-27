@@ -336,7 +336,7 @@ export default function TareasPersonal({ personal, onLogout }) {
         {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
      <button
           onClick={() => toggleNotificaciones(personal.id)}
-          className="bg-yellow-500 text-white px-2 py-1 rounded-xl text-sm"
+          className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm"
         >
           {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
         </button>
@@ -551,6 +551,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
