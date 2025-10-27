@@ -4,6 +4,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { API_URL } from "./config";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import RegistroUsuario from "./RegistroUsuario";
 
 const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
@@ -18,6 +19,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [nuevaArea, setNuevaArea] = useState("");
   const [editando, setEditando] = useState({});
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
+  const [mostrarRegistro, setMostrarRegistro] = useState(false);
 
   function getFechaLocal() {
     const d = new Date();
@@ -256,6 +258,11 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
+    // 👉 Si el usuario elige "Registrar Usuario", mostrar ese formulario
+  if (mostrarRegistro) {
+    return <RegistroUsuario onCancelar={() => setMostrarRegistro(false)} />;
+  }
+  
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
   const finalizadas = tareas.filter((t) => t.fin);
@@ -348,6 +355,12 @@ export default function TareasPersonal({ personal, onLogout }) {
         >
           {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
         </button>
+          <button
+  onClick={() => setMostrarRegistro(true)}
+  className="bg-purple-500 text-white px-3 py-1 rounded-xl text-sm"
+>
+  ➕ Registrar Usuario
+</button>
         <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
           Cerrar sesión
         </button>
@@ -537,6 +550,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
