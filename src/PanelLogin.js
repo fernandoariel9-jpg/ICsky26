@@ -41,9 +41,6 @@ function PanelLogin({ onLogin }) {
   };
 
   return (
-    <div>
-      <AsistenteIA />
-    </div>
     <div className="p-4 max-w-md mx-auto mt-20 relative">
       {loading && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -476,6 +473,11 @@ function Supervision({ setVista }) {
         )}
       </AnimatePresence>
 
+{/* 🤖 Asistente de IA */}
+<div className="mt-10">
+  <AsistenteIA />
+</div>
+  
       <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
   );
