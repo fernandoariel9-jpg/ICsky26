@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
-import AsistenteIA from "./AsistenteIA";
+import AsistenteIAFlotante from "./AsistenteIAFlotante";
 
 import RegistroUsuario from "./RegistroUsuario";
 import RegistroPersonal from "./RegistroPersonal";
