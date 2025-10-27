@@ -1,27 +1,51 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Bot, X } from "lucide-react";
+import { API_URL } from "./config";
+
+const API_IA = `${API_URL.Base}/api/ia`; // 👈 Ajusta si tu backend usa otra ruta
 
 export default function AsistenteIAFlotante() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [mensajes, setMensajes] = useState([
-    { remitente: "bot", texto: "👋 Hola, soy el asistente del Servicio de Ingeniería Clínica. ¿En qué puedo ayudarte hoy?" },
+    {
+      remitente: "bot",
+      texto: "👋 Hola, soy el asistente del Servicio de Ingeniería Clínica. ¿En qué puedo ayudarte hoy?",
+    },
   ]);
+  const [cargando, setCargando] = useState(false);
 
-  const enviarMensaje = () => {
+  const enviarMensaje = async () => {
     if (!input.trim()) return;
     const nuevoMensaje = { remitente: "usuario", texto: input };
     setMensajes((prev) => [...prev, nuevoMensaje]);
     setInput("");
+    setCargando(true);
 
-    // Simulación de respuesta IA
-    setTimeout(() => {
+    try {
+      const res = await fetch(API_IA, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pregunta: input }),
+      });
+
+      if (!res.ok) throw new Error("Error en la respuesta del servidor");
+      const data = await res.json();
+
       setMensajes((prev) => [
         ...prev,
-        { remitente: "bot", texto: "🤖 Estoy procesando tu consulta..." },
+        { remitente: "bot", texto: data.respuesta || "🤖 No tengo información sobre eso." },
       ]);
-    }, 600);
+    } catch (err) {
+      console.error("Error al consultar IA:", err);
+      setMensajes((prev) => [
+        ...prev,
+        { remitente: "bot", texto: "❌ Error al conectar con el servidor." },
+      ]);
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
@@ -62,6 +86,10 @@ export default function AsistenteIAFlotante() {
                   {m.texto}
                 </div>
               ))}
+
+              {cargando && (
+                <p className="text-gray-500 text-sm italic">🤖 pensando...</p>
+              )}
             </div>
 
             <div className="flex border-t border-gray-200">
