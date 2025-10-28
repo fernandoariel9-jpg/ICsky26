@@ -271,7 +271,7 @@ function Supervision({ setVista }) {
                         <p className="font-semibold text-sm">Fecha: {label}</p>
                         {payload.map((p, i) => (
                           <p key={i} className="text-sm" style={{ color: p.color }}>
-                            {p.name}: {p.value.toFixed(2)} hs
+                           {p.name}: {typeof p.value === "number" ? p.value.toFixed(2) : "0"} hs
                           </p>
                         ))}
                       </div>
