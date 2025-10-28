@@ -190,6 +190,60 @@ function Supervision({ setVista }) {
           </div>
         </div>
 
+   {/* 🕓 Calcular tiempos promedio */}
+  {tareas.length > 0 && (
+    <div className="mt-4 text-center">
+      {(() => {
+        const tareasConComp = tareas.filter((t) => t.fecha && t.fecha_comp);
+        const tareasConFin = tareas.filter((t) => t.fecha_comp && t.fecha_fin);
+
+        const promedioSolucion =
+          tareasConComp.length > 0
+            ? (
+                tareasConComp.reduce(
+                  (acc, t) =>
+                    acc +
+                    (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60),
+                  0
+                ) / tareasConComp.length
+              ).toFixed(1)
+            : "—";
+
+        const promedioFinalizacion =
+          tareasConFin.length > 0
+            ? (
+                tareasConFin.reduce(
+                  (acc, t) =>
+                    acc +
+                    (new Date(t.fecha_fin) - new Date(t.fecha_comp)) /
+                      (1000 * 60 * 60),
+                  0
+                ) / tareasConFin.length
+              ).toFixed(1)
+            : "—";
+
+        return (
+          <>
+            <p className="text-sm text-gray-600">
+              ⏱️ Tiempo promedio de solución:{" "}
+              <span className="font-semibold">
+                {promedioSolucion !== "—" ? `${promedioSolucion} h` : "Sin datos"}
+              </span>
+            </p>
+            <p className="text-sm text-gray-600">
+              🕒 Tiempo promedio hasta finalización:{" "}
+              <span className="font-semibold">
+                {promedioFinalizacion !== "—"
+                  ? `${promedioFinalizacion} h`
+                  : "Sin datos"}
+              </span>
+            </p>
+          </>
+        );
+      })()}
+    </div>
+  )}
+
                {/* 🔽 Selector de gráfico circular */}
         {vistaGrafico !== "tendencias" && (
           <div className="flex justify-center mt-6 mb-4">
