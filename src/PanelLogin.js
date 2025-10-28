@@ -325,7 +325,6 @@ function Supervision({ setVista }) {
         </span>
       </p>
 
-
       {/* Botones principales */}
       <div className="flex justify-center space-x-2 mb-6">
         <button
@@ -439,11 +438,11 @@ function Supervision({ setVista }) {
                     🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
                   </p>
                   {t.reasignado_a && (
-            <p className="text-sm text-purple-700 mt-1">
-              🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
-              <strong>{t.reasignado_por}</strong> (desde {t.area})
-            </p>
-          )}
+                    <p className="text-sm text-purple-700 mt-1">
+                      🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
+                      <strong>{t.reasignado_por}</strong> (desde {t.area})
+                    </p>
+                  )}
                   {t.asignado && (
                     <p className="text-sm text-gray-700 mt-1">
                       👷‍♂️ Realizada por: <span className="font-semibold">{t.asignado}</span>
