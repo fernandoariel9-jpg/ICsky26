@@ -266,7 +266,7 @@ function Supervision({ setVista }) {
       </div>
 
       {/* Botones principales */}
-      <div className="flex justify-center space-x-2 mb-6">
+     <div className="flex justify-center space-x-2 mb-6">
         <button
           onClick={() => setVista("usuario")}
           className="bg-blue-500 text-white px-4 py-2 rounded-xl"
@@ -281,7 +281,7 @@ function Supervision({ setVista }) {
         </button>
       </div>
 
-      {/* 🔍 Cuadro de búsqueda con botón limpiar */}
+      {/* 🔍 Cuadro de búsqueda */}
       <div className="relative flex justify-center mb-4">
         <input
           type="text"
@@ -337,6 +337,7 @@ function Supervision({ setVista }) {
         </button>
       </div>
 
+      {/* Lista de tareas */}
       {loading ? (
         <div className="flex justify-center items-center py-8">
           <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -370,43 +371,30 @@ function Supervision({ setVista }) {
                   <p className="font-semibold">
                     #{t.id} — {t.usuario}: {t.tarea}
                   </p>
-
                   <p className="text-sm text-gray-700 mt-1">
                     🏢 Área: <span className="font-medium">{t.area || "—"}</span>
                   </p>
                   <p className="text-sm text-gray-700">
                     🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
                   </p>
-
-{t.reasignado_a && (
-            <p className="text-sm text-purple-700 mt-1">
-              🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
-              <strong>{t.reasignado_por}</strong> (desde {t.area})
-            </p>
-          )}
-
                   {t.asignado && (
                     <p className="text-sm text-gray-700 mt-1">
-                      👷‍♂️ Realizada por:{" "}
-                      <span className="font-semibold">{t.asignado}</span>
+                      👷‍♂️ Realizada por: <span className="font-semibold">{t.asignado}</span>
                     </p>
                   )}
-
                   <p className="text-sm text-gray-600 mt-1">
-                    📅 {new Date(t.fecha).toLocaleString()}
+                    📅 {t.fecha}
                   </p>
-
                   {t.fecha_comp && (
                     <p className="text-sm text-blue-700 mt-1">
-                      ⏰ Solucionado el: {new Date(t.fecha_comp).toLocaleString()}
+                      ⏰ Solucionado el: {t.fecha_comp}
                     </p>
                   )}
                   {t.fecha_fin && (
                     <p className="text-sm text-green-700 mt-1">
-                      ⏰ Finalizado el: {new Date(t.fecha_fin).toLocaleString()}
+                      ⏰ Finalizado el: {t.fecha_fin}
                     </p>
                   )}
-
                   {t.solucion && (
                     <p className="text-sm bg-gray-100 p-1 rounded mt-1">
                       💡 Solución: {t.solucion}
@@ -448,11 +436,11 @@ function Supervision({ setVista }) {
         )}
       </AnimatePresence>
 
-{/* 🤖 Asistente de IA */}
-<div className="mt-10">
-  <AsistenteIAFlotante />
-</div>
-  
+      {/* 🤖 Asistente de IA */}
+      <div className="mt-10">
+        <AsistenteIAFlotante />
+      </div>
+
       <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
   );
