@@ -238,28 +238,72 @@ function Supervision({ setVista }) {
 
         {/* 📈 Gráfico dinámico */}
         {vistaGrafico === "tendencias" ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={promedios}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="fecha" />
-              <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="promedio_solucion"
-                stroke="#3B82F6"
-                name="Promedio solución"
-              />
-              <Line
-                type="monotone"
-                dataKey="promedio_finalizacion"
-                stroke="#10B981"
-                name="Promedio finalización"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
+  <ResponsiveContainer width="100%" height={300}>
+    <LineChart
+      data={(() => {
+        const tiemposPorDia = {};
+        tareas.forEach((t) => {
+          if (!t.fecha) return;
+
+          // Formato YYYY-MM-DD HH:mm:ss
+          const d = new Date(t.fecha);
+          const fecha = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+
+          let tiempoSol = null;
+          let tiempoFin = null;
+          if (t.fecha_comp)
+            tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
+          if (t.fecha_fin)
+            tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
+
+          if (!tiemposPorDia[fecha])
+            tiemposPorDia[fecha] = { fecha, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
+
+          if (tiempoSol !== null) {
+            tiemposPorDia[fecha].totalSol += tiempoSol;
+            tiemposPorDia[fecha].cantSol += 1;
+          }
+          if (tiempoFin !== null) {
+            tiemposPorDia[fecha].totalFin += tiempoFin;
+            tiemposPorDia[fecha].cantFin += 1;
+          }
+        });
+
+        return Object.values(tiemposPorDia)
+          .map((d) => ({
+            fecha: d.fecha,
+            promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
+            promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
+          }))
+          .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+      })()}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="fecha" />
+      <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
+     <Tooltip
+  content={({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-2 border rounded shadow-sm">
+          <p className="font-semibold text-sm">Fecha: {label}</p>
+          {payload.map((p, i) => (
+            <p key={i} className="text-sm" style={{ color: p.color }}>
+              {p.name}: {p.value.toFixed(2)} hs
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  }}
+/>
+      <Legend />
+      <Line type="monotone" dataKey="promedioSol" stroke="#3B82F6" name="Promedio solución" />
+      <Line type="monotone" dataKey="promedioFin" stroke="#10B981" name="Promedio finalización" />
+    </LineChart>
+  </ResponsiveContainer>
+) : (
           <ResponsiveContainer width="100%" height={350}>
             <PieChart>
               <Pie
