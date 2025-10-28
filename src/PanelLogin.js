@@ -190,24 +190,76 @@ function Supervision({ setVista }) {
           </div>
         </div>
 
-        {/* 🔽 Selector de gráfico */}
-        <div className="flex justify-center mt-6 mb-4">
-          <select
-            className="border rounded-xl p-2 shadow-sm text-sm"
-            value={vistaGrafico}
-            onChange={(e) => setVistaGrafico(e.target.value)}
-          >
-            <option value="area">Por área</option>
-            <option value="personal">Por personal</option>
-            <option value="servicio">Por servicio</option>
-            <option value="tendencias">Tendencias</option>
-          </select>
-        </div>
+               {/* 🔽 Selector de gráfico circular */}
+        {vistaGrafico !== "tendencias" && (
+          <div className="flex justify-center mt-6 mb-4">
+            <select
+              className="border rounded-xl p-2 shadow-sm text-sm"
+              value={vistaGrafico}
+              onChange={(e) => setVistaGrafico(e.target.value)}
+            >
+              <option value="area">Por área</option>
+              <option value="personal">Por personal</option>
+              <option value="servicio">Por servicio</option>
+            </select>
+          </div>
+        )}
 
-        {/* 📈 Gráfico dinámico */}
-        {vistaGrafico === "tendencias" ? (
+        {/* 📊 Gráfico circular */}
+        {vistaGrafico !== "tendencias" && (
+          <ResponsiveContainer width="100%" height={350}>
+            <PieChart>
+              <Pie
+                data={(() => {
+                  const conteo = {};
+                  if (vistaGrafico === "area") {
+                    tareas.forEach(t => { const k = t.area || "Sin área"; conteo[k] = (conteo[k] || 0) + 1; });
+                  } else if (vistaGrafico === "personal") {
+                    tareas.forEach(t => { const k = t.asignado || "Sin asignar"; conteo[k] = (conteo[k] || 0) + 1; });
+                  } else if (vistaGrafico === "servicio") {
+                    tareas.forEach(t => { const k = t.servicio || "Sin servicio"; conteo[k] = (conteo[k] || 0) + 1; });
+                  }
+                  return Object.keys(conteo).map(k => ({ name: k, value: conteo[k] }));
+                })()}
+                cx="50%"
+                cy="50%"
+                outerRadius={120}
+                dataKey="value"
+                label
+              >
+                {(() => {
+                  const conteo = {};
+                  if (vistaGrafico === "area") {
+                    tareas.forEach(t => { const k = t.area || "Sin área"; conteo[k] = (conteo[k] || 0) + 1; });
+                  } else if (vistaGrafico === "personal") {
+                    tareas.forEach(t => { const k = t.asignado || "Sin asignar"; conteo[k] = (conteo[k] || 0) + 1; });
+                  } else if (vistaGrafico === "servicio") {
+                    tareas.forEach(t => { const k = t.servicio || "Sin servicio"; conteo[k] = (conteo[k] || 0) + 1; });
+                  }
+                  const nombres = Object.keys(conteo);
+                  return nombres.map((_, i) => {
+                    const hue = (i * 360 / nombres.length) % 360;
+                    const color = `hsl(${hue}, 70%, 50%)`;
+                    return <Cell key={i} fill={color} />;
+                  });
+                })()}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        )}
+
+        {/* ----------------- Gráfico de tendencias separado ----------------- */}
+        <div className="mt-8 bg-white shadow-md rounded-xl p-4">
+          <h2 className="text-xl font-semibold mb-4 text-center">📈 Tendencias de Promedios</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={promedios}>
+            <LineChart
+              data={promedios.map(p => ({
+                ...p,
+                fecha: p.fecha.includes(":") ? p.fecha : `${p.fecha} 00:00:00`,
+              }))}
+            >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="fecha" />
               <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
@@ -219,7 +271,7 @@ function Supervision({ setVista }) {
                         <p className="font-semibold text-sm">Fecha: {label}</p>
                         {payload.map((p, i) => (
                           <p key={i} className="text-sm" style={{ color: p.color }}>
-                            {p.name}: {typeof p.value === "number" ? p.value.toFixed(2) : "0"} hs
+                            {p.name}: {p.value.toFixed(2)} hs
                           </p>
                         ))}
                       </div>
@@ -229,81 +281,11 @@ function Supervision({ setVista }) {
                 }}
               />
               <Legend />
-              <Line
-                type="monotone"
-                dataKey="promedio_solucion"
-                stroke="#3B82F6"
-                name="Promedio solución"
-              />
-              <Line
-                type="monotone"
-                dataKey="promedio_finalizacion"
-                stroke="#10B981"
-                name="Promedio finalización"
-              />
+              <Line type="monotone" dataKey="promedio_solucion" stroke="#3B82F6" name="Promedio solución" />
+              <Line type="monotone" dataKey="promedio_finalizacion" stroke="#10B981" name="Promedio finalización" />
             </LineChart>
           </ResponsiveContainer>
-        ) : (
-          <ResponsiveContainer width="100%" height={350}>
-            <PieChart>
-              <Pie
-                data={(() => {
-                  const conteo = {};
-                  if (vistaGrafico === "area") {
-                    tareas.forEach((t) => {
-                      const k = t.area || "Sin área";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  } else if (vistaGrafico === "personal") {
-                    tareas.forEach((t) => {
-                      const k = t.asignado || "Sin asignar";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  } else if (vistaGrafico === "servicio") {
-                    tareas.forEach((t) => {
-                      const k = t.servicio || "Sin servicio";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  }
-                  return Object.keys(conteo).map((k) => ({ name: k, value: conteo[k] }));
-                })()}
-                cx="50%"
-                cy="50%"
-                outerRadius={120}
-                dataKey="value"
-                label
-              >
-                {(() => {
-                  const conteo = {};
-                  if (vistaGrafico === "area") {
-                    tareas.forEach((t) => {
-                      const k = t.area || "Sin área";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  } else if (vistaGrafico === "personal") {
-                    tareas.forEach((t) => {
-                      const k = t.asignado || "Sin asignar";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  } else if (vistaGrafico === "servicio") {
-                    tareas.forEach((t) => {
-                      const k = t.servicio || "Sin servicio";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  }
-                  const nombres = Object.keys(conteo);
-                  return nombres.map((_, i) => {
-                    const hue = (i * 360) / nombres.length;
-                    const color = `hsl(${hue}, 70%, 50%)`;
-                    return <Cell key={i} fill={color} />;
-                  });
-                })()}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        )}
+        </div>
       </div>
 
       <p className="text-center text-xs text-gray-500 mt-2">
