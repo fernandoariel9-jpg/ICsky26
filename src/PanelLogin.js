@@ -105,7 +105,6 @@ function Supervision({ setVista }) {
     try {
       const res = await fetch("https://sky26.onrender.com/promedios");
       const data = await res.json();
-      // data = [{ fecha: '2025-10-28', promedio_solucion: 2.5, promedio_finalizacion: 3.1 }, ...]
       setPromedios(data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)));
     } catch {
       toast.error("Error al cargar promedios diarios ❌");
@@ -114,23 +113,22 @@ function Supervision({ setVista }) {
 
   // 🔍 Búsqueda global
   const filtrarBusqueda = (t) => {
-  const texto = busqueda.trim().toLowerCase();
-  if (!texto) return true;
+    const texto = busqueda.trim().toLowerCase();
+    if (!texto) return true;
 
-  // Verificar si el texto es numérico para comparar con el ID
-  const esNumero = /^\d+$/.test(texto);
-  const coincideID = esNumero && t.id === parseInt(texto);
+    const esNumero = /^\d+$/.test(texto);
+    const coincideID = esNumero && t.id === parseInt(texto);
 
-  return (
-    coincideID ||
-    (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
-    (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
-    (t.area && t.area.toLowerCase().includes(texto)) ||
-    (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
-    (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
-    (t.asignado && t.asignado.toLowerCase().includes(texto))
-  );
-};
+    return (
+      coincideID ||
+      (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
+      (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
+      (t.area && t.area.toLowerCase().includes(texto)) ||
+      (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
+      (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
+      (t.asignado && t.asignado.toLowerCase().includes(texto))
+    );
+  };
 
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin && filtrarBusqueda(t));
   const terminadas = tareas.filter((t) => t.solucion && !t.fin && filtrarBusqueda(t));
@@ -168,142 +166,77 @@ function Supervision({ setVista }) {
           </div>
         </div>
 
-   {/* 🕓 Calcular tiempos promedio */}
-  {tareas.length > 0 && (
-    <div className="mt-4 text-center">
-      {(() => {
-        const tareasConComp = tareas.filter((t) => t.fecha && t.fecha_comp);
-        const tareasConFin = tareas.filter((t) => t.fecha_comp && t.fecha_fin);
+        {/* 🕓 Calcular tiempos promedio */}
+        {tareas.length > 0 && (
+          <div className="mt-4 text-center">
+            {(() => {
+              const tareasConComp = tareas.filter((t) => t.fecha && t.fecha_comp);
+              const tareasConFin = tareas.filter((t) => t.fecha_comp && t.fecha_fin);
 
-        const promedioSolucion =
-          tareasConComp.length > 0
-            ? (
-                tareasConComp.reduce(
-                  (acc, t) =>
-                    acc +
-                    (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60),
-                  0
-                ) / tareasConComp.length
-              ).toFixed(1)
-            : "—";
+              const promedioSolucion =
+                tareasConComp.length > 0
+                  ? (
+                      tareasConComp.reduce(
+                        (acc, t) =>
+                          acc +
+                          (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60),
+                        0
+                      ) / tareasConComp.length
+                    ).toFixed(1)
+                  : "—";
 
-        const promedioFinalizacion =
-          tareasConFin.length > 0
-            ? (
-                tareasConFin.reduce(
-                  (acc, t) =>
-                    acc +
-                    (new Date(t.fecha_fin) - new Date(t.fecha_comp)) /
-                      (1000 * 60 * 60),
-                  0
-                ) / tareasConFin.length
-              ).toFixed(1)
-            : "—";
+              const promedioFinalizacion =
+                tareasConFin.length > 0
+                  ? (
+                      tareasConFin.reduce(
+                        (acc, t) =>
+                          acc +
+                          (new Date(t.fecha_fin) - new Date(t.fecha_comp)) /
+                            (1000 * 60 * 60),
+                        0
+                      ) / tareasConFin.length
+                    ).toFixed(1)
+                  : "—";
 
-        return (
-          <>
-            <p className="text-sm text-gray-600">
-              ⏱️ Tiempo promedio de solución:{" "}
-              <span className="font-semibold">
-                {promedioSolucion !== "—" ? `${promedioSolucion} h` : "Sin datos"}
-              </span>
-            </p>
-            <p className="text-sm text-gray-600">
-              🕒 Tiempo promedio hasta finalización:{" "}
-              <span className="font-semibold">
-                {promedioFinalizacion !== "—"
-                  ? `${promedioFinalizacion} h`
-                  : "Sin datos"}
-              </span>
-            </p>
-          </>
-        );
-      })()}
-    </div>
-  )}
+              return (
+                <>
+                  <p className="text-sm text-gray-600">
+                    ⏱️ Tiempo promedio de solución:{" "}
+                    <span className="font-semibold">
+                      {promedioSolucion !== "—" ? `${promedioSolucion} h` : "Sin datos"}
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    🕒 Tiempo promedio hasta finalización:{" "}
+                    <span className="font-semibold">
+                      {promedioFinalizacion !== "—"
+                        ? `${promedioFinalizacion} h`
+                        : "Sin datos"}
+                    </span>
+                  </p>
+                </>
+              );
+            })()}
+          </div>
+        )}
 
-        {/* 🔽 Selector de gráfico */}
-        <div className="flex justify-center mt-6 mb-4">
-          <select
-            className="border rounded-xl p-2 shadow-sm text-sm"
-            value={vistaGrafico}
-            onChange={(e) => setVistaGrafico(e.target.value)}
-          >
-            <option value="area">Por área</option>
-            <option value="personal">Por personal</option>
-            <option value="servicio">Por servicio</option>
-            <option value="tendencias">Tendencias</option>
-          </select>
-        </div>
+        {/* 🔽 Selector de gráfico circular */}
+        {vistaGrafico !== "tendencias" && (
+          <div className="flex justify-center mt-6 mb-4">
+            <select
+              className="border rounded-xl p-2 shadow-sm text-sm"
+              value={vistaGrafico}
+              onChange={(e) => setVistaGrafico(e.target.value)}
+            >
+              <option value="area">Por área</option>
+              <option value="personal">Por personal</option>
+              <option value="servicio">Por servicio</option>
+            </select>
+          </div>
+        )}
 
-        {/* 📈 Gráfico dinámico */}
-        {vistaGrafico === "tendencias" ? (
-  <ResponsiveContainer width="100%" height={300}>
-    <LineChart
-      data={(() => {
-        const tiemposPorDia = {};
-        tareas.forEach((t) => {
-          if (!t.fecha) return;
-
-          // Formato YYYY-MM-DD HH:mm:ss
-          const d = new Date(t.fecha);
-          const fecha = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
-
-          let tiempoSol = null;
-          let tiempoFin = null;
-          if (t.fecha_comp)
-            tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
-          if (t.fecha_fin)
-            tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
-
-          if (!tiemposPorDia[fecha])
-            tiemposPorDia[fecha] = { fecha, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
-
-          if (tiempoSol !== null) {
-            tiemposPorDia[fecha].totalSol += tiempoSol;
-            tiemposPorDia[fecha].cantSol += 1;
-          }
-          if (tiempoFin !== null) {
-            tiemposPorDia[fecha].totalFin += tiempoFin;
-            tiemposPorDia[fecha].cantFin += 1;
-          }
-        });
-
-        return Object.values(tiemposPorDia)
-          .map((d) => ({
-            fecha: d.fecha,
-            promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
-            promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
-          }))
-          .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-      })()}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="fecha" />
-      <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
-     <Tooltip
-  content={({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-2 border rounded shadow-sm">
-          <p className="font-semibold text-sm">Fecha: {label}</p>
-          {payload.map((p, i) => (
-            <p key={i} className="text-sm" style={{ color: p.color }}>
-              {p.name}: {p.value.toFixed(2)} hs
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  }}
-/>
-      <Legend />
-      <Line type="monotone" dataKey="promedioSol" stroke="#3B82F6" name="Promedio solución" />
-      <Line type="monotone" dataKey="promedioFin" stroke="#10B981" name="Promedio finalización" />
-    </LineChart>
-  </ResponsiveContainer>
-) : (
+        {/* 📊 Gráfico circular */}
+        {vistaGrafico !== "tendencias" && (
           <ResponsiveContainer width="100%" height={350}>
             <PieChart>
               <Pie
@@ -346,6 +279,43 @@ function Supervision({ setVista }) {
             </PieChart>
           </ResponsiveContainer>
         )}
+
+        {/* ----------------- Gráfico de tendencias separado ----------------- */}
+        <div className="mt-8 bg-white shadow-md rounded-xl p-4">
+          <h2 className="text-xl font-semibold mb-4 text-center">📈 Tendencias de Promedios</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart
+              data={promedios.map(p => ({
+                ...p,
+                fecha: p.fecha.includes(":") ? p.fecha : `${p.fecha} 00:00:00`,
+              }))}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="fecha" />
+              <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
+              <Tooltip
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-white p-2 border rounded shadow-sm">
+                        <p className="font-semibold text-sm">Fecha: {label}</p>
+                        {payload.map((p, i) => (
+                          <p key={i} className="text-sm" style={{ color: p.color }}>
+                            {p.name}: {p.value.toFixed(2)} hs
+                          </p>
+                        ))}
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Legend />
+              <Line type="monotone" dataKey="promedio_solucion" stroke="#3B82F6" name="Promedio solución" />
+              <Line type="monotone" dataKey="promedio_finalizacion" stroke="#10B981" name="Promedio finalización" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <p className="text-center text-xs text-gray-500 mt-2">
@@ -354,6 +324,7 @@ function Supervision({ setVista }) {
           {vistaGrafico.charAt(0).toUpperCase() + vistaGrafico.slice(1)}
         </span>
       </p>
+
 
       {/* Botones principales */}
       <div className="flex justify-center space-x-2 mb-6">
