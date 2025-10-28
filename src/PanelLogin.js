@@ -114,17 +114,23 @@ function Supervision({ setVista }) {
 
   // 🔍 Búsqueda global
   const filtrarBusqueda = (t) => {
-    const texto = busqueda.trim().toLowerCase();
-    if (!texto) return true;
-    return (
-      (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
-      (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
-      (t.area && t.area.toLowerCase().includes(texto)) ||
-      (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
-      (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
-      (t.asignado && t.asignado.toLowerCase().includes(texto))
-    );
-  };
+  const texto = busqueda.trim().toLowerCase();
+  if (!texto) return true;
+
+  // Verificar si el texto es numérico para comparar con el ID
+  const esNumero = /^\d+$/.test(texto);
+  const coincideID = esNumero && t.id === parseInt(texto);
+
+  return (
+    coincideID ||
+    (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
+    (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
+    (t.area && t.area.toLowerCase().includes(texto)) ||
+    (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
+    (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
+    (t.asignado && t.asignado.toLowerCase().includes(texto))
+  );
+};
 
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin && filtrarBusqueda(t));
   const terminadas = tareas.filter((t) => t.solucion && !t.fin && filtrarBusqueda(t));
