@@ -81,9 +81,11 @@ function Supervision({ setVista }) {
   const [loading, setLoading] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [vistaGrafico, setVistaGrafico] = useState("area");
+  const [promedios, setPromedios] = useState([]);
 
   useEffect(() => {
     fetchTareas();
+    fetchPromedios();
   }, []);
 
   const fetchTareas = async () => {
@@ -96,6 +98,17 @@ function Supervision({ setVista }) {
       toast.error("Error al cargar tareas ❌");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPromedios = async () => {
+    try {
+      const res = await fetch("https://sky26.onrender.com/promedios");
+      const data = await res.json();
+      // data = [{ fecha: '2025-10-28', promedio_solucion: 2.5, promedio_finalizacion: 3.1 }, ...]
+      setPromedios(data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)));
+    } catch {
+      toast.error("Error al cargar promedios diarios ❌");
     }
   };
 
@@ -166,48 +179,24 @@ function Supervision({ setVista }) {
         {/* 📈 Gráfico dinámico */}
         {vistaGrafico === "tendencias" ? (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={(() => {
-                const tiemposPorDia = {};
-                tareas.forEach((t) => {
-                  if (!t.fecha) return;
-                  const fecha = new Date(t.fecha).toLocaleDateString("es-AR");
-                  let tiempoSol = null;
-                  let tiempoFin = null;
-                  if (t.fecha_comp)
-                    tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
-                  if (t.fecha_fin)
-                    tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
-
-                  if (!tiemposPorDia[fecha])
-                    tiemposPorDia[fecha] = { fecha, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
-
-                  if (tiempoSol !== null) {
-                    tiemposPorDia[fecha].totalSol += tiempoSol;
-                    tiemposPorDia[fecha].cantSol += 1;
-                  }
-                  if (tiempoFin !== null) {
-                    tiemposPorDia[fecha].totalFin += tiempoFin;
-                    tiemposPorDia[fecha].cantFin += 1;
-                  }
-                });
-
-                return Object.values(tiemposPorDia)
-                  .map((d) => ({
-                    fecha: d.fecha,
-                    promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
-                    promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
-                  }))
-                  .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-              })()}
-            >
+            <LineChart data={promedios}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="fecha" />
               <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="promedioSol" stroke="#3B82F6" name="Promedio solución" />
-              <Line type="monotone" dataKey="promedioFin" stroke="#10B981" name="Promedio finalización" />
+              <Line
+                type="monotone"
+                dataKey="promedio_solucion"
+                stroke="#3B82F6"
+                name="Promedio solución"
+              />
+              <Line
+                type="monotone"
+                dataKey="promedio_finalizacion"
+                stroke="#10B981"
+                name="Promedio finalización"
+              />
             </LineChart>
           </ResponsiveContainer>
         ) : (
@@ -255,18 +244,15 @@ function Supervision({ setVista }) {
         )}
       </div>
 
-            <p className="text-center text-xs text-gray-500 mt-2">
-              Vista actual:{" "}
-              <span className="font-semibold">
-                {vistaGrafico.charAt(0).toUpperCase() + vistaGrafico.slice(1)}
-              </span>
-            </p>
-          </div>
-        )}
-      </div>
+      <p className="text-center text-xs text-gray-500 mt-2">
+        Vista actual:{" "}
+        <span className="font-semibold">
+          {vistaGrafico.charAt(0).toUpperCase() + vistaGrafico.slice(1)}
+        </span>
+      </p>
 
       {/* Botones principales */}
-     <div className="flex justify-center space-x-2 mb-6">
+      <div className="flex justify-center space-x-2 mb-6">
         <button
           onClick={() => setVista("usuario")}
           className="bg-blue-500 text-white px-4 py-2 rounded-xl"
