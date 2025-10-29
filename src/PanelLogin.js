@@ -309,149 +309,174 @@ function Supervision({ setVista }) {
        {/* ----------------- Gráfico de tendencias separado ----------------- */}
 <div className="mt-8 bg-white shadow-md rounded-xl p-4">
   <h2 className="text-xl font-semibold mb-4 text-center">📈 Tendencias de Promedios</h2>
-  <ResponsiveContainer width="100%" height={300}>
+  <ResponsiveContainer width="100%" height={350}>
   <LineChart
-    data={promedios.map(p => ({
-      ...p,
-      fecha: p.fecha.includes(":") ? p.fecha : `${p.fecha} 00:00:00`,
-    }))}
-    margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
+    data={(() => {
+      const tiemposPorDia = {};
+      tareas.forEach((t) => {
+        if (!t.fecha) return;
+
+        // 🕒 Convertir a timestamp
+        const fecha = new Date(t.fecha);
+        const key = fecha.toISOString().split("T")[0]; // yyyy-mm-dd
+
+        let tiempoSol = null;
+        let tiempoFin = null;
+        if (t.fecha_comp)
+          tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
+        if (t.fecha_fin)
+          tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
+
+        if (!tiemposPorDia[key])
+          tiemposPorDia[key] = { fecha: key, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
+
+        if (tiempoSol !== null) {
+          tiemposPorDia[key].totalSol += tiempoSol;
+          tiemposPorDia[key].cantSol += 1;
+        }
+        if (tiempoFin !== null) {
+          tiemposPorDia[key].totalFin += tiempoFin;
+          tiemposPorDia[key].cantFin += 1;
+        }
+      });
+
+      const datos = Object.values(tiemposPorDia)
+        .map((d) => ({
+          fecha: new Date(d.fecha).getTime(), // timestamp numérico
+          promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
+          promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
+        }))
+        .sort((a, b) => a.fecha - b.fecha);
+
+      return datos;
+    })()}
+    margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
   >
     <CartesianGrid strokeDasharray="3 3" />
 
-    {/* --- Eje X: muestra solo número de día y agrupa por mes --- */}
+    {/* 📅 Eje X con fechas bien espaciadas */}
     <XAxis
       dataKey="fecha"
-      tickFormatter={(str) => {
-        const d = new Date(str);
-        if (!isNaN(d)) return d.getDate();
-        const partes = str.split(" ")[0]?.split("-");
-        return partes ? partes[2] : str;
+      type="number"
+      domain={["auto", "auto"]}
+      scale="time"
+      tickFormatter={(timestamp) => {
+        const d = new Date(timestamp);
+        return d.getDate(); // solo el número de día
       }}
       label={{ value: "Día del mes", position: "insideBottomRight", offset: -5 }}
-      interval={0}
-      ticks={promedios.map(p => p.fecha)}
     />
 
+    {/* 🕒 Eje Y */}
     <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
 
-    {/* --- Etiquetas de meses debajo del eje --- */}
-    <ReferenceArea
-      x1={promedios[0]?.fecha}
-      x2={promedios[promedios.length - 1]?.fecha}
-      y1={-1}
-      y2={-1}
-      label={{
-        position: "insideBottom",
-        value: (() => {
-          const meses = {};
-          promedios.forEach(p => {
-            const [year, month] = p.fecha.split(" ")[0].split("-");
-            meses[`${year}-${month}`] = new Date(p.fecha).toLocaleString("es-ES", { month: "long" });
-          });
-          return Object.values(meses).join(" | ");
-        })(),
-        style: { fontSize: 12, fontWeight: "bold", textTransform: "capitalize" },
-      }}
-    />
-
-    {/* --- Líneas verticales en primeros días de cada mes --- */}
-    {promedios.map((p, i) => {
-      const date = new Date(p.fecha);
-      if (date.getDate() === 1) {
-        return (
-          <ReferenceLine
-            key={i}
-            x={p.fecha}
-            stroke="#9CA3AF"
-            strokeDasharray="2 2"
-            label={{
-              value: date.toLocaleString("es-ES", { month: "short" }),
-              position: "top",
-              style: { fontSize: 11, fill: "#374151", fontWeight: "bold" },
-            }}
-          />
-        );
-      }
-      return null;
-    })}
-
     <Tooltip
-      content={({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-          return (
-            <div className="bg-white p-2 border rounded shadow-sm">
-              <p className="font-semibold text-sm">Fecha: {label}</p>
-              {payload.map((p, i) => (
-                <p key={i} className="text-sm" style={{ color: p.color }}>
-                  {p.name}: {typeof p.value === "number" ? p.value.toFixed(2) : "0"} hs
-                </p>
-              ))}
-            </div>
-          );
-        }
-        return null;
-      }}
+      labelFormatter={(ts) =>
+        new Date(ts).toLocaleString("es-AR", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      }
+      formatter={(v) => `${v.toFixed(2)} h`}
     />
-
     <Legend />
 
-    {/* Líneas principales */}
-    <Line type="monotone" dataKey="promedio_solucion" stroke="#3B82F6" name="Promedio solución" dot />
-    <Line type="monotone" dataKey="promedio_finalizacion" stroke="#10B981" name="Promedio finalización" dot />
-
-    {/* Líneas de tendencia (regresión lineal) */}
+    {/* 📈 Líneas principales */}
     <Line
       type="monotone"
-      data={(() => {
-        const y = promedios.map(p => p.promedio_solucion);
-        const n = y.length;
-        if (n === 0) return [];
-        const x = y.map((_, i) => i);
-        const sumX = x.reduce((a, b) => a + b, 0);
-        const sumY = y.reduce((a, b) => a + b, 0);
-        const sumXY = x.reduce((acc, xi, i) => acc + xi * y[i], 0);
-        const sumX2 = x.reduce((acc, xi) => acc + xi * xi, 0);
-        const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-        const intercept = (sumY - slope * sumX) / n;
-        return promedios.map((p, i) => ({
-          fecha: p.fecha,
-          tendencia_sol: intercept + slope * i,
-        }));
-      })()}
-      dataKey="tendencia_sol"
-      stroke="#1E40AF"
-      strokeDasharray="5 5"
-      dot={false}
-      name="Tendencia solución"
+      dataKey="promedioSol"
+      stroke="#3B82F6"
+      name="Promedio solución"
+      dot={{ r: 3 }}
     />
-
     <Line
       type="monotone"
-      data={(() => {
-        const y = promedios.map(p => p.promedio_finalizacion);
-        const n = y.length;
+      dataKey="promedioFin"
+      stroke="#10B981"
+      name="Promedio finalización"
+      dot={{ r: 3 }}
+    />
+
+    {/* 📉 Líneas de tendencia */}
+    {(() => {
+      const datos = (() => {
+        const tiemposPorDia = {};
+        tareas.forEach((t) => {
+          if (!t.fecha) return;
+          const fecha = new Date(t.fecha);
+          const key = fecha.toISOString().split("T")[0];
+          let tiempoSol = null;
+          let tiempoFin = null;
+          if (t.fecha_comp)
+            tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
+          if (t.fecha_fin)
+            tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
+          if (!tiemposPorDia[key])
+            tiemposPorDia[key] = { fecha: key, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
+          if (tiempoSol !== null) {
+            tiemposPorDia[key].totalSol += tiempoSol;
+            tiemposPorDia[key].cantSol += 1;
+          }
+          if (tiempoFin !== null) {
+            tiemposPorDia[key].totalFin += tiempoFin;
+            tiemposPorDia[key].cantFin += 1;
+          }
+        });
+        return Object.values(tiemposPorDia)
+          .map((d) => ({
+            fecha: new Date(d.fecha).getTime(),
+            promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
+            promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
+          }))
+          .sort((a, b) => a.fecha - b.fecha);
+      })();
+
+      const calcTrend = (arr) => {
+        const n = arr.length;
         if (n === 0) return [];
-        const x = y.map((_, i) => i);
+        const x = arr.map((_, i) => i);
+        const y = arr;
         const sumX = x.reduce((a, b) => a + b, 0);
         const sumY = y.reduce((a, b) => a + b, 0);
-        const sumXY = x.reduce((acc, xi, i) => acc + xi * y[i], 0);
-        const sumX2 = x.reduce((acc, xi) => acc + xi * xi, 0);
+        const sumXY = x.reduce((a, c, i) => a + c * y[i], 0);
+        const sumX2 = x.reduce((a, c) => a + c * c, 0);
         const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
         const intercept = (sumY - slope * sumX) / n;
-        return promedios.map((p, i) => ({
-          fecha: p.fecha,
-          tendencia_fin: intercept + slope * i,
-        }));
-      })()}
-      dataKey="tendencia_fin"
-      stroke="#047857"
-      strokeDasharray="5 5"
-      dot={false}
-      name="Tendencia finalización"
-    />
+        return arr.map((_, i) => intercept + slope * i);
+      };
+
+      const tendenciaSol = calcTrend(datos.map((d) => d.promedioSol));
+      const tendenciaFin = calcTrend(datos.map((d) => d.promedioFin));
+
+      return (
+        <>
+          <Line
+            type="monotone"
+            data={datos.map((d, i) => ({ fecha: d.fecha, valor: tendenciaSol[i] }))}
+            dataKey="valor"
+            stroke="#1E40AF"
+            strokeDasharray="5 5"
+            name="Tendencia solución"
+            dot={false}
+          />
+          <Line
+            type="monotone"
+            data={datos.map((d, i) => ({ fecha: d.fecha, valor: tendenciaFin[i] }))}
+            dataKey="valor"
+            stroke="#047857"
+            strokeDasharray="5 5"
+            name="Tendencia finalización"
+            dot={false}
+          />
+        </>
+      );
+    })()}
   </LineChart>
 </ResponsiveContainer>
+
 </div>
       </div>
 
