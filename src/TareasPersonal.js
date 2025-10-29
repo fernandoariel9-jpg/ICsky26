@@ -21,7 +21,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
   const [busqueda, setBusqueda] = useState("");
-  
+
   function getFechaLocal() {
     const d = new Date();
     d.setSeconds(0, 0);
@@ -259,11 +259,12 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
-    // 👉 Si el usuario elige "Registrar Usuario", mostrar ese formulario
+  // 👉 Si el usuario elige "Registrar Usuario", mostrar ese formulario
   if (mostrarRegistro) {
     return <RegistroUsuario onCancelar={() => setMostrarRegistro(false)} />;
   }
-  
+
+  // 🔹 CORRECCIÓN: Declarar tareasFiltradas antes de usar tareasFiltradasBusqueda
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
   const finalizadas = tareas.filter((t) => t.fin);
@@ -275,11 +276,11 @@ export default function TareasPersonal({ personal, onLogout }) {
       ? enProceso
       : finalizadas;
 
-    // Filtrado de tareas según búsqueda
-const tareasFiltradasBusqueda = tareasFiltradas.filter((t) => {
-  const texto = `${t.tarea} ${t.usuario} ${t.servicio || ""} ${t.subservicio || ""} ${t.area || ""}`.toLowerCase();
-  return texto.includes(busqueda.toLowerCase());
-});
+  // Filtrado de tareas según búsqueda
+  const tareasFiltradasBusqueda = tareasFiltradas.filter((t) => {
+    const texto = `${t.tarea} ${t.usuario} ${t.servicio || ""} ${t.subservicio || ""} ${t.area || ""}`.toLowerCase();
+    return texto.includes(busqueda.toLowerCase());
+  });
 
   const handleExportarPDF = async () => {
     const nombreLista =
@@ -581,3 +582,4 @@ const tareasFiltradasBusqueda = tareasFiltradas.filter((t) => {
     </div>
   );
 }
+
