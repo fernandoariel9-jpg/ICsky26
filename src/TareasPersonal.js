@@ -20,6 +20,13 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [editando, setEditando] = useState({});
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
+
+  // Filtrado de tareas según búsqueda
+const tareasFiltradasBusqueda = tareasFiltradas.filter((t) => {
+  const texto = `${t.tarea} ${t.usuario} ${t.servicio || ""} ${t.subservicio || ""} ${t.area || ""}`.toLowerCase();
+  return texto.includes(busqueda.toLowerCase());
+});
   
   function getFechaLocal() {
     const d = new Date();
@@ -366,6 +373,32 @@ export default function TareasPersonal({ personal, onLogout }) {
           Cerrar sesión
         </button>
       </div>
+
+{/* Cuadro de búsqueda */}
+<div className="flex justify-center mb-4">
+  <input
+    type="text"
+    placeholder="🔍 Buscar en tareas, usuario, servicio, subservicio o área"
+    value={busqueda}
+    onChange={(e) => setBusqueda(e.target.value)}
+    className="w-full max-w-md p-2 border rounded"
+  />
+</div>
+
+{/* Lista de tareas filtradas */}
+<ul className="space-y-3">
+  {tareasFiltradasBusqueda.length === 0 && (
+    <p className="text-center text-gray-500 italic">
+      No hay tareas que coincidan con la búsqueda.
+    </p>
+  )}
+
+  {tareasFiltradasBusqueda.map((t) => (
+    <li key={t.id} className="p-3 rounded-xl shadow bg-white">
+      {/* resto de la tarjeta de tarea... */}
+    </li>
+  ))}
+</ul>
       
  {/* Filtros */}
       <div className="flex justify-center space-x-2 mb-4">
@@ -548,6 +581,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
