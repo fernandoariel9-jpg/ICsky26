@@ -259,12 +259,10 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
-  // 👉 Si el usuario elige "Registrar Usuario", mostrar ese formulario
   if (mostrarRegistro) {
     return <RegistroUsuario onCancelar={() => setMostrarRegistro(false)} />;
   }
 
-  // 🔹 CORRECCIÓN: Declarar tareasFiltradas antes de usar tareasFiltradasBusqueda
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
   const finalizadas = tareas.filter((t) => t.fin);
@@ -276,28 +274,25 @@ export default function TareasPersonal({ personal, onLogout }) {
       ? enProceso
       : finalizadas;
 
-  // Filtrado de tareas según búsqueda
   const filtrarBusqueda = (t) => {
-  const texto = busqueda.trim().toLowerCase();
-  if (!texto) return true;
+    const texto = busqueda.trim().toLowerCase();
+    if (!texto) return true;
+    const esNumero = /^\d+$/.test(texto);
+    const coincideID = esNumero && t.id === parseInt(texto);
+    return (
+      coincideID ||
+      (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
+      (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
+      (t.area && t.area.toLowerCase().includes(texto)) ||
+      (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
+      (t.subservicio && t.subservicio.toLowerCase().includes(texto)) ||
+      (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
+      (t.reasignado_a && t.reasignado_a.toLowerCase().includes(texto)) ||
+      (t.reasignado_por && t.reasignado_por.toLowerCase().includes(texto))
+    );
+  };
 
-  const esNumero = /^\d+$/.test(texto);
-  const coincideID = esNumero && t.id === parseInt(texto);
-
-  return (
-    coincideID ||
-    (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
-    (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
-    (t.area && t.area.toLowerCase().includes(texto)) ||
-    (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
-    (t.subservicio && t.subservicio.toLowerCase().includes(texto)) ||
-    (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
-    (t.reasignado_a && t.reasignado_a.toLowerCase().includes(texto)) ||
-    (t.reasignado_por && t.reasignado_por.toLowerCase().includes(texto))
-  );
-};
-
-const tareasFiltradasBusqueda = tareasFiltradas.filter(filtrarBusqueda);
+  const tareasFiltradasBusqueda = tareasFiltradas.filter(filtrarBusqueda);
 
   const handleExportarPDF = async () => {
     const nombreLista =
@@ -356,70 +351,95 @@ const tareasFiltradasBusqueda = tareasFiltradas.filter(filtrarBusqueda);
   };
 
   return (
-    <div className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
-  {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
-  <button
-    onClick={() => toggleNotificaciones(personal.id)}
-    className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm ml-2"
-  >
-    {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
-  </button>
-</div>
+    <>
+      <div
+        className={`text-center mb-4 font-semibold ${
+          notificacionesActivas ? "text-green-600" : "text-red-600"
+        }`}
+      >
+        {notificacionesActivas
+          ? "🔔 Notificaciones activadas"
+          : "🔕 Notificaciones desactivadas"}
+        <button
+          onClick={() => toggleNotificaciones(personal.id)}
+          className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm ml-2"
+        >
+          {notificacionesActivas
+            ? "🔕 Desactivar notificaciones"
+            : "🔔 Activar notificaciones"}
+        </button>
+      </div>
 
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
         📌 Registro de tareas de{" "}
-        <span className="text-blue-700">{personal?.nombre || personal?.mail || "Personal"}</span>
+        <span className="text-blue-700">
+          {personal?.nombre || personal?.mail || "Personal"}
+        </span>
       </h1>
 
       <div className="flex space-x-2 mb-4 justify-center">
-        <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">
+        <button
+          onClick={fetchTareas}
+          className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm"
+        >
           🔄 Actualizar lista
         </button>
-        <button onClick={handleExportarPDF} className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm">
-          📄 Exportar {filtro === "pendientes" ? "pendientes" : filtro === "enProceso" ? "en proceso" : "finalizadas"} en PDF
+        <button
+          onClick={handleExportarPDF}
+          className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          📄 Exportar{" "}
+          {filtro === "pendientes"
+            ? "pendientes"
+            : filtro === "enProceso"
+            ? "en proceso"
+            : "finalizadas"}{" "}
+          en PDF
         </button>
-        
-          <button
-  onClick={() => setMostrarRegistro(true)}
-  className="bg-purple-500 text-white px-3 py-1 rounded-xl text-sm"
->
-  ➕ Registrar Usuario
-</button>
-          <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
+        <button
+          onClick={() => setMostrarRegistro(true)}
+          className="bg-purple-500 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          ➕ Registrar Usuario
+        </button>
+        <button
+          onClick={onLogout}
+          className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
+        >
           Cerrar sesión
         </button>
       </div>
 
-{/* Cuadro de búsqueda */}
-<div className="relative flex justify-center mb-4">
-  <input
-    type="text"
-    placeholder="🔍 Buscar en tareas, usuario, servicio, subservicio o área"
-    value={busqueda}
-    onChange={(e) => setBusqueda(e.target.value)}
-    className="w-full max-w-md p-2 border rounded-xl shadow-sm focus:ring focus:ring-blue-300 pr-10"
-  />
-  {busqueda && (
-    <button
-  onClick={() => setBusqueda("")}
-  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-red-500"
->
-  ❌
-</button>
-  )}
-</div>
+      {/* Cuadro de búsqueda */}
+      <div className="relative flex justify-center mb-4">
+        <input
+          type="text"
+          placeholder="🔍 Buscar en tareas, usuario, servicio, subservicio o área"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="w-full max-w-md p-2 border rounded-xl shadow-sm focus:ring focus:ring-blue-300 pr-10"
+        />
+        {busqueda && (
+          <button
+            onClick={() => setBusqueda("")}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-red-500"
+          >
+            ❌
+          </button>
+        )}
+      </div>
 
-{/* Lista de tareas filtradas */}
-<ul className="space-y-3">
-  {tareasFiltradasBusqueda.length === 0 && (
-    <p className="text-center text-gray-500 italic">
-      No hay tareas que coincidan con la búsqueda.
-    </p>
-  )}
+      {/* Lista de tareas filtradas */}
+      <ul className="space-y-3">
+        {tareasFiltradasBusqueda.length === 0 && (
+          <p className="text-center text-gray-500 italic">
+            No hay tareas que coincidan con la búsqueda.
+          </p>
+        )}
 
-  {tareasFiltradasBusqueda.map((t) => (
-    <li key={t.id} className="p-3 rounded-xl shadow bg-white">
+        {tareasFiltradasBusqueda.map((t) => (
+          <li key={t.id} className="p-3 rounded-xl shadow bg-white">
       {/* resto de la tarjeta de tarea... */}
     </li>
   ))}
@@ -606,6 +626,7 @@ const tareasFiltradasBusqueda = tareasFiltradas.filter(filtrarBusqueda);
     </div>
   );
 }
+
 
 
 
