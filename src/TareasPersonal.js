@@ -235,6 +235,25 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
+   // 🔍 Búsqueda global incluyendo ID
+  const filtrarBusqueda = (t) => {
+    const texto = busqueda.trim().toLowerCase();
+    if (!texto) return true;
+
+    const esNumero = /^\d+$/.test(texto);
+    const coincideID = esNumero && t.id === parseInt(texto);
+
+    return (
+      coincideID ||
+      (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
+      (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
+      (t.area && t.area.toLowerCase().includes(texto)) ||
+      (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
+      (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
+      (t.asignado && t.asignado.toLowerCase().includes(texto))
+    );
+  };
+
   const handleReasignar = async (id) => {
     try {
       if (!nuevaArea) {
@@ -551,6 +570,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
