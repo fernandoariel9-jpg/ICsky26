@@ -21,6 +21,8 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  ReferenceLine,
+  ReferenceArea,
 } from "recharts";
 
 const API_URL = "https://sky26.onrender.com/tareas";
