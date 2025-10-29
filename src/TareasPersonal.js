@@ -20,8 +20,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [editando, setEditando] = useState({});
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
-  const [busqueda, setBusqueda] = useState("");
-
+  
   function getFechaLocal() {
     const d = new Date();
     d.setSeconds(0, 0);
@@ -32,25 +31,6 @@ export default function TareasPersonal({ personal, onLogout }) {
     const min = String(d.getMinutes()).padStart(2, "0");
     return `${año}-${mes}-${dia} ${hora}:${min}`;
   }
-
-  // 🔍 Búsqueda global incluyendo ID
-  const filtrarBusqueda = (t) => {
-    const texto = busqueda.trim().toLowerCase();
-    if (!texto) return true;
-
-    const esNumero = /^\d+$/.test(texto);
-    const coincideID = esNumero && t.id === parseInt(texto);
-
-    return (
-      coincideID ||
-      (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
-      (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
-      (t.area && t.area.toLowerCase().includes(texto)) ||
-      (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
-      (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
-      (t.asignado && t.asignado.toLowerCase().includes(texto))
-    );
-  };
 
   function formatTimestamp(ts) {
     if (!ts) return "";
@@ -386,29 +366,7 @@ export default function TareasPersonal({ personal, onLogout }) {
           Cerrar sesión
         </button>
       </div>
-
-{/* 🔍 Cuadro de búsqueda */}
-      <div className="relative flex justify-center mb-4">
-        <input
-          type="text"
-          placeholder="🔍 Buscar en todas las tareas..."
-          className="w-full max-w-md p-2 border rounded-xl shadow-sm focus:ring focus:ring-blue-300 pr-10"
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
-        {busqueda && (
-          <button
-            onClick={() => setBusqueda("")}
-            className="absolute right-[calc(50%-11rem)] sm:right-[calc(50%-12rem)] md:right-[calc(50%-13rem)] lg:right-[calc(50%-14rem)] text-gray-500 hover:text-red-500"
-          >
-            ❌
-          </button>
-        )}
-      </div>
       
-
-      {/* filtros y lista de tareas tal como la tenías */}
-      {/* ...resto del código sin cambios ... */}
  {/* Filtros */}
       <div className="flex justify-center space-x-2 mb-4">
         <button
@@ -590,6 +548,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
