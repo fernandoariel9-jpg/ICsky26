@@ -385,6 +385,25 @@ export default function TareasPersonal({ personal, onLogout }) {
           Cerrar sesión
         </button>
       </div>
+
+{/* 🔍 Cuadro de búsqueda */}
+      <div className="relative flex justify-center mb-4">
+        <input
+          type="text"
+          placeholder="🔍 Buscar en todas las tareas..."
+          className="w-full max-w-md p-2 border rounded-xl shadow-sm focus:ring focus:ring-blue-300 pr-10"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+        {busqueda && (
+          <button
+            onClick={() => setBusqueda("")}
+            className="absolute right-[calc(50%-11rem)] sm:right-[calc(50%-12rem)] md:right-[calc(50%-13rem)] lg:right-[calc(50%-14rem)] text-gray-500 hover:text-red-500"
+          >
+            ❌
+          </button>
+        )}
+      </div>
       
 
       {/* filtros y lista de tareas tal como la tenías */}
@@ -570,6 +589,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
