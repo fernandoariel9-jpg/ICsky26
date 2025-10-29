@@ -304,42 +304,107 @@ function Supervision({ setVista }) {
           </ResponsiveContainer>
         )}
 
-        {/* ----------------- Gráfico de tendencias separado ----------------- */}
-        <div className="mt-8 bg-white shadow-md rounded-xl p-4">
-          <h2 className="text-xl font-semibold mb-4 text-center">📈 Tendencias de Promedios</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={promedios.map(p => ({
-                ...p,
-                fecha: p.fecha.includes(":") ? p.fecha : `${p.fecha} 00:00:00`,
-              }))}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="fecha" />
-              <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="bg-white p-2 border rounded shadow-sm">
-                        <p className="font-semibold text-sm">Fecha: {label}</p>
-                        {payload.map((p, i) => (
-                          <p key={i} className="text-sm" style={{ color: p.color }}>
-                           {p.name}: {typeof p.value === "number" ? p.value.toFixed(2) : "0"} hs
-                          </p>
-                        ))}
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <Legend />
-              <Line type="monotone" dataKey="promedio_solucion" stroke="#3B82F6" name="Promedio solución" />
-              <Line type="monotone" dataKey="promedio_finalizacion" stroke="#10B981" name="Promedio finalización" />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+       {/* ----------------- Gráfico de tendencias separado ----------------- */}
+<div className="mt-8 bg-white shadow-md rounded-xl p-4">
+  <h2 className="text-xl font-semibold mb-4 text-center">📈 Tendencias de Promedios</h2>
+  <ResponsiveContainer width="100%" height={300}>
+    <LineChart
+      data={promedios.map(p => ({
+        ...p,
+        fecha: p.fecha.includes(":") ? p.fecha : `${p.fecha} 00:00:00`,
+      }))}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="fecha" />
+      <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
+      <Tooltip
+        content={({ active, payload, label }) => {
+          if (active && payload && payload.length) {
+            return (
+              <div className="bg-white p-2 border rounded shadow-sm">
+                <p className="font-semibold text-sm">Fecha: {label}</p>
+                {payload.map((p, i) => (
+                  <p key={i} className="text-sm" style={{ color: p.color }}>
+                    {p.name}: {typeof p.value === "number" ? p.value.toFixed(2) : "0"} hs
+                  </p>
+                ))}
+              </div>
+            );
+          }
+          return null;
+        }}
+      />
+      <Legend />
+
+      {/* Líneas principales */}
+      <Line
+        type="monotone"
+        dataKey="promedio_solucion"
+        stroke="#3B82F6"
+        name="Promedio solución"
+        dot
+      />
+      <Line
+        type="monotone"
+        dataKey="promedio_finalizacion"
+        stroke="#10B981"
+        name="Promedio finalización"
+        dot
+      />
+
+      {/* Líneas de tendencia (regresión lineal) */}
+      <Line
+        type="monotone"
+        data={(() => {
+          const y = promedios.map(p => p.promedio_solucion);
+          const n = y.length;
+          if (n === 0) return [];
+          const x = y.map((_, i) => i);
+          const sumX = x.reduce((a, b) => a + b, 0);
+          const sumY = y.reduce((a, b) => a + b, 0);
+          const sumXY = x.reduce((acc, xi, i) => acc + xi * y[i], 0);
+          const sumX2 = x.reduce((acc, xi) => acc + xi * xi, 0);
+          const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+          const intercept = (sumY - slope * sumX) / n;
+          return promedios.map((p, i) => ({
+            fecha: p.fecha,
+            tendencia_sol: intercept + slope * i,
+          }));
+        })()}
+        dataKey="tendencia_sol"
+        stroke="#1E40AF"
+        strokeDasharray="5 5"
+        dot={false}
+        name="Tendencia solución"
+      />
+
+      <Line
+        type="monotone"
+        data={(() => {
+          const y = promedios.map(p => p.promedio_finalizacion);
+          const n = y.length;
+          if (n === 0) return [];
+          const x = y.map((_, i) => i);
+          const sumX = x.reduce((a, b) => a + b, 0);
+          const sumY = y.reduce((a, b) => a + b, 0);
+          const sumXY = x.reduce((acc, xi, i) => acc + xi * y[i], 0);
+          const sumX2 = x.reduce((acc, xi) => acc + xi * xi, 0);
+          const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+          const intercept = (sumY - slope * sumX) / n;
+          return promedios.map((p, i) => ({
+            fecha: p.fecha,
+            tendencia_fin: intercept + slope * i,
+          }));
+        })()}
+        dataKey="tendencia_fin"
+        stroke="#047857"
+        strokeDasharray="5 5"
+        dot={false}
+        name="Tendencia finalización"
+      />
+    </LineChart>
+  </ResponsiveContainer>
+</div>
       </div>
 
       <p className="text-center text-xs text-gray-500 mt-2">
