@@ -5,17 +5,16 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu }
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
   const [recordar, setRecordar] = useState(false);
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const [loading, setLoading] = useState(false); // 🔹 Spinner + overlay
 
   useEffect(() => {
     const savedMail = localStorage.getItem("usuarioRecordado");
-    const savedPassword = sessionStorage.getItem("passwordRecordado");
-    if (savedMail) {
+    const savedPassword = localStorage.getItem("passwordRecordado");
+    if (savedMail && savedPassword) {
       setMail(savedMail);
-      setRecordar(true);
-    }
-    if (savedPassword) {
       setPassword(savedPassword);
+      setRecordar(true);
     }
   }, []);
 
@@ -23,14 +22,14 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu }
     setRecordar(checked);
     if (!checked) {
       localStorage.removeItem("usuarioRecordado");
-      sessionStorage.removeItem("passwordRecordado");
+      localStorage.removeItem("passwordRecordado");
       setPassword("");
     }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true); // 🔹 activar overlay
+    setLoading(true);
 
     try {
       const res = await fetch("https://sky26.onrender.com/usuarios/login", {
@@ -46,7 +45,7 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu }
 
         if (recordar) {
           localStorage.setItem("usuarioRecordado", mail);
-          sessionStorage.setItem("passwordRecordado", password);
+          localStorage.setItem("passwordRecordado", password);
         }
       } else {
         toast.error("Usuario o contraseña incorrectos ❌");
@@ -54,17 +53,13 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu }
     } catch {
       toast.error("Error de conexión ❌");
     } finally {
-      setLoading(false); // 🔹 desactivar overlay
+      setLoading(false);
     }
   };
 
   return (
     <div className="p-4 max-w-md mx-auto mt-20 relative">
-      <img
-        src="/logosmall.png"
-        alt="Logo"
-        className="mx-auto mb-4 w-24 h-auto"
-      />
+      <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
       <h1 className="text-2xl font-bold text-center mb-4">🔑 Ingreso de Usuario</h1>
 
       <form onSubmit={handleLogin} className="flex flex-col space-y-3">
@@ -72,19 +67,28 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu }
           type="text"
           placeholder="Mail"
           className="w-full p-2 border rounded"
-          value={mail} 
+          value={mail}
           onChange={(e) => setMail(e.target.value)}
           required
         />
 
-        <input
-          type="password"
-          placeholder="Contraseña"
-          className="w-full p-2 border rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="relative">
+          <input
+            type={mostrarPassword ? "text" : "password"}
+            placeholder="Contraseña"
+            className="w-full p-2 border rounded pr-16"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setMostrarPassword(!mostrarPassword)}
+            className="absolute right-2 top-2 text-sm text-blue-600 hover:underline"
+          >
+            {mostrarPassword ? "Ocultar" : "Mostrar"}
+          </button>
+        </div>
 
         <label className="flex items-center space-x-2">
           <input
@@ -92,16 +96,14 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu }
             checked={recordar}
             onChange={(e) => handleRecordarChange(e.target.checked)}
           />
-          <span>Recordar usuario</span>
+          <span>Recordar usuario y contraseña</span>
         </label>
 
-        <button
-          type="submit"
-          className="bg-blue-500 text-white p-2 rounded-xl"
-        >
+        <button type="submit" className="bg-blue-500 text-white p-2 rounded-xl">
           Ingresar
         </button>
-            {/* 🔹 Botón volver al menú */}
+
+        {/* 🔹 Botón volver al menú */}
         <button
           type="button"
           onClick={switchToMenu}
@@ -120,8 +122,3 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu }
     </div>
   );
 }
-
-
-
-
-
