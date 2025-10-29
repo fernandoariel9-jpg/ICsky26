@@ -356,16 +356,15 @@ const tareasFiltradasBusqueda = tareasFiltradas.filter(filtrarBusqueda);
   };
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <p className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
-        {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
-     <button
-          onClick={() => toggleNotificaciones(personal.id)}
-          className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm"
-        >
-          {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
-        </button>
-</p>
+    <div className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
+  {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
+  <button
+    onClick={() => toggleNotificaciones(personal.id)}
+    className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm ml-2"
+  >
+    {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
+  </button>
+</div>
 
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
@@ -403,11 +402,11 @@ const tareasFiltradasBusqueda = tareasFiltradas.filter(filtrarBusqueda);
   />
   {busqueda && (
     <button
-      onClick={() => setBusqueda("")}
-      className="absolute right-[calc(50%-11rem)] sm:right-[calc(50%-12rem)] md:right-[calc(50%-13rem)] lg:right-[calc(50%-14rem)] text-gray-500 hover:text-red-500"
-    >
-      ❌
-    </button>
+  onClick={() => setBusqueda("")}
+  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-red-500"
+>
+  ❌
+</button>
   )}
 </div>
 
@@ -607,5 +606,6 @@ const tareasFiltradasBusqueda = tareasFiltradas.filter(filtrarBusqueda);
     </div>
   );
 }
+
 
 
