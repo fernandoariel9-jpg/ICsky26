@@ -21,12 +21,6 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
   const [busqueda, setBusqueda] = useState("");
-
-  // Filtrado de tareas según búsqueda
-const tareasFiltradasBusqueda = tareasFiltradas.filter((t) => {
-  const texto = `${t.tarea} ${t.usuario} ${t.servicio || ""} ${t.subservicio || ""} ${t.area || ""}`.toLowerCase();
-  return texto.includes(busqueda.toLowerCase());
-});
   
   function getFechaLocal() {
     const d = new Date();
@@ -280,6 +274,12 @@ const tareasFiltradasBusqueda = tareasFiltradas.filter((t) => {
       : filtro === "enProceso"
       ? enProceso
       : finalizadas;
+
+    // Filtrado de tareas según búsqueda
+const tareasFiltradasBusqueda = tareasFiltradas.filter((t) => {
+  const texto = `${t.tarea} ${t.usuario} ${t.servicio || ""} ${t.subservicio || ""} ${t.area || ""}`.toLowerCase();
+  return texto.includes(busqueda.toLowerCase());
+});
 
   const handleExportarPDF = async () => {
     const nombreLista =
@@ -581,16 +581,3 @@ const tareasFiltradasBusqueda = tareasFiltradas.filter((t) => {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
