@@ -20,6 +20,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [editando, setEditando] = useState({});
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
 
   function getFechaLocal() {
     const d = new Date();
@@ -31,6 +32,25 @@ export default function TareasPersonal({ personal, onLogout }) {
     const min = String(d.getMinutes()).padStart(2, "0");
     return `${año}-${mes}-${dia} ${hora}:${min}`;
   }
+
+  // 🔍 Búsqueda global incluyendo ID
+  const filtrarBusqueda = (t) => {
+    const texto = busqueda.trim().toLowerCase();
+    if (!texto) return true;
+
+    const esNumero = /^\d+$/.test(texto);
+    const coincideID = esNumero && t.id === parseInt(texto);
+
+    return (
+      coincideID ||
+      (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
+      (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
+      (t.area && t.area.toLowerCase().includes(texto)) ||
+      (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
+      (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
+      (t.asignado && t.asignado.toLowerCase().includes(texto))
+    );
+  };
 
   function formatTimestamp(ts) {
     if (!ts) return "";
@@ -233,25 +253,6 @@ export default function TareasPersonal({ personal, onLogout }) {
       console.error("Error al editar solución", err);
       toast.error("❌ Error al editar solución");
     }
-  };
-
-   // 🔍 Búsqueda global incluyendo ID
-  const filtrarBusqueda = (t) => {
-    const texto = busqueda.trim().toLowerCase();
-    if (!texto) return true;
-
-    const esNumero = /^\d+$/.test(texto);
-    const coincideID = esNumero && t.id === parseInt(texto);
-
-    return (
-      coincideID ||
-      (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
-      (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
-      (t.area && t.area.toLowerCase().includes(texto)) ||
-      (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
-      (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
-      (t.asignado && t.asignado.toLowerCase().includes(texto))
-    );
   };
 
   const handleReasignar = async (id) => {
@@ -589,6 +590,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
