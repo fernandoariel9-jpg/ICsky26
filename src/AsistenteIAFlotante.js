@@ -78,7 +78,7 @@ export default function AsistenteIAFlotante() {
             className="fixed bottom-20 right-6 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col z-50"
           >
             <div className="bg-blue-600 text-white p-3 rounded-t-xl font-semibold flex items-center gap-2">
-              <Bot size={18} /> Asistente IA - Ingeniería Clínica
+              <Bot size={18} /> Asistente de Ingeniería Clínica
             </div>
 
             <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-80">
