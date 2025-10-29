@@ -315,7 +315,16 @@ function Supervision({ setVista }) {
       }))}
     >
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="fecha" />
+      <XAxis
+  dataKey="fecha"
+  tickFormatter={(str) => {
+    const d = new Date(str);
+    if (!isNaN(d)) return d.getDate(); // muestra solo el número de día
+    const partes = str.split(" ")[0]?.split("-");
+    return partes ? partes[2] : str; // fallback si no es ISO válido
+  }}
+  label={{ value: "Día del mes", position: "insideBottomRight", offset: -5 }}
+/>
       <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
       <Tooltip
         content={({ active, payload, label }) => {
