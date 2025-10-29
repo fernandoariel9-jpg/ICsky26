@@ -277,10 +277,27 @@ export default function TareasPersonal({ personal, onLogout }) {
       : finalizadas;
 
   // Filtrado de tareas según búsqueda
-  const tareasFiltradasBusqueda = tareasFiltradas.filter((t) => {
-    const texto = `${t.tarea} ${t.usuario} ${t.servicio || ""} ${t.subservicio || ""} ${t.area || ""}`.toLowerCase();
-    return texto.includes(busqueda.toLowerCase());
-  });
+  const filtrarBusqueda = (t) => {
+  const texto = busqueda.trim().toLowerCase();
+  if (!texto) return true;
+
+  const esNumero = /^\d+$/.test(texto);
+  const coincideID = esNumero && t.id === parseInt(texto);
+
+  return (
+    coincideID ||
+    (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
+    (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
+    (t.area && t.area.toLowerCase().includes(texto)) ||
+    (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
+    (t.subservicio && t.subservicio.toLowerCase().includes(texto)) ||
+    (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
+    (t.reasignado_a && t.reasignado_a.toLowerCase().includes(texto)) ||
+    (t.reasignado_por && t.reasignado_por.toLowerCase().includes(texto))
+  );
+};
+
+const tareasFiltradasBusqueda = tareasFiltradas.filter(filtrarBusqueda);
 
   const handleExportarPDF = async () => {
     const nombreLista =
@@ -376,14 +393,22 @@ export default function TareasPersonal({ personal, onLogout }) {
       </div>
 
 {/* Cuadro de búsqueda */}
-<div className="flex justify-center mb-4">
+<div className="relative flex justify-center mb-4">
   <input
     type="text"
     placeholder="🔍 Buscar en tareas, usuario, servicio, subservicio o área"
     value={busqueda}
     onChange={(e) => setBusqueda(e.target.value)}
-    className="w-full max-w-md p-2 border rounded"
+    className="w-full max-w-md p-2 border rounded-xl shadow-sm focus:ring focus:ring-blue-300 pr-10"
   />
+  {busqueda && (
+    <button
+      onClick={() => setBusqueda("")}
+      className="absolute right-[calc(50%-11rem)] sm:right-[calc(50%-12rem)] md:right-[calc(50%-13rem)] lg:right-[calc(50%-14rem)] text-gray-500 hover:text-red-500"
+    >
+      ❌
+    </button>
+  )}
 </div>
 
 {/* Lista de tareas filtradas */}
@@ -582,4 +607,5 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
