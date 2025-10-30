@@ -4,6 +4,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
 import AsistenteIAFlotante from "./AsistenteIAFlotante";
+import { Card } from "@/components/ui/card";
+import { PieChart as PieChartIcon } from "lucide-react";
 
 import RegistroUsuario from "./RegistroUsuario";
 import RegistroPersonal from "./RegistroPersonal";
@@ -47,6 +49,31 @@ function PanelLogin({ onLogin }) {
       setLoading(false);
     }, 1000);
   };
+
+  const [selectedArea, setSelectedArea] = useState(null);
+const [detallesArea, setDetallesArea] = useState(null);
+
+const handleAreaClick = (area) => {
+  setSelectedArea(area);
+
+  // Filtrar las tareas del área seleccionada
+  const tareasArea = tareas.filter((t) => t.area === area);
+
+  const personal = [...new Set(tareasArea.map((t) => t.personal))];
+  const servicios = [...new Set(tareasArea.map((t) => t.servicio))];
+
+  const pendientes = tareasArea.filter((t) => t.estado === "pendiente").length;
+  const proceso = tareasArea.filter((t) => t.estado === "en proceso").length;
+  const finalizadas = tareasArea.filter((t) => t.estado === "finalizada").length;
+
+  setDetallesArea({
+    personal,
+    servicios,
+    pendientes,
+    proceso,
+    finalizadas,
+  });
+};
 
   return (
     <div className="p-4 max-w-md mx-auto mt-20 relative">
@@ -321,6 +348,78 @@ function Supervision({ setVista }) {
             </PieChart>
           </ResponsiveContainer>
         )}
+
+{/* === GRÁFICO CIRCULAR DE TAREAS POR ÁREA === */}
+<Card className="p-4 shadow-md">
+  <h2 className="text-lg font-semibold mb-2 flex items-center">
+    <PieChartIcon className="mr-2 text-green-600" /> Tareas por Área
+  </h2>
+  <ResponsiveContainer width="100%" height={320}>
+    <PieChart>
+      <Pie
+        data={tareasPorArea}
+        cx="50%"
+        cy="50%"
+        outerRadius={100}
+        dataKey="value"
+        nameKey="area"
+        onClick={(data) => handleAreaClick(data.area)}
+      >
+        {tareasPorArea.map((entry, index) => (
+          <Cell
+            key={`cell-${index}`}
+            fill={COLORS[index % COLORS.length]}
+            cursor="pointer"
+          />
+        ))}
+      </Pie>
+      <Tooltip />
+      <Legend />
+    </PieChart>
+  </ResponsiveContainer>
+</Card>
+
+{/* === MODAL DETALLES POR ÁREA === */}
+<AnimatePresence>
+  {selectedArea && (
+    <motion.div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="bg-white rounded-2xl shadow-xl p-6 w-11/12 max-w-3xl"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+      >
+        <h2 className="text-xl font-bold mb-4 text-center text-green-700">
+          Detalles del área: {selectedArea}
+        </h2>
+
+        {detallesArea && (
+          <>
+            <p><strong>Personal involucrado:</strong> {detallesArea.personal.join(", ")}</p>
+            <p><strong>Pendientes:</strong> {detallesArea.pendientes}</p>
+            <p><strong>En proceso:</strong> {detallesArea.proceso}</p>
+            <p><strong>Finalizadas:</strong> {detallesArea.finalizadas}</p>
+            <p><strong>Servicios:</strong> {detallesArea.servicios.join(", ")}</p>
+          </>
+        )}
+
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => setSelectedArea(null)}
+            className="bg-green-500 text-white px-6 py-2 rounded-xl hover:bg-green-600"
+          >
+            Cerrar
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
 
        {/* ----------------- Gráfico de tendencias separado ----------------- */}
 <div className="mt-8 bg-white shadow-md rounded-xl p-4">
