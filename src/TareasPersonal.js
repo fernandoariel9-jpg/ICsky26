@@ -216,24 +216,31 @@ export default function TareasPersonal({ personal, onLogout }) {
   };
 
   const handleEditarSolucion = async (id) => {
-    try {
-      const nuevaSolucion = soluciones[id] || "";
-      const url = `${API_TAREAS}/${id}/solucion`;
-      const res = await fetch(url, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ solucion: nuevaSolucion, asignado: personal.nombre }),
-      });
-      if (!res.ok) throw new Error("Error HTTP " + res.status);
-      setTareas((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, solucion: nuevaSolucion } : t))
-      );
-      toast.success("✏️ Solución actualizada");
-    } catch (err) {
-      console.error("Error al editar solución", err);
-      toast.error("❌ Error al editar solución");
+  try {
+    const nuevaSolucion = soluciones[id];
+    if (!nuevaSolucion) {
+      toast.warn("Escriba una nueva solución antes de guardar ✏️");
+      return;
     }
-  };
+
+    const url = `${API_TAREAS}/${id}/solucion`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ solucion: nuevaSolucion, asignado: personal.nombre }),
+    });
+    if (!res.ok) throw new Error("Error HTTP " + res.status);
+
+    setTareas((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, solucion: nuevaSolucion } : t))
+    );
+
+    toast.success("✏️ Solución actualizada correctamente");
+  } catch (err) {
+    console.error("Error al editar solución", err);
+    toast.error("❌ Error al editar solución");
+  }
+};
 
   const handleReasignar = async (id) => {
     try {
@@ -499,13 +506,21 @@ export default function TareasPersonal({ personal, onLogout }) {
             )}
 
             {filtro === "enProceso" && !t.fin && (
-              <button
-                onClick={() => handleEditarSolucion(t.id)}
-                className="mt-2 px-3 py-1 rounded bg-blue-500 text-white text-sm"
-              >
-                ✏️ Editar solución
-              </button>
-            )}
+  <>
+    <textarea
+      className="w-full p-2 border rounded mt-2"
+      placeholder="Editar la solución..."
+      value={soluciones[t.id] ?? t.solucion ?? ""}
+      onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+    />
+    <button
+      onClick={() => handleEditarSolucion(t.id)}
+      className="mt-2 px-3 py-1 rounded bg-blue-500 text-white text-sm"
+    >
+      💾 Guardar cambios
+    </button>
+  </>
+)}
           </div>
         </div>
       </div>
@@ -551,3 +566,4 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
