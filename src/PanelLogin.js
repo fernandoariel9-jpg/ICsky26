@@ -349,8 +349,8 @@ function Supervision({ setVista }) {
 const COLORES_AREAS = {
   "Area 1": "#eef207", // amarillo
   "Area 2": "#EF4444", // rojo
-  "Area 3": "#10B981" , // verde
-  "Area 4": "#3B82F6" , // azul
+  "Area 3": "#10B981", // verde
+  "Area 4": "#3B82F6", // azul
   "Area 5": "#d25cf6", // violeta
   "Area 6": "#efb06e", // naranja
 };
