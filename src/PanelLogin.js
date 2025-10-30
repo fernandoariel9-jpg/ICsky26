@@ -345,7 +345,17 @@ function Supervision({ setVista }) {
         )}
 
 {/* === GRÁFICO CIRCULAR DE TAREAS POR ÁREA === */}
-<div className="p-4 shadow-md">
+/* === Gráfico Circular por Área === */
+const COLORES_AREAS = {
+  "Area 1": "#eef207", // amarillo
+  "Area 2": "#EF4444", // rojo
+  "Area 3": "#10B981" , // verde
+  "Area 4": "#3B82F6" , // azul
+  "Area 5": "#d25cf6", // violeta
+  "Area 6": "#efb06e", // naranja
+};
+
+<div className="p-4 shadow-md mb-8 bg-white rounded-xl">
   <h2 className="text-lg font-semibold mb-2 flex items-center">
     <PieChartIcon className="mr-2 text-green-600" /> Tareas por Área
   </h2>
@@ -363,7 +373,7 @@ function Supervision({ setVista }) {
         {tareasPorArea.map((entry, index) => (
           <Cell
             key={`cell-${index}`}
-            fill={COLORS[index % COLORS.length]}
+            fill={COLORES_AREAS[entry.area] || "#6B7280"} // usa el color definido o gris si no existe
             cursor="pointer"
           />
         ))}
