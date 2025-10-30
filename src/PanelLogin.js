@@ -95,9 +95,12 @@ function Supervision({ setVista }) {
   const [busqueda, setBusqueda] = useState("");
   const [vistaGrafico, setVistaGrafico] = useState("area");
   const [promedios, setPromedios] = useState([]);
+
+  // Estados para popup por área
   const [selectedArea, setSelectedArea] = useState(null);
   const [detallesArea, setDetallesArea] = useState(null);
 
+  // Paleta por defecto (puedes editar)
   const COLORS = [
     "#60A5FA",
     "#34D399",
@@ -108,6 +111,17 @@ function Supervision({ setVista }) {
     "#10B981",
     "#F59E0B",
   ];
+
+  // Mapea colores fijos por área (editable)
+  const COLORES_AREAS = {
+    "Area 1": "#EEF207",
+    "Area 2": "#EF4444",
+    "Area 3": "#10B981",
+    "Area 4": "#3B82F6",
+    "Area 5": "#D25CF6",
+    "Area 6": "#EFB06E",
+    "Sin área": "#6B7280",
+  };
 
   // Cargar tareas
   useEffect(() => {
@@ -127,22 +141,27 @@ function Supervision({ setVista }) {
     }
   };
 
-  // Recalcular promedios
+  // Recalcular promedios cuando cambian las tareas
   useEffect(() => {
     const tiemposPorDia = {};
     tareas.forEach((t) => {
       if (!t.fecha) return;
-      const fecha = `${t.fecha}`;
+      const fecha = `${t.fecha}`; // mantener formato con hora
+
       if (!tiemposPorDia[fecha])
         tiemposPorDia[fecha] = { fecha, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
-      if (t.fecha_comp)
-        tiemposPorDia[fecha].totalSol +=
-          (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
-      if (t.fecha_fin)
-        tiemposPorDia[fecha].totalFin +=
-          (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
-      if (t.fecha_comp) tiemposPorDia[fecha].cantSol++;
-      if (t.fecha_fin) tiemposPorDia[fecha].cantFin++;
+
+      if (t.fecha_comp !== null && t.fecha_comp !== undefined) {
+        const tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
+        tiemposPorDia[fecha].totalSol += tiempoSol;
+        tiemposPorDia[fecha].cantSol += 1;
+      }
+
+      if (t.fecha_fin !== null && t.fecha_fin !== undefined) {
+        const tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
+        tiemposPorDia[fecha].totalFin += tiempoFin;
+        tiemposPorDia[fecha].cantFin += 1;
+      }
     });
 
     const nuevosPromedios = Object.values(tiemposPorDia)
@@ -156,12 +175,14 @@ function Supervision({ setVista }) {
     setPromedios(nuevosPromedios);
   }, [tareas]);
 
-  // 🔍 Búsqueda
+  // 🔍 Búsqueda global incluyendo ID
   const filtrarBusqueda = (t) => {
     const texto = busqueda.trim().toLowerCase();
     if (!texto) return true;
+
     const esNumero = /^\d+$/.test(texto);
     const coincideID = esNumero && t.id === parseInt(texto);
+
     return (
       coincideID ||
       (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
@@ -180,27 +201,60 @@ function Supervision({ setVista }) {
   const tareasPorTab =
     tab === "pendientes" ? pendientes : tab === "terminadas" ? terminadas : finalizadas;
 
-  // 📊 Tareas agrupadas por área
-  const tareasPorArea = Object.entries(
-    tareas.reduce((acc, t) => {
-      const area = t.area || "Sin área";
-      acc[area] = (acc[area] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([area, value]) => ({ area, value }));
+  // 📊 Tareas agrupadas por área (obj y array para charts)
+  const tareasPorAreaObj = tareas.reduce((acc, t) => {
+    const area = t.area || "Sin área";
+    acc[area] = (acc[area] || 0) + 1;
+    return acc;
+  }, {});
 
-  // 📋 Manejar click en área
-  const handleAreaClick = (area) => {
-    setSelectedArea(area);
-    const tareasArea = tareas.filter((t) => t.area === area);
-    const personal = [...new Set(tareasArea.map((t) => t.personal))];
-    const servicios = [...new Set(tareasArea.map((t) => t.servicio))];
-    const pendientes = tareasArea.filter((t) => t.estado === "pendiente").length;
-    const proceso = tareasArea.filter((t) => t.estado === "en proceso").length;
-    const finalizadas = tareasArea.filter((t) => t.estado === "finalizada").length;
-    setDetallesArea({ personal, servicios, pendientes, proceso, finalizadas });
+  const tareasPorArea = Object.entries(tareasPorAreaObj).map(([area, value]) => ({
+    name: area,
+    value,
+  }));
+
+  // Normalizar cadena para comparar (quita acentos, minúsculas)
+  const normalize = (str) =>
+    (str || "")
+      .toString()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+
+  // 📋 Manejar click en área (usa solucion text y fin booleano)
+  const handleAreaClick = (areaName) => {
+    if (!areaName) return;
+    setSelectedArea(areaName);
+
+    const tareasArea = tareas.filter((t) => normalize(t.area || "Sin área") === normalize(areaName));
+
+    // personal: usar 'asignado' (antes usaste 'personal' en algunas versiones; tu DB usa asignado)
+    const personal = [...new Set(tareasArea.map((t) => t.asignado || "No asignado"))];
+
+    // servicios
+    const servicios = [...new Set(tareasArea.map((t) => t.servicio || "Sin servicio"))];
+
+    // estados: pendientes = !solucion && !fin ; en proceso = solucion && !fin ; finalizadas = fin (boolean)
+    const pendientesCount = tareasArea.filter((t) => !t.solucion && !t.fin).length;
+    const enProcesoCount = tareasArea.filter((t) => t.solucion && !t.fin).length;
+    const finalizadasCount = tareasArea.filter((t) => t.fin).length;
+
+    setDetallesArea({
+      personal,
+      servicios,
+      pendientes: pendientesCount,
+      proceso: enProcesoCount,
+      finalizadas: finalizadasCount,
+      tareasList: tareasArea, // por si querés listar luego
+    });
   };
-  
+
+  const cerrarPopupArea = () => {
+    setSelectedArea(null);
+    setDetallesArea(null);
+  };
+
   return (
     <div className="p-4 max-w-3xl mx-auto">
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
@@ -230,200 +284,59 @@ function Supervision({ setVista }) {
           </div>
         </div>
 
-   {/* 🕓 Calcular tiempos promedio */}
-  {tareas.length > 0 && (
-    <div className="mt-4 text-center">
-      {(() => {
-        const tareasConComp = tareas.filter((t) => t.fecha && t.fecha_comp);
-        const tareasConFin = tareas.filter((t) => t.fecha_comp && t.fecha_fin);
+        {/* 🕓 Calcular tiempos promedio */}
+        {tareas.length > 0 && (
+          <div className="mt-4 text-center">
+            {(() => {
+              const tareasConComp = tareas.filter((t) => t.fecha && t.fecha_comp);
+              const tareasConFin = tareas.filter((t) => t.fecha_comp && t.fecha_fin);
 
-        const promedioSolucion =
-          tareasConComp.length > 0
-            ? (
-                tareasConComp.reduce(
-                  (acc, t) =>
-                    acc +
-                    (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60),
-                  0
-                ) / tareasConComp.length
-              ).toFixed(1)
-            : "—";
+              const promedioSolucion =
+                tareasConComp.length > 0
+                  ? (
+                      tareasConComp.reduce(
+                        (acc, t) =>
+                          acc + (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60),
+                        0
+                      ) / tareasConComp.length
+                    ).toFixed(1)
+                  : "—";
 
-        const promedioFinalizacion =
-          tareasConFin.length > 0
-            ? (
-                tareasConFin.reduce(
-                  (acc, t) =>
-                    acc +
-                    (new Date(t.fecha_fin) - new Date(t.fecha_comp)) /
-                      (1000 * 60 * 60),
-                  0
-                ) / tareasConFin.length
-              ).toFixed(1)
-            : "—";
+              const promedioFinalizacion =
+                tareasConFin.length > 0
+                  ? (
+                      tareasConFin.reduce(
+                        (acc, t) =>
+                          acc +
+                          (new Date(t.fecha_fin) - new Date(t.fecha_comp)) / (1000 * 60 * 60),
+                        0
+                      ) / tareasConFin.length
+                    ).toFixed(1)
+                  : "—";
 
-        return (
-          <>
-            <p className="text-sm text-gray-600">
-              ⏱️ Tiempo promedio de solución:{" "}
-              <span className="font-semibold">
-                {promedioSolucion !== "—" ? `${promedioSolucion} h` : "Sin datos"}
-              </span>
-            </p>
-            <p className="text-sm text-gray-600">
-              🕒 Tiempo promedio hasta finalización:{" "}
-              <span className="font-semibold">
-                {promedioFinalizacion !== "—"
-                  ? `${promedioFinalizacion} h`
-                  : "Sin datos"}
-              </span>
-            </p>
-          </>
-        );
-      })()}
-    </div>
-  )}
+              return (
+                <>
+                  <p className="text-sm text-gray-600">
+                    ⏱️ Tiempo promedio de solución:{" "}
+                    <span className="font-semibold">
+                      {promedioSolucion !== "—" ? `${promedioSolucion} h` : "Sin datos"}
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    🕒 Tiempo promedio hasta finalización:{" "}
+                    <span className="font-semibold">
+                      {promedioFinalizacion !== "—"
+                        ? `${promedioFinalizacion} h`
+                        : "Sin datos"}
+                    </span>
+                  </p>
+                </>
+              );
+            })()}
+          </div>
+        )}
 
-{/* === GRÁFICO CIRCULAR DE TAREAS POR ÁREA === */}
-// --- estados y funciones del gráfico de áreas ---
-const [selectedArea, setSelectedArea] = useState(null);
-const [detallesArea, setDetallesArea] = useState(null);
-
-// 🎨 Colores personalizados por área
-const COLORES_AREA = {
-  "Area 1": "#1E90FF",
-  "Area 2": "#FF6347",
-  "Area 3": "#32CD32",
-  "Area 4": "#FFD700",
-  "Area 5": "#FF69B4",
-  "Sin área": "#A9A9A9",
-};
-
-// 📊 Conteo de tareas por área
-const tareasPorArea = tareas.reduce((acc, t) => {
-  const area = t.area || "Sin área";
-  acc[area] = (acc[area] || 0) + 1;
-  return acc;
-}, {});
-
-// 🔍 Normalizar texto
-const normalize = (str) =>
-  str
-    ? str
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .trim()
-    : "";
-
-// 🔘 Click en porción del gráfico circular
-const handleAreaClick = (areaSeleccionada) => {
-  if (!areaSeleccionada) return;
-  const areaNorm = normalize(areaSeleccionada);
-
-  const tareasArea = tareas.filter(
-    (t) => normalize(t.area) === areaNorm
-  );
-
-  const personal = [
-    ...new Set(tareasArea.map((t) => t.asignado || "No asignado")),
-  ];
-
-  const pendientes = tareasArea.filter(
-    (t) => !t.solucion && !t.fin
-  ).length;
-
-  const enProceso = tareasArea.filter(
-    (t) => t.solucion && !t.fin
-  ).length;
-
-  const finalizadas = tareasArea.filter(
-    (t) => t.fin
-  ).length;
-
-  const servicios = [
-    ...new Set(tareasArea.map((t) => t.servicio || "Sin servicio")),
-  ];
-
-  setDetallesArea({
-    personal,
-    pendientes,
-    enProceso,
-    finalizadas,
-    servicios,
-  });
-  setSelectedArea(areaSeleccionada);
-};
-
-// 🔚 Cerrar popup
-const cerrarPopup = () => {
-  setSelectedArea(null);
-  setDetallesArea(null);
-};
-
-// 📈 Gráfico circular por área
-return (
-  <>
-    <ResponsiveContainer width="100%" height={350}>
-      <PieChart>
-        <Pie
-          data={Object.entries(tareasPorArea).map(([name, value]) => ({
-            name,
-            value,
-          }))}
-          cx="50%"
-          cy="50%"
-          outerRadius={120}
-          dataKey="value"
-          label
-          onClick={(data) => handleAreaClick(data.name)}
-        >
-          {Object.keys(tareasPorArea).map((area, i) => (
-            <Cell
-              key={`cell-${i}`}
-              fill={COLORES_AREA[area] || "#8884d8"}
-              stroke="#fff"
-              strokeWidth={2}
-            />
-          ))}
-        </Pie>
-        <Tooltip />
-        <Legend />
-      </PieChart>
-    </ResponsiveContainer>
-
-    {/* 🪟 Popup con detalles del área seleccionada */}
-    {selectedArea && detallesArea && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
-          <h2 className="text-xl font-bold mb-3 text-center text-blue-600">
-            📍 Detalles del área: {selectedArea}
-          </h2>
-
-          <p className="mb-2">
-            <strong>👥 Personal involucrado:</strong>{" "}
-            {detallesArea.personal.join(", ")}
-          </p>
-          <p className="mb-1">🕒 Pendientes: {detallesArea.pendientes}</p>
-          <p className="mb-1">⚙️ En proceso: {detallesArea.enProceso}</p>
-          <p className="mb-3">✅ Finalizadas: {detallesArea.finalizadas}</p>
-          <p className="mb-3">
-            🏥 Servicios: {detallesArea.servicios.join(", ")}
-          </p>
-
-          <button
-            onClick={cerrarPopup}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl mt-2 w-full"
-          >
-            Cerrar
-          </button>
-        </div>
-      </div>
-    )}
-  </>
-);
-
-  {/* 🔽 Selector de gráfico circular */}
+        {/* 🔽 Selector de gráfico circular */}
         {vistaGrafico !== "tendencias" && (
           <div className="flex justify-center mt-6 mb-4">
             <select
@@ -431,13 +344,14 @@ return (
               value={vistaGrafico}
               onChange={(e) => setVistaGrafico(e.target.value)}
             >
+              <option value="area">Por área</option>
               <option value="personal">Por personal</option>
               <option value="servicio">Por servicio</option>
             </select>
           </div>
         )}
 
-        {/* 📊 Gráfico circular */}
+        {/* 📊 Gráfico circular (general) */}
         {vistaGrafico !== "tendencias" && (
           <ResponsiveContainer width="100%" height={350}>
             <PieChart>
@@ -445,13 +359,22 @@ return (
                 data={(() => {
                   const conteo = {};
                   if (vistaGrafico === "area") {
-                    tareas.forEach(t => { const k = t.area || "Sin área"; conteo[k] = (conteo[k] || 0) + 1; });
+                    tareas.forEach((t) => {
+                      const k = t.area || "Sin área";
+                      conteo[k] = (conteo[k] || 0) + 1;
+                    });
                   } else if (vistaGrafico === "personal") {
-                    tareas.forEach(t => { const k = t.asignado || "Sin asignar"; conteo[k] = (conteo[k] || 0) + 1; });
+                    tareas.forEach((t) => {
+                      const k = t.asignado || "Sin asignar";
+                      conteo[k] = (conteo[k] || 0) + 1;
+                    });
                   } else if (vistaGrafico === "servicio") {
-                    tareas.forEach(t => { const k = t.servicio || "Sin servicio"; conteo[k] = (conteo[k] || 0) + 1; });
+                    tareas.forEach((t) => {
+                      const k = t.servicio || "Sin servicio";
+                      conteo[k] = (conteo[k] || 0) + 1;
+                    });
                   }
-                  return Object.keys(conteo).map(k => ({ name: k, value: conteo[k] }));
+                  return Object.keys(conteo).map((k) => ({ name: k, value: conteo[k] }));
                 })()}
                 cx="50%"
                 cy="50%"
@@ -462,16 +385,24 @@ return (
                 {(() => {
                   const conteo = {};
                   if (vistaGrafico === "area") {
-                    tareas.forEach(t => { const k = t.area || "Sin área"; conteo[k] = (conteo[k] || 0) + 1; });
+                    tareas.forEach((t) => {
+                      const k = t.area || "Sin área";
+                      conteo[k] = (conteo[k] || 0) + 1;
+                    });
                   } else if (vistaGrafico === "personal") {
-                    tareas.forEach(t => { const k = t.asignado || "Sin asignar"; conteo[k] = (conteo[k] || 0) + 1; });
+                    tareas.forEach((t) => {
+                      const k = t.asignado || "Sin asignar";
+                      conteo[k] = (conteo[k] || 0) + 1;
+                    });
                   } else if (vistaGrafico === "servicio") {
-                    tareas.forEach(t => { const k = t.servicio || "Sin servicio"; conteo[k] = (conteo[k] || 0) + 1; });
+                    tareas.forEach((t) => {
+                      const k = t.servicio || "Sin servicio";
+                      conteo[k] = (conteo[k] || 0) + 1;
+                    });
                   }
                   const nombres = Object.keys(conteo);
                   return nombres.map((_, i) => {
-                    const hue = (i * 360 / nombres.length) % 360;
-                    const color = `hsl(${hue}, 70%, 50%)`;
+                    const color = COLORES_AREAS[nombres[i]] || COLORS[i % COLORS.length];
                     return <Cell key={i} fill={color} />;
                   });
                 })()}
@@ -482,178 +413,281 @@ return (
           </ResponsiveContainer>
         )}
 
-       {/* ----------------- Gráfico de tendencias separado ----------------- */}
-<div className="mt-8 bg-white shadow-md rounded-xl p-4">
-  <h2 className="text-xl font-semibold mb-4 text-center">📈 Tendencias de Promedios</h2>
-  <ResponsiveContainer width="100%" height={350}>
-  <LineChart
-    data={(() => {
-      const tiemposPorDia = {};
-      tareas.forEach((t) => {
-        if (!t.fecha) return;
+        {/* === GRÁFICO CIRCULAR DE TAREAS POR ÁREA (separado, con click) === */}
+        <div className="p-4 shadow-md mb-8 bg-white rounded-xl">
+          <h2 className="text-lg font-semibold mb-2 flex items-center">
+            <PieChartIcon className="mr-2 text-green-600" /> Tareas por Área
+          </h2>
+          <ResponsiveContainer width="100%" height={320}>
+            <PieChart>
+              <Pie
+                data={tareasPorArea}
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                dataKey="value"
+                nameKey="name"
+                onClick={(entry /*, index*/) => {
+                  // entry.name contiene el nombre del área
+                  const areaName = entry && (entry.name || (entry.payload && entry.payload.name));
+                  handleAreaClick(areaName);
+                }}
+              >
+                {tareasPorArea.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORES_AREAS[entry.name] || COLORS[index % COLORS.length]}
+                    cursor="pointer"
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
 
-        // 🕒 Convertir a timestamp
-        const fecha = new Date(t.fecha);
-        const key = fecha.toISOString().split("T")[0]; // yyyy-mm-dd
+        {/* === MODAL DETALLES POR ÁREA === */}
+        <AnimatePresence>
+          {selectedArea && detallesArea && (
+            <motion.div
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                className="bg-white rounded-2xl shadow-xl p-6 w-11/12 max-w-3xl"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+              >
+                <h2 className="text-xl font-bold mb-4 text-center text-green-700">
+                  Detalles del área: {selectedArea}
+                </h2>
 
-        let tiempoSol = null;
-        let tiempoFin = null;
-        if (t.fecha_comp)
-          tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
-        if (t.fecha_fin)
-          tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
+                {detallesArea && (
+                  <>
+                    <p>
+                      <strong>Personal involucrado:</strong>{" "}
+                      {detallesArea.personal.length ? detallesArea.personal.join(", ") : "—"}
+                    </p>
+                    <p>
+                      <strong>Pendientes:</strong> {detallesArea.pendientes}
+                    </p>
+                    <p>
+                      <strong>En proceso:</strong> {detallesArea.proceso}
+                    </p>
+                    <p>
+                      <strong>Finalizadas:</strong> {detallesArea.finalizadas}
+                    </p>
+                    <p>
+                      <strong>Servicios:</strong>{" "}
+                      {detallesArea.servicios.length ? detallesArea.servicios.join(", ") : "—"}
+                    </p>
 
-        if (!tiemposPorDia[key])
-          tiemposPorDia[key] = { fecha: key, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
+                    {/* opcional: lista corta de tareas (id - asignado - servicio) */}
+                    {detallesArea.tareasList && detallesArea.tareasList.length > 0 && (
+                      <div className="mt-4 max-h-40 overflow-auto text-sm border rounded p-2 bg-gray-50">
+                        <strong>Listado (ID — Asignado — Servicio):</strong>
+                        <ul className="mt-2 space-y-1">
+                          {detallesArea.tareasList.map((ta) => (
+                            <li key={ta.id}>
+                              #{ta.id} — {ta.asignado || "No asignado"} — {ta.servicio || "Sin servicio"}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                )}
 
-        if (tiempoSol !== null) {
-          tiemposPorDia[key].totalSol += tiempoSol;
-          tiemposPorDia[key].cantSol += 1;
-        }
-        if (tiempoFin !== null) {
-          tiemposPorDia[key].totalFin += tiempoFin;
-          tiemposPorDia[key].cantFin += 1;
-        }
-      });
+                <div className="mt-6 flex justify-center">
+                  <button
+                    onClick={cerrarPopupArea}
+                    className="bg-green-500 text-white px-6 py-2 rounded-xl hover:bg-green-600"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      const datos = Object.values(tiemposPorDia)
-        .map((d) => ({
-          fecha: new Date(d.fecha).getTime(), // timestamp numérico
-          promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
-          promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
-        }))
-        .sort((a, b) => a.fecha - b.fecha);
+        {/* ----------------- Gráfico de tendencias separado ----------------- */}
+        <div className="mt-8 bg-white shadow-md rounded-xl p-4">
+          <h2 className="text-xl font-semibold mb-4 text-center">📈 Tendencias de Promedios</h2>
+          <ResponsiveContainer width="100%" height={350}>
+            <LineChart
+              data={(() => {
+                const tiemposPorDia = {};
+                tareas.forEach((t) => {
+                  if (!t.fecha) return;
 
-      return datos;
-    })()}
-    margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-  >
-    <CartesianGrid strokeDasharray="3 3" />
+                  // 🕒 Convertir a timestamp (por día)
+                  const fecha = new Date(t.fecha);
+                  const key = fecha.toISOString().split("T")[0]; // yyyy-mm-dd
 
-    {/* 📅 Eje X con fechas bien espaciadas */}
-    <XAxis
-      dataKey="fecha"
-      type="number"
-      domain={["auto", "auto"]}
-      scale="time"
-      tickFormatter={(timestamp) => {
-        const d = new Date(timestamp);
-        return d.getDate(); // solo el número de día
-      }}
-      label={{ value: "Día del mes", position: "insideBottomRight", offset: -5 }}
-    />
+                  let tiempoSol = null;
+                  let tiempoFin = null;
+                  if (t.fecha_comp)
+                    tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
+                  if (t.fecha_fin)
+                    tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
 
-    {/* 🕒 Eje Y */}
-    <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
+                  if (!tiemposPorDia[key])
+                    tiemposPorDia[key] = { fecha: key, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
 
-    <Tooltip
-      labelFormatter={(ts) =>
-        new Date(ts).toLocaleString("es-AR", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      }
-      formatter={(v) => `${v.toFixed(2)} h`}
-    />
-    <Legend />
+                  if (tiempoSol !== null) {
+                    tiemposPorDia[key].totalSol += tiempoSol;
+                    tiemposPorDia[key].cantSol += 1;
+                  }
+                  if (tiempoFin !== null) {
+                    tiemposPorDia[key].totalFin += tiempoFin;
+                    tiemposPorDia[key].cantFin += 1;
+                  }
+                });
 
-    {/* 📈 Líneas principales */}
-    <Line
-      type="monotone"
-      dataKey="promedioSol"
-      stroke="#3B82F6"
-      name="Promedio solución"
-      dot={{ r: 3 }}
-    />
-    <Line
-      type="monotone"
-      dataKey="promedioFin"
-      stroke="#10B981"
-      name="Promedio finalización"
-      dot={{ r: 3 }}
-    />
+                const datos = Object.values(tiemposPorDia)
+                  .map((d) => ({
+                    fecha: new Date(d.fecha).getTime(), // timestamp numérico
+                    promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
+                    promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
+                  }))
+                  .sort((a, b) => a.fecha - b.fecha);
 
-    {/* 📉 Líneas de tendencia */}
-    {(() => {
-      const datos = (() => {
-        const tiemposPorDia = {};
-        tareas.forEach((t) => {
-          if (!t.fecha) return;
-          const fecha = new Date(t.fecha);
-          const key = fecha.toISOString().split("T")[0];
-          let tiempoSol = null;
-          let tiempoFin = null;
-          if (t.fecha_comp)
-            tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
-          if (t.fecha_fin)
-            tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
-          if (!tiemposPorDia[key])
-            tiemposPorDia[key] = { fecha: key, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
-          if (tiempoSol !== null) {
-            tiemposPorDia[key].totalSol += tiempoSol;
-            tiemposPorDia[key].cantSol += 1;
-          }
-          if (tiempoFin !== null) {
-            tiemposPorDia[key].totalFin += tiempoFin;
-            tiemposPorDia[key].cantFin += 1;
-          }
-        });
-        return Object.values(tiemposPorDia)
-          .map((d) => ({
-            fecha: new Date(d.fecha).getTime(),
-            promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
-            promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
-          }))
-          .sort((a, b) => a.fecha - b.fecha);
-      })();
+                return datos;
+              })()}
+              margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
 
-      const calcTrend = (arr) => {
-        const n = arr.length;
-        if (n === 0) return [];
-        const x = arr.map((_, i) => i);
-        const y = arr;
-        const sumX = x.reduce((a, b) => a + b, 0);
-        const sumY = y.reduce((a, b) => a + b, 0);
-        const sumXY = x.reduce((a, c, i) => a + c * y[i], 0);
-        const sumX2 = x.reduce((a, c) => a + c * c, 0);
-        const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-        const intercept = (sumY - slope * sumX) / n;
-        return arr.map((_, i) => intercept + slope * i);
-      };
+              {/* 📅 Eje X con fechas bien espaciadas */}
+              <XAxis
+                dataKey="fecha"
+                type="number"
+                domain={["auto", "auto"]}
+                scale="time"
+                tickFormatter={(timestamp) => {
+                  const d = new Date(timestamp);
+                  return d.getDate(); // solo el número de día
+                }}
+                label={{ value: "Día del mes", position: "insideBottomRight", offset: -5 }}
+              />
 
-      const tendenciaSol = calcTrend(datos.map((d) => d.promedioSol));
-      const tendenciaFin = calcTrend(datos.map((d) => d.promedioFin));
+              {/* 🕒 Eje Y */}
+              <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
 
-      return (
-        <>
-          <Line
-            type="monotone"
-            data={datos.map((d, i) => ({ fecha: d.fecha, valor: tendenciaSol[i] }))}
-            dataKey="valor"
-            stroke="#1E40AF"
-            strokeDasharray="5 5"
-            name="Tendencia solución"
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            data={datos.map((d, i) => ({ fecha: d.fecha, valor: tendenciaFin[i] }))}
-            dataKey="valor"
-            stroke="#047857"
-            strokeDasharray="5 5"
-            name="Tendencia finalización"
-            dot={false}
-          />
-        </>
-      );
-    })()}
-  </LineChart>
-</ResponsiveContainer>
+              <Tooltip
+                labelFormatter={(ts) =>
+                  new Date(ts).toLocaleString("es-AR", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                }
+                formatter={(v) => (typeof v === "number" ? `${v.toFixed(2)} h` : v)}
+              />
+              <Legend />
 
-</div>
+              {/* 📈 Líneas principales */}
+              <Line
+                type="monotone"
+                dataKey="promedioSol"
+                stroke="#3B82F6"
+                name="Promedio solución"
+                dot={{ r: 3 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="promedioFin"
+                stroke="#10B981"
+                name="Promedio finalización"
+                dot={{ r: 3 }}
+              />
+
+              {/* 📉 Líneas de tendencia (regresión simple) */}
+              {(() => {
+                const datos = (() => {
+                  const tiemposPorDia = {};
+                  tareas.forEach((t) => {
+                    if (!t.fecha) return;
+                    const fecha = new Date(t.fecha);
+                    const key = fecha.toISOString().split("T")[0];
+                    let tiempoSol = null;
+                    let tiempoFin = null;
+                    if (t.fecha_comp)
+                      tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
+                    if (t.fecha_fin)
+                      tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
+                    if (!tiemposPorDia[key])
+                      tiemposPorDia[key] = { fecha: key, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
+                    if (tiempoSol !== null) {
+                      tiemposPorDia[key].totalSol += tiempoSol;
+                      tiemposPorDia[key].cantSol += 1;
+                    }
+                    if (tiempoFin !== null) {
+                      tiemposPorDia[key].totalFin += tiempoFin;
+                      tiemposPorDia[key].cantFin += 1;
+                    }
+                  });
+                  return Object.values(tiemposPorDia)
+                    .map((d) => ({
+                      fecha: new Date(d.fecha).getTime(),
+                      promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
+                      promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
+                    }))
+                    .sort((a, b) => a.fecha - b.fecha);
+                })();
+
+                const calcTrend = (arr) => {
+                  const n = arr.length;
+                  if (n === 0) return [];
+                  const x = arr.map((_, i) => i);
+                  const y = arr;
+                  const sumX = x.reduce((a, b) => a + b, 0);
+                  const sumY = y.reduce((a, b) => a + b, 0);
+                  const sumXY = x.reduce((a, c, i) => a + c * y[i], 0);
+                  const sumX2 = x.reduce((a, c) => a + c * c, 0);
+                  const denom = n * sumX2 - sumX * sumX;
+                  if (denom === 0) return new Array(n).fill(y[0] || 0);
+                  const slope = (n * sumXY - sumX * sumY) / denom;
+                  const intercept = (sumY - slope * sumX) / n;
+                  return arr.map((_, i) => intercept + slope * i);
+                };
+
+                const tendenciaSol = calcTrend(datos.map((d) => d.promedioSol));
+                const tendenciaFin = calcTrend(datos.map((d) => d.promedioFin));
+
+                return (
+                  <>
+                    <Line
+                      type="monotone"
+                      data={datos.map((d, i) => ({ fecha: d.fecha, valor: tendenciaSol[i] }))}
+                      dataKey="valor"
+                      stroke="#1E40AF"
+                      strokeDasharray="5 5"
+                      name="Tendencia solución"
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      data={datos.map((d, i) => ({ fecha: d.fecha, valor: tendenciaFin[i] }))}
+                      dataKey="valor"
+                      stroke="#047857"
+                      strokeDasharray="5 5"
+                      name="Tendencia finalización"
+                      dot={false}
+                    />
+                  </>
+                );
+              })()}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <p className="text-center text-xs text-gray-500 mt-2">
@@ -727,10 +761,7 @@ return (
       </div>
 
       <div className="flex justify-center mb-4">
-        <button
-          onClick={fetchTareas}
-          className="bg-blue-500 text-white px-3 py-1 rounded-xl"
-        >
+        <button onClick={fetchTareas} className="bg-blue-500 text-white px-3 py-1 rounded-xl">
           🔄 Actualizar lista
         </button>
       </div>
@@ -743,9 +774,7 @@ return (
       ) : (
         <ul className="space-y-3">
           {tareasPorTab.length === 0 && (
-            <p className="text-center text-gray-500 italic">
-              No hay tareas en esta categoría.
-            </p>
+            <p className="text-center text-gray-500 italic">No hay tareas en esta categoría.</p>
           )}
           {tareasPorTab.map((t) => (
             <motion.li
@@ -786,29 +815,15 @@ return (
                       👷‍♂️ Realizada por: <span className="font-semibold">{t.asignado}</span>
                     </p>
                   )}
-                  <p className="text-sm text-gray-600 mt-1">
-                    📅 {t.fecha}
-                  </p>
+                  <p className="text-sm text-gray-600 mt-1">📅 {t.fecha}</p>
                   {t.fecha_comp && (
-                    <p className="text-sm text-blue-700 mt-1">
-                      ⏰ Solucionado el: {t.fecha_comp}
-                    </p>
+                    <p className="text-sm text-blue-700 mt-1">⏰ Solucionado el: {t.fecha_comp}</p>
                   )}
                   {t.fecha_fin && (
-                    <p className="text-sm text-green-700 mt-1">
-                      ⏰ Finalizado el: {t.fecha_fin}
-                    </p>
+                    <p className="text-sm text-green-700 mt-1">⏰ Finalizado el: {t.fecha_fin}</p>
                   )}
-                  {t.solucion && (
-                    <p className="text-sm bg-gray-100 p-1 rounded mt-1">
-                      💡 Solución: {t.solucion}
-                    </p>
-                  )}
-                  {t.fin && (
-                    <p className="text-green-600 font-semibold mt-1">
-                      ✔️ Finalizada por el usuario
-                    </p>
-                  )}
+                  {t.solucion && <p className="text-sm bg-gray-100 p-1 rounded mt-1">💡 Solución: {t.solucion}</p>}
+                  {t.fin && <p className="text-green-600 font-semibold mt-1">✔️ Finalizada por el usuario</p>}
                 </div>
               </div>
             </motion.li>
@@ -860,10 +875,7 @@ export default function Panel() {
   if (vista === "usuario")
     return (
       <div className="p-4 max-w-md mx-auto">
-        <button
-          onClick={() => setVista("panel")}
-          className="bg-gray-400 text-white px-4 py-2 rounded-xl mb-4"
-        >
+        <button onClick={() => setVista("panel")} className="bg-gray-400 text-white px-4 py-2 rounded-xl mb-4">
           ← Volver al Panel
         </button>
         <RegistroUsuario />
@@ -873,10 +885,7 @@ export default function Panel() {
   if (vista === "personal")
     return (
       <div className="p-4 max-w-md mx-auto">
-        <button
-          onClick={() => setVista("panel")}
-          className="bg-gray-400 text-white px-4 py-2 rounded-xl mb-4"
-        >
+        <button onClick={() => setVista("panel")} className="bg-gray-400 text-white px-4 py-2 rounded-xl mb-4">
           ← Volver al Panel
         </button>
         <RegistroPersonal />
