@@ -33,6 +33,15 @@ function PanelLogin({ onLogin }) {
   const [recordar, setRecordar] = useState(false);
   const PASS = "repliKat";
 
+  // ✅ Cargar contraseña guardada al iniciar
+  useEffect(() => {
+    const savedPass = localStorage.getItem("panelPassword");
+    if (savedPass) {
+      setPassword(savedPass);
+      setRecordar(true);
+    }
+  }, []);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
@@ -40,6 +49,13 @@ function PanelLogin({ onLogin }) {
       if (password === PASS) {
         onLogin(true);
         toast.success("Acceso concedido ✅");
+
+        // ✅ Si está marcada la casilla, guardar contraseña
+        if (recordar) {
+          localStorage.setItem("panelPassword", password);
+        } else {
+          localStorage.removeItem("panelPassword");
+        }
       } else {
         toast.error("Contraseña incorrecta ❌");
       }
@@ -336,83 +352,6 @@ function Supervision({ setVista }) {
           </div>
         )}
 
-        {/* 🔽 Selector de gráfico circular */}
-        {vistaGrafico !== "tendencias" && (
-          <div className="flex justify-center mt-6 mb-4">
-            <select
-              className="border rounded-xl p-2 shadow-sm text-sm"
-              value={vistaGrafico}
-              onChange={(e) => setVistaGrafico(e.target.value)}
-            >
-              <option value="area">Por área</option>
-              <option value="personal">Por personal</option>
-              <option value="servicio">Por servicio</option>
-            </select>
-          </div>
-        )}
-
-        {/* 📊 Gráfico circular (general) */}
-        {vistaGrafico !== "tendencias" && (
-          <ResponsiveContainer width="100%" height={350}>
-            <PieChart>
-              <Pie
-                data={(() => {
-                  const conteo = {};
-                  if (vistaGrafico === "area") {
-                    tareas.forEach((t) => {
-                      const k = t.area || "Sin área";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  } else if (vistaGrafico === "personal") {
-                    tareas.forEach((t) => {
-                      const k = t.asignado || "Sin asignar";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  } else if (vistaGrafico === "servicio") {
-                    tareas.forEach((t) => {
-                      const k = t.servicio || "Sin servicio";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  }
-                  return Object.keys(conteo).map((k) => ({ name: k, value: conteo[k] }));
-                })()}
-                cx="50%"
-                cy="50%"
-                outerRadius={120}
-                dataKey="value"
-                label
-              >
-                {(() => {
-                  const conteo = {};
-                  if (vistaGrafico === "area") {
-                    tareas.forEach((t) => {
-                      const k = t.area || "Sin área";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  } else if (vistaGrafico === "personal") {
-                    tareas.forEach((t) => {
-                      const k = t.asignado || "Sin asignar";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  } else if (vistaGrafico === "servicio") {
-                    tareas.forEach((t) => {
-                      const k = t.servicio || "Sin servicio";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  }
-                  const nombres = Object.keys(conteo);
-                  return nombres.map((_, i) => {
-                    const color = COLORES_AREAS[nombres[i]] || COLORS[i % COLORS.length];
-                    return <Cell key={i} fill={color} />;
-                  });
-                })()}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        )}
-
         {/* === GRÁFICO CIRCULAR DE TAREAS POR ÁREA (separado, con click) === */}
         <div className="p-4 shadow-md mb-8 bg-white rounded-xl">
           <h2 className="text-lg font-semibold mb-2 flex items-center">
@@ -514,6 +453,82 @@ function Supervision({ setVista }) {
             </motion.div>
           )}
         </AnimatePresence>
+
+  {/* 🔽 Selector de gráfico circular */}
+        {vistaGrafico !== "tendencias" && (
+          <div className="flex justify-center mt-6 mb-4">
+            <select
+              className="border rounded-xl p-2 shadow-sm text-sm"
+              value={vistaGrafico}
+              onChange={(e) => setVistaGrafico(e.target.value)}
+            >
+              <option value="personal">Por personal</option>
+              <option value="servicio">Por servicio</option>
+            </select>
+          </div>
+        )}
+
+        {/* 📊 Gráfico circular (general) */}
+        {vistaGrafico !== "tendencias" && (
+          <ResponsiveContainer width="100%" height={350}>
+            <PieChart>
+              <Pie
+                data={(() => {
+                  const conteo = {};
+                  if (vistaGrafico === "area") {
+                    tareas.forEach((t) => {
+                      const k = t.area || "Sin área";
+                      conteo[k] = (conteo[k] || 0) + 1;
+                    });
+                  } else if (vistaGrafico === "personal") {
+                    tareas.forEach((t) => {
+                      const k = t.asignado || "Sin asignar";
+                      conteo[k] = (conteo[k] || 0) + 1;
+                    });
+                  } else if (vistaGrafico === "servicio") {
+                    tareas.forEach((t) => {
+                      const k = t.servicio || "Sin servicio";
+                      conteo[k] = (conteo[k] || 0) + 1;
+                    });
+                  }
+                  return Object.keys(conteo).map((k) => ({ name: k, value: conteo[k] }));
+                })()}
+                cx="50%"
+                cy="50%"
+                outerRadius={120}
+                dataKey="value"
+                label
+              >
+                {(() => {
+                  const conteo = {};
+                  if (vistaGrafico === "area") {
+                    tareas.forEach((t) => {
+                      const k = t.area || "Sin área";
+                      conteo[k] = (conteo[k] || 0) + 1;
+                    });
+                  } else if (vistaGrafico === "personal") {
+                    tareas.forEach((t) => {
+                      const k = t.asignado || "Sin asignar";
+                      conteo[k] = (conteo[k] || 0) + 1;
+                    });
+                  } else if (vistaGrafico === "servicio") {
+                    tareas.forEach((t) => {
+                      const k = t.servicio || "Sin servicio";
+                      conteo[k] = (conteo[k] || 0) + 1;
+                    });
+                  }
+                  const nombres = Object.keys(conteo);
+                  return nombres.map((_, i) => {
+                    const color = COLORES_AREAS[nombres[i]] || COLORS[i % COLORS.length];
+                    return <Cell key={i} fill={color} />;
+                  });
+                })()}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        )}
 
         {/* ----------------- Gráfico de tendencias separado ----------------- */}
         <div className="mt-8 bg-white shadow-md rounded-xl p-4">
