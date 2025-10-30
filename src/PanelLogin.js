@@ -22,8 +22,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  ReferenceLine,
-  ReferenceArea,
 } from "recharts";
 
 const API_URL = "https://sky26.onrender.com/tareas";
@@ -49,31 +47,6 @@ function PanelLogin({ onLogin }) {
     }, 1000);
   };
 
-  const [selectedArea, setSelectedArea] = useState(null);
-const [detallesArea, setDetallesArea] = useState(null);
-
-const handleAreaClick = (area) => {
-  setSelectedArea(area);
-
-  // Filtrar las tareas del área seleccionada
-  const tareasArea = tareas.filter((t) => t.area === area);
-
-  const personal = [...new Set(tareasArea.map((t) => t.personal))];
-  const servicios = [...new Set(tareasArea.map((t) => t.servicio))];
-
-  const pendientes = tareasArea.filter((t) => t.estado === "pendiente").length;
-  const proceso = tareasArea.filter((t) => t.estado === "en proceso").length;
-  const finalizadas = tareasArea.filter((t) => t.estado === "finalizada").length;
-
-  setDetallesArea({
-    personal,
-    servicios,
-    pendientes,
-    proceso,
-    finalizadas,
-  });
-};
-
   return (
     <div className="p-4 max-w-md mx-auto mt-20 relative">
       {loading && (
@@ -86,33 +59,29 @@ const handleAreaClick = (area) => {
         🔒 Acceso Panel de Supervisión
       </h1>
       <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
-  <input
-    type="password"
-    placeholder="Contraseña"
-    className="w-full p-2 border rounded"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-    required
-  />
+        <input
+          type="password"
+          placeholder="Contraseña"
+          className="w-full p-2 border rounded"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
 
-  {/* ✅ Casilla de “Recordar contraseña” */}
-  <label className="flex items-center space-x-2 text-sm text-gray-600">
-    <input
-      type="checkbox"
-      checked={recordar}
-      onChange={(e) => setRecordar(e.target.checked)}
-      className="rounded border-gray-300"
-    />
-    <span>Recordar contraseña</span>
-  </label>
+        <label className="flex items-center space-x-2 text-sm text-gray-600">
+          <input
+            type="checkbox"
+            checked={recordar}
+            onChange={(e) => setRecordar(e.target.checked)}
+            className="rounded border-gray-300"
+          />
+          <span>Recordar contraseña</span>
+        </label>
 
-  <button
-    type="submit"
-    className="bg-green-500 text-white p-2 rounded-xl"
-  >
-    Ingresar
-  </button>
-</form>
+        <button type="submit" className="bg-green-500 text-white p-2 rounded-xl">
+          Ingresar
+        </button>
+      </form>
     </div>
   );
 }
@@ -126,6 +95,19 @@ function Supervision({ setVista }) {
   const [busqueda, setBusqueda] = useState("");
   const [vistaGrafico, setVistaGrafico] = useState("area");
   const [promedios, setPromedios] = useState([]);
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [detallesArea, setDetallesArea] = useState(null);
+
+  const COLORS = [
+    "#60A5FA",
+    "#34D399",
+    "#FBBF24",
+    "#F87171",
+    "#A78BFA",
+    "#F472B6",
+    "#10B981",
+    "#F59E0B",
+  ];
 
   // Cargar tareas
   useEffect(() => {
@@ -145,27 +127,22 @@ function Supervision({ setVista }) {
     }
   };
 
-  // Recalcular promedios cuando cambian las tareas
+  // Recalcular promedios
   useEffect(() => {
     const tiemposPorDia = {};
     tareas.forEach((t) => {
       if (!t.fecha) return;
-      const fecha = `${t.fecha}`; // mantener formato con hora
-
+      const fecha = `${t.fecha}`;
       if (!tiemposPorDia[fecha])
         tiemposPorDia[fecha] = { fecha, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
-
-      if (t.fecha_comp !== null && t.fecha_comp !== undefined) {
-        const tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
-        tiemposPorDia[fecha].totalSol += tiempoSol;
-        tiemposPorDia[fecha].cantSol += 1;
-      }
-
-      if (t.fecha_fin !== null && t.fecha_fin !== undefined) {
-        const tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
-        tiemposPorDia[fecha].totalFin += tiempoFin;
-        tiemposPorDia[fecha].cantFin += 1;
-      }
+      if (t.fecha_comp)
+        tiemposPorDia[fecha].totalSol +=
+          (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
+      if (t.fecha_fin)
+        tiemposPorDia[fecha].totalFin +=
+          (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
+      if (t.fecha_comp) tiemposPorDia[fecha].cantSol++;
+      if (t.fecha_fin) tiemposPorDia[fecha].cantFin++;
     });
 
     const nuevosPromedios = Object.values(tiemposPorDia)
@@ -179,14 +156,12 @@ function Supervision({ setVista }) {
     setPromedios(nuevosPromedios);
   }, [tareas]);
 
-  // 🔍 Búsqueda global incluyendo ID
+  // 🔍 Búsqueda
   const filtrarBusqueda = (t) => {
     const texto = busqueda.trim().toLowerCase();
     if (!texto) return true;
-
     const esNumero = /^\d+$/.test(texto);
     const coincideID = esNumero && t.id === parseInt(texto);
-
     return (
       coincideID ||
       (t.usuario && t.usuario.toLowerCase().includes(texto)) ||
@@ -205,6 +180,27 @@ function Supervision({ setVista }) {
   const tareasPorTab =
     tab === "pendientes" ? pendientes : tab === "terminadas" ? terminadas : finalizadas;
 
+  // 📊 Tareas agrupadas por área
+  const tareasPorArea = Object.entries(
+    tareas.reduce((acc, t) => {
+      const area = t.area || "Sin área";
+      acc[area] = (acc[area] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([area, value]) => ({ area, value }));
+
+  // 📋 Manejar click en área
+  const handleAreaClick = (area) => {
+    setSelectedArea(area);
+    const tareasArea = tareas.filter((t) => t.area === area);
+    const personal = [...new Set(tareasArea.map((t) => t.personal))];
+    const servicios = [...new Set(tareasArea.map((t) => t.servicio))];
+    const pendientes = tareasArea.filter((t) => t.estado === "pendiente").length;
+    const proceso = tareasArea.filter((t) => t.estado === "en proceso").length;
+    const finalizadas = tareasArea.filter((t) => t.estado === "finalizada").length;
+    setDetallesArea({ personal, servicios, pendientes, proceso, finalizadas });
+  };
+  
   return (
     <div className="p-4 max-w-3xl mx-auto">
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
