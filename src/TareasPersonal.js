@@ -235,6 +235,7 @@ export default function TareasPersonal({ personal, onLogout }) {
       prev.map((t) => (t.id === id ? { ...t, solucion: nuevaSolucion } : t))
     );
 
+    setEditando(null); // cerrar modo edición
     toast.success("✏️ Solución actualizada correctamente");
   } catch (err) {
     console.error("Error al editar solución", err);
@@ -374,9 +375,6 @@ export default function TareasPersonal({ personal, onLogout }) {
         </button>
       </div>
 
-
-      {/* filtros y lista de tareas tal como la tenías */}
-      {/* ...resto del código sin cambios ... */}
  {/* Filtros */}
       <div className="flex justify-center space-x-2 mb-4">
         <button
@@ -507,18 +505,37 @@ export default function TareasPersonal({ personal, onLogout }) {
 
             {filtro === "enProceso" && !t.fin && (
   <>
-    <textarea
-      className="w-full p-2 border rounded mt-2"
-      placeholder="Editar la solución..."
-      value={soluciones[t.id] ?? t.solucion ?? ""}
-      onChange={(e) => handleSolucionChange(t.id, e.target.value)}
-    />
-    <button
-      onClick={() => handleEditarSolucion(t.id)}
-      className="mt-2 px-3 py-1 rounded bg-blue-500 text-white text-sm"
-    >
-      💾 Guardar cambios
-    </button>
+    {editando === t.id ? (
+      <>
+        <textarea
+          className="w-full p-2 border rounded mt-2"
+          placeholder="Editar la solución..."
+          value={soluciones[t.id] ?? t.solucion ?? ""}
+          onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+        />
+        <div className="flex gap-2 mt-2">
+          <button
+            onClick={() => handleEditarSolucion(t.id)}
+            className="px-3 py-1 rounded bg-blue-500 text-white text-sm"
+          >
+            💾 Guardar
+          </button>
+          <button
+            onClick={() => setEditando(null)}
+            className="px-3 py-1 rounded bg-gray-400 text-white text-sm"
+          >
+            ❌ Cancelar
+          </button>
+        </div>
+      </>
+    ) : (
+      <button
+        onClick={() => setEditando(t.id)}
+        className="mt-2 px-3 py-1 rounded bg-yellow-500 text-white text-sm"
+      >
+        ✏️ Editar solución
+      </button>
+    )}
   </>
 )}
           </div>
@@ -566,4 +583,5 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
