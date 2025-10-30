@@ -350,7 +350,7 @@ function Supervision({ setVista }) {
         )}
 
 {/* === GRÁFICO CIRCULAR DE TAREAS POR ÁREA === */}
-<Card className="p-4 shadow-md">
+<div className="p-4 shadow-md">
   <h2 className="text-lg font-semibold mb-2 flex items-center">
     <PieChartIcon className="mr-2 text-green-600" /> Tareas por Área
   </h2>
@@ -377,7 +377,7 @@ function Supervision({ setVista }) {
       <Legend />
     </PieChart>
   </ResponsiveContainer>
-</Card>
+</div>
 
 {/* === MODAL DETALLES POR ÁREA === */}
 <AnimatePresence>
