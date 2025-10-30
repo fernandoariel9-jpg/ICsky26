@@ -4,7 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
 import AsistenteIAFlotante from "./AsistenteIAFlotante";
-import { Card } from "@/components/ui/card";
+import { Card } from "./components/Card";
 import { PieChart as PieChartIcon } from "lucide-react";
 
 import RegistroUsuario from "./RegistroUsuario";
