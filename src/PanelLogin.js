@@ -346,85 +346,139 @@ function Supervision({ setVista }) {
 
 {/* === GRÁFICO CIRCULAR DE TAREAS POR ÁREA === */}
 /* === Gráfico Circular por Área === */
-const COLORES_AREAS = {
-  "Area 1": "#eef207", // amarillo
-  "Area 2": "#EF4444", // rojo
-  "Area 3": "#10B981", // verde
-  "Area 4": "#3B82F6", // azul
-  "Area 5": "#d25cf6", // violeta
-  "Area 6": "#efb06e", // naranja
+// --- estados y funciones del gráfico de áreas ---
+const [selectedArea, setSelectedArea] = useState(null);
+const [detallesArea, setDetallesArea] = useState(null);
+
+// 🎨 Colores personalizados por área
+const COLORES_AREA = {
+  "Area 1": "#1E90FF",
+  "Area 2": "#FF6347",
+  "Area 3": "#32CD32",
+  "Area 4": "#FFD700",
+  "Area 5": "#FF69B4",
+  "Sin área": "#A9A9A9",
 };
 
-<div className="p-4 shadow-md mb-8 bg-white rounded-xl">
-  <h2 className="text-lg font-semibold mb-2 flex items-center">
-    <PieChartIcon className="mr-2 text-green-600" /> Tareas por Área
-  </h2>
-  <ResponsiveContainer width="100%" height={320}>
-    <PieChart>
-      <Pie
-        data={tareasPorArea}
-        cx="50%"
-        cy="50%"
-        outerRadius={100}
-        dataKey="value"
-        nameKey="area"
-        onClick={(data) => handleAreaClick(data.area)}
-      >
-        {tareasPorArea.map((entry, index) => (
-          <Cell
-            key={`cell-${index}`}
-            fill={COLORES_AREAS[entry.area] || "#6B7280"} // usa el color definido o gris si no existe
-            cursor="pointer"
-          />
-        ))}
-      </Pie>
-      <Tooltip />
-      <Legend />
-    </PieChart>
-  </ResponsiveContainer>
-</div>
+// 📊 Conteo de tareas por área
+const tareasPorArea = tareas.reduce((acc, t) => {
+  const area = t.area || "Sin área";
+  acc[area] = (acc[area] || 0) + 1;
+  return acc;
+}, {});
 
-{/* === MODAL DETALLES POR ÁREA === */}
-<AnimatePresence>
-  {selectedArea && (
-    <motion.div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+// 🔍 Función para normalizar texto (sin mayúsculas, acentos, ni espacios)
+const normalize = (str) =>
+  str
+    ? str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+    : "";
+
+// 🔘 Click en porción del gráfico circular
+const handleAreaClick = (areaSeleccionada) => {
+  if (!areaSeleccionada) return;
+  const areaNorm = normalize(areaSeleccionada);
+
+  const tareasArea = tareas.filter(
+    (t) => normalize(t.area) === areaNorm
+  );
+
+  const personal = [
+    ...new Set(tareasArea.map((t) => t.asignado || "No asignado")),
+  ];
+
+  const pendientes = tareasArea.filter(
+    (t) => !t.solucion && !t.fin
+  ).length;
+
+  const enProceso = tareasArea.filter(
+    (t) => t.solucion && !t.fin
+  ).length;
+
+  const finalizadas = tareasArea.filter(
+    (t) => t.fin
+  ).length;
+
+  const servicios = [
+    ...new Set(tareasArea.map((t) => t.servicio || "Sin servicio")),
+  ];
+
+  setDetallesArea({
+    personal,
+    pendientes,
+    enProceso,
+    finalizadas,
+    servicios,
+  });
+  setSelectedArea(areaSeleccionada);
+};
+
+// 🔚 Cerrar popup
+const cerrarPopup = () => {
+  setSelectedArea(null);
+  setDetallesArea(null);
+};
+
+// 📈 Gráfico circular por área
+<ResponsiveContainer width="100%" height={350}>
+  <PieChart>
+    <Pie
+      data={Object.entries(tareasPorArea).map(([name, value]) => ({
+        name,
+        value,
+      }))}
+      cx="50%"
+      cy="50%"
+      outerRadius={120}
+      dataKey="value"
+      label
+      onClick={(data) => handleAreaClick(data.name)}
     >
-      <motion.div
-        className="bg-white rounded-2xl shadow-xl p-6 w-11/12 max-w-3xl"
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.8, opacity: 0 }}
+      {Object.keys(tareasPorArea).map((area, i) => (
+        <Cell
+          key={`cell-${i}`}
+          fill={COLORES_AREA[area] || "#8884d8"}
+          stroke="#fff"
+          strokeWidth={2}
+        />
+      ))}
+    </Pie>
+    <Tooltip />
+    <Legend />
+  </PieChart>
+</ResponsiveContainer>
+
+// 🪟 Popup con detalles del área seleccionada
+{selectedArea && detallesArea && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+      <h2 className="text-xl font-bold mb-3 text-center text-blue-600">
+        📍 Detalles del área: {selectedArea}
+      </h2>
+
+      <p className="mb-2">
+        <strong>👥 Personal involucrado:</strong>{" "}
+        {detallesArea.personal.join(", ")}
+      </p>
+      <p className="mb-1">🕒 Pendientes: {detallesArea.pendientes}</p>
+      <p className="mb-1">⚙️ En proceso: {detallesArea.enProceso}</p>
+      <p className="mb-3">✅ Finalizadas: {detallesArea.finalizadas}</p>
+      <p className="mb-3">
+        🏥 Servicios: {detallesArea.servicios.join(", ")}
+      </p>
+
+      <button
+        onClick={cerrarPopup}
+        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl mt-2 w-full"
       >
-        <h2 className="text-xl font-bold mb-4 text-center text-green-700">
-          Detalles del área: {selectedArea}
-        </h2>
-
-        {detallesArea && (
-          <>
-            <p><strong>Personal involucrado:</strong> {detallesArea.personal.join(", ")}</p>
-            <p><strong>Pendientes:</strong> {detallesArea.pendientes}</p>
-            <p><strong>En proceso:</strong> {detallesArea.proceso}</p>
-            <p><strong>Finalizadas:</strong> {detallesArea.finalizadas}</p>
-            <p><strong>Servicios:</strong> {detallesArea.servicios.join(", ")}</p>
-          </>
-        )}
-
-        <div className="mt-6 flex justify-center">
-          <button
-            onClick={() => setSelectedArea(null)}
-            className="bg-green-500 text-white px-6 py-2 rounded-xl hover:bg-green-600"
-          >
-            Cerrar
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
+        Cerrar
+      </button>
+    </div>
+  </div>
+)}
 
        {/* ----------------- Gráfico de tendencias separado ----------------- */}
 <div className="mt-8 bg-white shadow-md rounded-xl p-4">
