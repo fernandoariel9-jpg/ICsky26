@@ -31,6 +31,7 @@ const API_URL = "https://sky26.onrender.com/tareas";
 function PanelLogin({ onLogin }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [recordar, setRecordar] = useState(false);
   const PASS = "repliKat";
 
   const handleSubmit = (e) => {
@@ -59,18 +60,33 @@ function PanelLogin({ onLogin }) {
         🔒 Acceso Panel de Supervisión
       </h1>
       <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
-        <input
-          type="password"
-          placeholder="Contraseña"
-          className="w-full p-2 border rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit" className="bg-green-500 text-white p-2 rounded-xl">
-          Ingresar
-        </button>
-      </form>
+  <input
+    type="password"
+    placeholder="Contraseña"
+    className="w-full p-2 border rounded"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    required
+  />
+
+  {/* ✅ Casilla de “Recordar contraseña” */}
+  <label className="flex items-center space-x-2 text-sm text-gray-600">
+    <input
+      type="checkbox"
+      checked={recordar}
+      onChange={(e) => setRecordar(e.target.checked)}
+      className="rounded border-gray-300"
+    />
+    <span>Recordar contraseña</span>
+  </label>
+
+  <button
+    type="submit"
+    className="bg-green-500 text-white p-2 rounded-xl"
+  >
+    Ingresar
+  </button>
+</form>
     </div>
   );
 }
