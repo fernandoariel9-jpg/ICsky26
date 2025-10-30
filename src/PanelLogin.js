@@ -478,12 +478,7 @@ function Supervision({ setVista }) {
               <Pie
                 data={(() => {
                   const conteo = {};
-                  if (vistaGrafico === "area") {
-                    tareas.forEach((t) => {
-                      const k = t.area || "Sin área";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  } else if (vistaGrafico === "personal") {
+                  if (vistaGrafico === "personal") {
                     tareas.forEach((t) => {
                       const k = t.asignado || "Sin asignar";
                       conteo[k] = (conteo[k] || 0) + 1;
@@ -504,12 +499,7 @@ function Supervision({ setVista }) {
               >
                 {(() => {
                   const conteo = {};
-                  if (vistaGrafico === "area") {
-                    tareas.forEach((t) => {
-                      const k = t.area || "Sin área";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
-                  } else if (vistaGrafico === "personal") {
+                  if (vistaGrafico === "personal") {
                     tareas.forEach((t) => {
                       const k = t.asignado || "Sin asignar";
                       conteo[k] = (conteo[k] || 0) + 1;
