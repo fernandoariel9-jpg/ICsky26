@@ -251,6 +251,9 @@ function Supervision({ setVista }) {
     // servicios
     const servicios = [...new Set(tareasArea.map((t) => t.servicio || "Sin servicio"))];
 
+    // tareas
+    const tarea = [...new Set(tareasArea.map((t) => t.tarea || "Sin tarea"))];
+
     // estados: pendientes = !solucion && !fin ; en proceso = solucion && !fin ; finalizadas = fin (boolean)
     const pendientesCount = tareasArea.filter((t) => !t.solucion && !t.fin).length;
     const enProcesoCount = tareasArea.filter((t) => t.solucion && !t.fin).length;
