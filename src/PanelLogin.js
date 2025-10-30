@@ -306,7 +306,7 @@ const tareasPorArea = tareas.reduce((acc, t) => {
   return acc;
 }, {});
 
-// 🔍 Función para normalizar texto (sin mayúsculas, acentos, ni espacios)
+// 🔍 Normalizar texto
 const normalize = (str) =>
   str
     ? str
@@ -362,62 +362,66 @@ const cerrarPopup = () => {
 };
 
 // 📈 Gráfico circular por área
-<ResponsiveContainer width="100%" height={350}>
-  <PieChart>
-    <Pie
-      data={Object.entries(tareasPorArea).map(([name, value]) => ({
-        name,
-        value,
-      }))}
-      cx="50%"
-      cy="50%"
-      outerRadius={120}
-      dataKey="value"
-      label
-      onClick={(data) => handleAreaClick(data.name)}
-    >
-      {Object.keys(tareasPorArea).map((area, i) => (
-        <Cell
-          key={`cell-${i}`}
-          fill={COLORES_AREA[area] || "#8884d8"}
-          stroke="#fff"
-          strokeWidth={2}
-        />
-      ))}
-    </Pie>
-    <Tooltip />
-    <Legend />
-  </PieChart>
-</ResponsiveContainer>
+return (
+  <>
+    <ResponsiveContainer width="100%" height={350}>
+      <PieChart>
+        <Pie
+          data={Object.entries(tareasPorArea).map(([name, value]) => ({
+            name,
+            value,
+          }))}
+          cx="50%"
+          cy="50%"
+          outerRadius={120}
+          dataKey="value"
+          label
+          onClick={(data) => handleAreaClick(data.name)}
+        >
+          {Object.keys(tareasPorArea).map((area, i) => (
+            <Cell
+              key={`cell-${i}`}
+              fill={COLORES_AREA[area] || "#8884d8"}
+              stroke="#fff"
+              strokeWidth={2}
+            />
+          ))}
+        </Pie>
+        <Tooltip />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
 
-// 🪟 Popup con detalles del área seleccionada
-{selectedArea && detallesArea && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
-      <h2 className="text-xl font-bold mb-3 text-center text-blue-600">
-        📍 Detalles del área: {selectedArea}
-      </h2>
+    {/* 🪟 Popup con detalles del área seleccionada */}
+    {selectedArea && detallesArea && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+          <h2 className="text-xl font-bold mb-3 text-center text-blue-600">
+            📍 Detalles del área: {selectedArea}
+          </h2>
 
-      <p className="mb-2">
-        <strong>👥 Personal involucrado:</strong>{" "}
-        {detallesArea.personal.join(", ")}
-      </p>
-      <p className="mb-1">🕒 Pendientes: {detallesArea.pendientes}</p>
-      <p className="mb-1">⚙️ En proceso: {detallesArea.enProceso}</p>
-      <p className="mb-3">✅ Finalizadas: {detallesArea.finalizadas}</p>
-      <p className="mb-3">
-        🏥 Servicios: {detallesArea.servicios.join(", ")}
-      </p>
+          <p className="mb-2">
+            <strong>👥 Personal involucrado:</strong>{" "}
+            {detallesArea.personal.join(", ")}
+          </p>
+          <p className="mb-1">🕒 Pendientes: {detallesArea.pendientes}</p>
+          <p className="mb-1">⚙️ En proceso: {detallesArea.enProceso}</p>
+          <p className="mb-3">✅ Finalizadas: {detallesArea.finalizadas}</p>
+          <p className="mb-3">
+            🏥 Servicios: {detallesArea.servicios.join(", ")}
+          </p>
 
-      <button
-        onClick={cerrarPopup}
-        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl mt-2 w-full"
-      >
-        Cerrar
-      </button>
-    </div>
-  </div>
-)}
+          <button
+            onClick={cerrarPopup}
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl mt-2 w-full"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    )}
+  </>
+);
 
   {/* 🔽 Selector de gráfico circular */}
         {vistaGrafico !== "tendencias" && (
