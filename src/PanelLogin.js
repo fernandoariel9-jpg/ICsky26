@@ -434,25 +434,35 @@ function Supervision({ setVista }) {
     <strong>Listado (ID — Asignado — Servicio — Tarea):</strong>
     <ul className="mt-2 space-y-2">
       {detallesArea.tareasList.map((ta) => (
-        <li key={ta.id} className="border-b pb-1" title={ta.tarea || "Sin descripción"}>
+        <li
+          key={ta.id}
+          className="border-b pb-1 relative group"
+        >
           <p>
             #{ta.id} — <strong>{ta.asignado || "No asignado"}</strong> —{" "}
             {ta.servicio || "Sin servicio"}
           </p>
+
           {ta.tarea && (
-            <p className="text-gray-600 italic ml-4">
-              📝{" "}
-              {ta.tarea.length > 120
-                ? ta.tarea.slice(0, 120) + "..."
-                : ta.tarea}
-            </p>
+            <>
+              <p className="text-gray-600 italic ml-4">
+                📝{" "}
+                {ta.tarea.length > 120
+                  ? ta.tarea.slice(0, 120) + "..."
+                  : ta.tarea}
+              </p>
+
+              {/* Tooltip visible al pasar el mouse */}
+              <div className="absolute z-50 left-0 mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg px-3 py-2 w-72 shadow-lg">
+                {ta.tarea}
+              </div>
+            </>
           )}
         </li>
       ))}
     </ul>
   </div>
 )}
-                    )}
                   </>
                 )}
 
