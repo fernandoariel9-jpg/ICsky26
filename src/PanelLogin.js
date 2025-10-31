@@ -434,14 +434,17 @@ function Supervision({ setVista }) {
     <strong>Listado (ID — Asignado — Servicio — Tarea):</strong>
     <ul className="mt-2 space-y-2">
       {detallesArea.tareasList.map((ta) => (
-        <li key={ta.id} className="border-b pb-1">
+        <li key={ta.id} className="border-b pb-1" title={ta.tarea || "Sin descripción"}>
           <p>
             #{ta.id} — <strong>{ta.asignado || "No asignado"}</strong> —{" "}
             {ta.servicio || "Sin servicio"}
           </p>
           {ta.tarea && (
             <p className="text-gray-600 italic ml-4">
-              📝 {ta.tarea.length > 120 ? ta.tarea.slice(0, 120) + "..." : ta.tarea}
+              📝{" "}
+              {ta.tarea.length > 120
+                ? ta.tarea.slice(0, 120) + "..."
+                : ta.tarea}
             </p>
           )}
         </li>
@@ -474,6 +477,7 @@ function Supervision({ setVista }) {
               value={vistaGrafico}
               onChange={(e) => setVistaGrafico(e.target.value)}
             >
+              <option value="area">Por área</option>
               <option value="personal">Por personal</option>
               <option value="servicio">Por servicio</option>
             </select>
@@ -487,16 +491,12 @@ function Supervision({ setVista }) {
               <Pie
                 data={(() => {
                   const conteo = {};
-                  if (vistaGrafico === "personal") {
-                    tareas.forEach((t) => {
-                      const k = t.asignado || "Sin asignar";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
+                  if (vistaGrafico === "area") {
+                    tareas.forEach(t => { const k = t.area || "Sin área"; conteo[k] = (conteo[k] || 0) + 1; });
+                  } else if (vistaGrafico === "personal") {
+                    tareas.forEach(t => { const k = t.asignado || "Sin asignar"; conteo[k] = (conteo[k] || 0) + 1; });
                   } else if (vistaGrafico === "servicio") {
-                    tareas.forEach((t) => {
-                      const k = t.servicio || "Sin servicio";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
+                    tareas.forEach(t => { const k = t.servicio || "Sin servicio"; conteo[k] = (conteo[k] || 0) + 1; });
                   }
                   return Object.keys(conteo).map((k) => ({ name: k, value: conteo[k] }));
                 })()}
@@ -508,16 +508,12 @@ function Supervision({ setVista }) {
               >
                 {(() => {
                   const conteo = {};
-                  if (vistaGrafico === "personal") {
-                    tareas.forEach((t) => {
-                      const k = t.asignado || "Sin asignar";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
+                  if (vistaGrafico === "area") {
+                    tareas.forEach(t => { const k = t.area || "Sin área"; conteo[k] = (conteo[k] || 0) + 1; });
+                  } else if (vistaGrafico === "personal") {
+                    tareas.forEach(t => { const k = t.asignado || "Sin asignar"; conteo[k] = (conteo[k] || 0) + 1; });
                   } else if (vistaGrafico === "servicio") {
-                    tareas.forEach((t) => {
-                      const k = t.servicio || "Sin servicio";
-                      conteo[k] = (conteo[k] || 0) + 1;
-                    });
+                    tareas.forEach(t => { const k = t.servicio || "Sin servicio"; conteo[k] = (conteo[k] || 0) + 1; });
                   }
                   const nombres = Object.keys(conteo);
                   return nombres.map((_, i) => {
