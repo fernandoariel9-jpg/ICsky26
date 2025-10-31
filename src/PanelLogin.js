@@ -429,17 +429,26 @@ function Supervision({ setVista }) {
                     </p>
 
                     {/* opcional: lista corta de tareas (id - asignado - servicio) */}
-                    {detallesArea.tareasList && detallesArea.tareasList.length > 0 && (
-                      <div className="mt-4 max-h-40 overflow-auto text-sm border rounded p-2 bg-gray-50">
-                        <strong>Listado (ID — Asignado — Servicio):</strong>
-                        <ul className="mt-2 space-y-1">
-                          {detallesArea.tareasList.map((ta) => (
-                            <li key={ta.id}>
-                              #{ta.id} — {ta.asignado || "No asignado"} — {ta.servicio || "Sin servicio"}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                   {detallesArea.tareasList && detallesArea.tareasList.length > 0 && (
+  <div className="mt-4 max-h-60 overflow-auto text-sm border rounded p-2 bg-gray-50">
+    <strong>Listado (ID — Asignado — Servicio — Tarea):</strong>
+    <ul className="mt-2 space-y-2">
+      {detallesArea.tareasList.map((ta) => (
+        <li key={ta.id} className="border-b pb-1">
+          <p>
+            #{ta.id} — <strong>{ta.asignado || "No asignado"}</strong> —{" "}
+            {ta.servicio || "Sin servicio"}
+          </p>
+          {ta.tarea && (
+            <p className="text-gray-600 italic ml-4">
+              📝 {ta.tarea.length > 120 ? ta.tarea.slice(0, 120) + "..." : ta.tarea}
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
                     )}
                   </>
                 )}
