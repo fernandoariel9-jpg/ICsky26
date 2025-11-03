@@ -219,10 +219,12 @@ function Supervision({ setVista }) {
 
   // 📊 Tareas agrupadas por área (obj y array para charts)
   const tareasPorAreaObj = tareas.reduce((acc, t) => {
+  if (!t.solucion && !t.fin) { // solo tareas pendientes
     const area = t.area || "Sin área";
     acc[area] = (acc[area] || 0) + 1;
-    return acc;
-  }, {});
+  }
+  return acc;
+}, {});
 
   const tareasPorArea = Object.entries(tareasPorAreaObj).map(([area, value]) => ({
     name: area,
