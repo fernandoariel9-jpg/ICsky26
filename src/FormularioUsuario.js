@@ -132,13 +132,13 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
 
-        const MAX_WIDTH = 800;
+        const MAX_WIDTH = 500;
         const scale = Math.min(1, MAX_WIDTH / img.width);
         canvas.width = img.width * scale;
         canvas.height = img.height * scale;
 
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.6);
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.5);
         const base64Data = compressedDataUrl.split(",")[1];
 
         setNuevaImagen(base64Data);
