@@ -362,30 +362,70 @@ function Supervision({ setVista }) {
           <h2 className="text-lg font-semibold mb-2 flex items-center">
             <PieChartIcon className="mr-2 text-green-600" /> Tareas pendientes por Área
           </h2>
-          <ResponsiveContainer width="100%" height={320}>
-            <PieChart>
-  <Pie
-    data={tareasPorArea}
-    cx="50%"
-    cy="50%"
-    outerRadius={120}
-    dataKey="value"
-    label={({ name, value }) => `${name} (${value})`} // 👉 muestra nombre + cantidad
-    labelLine={false}
-  >
-    {tareasPorArea.map((_, i) => {
-      const hue = (i * 360) / tareasPorArea.length;
-      const color = `hsl(${hue}, 70%, 50%)`;
-      return <Cell key={i} fill={color} />;
-    })}
-  </Pie>
-  <Tooltip
-    formatter={(value, name) => [`${value} tareas pendientes`, name]}
-    labelStyle={{ fontWeight: "bold" }}
-  />
-  <Legend />
-</PieChart>
-          </ResponsiveContainer>
+          <ResponsiveContainer width="100%" height={350}>
+  <PieChart>
+    <Pie
+      data={(() => {
+        // Contar solo tareas pendientes por área
+        const conteo = {};
+        tareas.forEach((t) => {
+          if (!t.fin && !t.solucion) {
+            const area = t.area || "Sin área";
+            conteo[area] = (conteo[area] || 0) + 1;
+          }
+        });
+        return Object.keys(conteo).map((k) => ({ name: k, value: conteo[k] }));
+      })()}
+      cx="50%"
+      cy="50%"
+      innerRadius={70}
+      outerRadius={120}
+      dataKey="value"
+      labelLine={true}
+      label={({ name, value }) => `${name} — ${value}`}
+      onClick={(data) => handleAreaClick(data.name)} // si ya usas el popup
+    >
+      {(() => {
+        // 🎨 Colores fijos por área
+        const coloresFijos = {
+    "Area 1": "#EEF207",
+    "Area 2": "#EF4444",
+    "Area 3": "#10B981",
+    "Area 4": "#3B82F6",
+    "Area 5": "#D25CF6",
+    "Area 6": "#EFB06E",
+    "Sin área": "#6B7280",
+        };
+
+        const datos = tareas.reduce((acc, t) => {
+          if (!t.fin && !t.solucion) {
+            const area = t.area || "Sin área";
+            acc.push(area);
+          }
+          return acc;
+        }, []);
+
+        return datos.map((area, i) => {
+          const color = coloresFijos[area] || "#6B7280";
+          return <Cell key={`cell-${i}`} fill={color} />;
+        });
+      })()}
+    </Pie>
+
+    <Tooltip
+      formatter={(value, name) => [`${value} tareas pendientes`, name]}
+      labelStyle={{ fontWeight: "bold" }}
+    />
+    <Legend
+      verticalAlign="bottom"
+      height={36}
+      wrapperStyle={{
+        paddingTop: "10px",
+        fontSize: "13px",
+      }}
+    />
+  </PieChart>
+</ResponsiveContainer>
         </div>
 
         {/* === MODAL DETALLES POR ÁREA === */}
