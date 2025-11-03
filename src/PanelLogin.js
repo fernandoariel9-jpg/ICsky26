@@ -362,10 +362,10 @@ function Supervision({ setVista }) {
           <h2 className="text-lg font-semibold mb-2 flex items-center">
             <PieChartIcon className="mr-2 text-green-600" /> Tareas pendientes por Área
           </h2>
-         <ResponsiveContainer width="100%" height={350}>
+        <ResponsiveContainer width="100%" height={350}>
   <PieChart>
     {(() => {
-      // 🎯 Generar los datos
+      // 🎯 Datos agrupados solo por tareas pendientes
       const conteo = {};
       tareas.forEach((t) => {
         if (!t.fin && !t.solucion) {
@@ -399,17 +399,27 @@ function Supervision({ setVista }) {
           outerRadius={120}
           dataKey="value"
           labelLine={true}
-          label={({ name, value }) => (
-            <text
-              fill="#000"
-              fontSize={12}
-              fontWeight="bold"
-              textAnchor="middle"
-            >
-              {`${name}: ${value}`}
-            </text>
-          )}
-          onClick={(data) => handleAreaClick(data.name)} // Popup
+          label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, name, value }) => {
+            const RADIAN = Math.PI / 180;
+            const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+            const x = cx + radius * Math.cos(-midAngle * RADIAN);
+            const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+            return (
+              <text
+                x={x}
+                y={y}
+                fill="#000"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={12}
+                fontWeight="bold"
+              >
+                {`${name}: ${value}`}
+              </text>
+            );
+          }}
+          onClick={(data) => handleAreaClick(data.name)} // popup
         >
           {data.map((entry, index) => (
             <Cell
@@ -421,7 +431,7 @@ function Supervision({ setVista }) {
       );
     })()}
 
-    {/* Tooltip y leyenda en negro */}
+    {/* Tooltip y leyenda */}
     <Tooltip
       contentStyle={{
         backgroundColor: "#fff",
