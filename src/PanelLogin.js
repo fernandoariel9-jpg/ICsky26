@@ -135,7 +135,7 @@ function Supervision({ setVista }) {
     "Area 3": "#10B981",
     "Area 4": "#3B82F6",
     "Area 5": "#D25CF6",
-    "Area 6": "#EFB06E",
+    "Area 6": "#f88408ff",
     "Sin área": "#6B7280",
   };
 
