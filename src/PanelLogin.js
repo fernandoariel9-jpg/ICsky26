@@ -362,58 +362,66 @@ function Supervision({ setVista }) {
           <h2 className="text-lg font-semibold mb-2 flex items-center">
             <PieChartIcon className="mr-2 text-green-600" /> Tareas pendientes por Área
           </h2>
-         {/* 📊 Gráfico circular — Tareas pendientes por área */}
-<ResponsiveContainer width="100%" height={350}>
+         <ResponsiveContainer width="100%" height={350}>
   <PieChart>
-    <Pie
-      data={(() => {
-        // Contar solo tareas pendientes por área
-        const conteo = {};
-        tareas.forEach((t) => {
-          if (!t.fin && !t.solucion) {
-            const area = t.area || "Sin área";
-            conteo[area] = (conteo[area] || 0) + 1;
-          }
-        });
-        return Object.keys(conteo).map((k) => ({ name: k, value: conteo[k] }));
-      })()}
-      cx="50%"
-      cy="50%"
-      innerRadius={70}
-      outerRadius={120}
-      dataKey="value"
-      labelLine={true}
-      label={({ name, value }) => `${name} — ${value}`}
-      onClick={(data) => handleAreaClick(data.name)} // si ya usas el popup
-    >
-      {(() => {
-        // 🎨 Colores fijos por área
-        const coloresFijos = {
-          "Area 1": "#EEF207",
-          "Area 2": "#EF4444",
-          "Area 3": "#10B981",
-          "Area 4": "#3B82F6",
-          "Area 5": "#D25CF6",
-          "Area 6": "#EFB06E",
-          "Sin área": "#6B7280",
-        };
+    {(() => {
+      // 🎯 Generar los datos
+      const conteo = {};
+      tareas.forEach((t) => {
+        if (!t.fin && !t.solucion) {
+          const area = t.area || "Sin área";
+          conteo[area] = (conteo[area] || 0) + 1;
+        }
+      });
 
-        const datos = tareas.reduce((acc, t) => {
-          if (!t.fin && !t.solucion) {
-            const area = t.area || "Sin área";
-            acc.push(area);
-          }
-          return acc;
-        }, []);
+      const data = Object.keys(conteo).map((k) => ({
+        name: k,
+        value: conteo[k],
+      }));
 
-        return datos.map((area, i) => {
-          const color = coloresFijos[area] || "#6B7280";
-          return <Cell key={`cell-${i}`} fill={color} />;
-        });
-      })()}
-    </Pie>
+      // 🎨 Colores fijos por área
+      const coloresFijos = {
+        "Area 1": "#EEF207",
+        "Area 2": "#EF4444",
+        "Area 3": "#10B981",
+        "Area 4": "#3B82F6",
+        "Area 5": "#D25CF6",
+        "Area 6": "#EFB06E",
+        "Sin área": "#6B7280",
+      };
 
-    {/* Tooltip y leyenda con texto negro */}
+      return (
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={70}
+          outerRadius={120}
+          dataKey="value"
+          labelLine={true}
+          label={({ name, value }) => (
+            <text
+              fill="#000"
+              fontSize={12}
+              fontWeight="bold"
+              textAnchor="middle"
+            >
+              {`${name}: ${value}`}
+            </text>
+          )}
+          onClick={(data) => handleAreaClick(data.name)} // Popup
+        >
+          {data.map((entry, index) => (
+            <Cell
+              key={`cell-${index}`}
+              fill={coloresFijos[entry.name] || "#6B7280"}
+            />
+          ))}
+        </Pie>
+      );
+    })()}
+
+    {/* Tooltip y leyenda en negro */}
     <Tooltip
       contentStyle={{
         backgroundColor: "#fff",
