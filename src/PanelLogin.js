@@ -360,7 +360,7 @@ function Supervision({ setVista }) {
         {/* === GRÁFICO CIRCULAR DE TAREAS POR ÁREA (separado, con click) === */}
         <div className="p-4 shadow-md mb-8 bg-white rounded-xl">
           <h2 className="text-lg font-semibold mb-2 flex items-center">
-            <PieChartIcon className="mr-2 text-green-600" /> Tareas por Área
+            <PieChartIcon className="mr-2 text-green-600" /> Tareas pendientes por Área
           </h2>
           <ResponsiveContainer width="100%" height={320}>
             <PieChart>
