@@ -362,7 +362,8 @@ function Supervision({ setVista }) {
           <h2 className="text-lg font-semibold mb-2 flex items-center">
             <PieChartIcon className="mr-2 text-green-600" /> Tareas pendientes por Área
           </h2>
-          <ResponsiveContainer width="100%" height={350}>
+         {/* 📊 Gráfico circular — Tareas pendientes por área */}
+<ResponsiveContainer width="100%" height={350}>
   <PieChart>
     <Pie
       data={(() => {
@@ -388,13 +389,13 @@ function Supervision({ setVista }) {
       {(() => {
         // 🎨 Colores fijos por área
         const coloresFijos = {
-    "Area 1": "#EEF207",
-    "Area 2": "#EF4444",
-    "Area 3": "#10B981",
-    "Area 4": "#3B82F6",
-    "Area 5": "#D25CF6",
-    "Area 6": "#EFB06E",
-    "Sin área": "#6B7280",
+          "Area 1": "#EEF207",
+          "Area 2": "#EF4444",
+          "Area 3": "#10B981",
+          "Area 4": "#3B82F6",
+          "Area 5": "#D25CF6",
+          "Area 6": "#EFB06E",
+          "Sin área": "#6B7280",
         };
 
         const datos = tareas.reduce((acc, t) => {
@@ -412,20 +413,31 @@ function Supervision({ setVista }) {
       })()}
     </Pie>
 
+    {/* Tooltip y leyenda con texto negro */}
     <Tooltip
+      contentStyle={{
+        backgroundColor: "#fff",
+        border: "1px solid #ccc",
+        color: "#000",
+        fontSize: "13px",
+      }}
+      itemStyle={{ color: "#000" }}
       formatter={(value, name) => [`${value} tareas pendientes`, name]}
-      labelStyle={{ fontWeight: "bold" }}
+      labelStyle={{ fontWeight: "bold", color: "#000" }}
     />
+
     <Legend
       verticalAlign="bottom"
       height={36}
       wrapperStyle={{
         paddingTop: "10px",
         fontSize: "13px",
+        color: "#000",
       }}
     />
   </PieChart>
 </ResponsiveContainer>
+
         </div>
 
         {/* === MODAL DETALLES POR ÁREA === */}
