@@ -364,30 +364,27 @@ function Supervision({ setVista }) {
           </h2>
           <ResponsiveContainer width="100%" height={320}>
             <PieChart>
-              <Pie
-                data={tareasPorArea}
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                dataKey="value"
-                nameKey="name"
-                onClick={(entry /*, index*/) => {
-                  // entry.name contiene el nombre del área
-                  const areaName = entry && (entry.name || (entry.payload && entry.payload.name));
-                  handleAreaClick(areaName);
-                }}
-              >
-                {tareasPorArea.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORES_AREAS[entry.name] || COLORS[index % COLORS.length]}
-                    cursor="pointer"
-                  />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
+  <Pie
+    data={tareasPorArea}
+    cx="50%"
+    cy="50%"
+    outerRadius={120}
+    dataKey="value"
+    label={({ name, value }) => `${name} (${value})`} // 👉 muestra nombre + cantidad
+    labelLine={false}
+  >
+    {tareasPorArea.map((_, i) => {
+      const hue = (i * 360) / tareasPorArea.length;
+      const color = `hsl(${hue}, 70%, 50%)`;
+      return <Cell key={i} fill={color} />;
+    })}
+  </Pie>
+  <Tooltip
+    formatter={(value, name) => [`${value} tareas pendientes`, name]}
+    labelStyle={{ fontWeight: "bold" }}
+  />
+  <Legend />
+</PieChart>
           </ResponsiveContainer>
         </div>
 
