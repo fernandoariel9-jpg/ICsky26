@@ -294,7 +294,7 @@ function Supervision({ setVista }) {
             <p className="text-2xl font-bold">{pendientes.length}</p>
           </div>
           <div className="bg-blue-200 p-3 rounded-xl">
-            <p className="text-gray-600 text-sm">Terminadas</p>
+            <p className="text-gray-600 text-sm">En proceso</p>
             <p className="text-2xl font-bold">{terminadas.length}</p>
           </div>
           <div className="bg-green-200 p-3 rounded-xl">
@@ -463,6 +463,7 @@ function Supervision({ setVista }) {
     </ul>
   </div>
 )}
+
                   </>
                 )}
 
@@ -771,7 +772,7 @@ function Supervision({ setVista }) {
             tab === "terminadas" ? "bg-blue-400 text-white" : "bg-gray-200 text-gray-700"
           }`}
         >
-          🧩 Terminadas ({terminadas.length})
+          🧩 En proceso ({terminadas.length})
         </button>
         <button
           onClick={() => setTab("finalizadas")}
