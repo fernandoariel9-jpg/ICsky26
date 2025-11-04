@@ -403,7 +403,7 @@ const handleAreaClick = (areaName) => {
           innerRadius={70}
           outerRadius={120}
           dataKey="value"
-          labelLine={true}
+          labelLine={false}
           label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, name, value }) => {
             const RADIAN = Math.PI / 180;
             const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
