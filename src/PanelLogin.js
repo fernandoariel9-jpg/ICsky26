@@ -499,37 +499,39 @@ function Supervision({ setVista }) {
                     </p>
 
                     {/* opcional: lista corta de tareas (id - asignado - servicio) */}
-                   {detallesArea.tareasList && detallesArea.tareasList.length > 0 && (
+                  {detallesArea.tareasList && detallesArea.tareasList.length > 0 && (
   <div className="mt-4 max-h-60 overflow-auto text-sm border rounded p-2 bg-gray-50">
-    <strong>Listado (ID — Asignado — Servicio — Tarea):</strong>
+    <strong>Listado de pendientes (ID — Asignado — Servicio — Tarea):</strong>
     <ul className="mt-2 space-y-2">
-      {detallesArea.tareasList.map((ta) => (
-        <li
-          key={ta.id}
-          className="border-b pb-1 relative group"
-        >
-          <p>
-            #{ta.id} — <strong>{ta.asignado || "No asignado"}</strong> —{" "}
-            {ta.servicio || "Sin servicio"}
-          </p>
+      {detallesArea.tareasList
+        .filter((ta) => !ta.fin && !ta.solucion) // 🔹 solo tareas pendientes
+        .map((ta) => (
+          <li
+            key={ta.id}
+            className="border-b pb-1 relative group text-black"
+          >
+            <p>
+              #{ta.id} — <strong>{ta.asignado || "No asignado"}</strong> —{" "}
+              {ta.servicio || "Sin servicio"}
+            </p>
 
-          {ta.tarea && (
-            <>
-              <p className="text-gray-600 italic ml-4">
-                📝{" "}
-                {ta.tarea.length > 120
-                  ? ta.tarea.slice(0, 120) + "..."
-                  : ta.tarea}
-              </p>
+            {ta.tarea && (
+              <>
+                <p className="text-gray-800 italic ml-4">
+                  📝{" "}
+                  {ta.tarea.length > 120
+                    ? ta.tarea.slice(0, 120) + "..."
+                    : ta.tarea}
+                </p>
 
-              {/* Tooltip visible al pasar el mouse */}
-              <div className="absolute z-50 left-0 mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg px-3 py-2 w-72 shadow-lg">
-                {ta.tarea}
-              </div>
-            </>
-          )}
-        </li>
-      ))}
+                {/* Tooltip visible al pasar el mouse */}
+                <div className="absolute z-50 left-0 mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg px-3 py-2 w-72 shadow-lg">
+                  {ta.tarea}
+                </div>
+              </>
+            )}
+          </li>
+        ))}
     </ul>
   </div>
 )}
