@@ -220,7 +220,8 @@ function Supervision({ setVista }) {
   // 📊 Tareas agrupadas por área (obj y array para charts)
   const tareasPorAreaObj = tareas.reduce((acc, t) => {
   if (!t.solucion && !t.fin) { // solo tareas pendientes
-    const area = t.area || "Sin área";
+    // Si la tarea fue reasignada, usar el área de destino
+    const area = t.reasignado_a || t.area || "Sin área";
     acc[area] = (acc[area] || 0) + 1;
   }
   return acc;
@@ -369,7 +370,7 @@ function Supervision({ setVista }) {
       const conteo = {};
       tareas.forEach((t) => {
         if (!t.fin && !t.solucion) {
-          const area = t.area || "Sin área";
+          const area = t.reasignado_a || t.area || "Sin área";
           conteo[area] = (conteo[area] || 0) + 1;
         }
       });
