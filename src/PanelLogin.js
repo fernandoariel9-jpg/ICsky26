@@ -242,35 +242,39 @@ function Supervision({ setVista }) {
       .trim();
 
   // 📋 Manejar click en área (usa solucion text y fin booleano)
-  const handleAreaClick = (areaName) => {
-    if (!areaName) return;
-    setSelectedArea(areaName);
+const handleAreaClick = (areaName) => {
+  if (!areaName) return;
+  setSelectedArea(areaName);
 
-    const tareasArea = tareas.filter((t) => normalize(t.area || "Sin área") === normalize(areaName));
+  // ✅ Ahora detecta si la tarea fue reasignada y usa el área de destino
+  const tareasArea = tareas.filter((t) => {
+    const areaReal = t.reasignado_a || t.area || "Sin área";
+    return normalize(areaReal) === normalize(areaName);
+  });
 
-    // personal: usar 'asignado' (antes usaste 'personal' en algunas versiones; tu DB usa asignado)
-    const personal = [...new Set(tareasArea.map((t) => t.asignado || "No asignado"))];
+  // personal: usar 'asignado'
+  const personal = [...new Set(tareasArea.map((t) => t.asignado || "No asignado"))];
 
-    // servicios
-    const servicios = [...new Set(tareasArea.map((t) => t.servicio || "Sin servicio"))];
+  // servicios
+  const servicios = [...new Set(tareasArea.map((t) => t.servicio || "Sin servicio"))];
 
-    // tareas
-    const tarea = [...new Set(tareasArea.map((t) => t.tarea || "Sin tarea"))];
+  // tareas
+  const tarea = [...new Set(tareasArea.map((t) => t.tarea || "Sin tarea"))];
 
-    // estados: pendientes = !solucion && !fin ; en proceso = solucion && !fin ; finalizadas = fin (boolean)
-    const pendientesCount = tareasArea.filter((t) => !t.solucion && !t.fin).length;
-    const enProcesoCount = tareasArea.filter((t) => t.solucion && !t.fin).length;
-    const finalizadasCount = tareasArea.filter((t) => t.fin).length;
+  // estados: pendientes = !solucion && !fin ; en proceso = solucion && !fin ; finalizadas = fin
+  const pendientesCount = tareasArea.filter((t) => !t.solucion && !t.fin).length;
+  const enProcesoCount = tareasArea.filter((t) => t.solucion && !t.fin).length;
+  const finalizadasCount = tareasArea.filter((t) => t.fin).length;
 
-    setDetallesArea({
-      personal,
-      servicios,
-      pendientes: pendientesCount,
-      proceso: enProcesoCount,
-      finalizadas: finalizadasCount,
-      tareasList: tareasArea, // por si querés listar luego
-    });
-  };
+  setDetallesArea({
+    personal,
+    servicios,
+    pendientes: pendientesCount,
+    proceso: enProcesoCount,
+    finalizadas: finalizadasCount,
+    tareasList: tareasArea, // para el listado en popup
+  });
+};
 
   const cerrarPopupArea = () => {
     setSelectedArea(null);
