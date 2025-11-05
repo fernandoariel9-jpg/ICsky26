@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Bot, X } from "lucide-react";
 import { API_URL } from "./config";
@@ -19,6 +19,14 @@ export default function AsistenteIAFlotante() {
   // ✅ sessionId seguro, solo se genera una vez
   const sessionIdRef = useRef(localStorage.getItem("sessionId") || crypto.randomUUID());
   localStorage.setItem("sessionId", sessionIdRef.current);
+
+  // ✅ referencia para hacer scroll automático
+  const mensajesEndRef = useRef(null);
+  useEffect(() => {
+    if (mensajesEndRef.current) {
+      mensajesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [mensajes, cargando]);
 
   const enviarMensaje = async (filtros = {}) => {
     if (!input.trim()) return;
@@ -98,6 +106,9 @@ export default function AsistenteIAFlotante() {
               {cargando && (
                 <p className="text-gray-500 text-sm italic">🤖 pensando...</p>
               )}
+
+              {/* 👇 ancla invisible para hacer scroll automático */}
+              <div ref={mensajesEndRef} />
             </div>
 
             <div className="flex border-t border-gray-200">
