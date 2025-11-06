@@ -3,38 +3,35 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Bot, X } from "lucide-react";
 import { API_URL } from "./config";
 
-const API_IA = `${API_URL.Base}/api/ia`; // 👈 Ajusta si tu backend usa otra ruta
+const API_IA = `${API_URL.Base}/api/ia`;
 
 export default function AsistenteIAFlotante() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [mensajes, setMensajes] = useState([
     {
+      id: 0,
       remitente: "bot",
       texto: "👋 Hola, soy el asistente del Servicio de Ingeniería Clínica. ¿En qué puedo ayudarte hoy?",
     },
   ]);
   const [cargando, setCargando] = useState(false);
+  const chatRef = useRef(null);
 
-  // ✅ sessionId seguro, solo se genera una vez
   const sessionIdRef = useRef(localStorage.getItem("sessionId") || crypto.randomUUID());
   localStorage.setItem("sessionId", sessionIdRef.current);
 
-  // ✅ referencia para hacer scroll automático
-  const mensajesEndRef = useRef(null);
+  // 🔽 Scroll automático al final cuando se agrega un nuevo mensaje
   useEffect(() => {
-    if (mensajesEndRef.current) {
-      mensajesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [mensajes, cargando]);
 
   const enviarMensaje = async (filtros = {}) => {
     if (!input.trim()) return;
-
-    // Guardamos la pregunta en variable local para evitar referencias circulares
     const textoPregunta = input;
-
-    const nuevoMensaje = { remitente: "usuario", texto: textoPregunta };
+    const nuevoMensaje = { id: Date.now(), remitente: "usuario", texto: textoPregunta };
     setMensajes((prev) => [...prev, nuevoMensaje]);
     setInput("");
     setCargando(true);
@@ -51,16 +48,41 @@ export default function AsistenteIAFlotante() {
 
       setMensajes((prev) => [
         ...prev,
-        { remitente: "bot", texto: data.respuesta || "🤖 No tengo información sobre eso." },
+        {
+          id: Date.now(),
+          remitente: "bot",
+          texto: data.respuesta || "🤖 No tengo información sobre eso.",
+        },
       ]);
     } catch (err) {
       console.error("Error al consultar IA:", err);
       setMensajes((prev) => [
         ...prev,
-        { remitente: "bot", texto: `❌ Error al conectar con el servidor.` },
+        { id: Date.now(), remitente: "bot", texto: "❌ Error al conectar con el servidor." },
       ]);
     } finally {
       setCargando(false);
+    }
+  };
+
+  // ✏️ Nueva función para corregir respuestas del bot
+  const corregirRespuesta = async (mensajeId) => {
+    const mensaje = mensajes.find((m) => m.id === mensajeId);
+    if (!mensaje) return;
+
+    const nuevaRespuesta = prompt("Escribe la corrección para esta respuesta:", mensaje.texto);
+    if (!nuevaRespuesta || nuevaRespuesta === mensaje.texto) return;
+
+    try {
+      await fetch(`${API_URL.Base}/api/ia/corregir/${mensajeId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nuevaRespuesta }),
+      });
+      alert("✅ Corrección guardada con éxito.");
+    } catch (error) {
+      console.error("❌ Error al guardar corrección:", error);
+      alert("⚠️ No se pudo guardar la corrección.");
     }
   };
 
@@ -89,26 +111,34 @@ export default function AsistenteIAFlotante() {
               <Bot size={18} /> Asistente de Ingeniería Clínica
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-80">
-              {mensajes.map((m, i) => (
-                <div
-                  key={i}
-                  className={`p-2 rounded-lg text-sm ${
-                    m.remitente === "usuario"
-                      ? "bg-blue-100 self-end text-right"
-                      : "bg-gray-100"
-                  }`}
-                >
-                  {m.texto}
+            <div ref={chatRef} className="flex-1 overflow-y-auto p-3 space-y-2 max-h-80">
+              {mensajes.map((m) => (
+                <div key={m.id} className="flex flex-col">
+                  <div
+                    className={`p-2 rounded-lg text-sm ${
+                      m.remitente === "usuario"
+                        ? "bg-blue-100 self-end text-right"
+                        : "bg-gray-100"
+                    }`}
+                  >
+                    {m.texto}
+                  </div>
+
+                  {/* ✏️ Botón corregir solo para mensajes del bot */}
+                  {m.remitente === "bot" && (
+                    <button
+                      onClick={() => corregirRespuesta(m.id)}
+                      className="text-xs text-blue-500 underline mt-1 self-start hover:text-blue-700"
+                    >
+                      ✏️ Corregir
+                    </button>
+                  )}
                 </div>
               ))}
 
               {cargando && (
                 <p className="text-gray-500 text-sm italic">🤖 pensando...</p>
               )}
-
-              {/* 👇 ancla invisible para hacer scroll automático */}
-              <div ref={mensajesEndRef} />
             </div>
 
             <div className="flex border-t border-gray-200">
