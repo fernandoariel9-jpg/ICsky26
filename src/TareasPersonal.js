@@ -433,7 +433,7 @@ export default function TareasPersonal({ personal, onLogout }) {
 {t.movil && (
   <button
     onClick={() => {
-      const mensaje = `Hola ${t.usuario}, soy ${personal.nombre}, te contacto respecto a tu pedido de tarea #${t.id}: '${t.tarea}'.`;
+      const mensaje = `Hola ${t.usuario}, soy ${personal.nombre} del Servicio de Ingeniería Clínica, te contacto respecto a tu pedido de tarea #${t.id}: '${t.tarea}'.`;
       const numero = t.movil.replace(/\D/g, ""); // limpia caracteres no numéricos
       const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
       window.open(url, "_blank");
@@ -599,6 +599,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
