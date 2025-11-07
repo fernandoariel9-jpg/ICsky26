@@ -5,6 +5,7 @@ import { API_URL } from "./config";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import RegistroUsuario from "./RegistroUsuario";
+import { FaWhatsapp } from "react-icons/fa";
 
 const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
@@ -426,8 +427,23 @@ export default function TareasPersonal({ personal, onLogout }) {
           </p>
 
           <p className="text-sm text-gray-700">
-            👤 Usuario: <span className="font-medium">{t.usuario}</span>
-          </p>
+  👤 Usuario: <span className="font-medium">{t.usuario}</span>
+</p>
+
+{t.movil && (
+  <button
+    onClick={() => {
+      const mensaje = `Hola ${t.usuario}, soy ${personal.nombre}, te contacto respecto a tu tarea #${t.id}: '${t.tarea}'.`;
+      const numero = t.movil.replace(/\D/g, ""); // limpia caracteres no numéricos
+      const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, "_blank");
+    }}
+    className="mt-1 flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs shadow-sm transition"
+  >
+    <FaWhatsapp size={14} />
+    Contactar usuario
+  </button>
+)}
           <p className="text-sm text-gray-700">
             🏢 Área: <span className="font-medium">{t.area || "—"}</span>
           </p>
@@ -583,5 +599,6 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
