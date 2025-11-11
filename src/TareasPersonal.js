@@ -6,6 +6,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import RegistroUsuario from "./RegistroUsuario";
 import { FaWhatsapp } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 
 const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
@@ -21,6 +22,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [editando, setEditando] = useState({});
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
 
   function getFechaLocal() {
     const d = new Date();
@@ -276,12 +278,11 @@ export default function TareasPersonal({ personal, onLogout }) {
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
   const finalizadas = tareas.filter((t) => t.fin);
 
-  const tareasFiltradas =
-    filtro === "pendientes"
-      ? pendientes
-      : filtro === "enProceso"
-      ? enProceso
-      : finalizadas;
+  const tareasFiltradas = tareas.filter((t) => {
+  if (!busqueda) return true;
+  const valores = Object.values(t).join(" ").toLowerCase();
+  return valores.includes(busqueda);
+});
 
   const handleExportarPDF = async () => {
     const nombreLista =
@@ -375,6 +376,17 @@ export default function TareasPersonal({ personal, onLogout }) {
           Cerrar sesión
         </button>
       </div>
+{/* 🔍 Cuadro de búsqueda global */}
+<div className="relative my-3">
+  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+  <input
+    type="text"
+    placeholder="Buscar en todas las columnas..."
+    value={busqueda}
+    onChange={(e) => setBusqueda(e.target.value.toLowerCase())}
+    className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+  />
+</div>
 
  {/* Filtros */}
       <div className="flex justify-center space-x-2 mb-4">
@@ -599,6 +611,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
