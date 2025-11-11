@@ -277,12 +277,12 @@ export default function TareasPersonal({ personal, onLogout }) {
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
   const finalizadas = tareas.filter((t) => t.fin);
-
-  const tareasFiltradas = tareas.filter((t) => {
-  if (!busqueda) return true;
-  const valores = Object.values(t).join(" ").toLowerCase();
-  return valores.includes(busqueda);
-});
+  const tareasFiltradas =
+    filtro === "pendientes"
+      ? pendientes
+      : filtro === "enProceso"
+      ? enProceso
+      : finalizadas;  
 
   const handleExportarPDF = async () => {
     const nombreLista =
@@ -611,6 +611,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
