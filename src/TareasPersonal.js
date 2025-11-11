@@ -277,12 +277,24 @@ export default function TareasPersonal({ personal, onLogout }) {
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
   const finalizadas = tareas.filter((t) => t.fin);
-  const tareasFiltradas =
+
+  // 🔍 Filtrado global por búsqueda
+let tareasFiltradas = [];
+
+if (busqueda.trim()) {
+  const texto = busqueda.toLowerCase();
+  tareasFiltradas = tareas.filter((t) => {
+    const valores = Object.values(t).join(" ").toLowerCase();
+    return valores.includes(texto);
+  });
+} else {
+  tareasFiltradas =
     filtro === "pendientes"
       ? pendientes
       : filtro === "enProceso"
       ? enProceso
-      : finalizadas;  
+      : finalizadas;
+}
 
   const handleExportarPDF = async () => {
     const nombreLista =
@@ -611,6 +623,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     </div>
   );
 }
+
 
 
 
