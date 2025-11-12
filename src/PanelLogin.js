@@ -111,6 +111,9 @@ function Supervision({ setVista }) {
   const [busqueda, setBusqueda] = useState("");
   const [vistaGrafico, setVistaGrafico] = useState("area");
   const [promedios, setPromedios] = useState([]);
+  const [estadisticas, setEstadisticas] = useState([]);
+  const [resumenTareas, setResumenTareas] = useState([]);
+const [resumenTareasConTendencia, setResumenTareasConTendencia] = useState([]);
 
   // Estados para popup por área
   const [selectedArea, setSelectedArea] = useState(null);
@@ -180,6 +183,33 @@ function Supervision({ setVista }) {
       }
     });
 
+useEffect(() => {
+  fetch(`${API_URL}/resumen_tareas`)
+    .then((res) => res.json())
+    .then((data) => {
+      // 🕒 Formatear fechas al estilo 2025-10-28 09:35:00
+      const parsed = data.map((r) => ({
+        ...r,
+        fecha: new Date(r.fecha).toISOString().slice(0, 19).replace("T", " "),
+        pendientes: Number(r.pendientes),
+        en_proceso: Number(r.en_proceso),
+      }));
+
+      // 📈 Calcular promedio móvil (tendencia) sobre las pendientes
+      const tendencia = parsed.map((p, i, arr) => {
+        const inicio = Math.max(0, i - 2); // últimos 3 días
+        const ventana = arr.slice(inicio, i + 1);
+        const promedio =
+          ventana.reduce((acc, d) => acc + d.pendientes, 0) / ventana.length;
+        return { ...p, tendencia: Number(promedio.toFixed(2)) };
+      });
+
+      setResumenTareas(parsed);
+      setResumenTareasConTendencia(tendencia);
+    })
+    .catch((err) => console.error("Error al obtener resumen de tareas:", err));
+}, []);
+    
     const nuevosPromedios = Object.values(tiemposPorDia)
       .map((d) => ({
         fecha: d.fecha,
@@ -616,120 +646,76 @@ const handleAreaClick = (areaName) => {
         )}
 
 {/* -------------------- 📊 GRAFICO DE TENDENCIAS (Pendientes vs En Proceso) -------------------- */}
-<div className="mt-8 bg-white shadow-md rounded-xl p-4">
-  <h2 className="text-xl font-semibold mb-4 text-center text-gray-700">
-    📈 Tendencia diaria: Pendientes vs En Proceso
+{/* 📊 Gráfico de evolución de tareas pendientes y en proceso con tendencia */}
+<div className="bg-white shadow-lg rounded-xl p-6 mt-6">
+  <h2 className="text-xl font-bold mb-4 text-gray-800">
+    Evolución de tareas pendientes y en proceso
   </h2>
+
   <ResponsiveContainer width="100%" height={350}>
     <LineChart
-      data={(() => {
-        // 🔹 Agrupar tareas por día
-        const conteoPorDia = {};
-        tareas.forEach((t) => {
-          if (!t.fecha) return;
-          const fecha = new Date(t.fecha).toISOString().split("T")[0];
-
-          if (!conteoPorDia[fecha])
-            conteoPorDia[fecha] = { fecha, pendientes: 0, en_proceso: 0 };
-
-          if (!t.solucion && !t.fin) conteoPorDia[fecha].pendientes++;
-          else if (t.solucion && !t.fin) conteoPorDia[fecha].en_proceso++;
-        });
-
-        const data = Object.values(conteoPorDia).sort(
-          (a, b) => new Date(a.fecha) - new Date(b.fecha)
-        );
-
-        // 🔹 Calcular media móvil de 3 días
-        const movingAverage = (arr, key, windowSize = 3) =>
-          arr.map((_, i) => {
-            const start = Math.max(0, i - windowSize + 1);
-            const slice = arr.slice(start, i + 1);
-            const avg =
-              slice.reduce((sum, val) => sum + (val[key] || 0), 0) /
-              slice.length;
-            return avg;
-          });
-
-        const pendientesTrend = movingAverage(data, "pendientes");
-        const enProcesoTrend = movingAverage(data, "en_proceso");
-
-        // 🔹 Añadir tendencias al dataset
-        return data.map((d, i) => ({
-          ...d,
-          pendientesTrend: pendientesTrend[i],
-          enProcesoTrend: enProcesoTrend[i],
-        }));
-      })()}
-      margin={{ top: 20, right: 30, left: 10, bottom: 10 }}
+      data={resumenTareasConTendencia} // 👈 nuevo arreglo procesado
+      margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
     >
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis
         dataKey="fecha"
-        tickFormatter={(dateStr) => {
-          const d = new Date(dateStr);
-          return d.getDate(); // día del mes
+        tickFormatter={(tick) => {
+          const date = new Date(tick);
+          return date.getDate(); // solo el número del día
         }}
         label={{
-          value: "Día del mes",
-          position: "insideBottomRight",
-          offset: -5,
+          value: "Días del mes",
+          position: "insideBottom",
+          offset: -10,
         }}
       />
-      <YAxis
-        label={{ value: "Cantidad", angle: -90, position: "insideLeft" }}
-      />
+      <YAxis />
       <Tooltip
-        labelFormatter={(label) =>
-          new Date(label).toLocaleDateString("es-AR")
-        }
-        formatter={(value, name) => {
-          const nombres = {
-            pendientes: "Pendientes",
-            en_proceso: "En proceso",
-            pendientesTrend: "Tendencia Pendientes",
-            enProcesoTrend: "Tendencia En Proceso",
-          };
-          return [`${Math.round(value)} tareas`, nombres[name] || name];
+        labelFormatter={(label) => {
+          const d = new Date(label);
+          return d.toLocaleString("es-AR", {
+            day: "2-digit",
+            month: "long",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
         }}
+        formatter={(value, name) => [
+          value,
+          name === "pendientes"
+            ? "Tareas pendientes"
+            : name === "en_proceso"
+            ? "Tareas en proceso"
+            : "Tendencia (promedio móvil)",
+        ]}
       />
       <Legend />
-      {/* Líneas principales */}
       <Line
         type="monotone"
         dataKey="pendientes"
-        stroke="#f97316"
+        stroke="#EF4444"
         strokeWidth={2}
-        name="Pendientes"
-        dot
+        dot={{ r: 4 }}
+        activeDot={{ r: 6 }}
       />
       <Line
         type="monotone"
         dataKey="en_proceso"
-        stroke="#eab308"
+        stroke="#3B82F6"
         strokeWidth={2}
-        name="En proceso"
-        dot
+        dot={{ r: 4 }}
+        activeDot={{ r: 6 }}
       />
-
-      {/* Líneas de tendencia (suavizadas y punteadas) */}
+      {/* 🔹 Línea de tendencia (promedio móvil 3 días) */}
       <Line
         type="monotone"
-        dataKey="pendientesTrend"
-        stroke="#f97316"
-        strokeWidth={2}
-        strokeDasharray="5 5"
-        name="Tendencia Pendientes"
+        dataKey="tendencia"
+        stroke="#10B981"
+        strokeWidth={3}
+        strokeDasharray="6 3"
         dot={false}
-      />
-      <Line
-        type="monotone"
-        dataKey="enProcesoTrend"
-        stroke="#eab308"
-        strokeWidth={2}
-        strokeDasharray="5 5"
-        name="Tendencia En Proceso"
-        dot={false}
+        name="Tendencia (promedio móvil)"
       />
     </LineChart>
   </ResponsiveContainer>
