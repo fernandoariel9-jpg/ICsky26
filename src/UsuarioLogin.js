@@ -7,6 +7,23 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu, 
   const [recordar, setRecordar] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pantalla, setPantalla] = useState("login");
+
+  {pantalla === "login" && (
+  <UsuarioLogin
+    onLogin={handleLogin}
+    switchToRegister={() => setPantalla("register")}
+    switchToMenu={() => setPantalla("menu")}
+    switchToRecuperar={() => setPantalla("recuperar")}
+  />
+)}
+
+{pantalla === "recuperar" && (
+  <RecuperarPassword
+    switchToLogin={() => setPantalla("login")}
+    switchToMenu={() => setPantalla("menu")}
+  />
+)}
 
   useEffect(() => {
     const savedMail = localStorage.getItem("usuarioRecordado");
@@ -131,3 +148,4 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu, 
     </div>
   );
 }
+
