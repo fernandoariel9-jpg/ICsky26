@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
-export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu }) {
+export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu, switchToRecuperar }) {
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
   const [recordar, setRecordar] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
-  const [loading, setLoading] = useState(false); // 🔹 Spinner + overlay
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const savedMail = localStorage.getItem("usuarioRecordado");
@@ -101,6 +101,15 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu }
 
         <button type="submit" className="bg-blue-500 text-white p-2 rounded-xl">
           Ingresar
+        </button>
+
+        {/* 🔹 Link para restablecer contraseña */}
+        <button
+          type="button"
+          onClick={switchToRecuperar}
+          className="text-blue-600 text-sm underline mt-1"
+        >
+          ¿Olvidaste tu contraseña?
         </button>
 
         {/* 🔹 Botón volver al menú */}
