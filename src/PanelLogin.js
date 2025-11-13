@@ -653,102 +653,62 @@ const handleAreaClick = (areaName) => {
           </ResponsiveContainer>
         )}
 
-{/* 📊 Gráfico de evolución de tareas pendientes vs en proceso */}
-<div className="bg-white shadow-lg rounded-2xl p-4 mt-6">
-  <h2 className="text-xl font-bold text-center mb-4">
-    Evolución de tareas pendientes y en proceso 📈
+{/* 📊 Gráfico de pendientes vs en proceso */}
+<div className="bg-white p-4 rounded-xl shadow-md mt-6">
+  <h2 className="text-lg font-semibold text-gray-800 mb-3">
+    Tareas Pendientes vs En Proceso (últimos 15 días)
   </h2>
-  <ResponsiveContainer width="100%" height={350}>
-    <LineChart
-      data={resumenTareasConTendencia}
-      margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis
-        dataKey="fecha"
-        tickFormatter={(fecha) => {
-          const d = new Date(fecha);
-          return d.getDate(); // solo el número de día
-        }}
-        label={{
-          value: "Días del mes",
-          position: "insideBottom",
-          offset: -5,
-          fill: "#333",
-        }}
-      />
-      <YAxis
-        label={{
-          value: "Cantidad de tareas",
-          angle: -90,
-          position: "insideLeft",
-          fill: "#333",
-        }}
-      />
-      <Tooltip
-        labelFormatter={(fecha) => {
-          const d = new Date(fecha);
-          return d.toLocaleString("es-AR", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-        }}
-        formatter={(value, name) => [
-          value,
-          name === "pendientes"
-            ? "Pendientes"
-            : name === "en_proceso"
-            ? "En proceso"
-            : name.includes("tendencia")
-            ? `Tendencia ${name.includes("pend") ? "Pendientes" : "Proceso"}`
-            : name,
-        ]}
-      />
 
-      {/* 🔵 Pendientes */}
-      <Line
-        type="monotone"
-        dataKey="pendientes"
-        stroke="#3B82F6"
-        strokeWidth={2}
-        name="Pendientes"
-      />
-
-      {/* 🟢 En proceso */}
-      <Line
-        type="monotone"
-        dataKey="en_proceso"
-        stroke="#10B981"
-        strokeWidth={2}
-        name="En proceso"
-      />
-
-      {/* 🔵 Línea de tendencia (pendientes) */}
-      <Line
-        type="monotone"
-        dataKey="tendencia_pendientes"
-        stroke="#1E40AF"
-        strokeWidth={2}
-        strokeDasharray="4 4"
-        dot={false}
-        name="Tendencia Pendientes"
-      />
-
-      {/* 🟢 Línea de tendencia (en proceso) */}
-      <Line
-        type="monotone"
-        dataKey="tendencia_en_proceso"
-        stroke="#047857"
-        strokeWidth={2}
-        strokeDasharray="4 4"
-        dot={false}
-        name="Tendencia En Proceso"
-      />
-    </LineChart>
-  </ResponsiveContainer>
+  <div className="overflow-x-auto">
+    <div className="min-w-[900px]">
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart
+          data={
+            resumenTareasConTendencia.slice(
+              Math.max(0, resumenTareasConTendencia.length - 15)
+            )
+          }
+          margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="fecha" tick={{ fill: "black", fontSize: 12 }} />
+          <YAxis tick={{ fill: "black", fontSize: 12 }} />
+          <Tooltip />
+          <Legend />
+          <Line
+            type="monotone"
+            dataKey="pendientes"
+            stroke="#ff6666"
+            strokeWidth={2}
+            dot={{ r: 3 }}
+            name="Pendientes"
+          />
+          <Line
+            type="monotone"
+            dataKey="en_proceso"
+            stroke="#66b3ff"
+            strokeWidth={2}
+            dot={{ r: 3 }}
+            name="En Proceso"
+          />
+          <Line
+            type="monotone"
+            dataKey="tendenciaPendientes"
+            stroke="#cc0000"
+            strokeDasharray="5 5"
+            name="Tendencia Pendientes"
+          />
+          <Line
+            type="monotone"
+            dataKey="tendenciaEnProceso"
+            stroke="#0066cc"
+            strokeDasharray="5 5"
+            name="Tendencia En Proceso"
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
 </div>
 
         {/* ----------------- Gráfico de tendencias separado ----------------- */}
