@@ -663,15 +663,26 @@ const handleAreaClick = (areaName) => {
     <div className="min-w-[900px]">
       <ResponsiveContainer width="100%" height={300}>
         <LineChart
-          data={
-            resumenTareasConTendencia.slice(
-              Math.max(0, resumenTareasConTendencia.length - 15)
-            )
-          }
+          data={resumenTareasConTendencia
+            .slice(Math.max(0, resumenTareasConTendencia.length - 15))
+            .map((item) => ({
+              ...item,
+              // 🔹 Mostrar solo el número del día
+              fecha: new Date(item.fecha).getDate().toString(),
+            }))}
           margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="fecha" tick={{ fill: "black", fontSize: 12 }} />
+          <XAxis
+            dataKey="fecha"
+            tick={{ fill: "black", fontSize: 12 }}
+            label={{
+              value: "Día",
+              position: "insideBottomRight",
+              offset: -5,
+              fill: "black",
+            }}
+          />
           <YAxis tick={{ fill: "black", fontSize: 12 }} />
           <Tooltip />
           <Legend />
