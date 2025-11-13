@@ -144,6 +144,41 @@ function Supervision({ setVista }) {
     fetchTareas();
   }, []);
 
+  useEffect(() => {
+  fetch("https://sky26.onrender.com/api/resumen_tareas")
+    .then((res) => res.json())
+    .then((data) => {
+      const parsed = data.map((r) => ({
+        ...r,
+        fecha: new Date(r.fecha).toISOString().slice(0, 19).replace("T", " "),
+        pendientes: Number(r.pendientes),
+        en_proceso: Number(r.en_proceso),
+      }));
+
+      // 📈 Calcular promedios móviles (tendencias)
+      const tendencia = parsed.map((p, i, arr) => {
+        const inicio = Math.max(0, i - 2); // últimos 3 días
+        const ventana = arr.slice(inicio, i + 1);
+        const promedioPend =
+          ventana.reduce((acc, d) => acc + d.pendientes, 0) / ventana.length;
+        const promedioProc =
+          ventana.reduce((acc, d) => acc + d.en_proceso, 0) / ventana.length;
+
+        return {
+          ...p,
+          tendencia_pendientes: Number(promedioPend.toFixed(2)),
+          tendencia_en_proceso: Number(promedioProc.toFixed(2)),
+        };
+      });
+
+      setResumenTareas(parsed);
+      setResumenTareasConTendencia(tendencia);
+    })
+    .catch((err) =>
+      console.error("❌ Error al obtener resumen de tareas:", err)
+    );
+}, []);
+
   const fetchTareas = async () => {
     setLoading(true);
     try {
@@ -614,6 +649,104 @@ const handleAreaClick = (areaName) => {
             </PieChart>
           </ResponsiveContainer>
         )}
+
+{/* 📊 Gráfico de evolución de tareas pendientes vs en proceso */}
+<div className="bg-white shadow-lg rounded-2xl p-4 mt-6">
+  <h2 className="text-xl font-bold text-center mb-4">
+    Evolución de tareas pendientes y en proceso 📈
+  </h2>
+  <ResponsiveContainer width="100%" height={350}>
+    <LineChart
+      data={resumenTareasConTendencia}
+      margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis
+        dataKey="fecha"
+        tickFormatter={(fecha) => {
+          const d = new Date(fecha);
+          return d.getDate(); // solo el número de día
+        }}
+        label={{
+          value: "Días del mes",
+          position: "insideBottom",
+          offset: -5,
+          fill: "#333",
+        }}
+      />
+      <YAxis
+        label={{
+          value: "Cantidad de tareas",
+          angle: -90,
+          position: "insideLeft",
+          fill: "#333",
+        }}
+      />
+      <Tooltip
+        labelFormatter={(fecha) => {
+          const d = new Date(fecha);
+          return d.toLocaleString("es-AR", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }}
+        formatter={(value, name) => [
+          value,
+          name === "pendientes"
+            ? "Pendientes"
+            : name === "en_proceso"
+            ? "En proceso"
+            : name.includes("tendencia")
+            ? `Tendencia ${name.includes("pend") ? "Pendientes" : "Proceso"}`
+            : name,
+        ]}
+      />
+
+      {/* 🔵 Pendientes */}
+      <Line
+        type="monotone"
+        dataKey="pendientes"
+        stroke="#3B82F6"
+        strokeWidth={2}
+        name="Pendientes"
+      />
+
+      {/* 🟢 En proceso */}
+      <Line
+        type="monotone"
+        dataKey="en_proceso"
+        stroke="#10B981"
+        strokeWidth={2}
+        name="En proceso"
+      />
+
+      {/* 🔵 Línea de tendencia (pendientes) */}
+      <Line
+        type="monotone"
+        dataKey="tendencia_pendientes"
+        stroke="#1E40AF"
+        strokeWidth={2}
+        strokeDasharray="4 4"
+        dot={false}
+        name="Tendencia Pendientes"
+      />
+
+      {/* 🟢 Línea de tendencia (en proceso) */}
+      <Line
+        type="monotone"
+        dataKey="tendencia_en_proceso"
+        stroke="#047857"
+        strokeWidth={2}
+        strokeDasharray="4 4"
+        dot={false}
+        name="Tendencia En Proceso"
+      />
+    </LineChart>
+  </ResponsiveContainer>
+</div>
 
         {/* ----------------- Gráfico de tendencias separado ----------------- */}
         <div className="mt-8 bg-white shadow-md rounded-xl p-4">
