@@ -111,9 +111,6 @@ function Supervision({ setVista }) {
   const [busqueda, setBusqueda] = useState("");
   const [vistaGrafico, setVistaGrafico] = useState("area");
   const [promedios, setPromedios] = useState([]);
-  const [estadisticas, setEstadisticas] = useState([]);
-  const [resumenTareas, setResumenTareas] = useState([]);
-  const [resumenTareasConTendencia, setResumenTareasConTendencia] = useState([]);
 
   // Estados para popup por área
   const [selectedArea, setSelectedArea] = useState(null);
@@ -142,40 +139,30 @@ function Supervision({ setVista }) {
     "Sin área": "#6B7280",
   };
 
-  // ✅ Nuevo useEffect separado: obtiene el resumen_tareas
+  // Cargar tareas
   useEffect(() => {
-    fetch(`${API_URL}/resumen_tareas`)
-      .then((res) => res.json())
-      .then((data) => {
-        const parsed = data.map((r) => ({
-          ...r,
-          fecha: new Date(r.fecha).toISOString().slice(0, 19).replace("T", " "),
-          pendientes: Number(r.pendientes),
-          en_proceso: Number(r.en_proceso),
-        }));
-
-        const tendencia = parsed.map((p, i, arr) => {
-          const inicio = Math.max(0, i - 2);
-          const ventana = arr.slice(inicio, i + 1);
-          const promedio =
-            ventana.reduce((acc, d) => acc + d.pendientes, 0) / ventana.length;
-          return { ...p, tendencia: Number(promedio.toFixed(2)) };
-        });
-
-        setResumenTareas(parsed);
-        setResumenTareasConTendencia(tendencia);
-      })
-      .catch((err) =>
-        console.error("Error al obtener resumen de tareas:", err)
-      );
+    fetchTareas();
   }, []);
 
-  // ✅ useEffect original: calcular promedios de tiempos
+  const fetchTareas = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      setTareas(data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
+    } catch {
+      toast.error("Error al cargar tareas ❌");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Recalcular promedios cuando cambian las tareas
   useEffect(() => {
     const tiemposPorDia = {};
     tareas.forEach((t) => {
       if (!t.fecha) return;
-      const fecha = `${t.fecha}`;
+      const fecha = `${t.fecha}`; // mantener formato con hora
 
       if (!tiemposPorDia[fecha])
         tiemposPorDia[fecha] = { fecha, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
@@ -203,7 +190,7 @@ function Supervision({ setVista }) {
 
     setPromedios(nuevosPromedios);
   }, [tareas]);
-  
+
   // 🔍 Búsqueda global incluyendo ID
   const filtrarBusqueda = (t) => {
     const texto = busqueda.trim().toLowerCase();
@@ -222,9 +209,6 @@ function Supervision({ setVista }) {
       (t.asignado && t.asignado.toLowerCase().includes(texto))
     );
   };
-  }
-
-export default PanelLogin;
 
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin && filtrarBusqueda(t));
   const terminadas = tareas.filter((t) => t.solucion && !t.fin && filtrarBusqueda(t));
@@ -630,82 +614,6 @@ const handleAreaClick = (areaName) => {
             </PieChart>
           </ResponsiveContainer>
         )}
-
-{/* -------------------- 📊 GRAFICO DE TENDENCIAS (Pendientes vs En Proceso) -------------------- */}
-{/* 📊 Gráfico de evolución de tareas pendientes y en proceso con tendencia */}
-<div className="bg-white shadow-lg rounded-xl p-6 mt-6">
-  <h2 className="text-xl font-bold mb-4 text-gray-800">
-    Evolución de tareas pendientes y en proceso
-  </h2>
-
-  <ResponsiveContainer width="100%" height={350}>
-    <LineChart
-      data={resumenTareasConTendencia} // 👈 nuevo arreglo procesado
-      margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis
-        dataKey="fecha"
-        tickFormatter={(tick) => {
-          const date = new Date(tick);
-          return date.getDate(); // solo el número del día
-        }}
-        label={{
-          value: "Días del mes",
-          position: "insideBottom",
-          offset: -10,
-        }}
-      />
-      <YAxis />
-      <Tooltip
-        labelFormatter={(label) => {
-          const d = new Date(label);
-          return d.toLocaleString("es-AR", {
-            day: "2-digit",
-            month: "long",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-        }}
-        formatter={(value, name) => [
-          value,
-          name === "pendientes"
-            ? "Tareas pendientes"
-            : name === "en_proceso"
-            ? "Tareas en proceso"
-            : "Tendencia (promedio móvil)",
-        ]}
-      />
-      <Legend />
-      <Line
-        type="monotone"
-        dataKey="pendientes"
-        stroke="#EF4444"
-        strokeWidth={2}
-        dot={{ r: 4 }}
-        activeDot={{ r: 6 }}
-      />
-      <Line
-        type="monotone"
-        dataKey="en_proceso"
-        stroke="#3B82F6"
-        strokeWidth={2}
-        dot={{ r: 4 }}
-        activeDot={{ r: 6 }}
-      />
-      {/* 🔹 Línea de tendencia (promedio móvil 3 días) */}
-      <Line
-        type="monotone"
-        dataKey="tendencia"
-        stroke="#10B981"
-        strokeWidth={3}
-        strokeDasharray="6 3"
-        dot={false}
-        name="Tendencia (promedio móvil)"
-      />
-    </LineChart>
-  </ResponsiveContainer>
-</div>
 
         {/* ----------------- Gráfico de tendencias separado ----------------- */}
         <div className="mt-8 bg-white shadow-md rounded-xl p-4">
