@@ -222,6 +222,9 @@ function Supervision({ setVista }) {
       (t.asignado && t.asignado.toLowerCase().includes(texto))
     );
   };
+  }
+
+export default PanelLogin;
 
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin && filtrarBusqueda(t));
   const terminadas = tareas.filter((t) => t.solucion && !t.fin && filtrarBusqueda(t));
