@@ -113,7 +113,7 @@ function Supervision({ setVista }) {
   const [promedios, setPromedios] = useState([]);
   const [estadisticas, setEstadisticas] = useState([]);
   const [resumenTareas, setResumenTareas] = useState([]);
-const [resumenTareasConTendencia, setResumenTareasConTendencia] = useState([]);
+  const [resumenTareasConTendencia, setResumenTareasConTendencia] = useState([]);
 
   // Estados para popup por área
   const [selectedArea, setSelectedArea] = useState(null);
@@ -142,57 +142,40 @@ const [resumenTareasConTendencia, setResumenTareasConTendencia] = useState([]);
     "Sin área": "#6B7280",
   };
 
-  // Cargar tareas
+  // ✅ Nuevo useEffect separado: obtiene el resumen_tareas
   useEffect(() => {
-    fetchTareas();
+    fetch(`${API_URL}/resumen_tareas`)
+      .then((res) => res.json())
+      .then((data) => {
+        const parsed = data.map((r) => ({
+          ...r,
+          fecha: new Date(r.fecha).toISOString().slice(0, 19).replace("T", " "),
+          pendientes: Number(r.pendientes),
+          en_proceso: Number(r.en_proceso),
+        }));
+
+        const tendencia = parsed.map((p, i, arr) => {
+          const inicio = Math.max(0, i - 2);
+          const ventana = arr.slice(inicio, i + 1);
+          const promedio =
+            ventana.reduce((acc, d) => acc + d.pendientes, 0) / ventana.length;
+          return { ...p, tendencia: Number(promedio.toFixed(2)) };
+        });
+
+        setResumenTareas(parsed);
+        setResumenTareasConTendencia(tendencia);
+      })
+      .catch((err) =>
+        console.error("Error al obtener resumen de tareas:", err)
+      );
   }, []);
 
-  useEffect(() => {
-  fetch(`${API_URL}/resumen_tareas`)
-    .then((res) => res.json())
-    .then((data) => {
-      const parsed = data.map((r) => ({
-        ...r,
-        fecha: new Date(r.fecha).toISOString().slice(0, 19).replace("T", " "),
-        pendientes: Number(r.pendientes),
-        en_proceso: Number(r.en_proceso),
-      }));
-
-      const tendencia = parsed.map((p, i, arr) => {
-        const inicio = Math.max(0, i - 2); // últimos 3 días
-        const ventana = arr.slice(inicio, i + 1);
-        const promedio =
-          ventana.reduce((acc, d) => acc + d.pendientes, 0) / ventana.length;
-        return { ...p, tendencia: Number(promedio.toFixed(2)) };
-      });
-
-      setResumenTareas(parsed);
-      setResumenTareasConTendencia(tendencia);
-    })
-    .catch((err) =>
-      console.error("Error al obtener resumen de tareas:", err)
-    );
-}, []);
-
-  const fetchTareas = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(API_URL);
-      const data = await res.json();
-      setTareas(data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
-    } catch {
-      toast.error("Error al cargar tareas ❌");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Recalcular promedios cuando cambian las tareas
+  // ✅ useEffect original: calcular promedios de tiempos
   useEffect(() => {
     const tiemposPorDia = {};
     tareas.forEach((t) => {
       if (!t.fecha) return;
-      const fecha = `${t.fecha}`; // mantener formato con hora
+      const fecha = `${t.fecha}`;
 
       if (!tiemposPorDia[fecha])
         tiemposPorDia[fecha] = { fecha, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
@@ -210,21 +193,6 @@ const [resumenTareasConTendencia, setResumenTareasConTendencia] = useState([]);
       }
     });
 
-      // 📈 Calcular promedio móvil (tendencia) sobre las pendientes
-      const tendencia = parsed.map((p, i, arr) => {
-        const inicio = Math.max(0, i - 2); // últimos 3 días
-        const ventana = arr.slice(inicio, i + 1);
-        const promedio =
-          ventana.reduce((acc, d) => acc + d.pendientes, 0) / ventana.length;
-        return { ...p, tendencia: Number(promedio.toFixed(2)) };
-      });
-
-      setResumenTareas(parsed);
-      setResumenTareasConTendencia(tendencia);
-    })
-    .catch((err) => console.error("Error al obtener resumen de tareas:", err));
-}, []);
-    
     const nuevosPromedios = Object.values(tiemposPorDia)
       .map((d) => ({
         fecha: d.fecha,
@@ -235,7 +203,7 @@ const [resumenTareasConTendencia, setResumenTareasConTendencia] = useState([]);
 
     setPromedios(nuevosPromedios);
   }, [tareas]);
-
+  
   // 🔍 Búsqueda global incluyendo ID
   const filtrarBusqueda = (t) => {
     const texto = busqueda.trim().toLowerCase();
