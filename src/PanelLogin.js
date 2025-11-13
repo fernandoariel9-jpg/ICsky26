@@ -721,6 +721,7 @@ const handleAreaClick = (areaName) => {
     </div>
   </div>
 </div>
+</div>
 
        {/* ----------------- Gráfico de tendencias separado ----------------- */}
 <div className="mt-8 bg-white shadow-md rounded-xl p-4">
