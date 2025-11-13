@@ -147,6 +147,33 @@ const [resumenTareasConTendencia, setResumenTareasConTendencia] = useState([]);
     fetchTareas();
   }, []);
 
+  useEffect(() => {
+  fetch(`${API_URL}/resumen_tareas`)
+    .then((res) => res.json())
+    .then((data) => {
+      const parsed = data.map((r) => ({
+        ...r,
+        fecha: new Date(r.fecha).toISOString().slice(0, 19).replace("T", " "),
+        pendientes: Number(r.pendientes),
+        en_proceso: Number(r.en_proceso),
+      }));
+
+      const tendencia = parsed.map((p, i, arr) => {
+        const inicio = Math.max(0, i - 2); // últimos 3 días
+        const ventana = arr.slice(inicio, i + 1);
+        const promedio =
+          ventana.reduce((acc, d) => acc + d.pendientes, 0) / ventana.length;
+        return { ...p, tendencia: Number(promedio.toFixed(2)) };
+      });
+
+      setResumenTareas(parsed);
+      setResumenTareasConTendencia(tendencia);
+    })
+    .catch((err) =>
+      console.error("Error al obtener resumen de tareas:", err)
+    );
+}, []);
+
   const fetchTareas = async () => {
     setLoading(true);
     try {
