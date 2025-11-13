@@ -722,180 +722,190 @@ const handleAreaClick = (areaName) => {
   </div>
 </div>
 
-        {/* ----------------- Gráfico de tendencias separado ----------------- */}
-        <div className="mt-8 bg-white shadow-md rounded-xl p-4">
-          <h2 className="text-xl font-semibold mb-4 text-center">📈 Tendencias de Promedios</h2>
-          <ResponsiveContainer width="100%" height={350}>
-            <LineChart
-              data={(() => {
-                const tiemposPorDia = {};
-                tareas.forEach((t) => {
-                  if (!t.fecha) return;
+       {/* ----------------- Gráfico de tendencias separado ----------------- */}
+<div className="mt-8 bg-white shadow-md rounded-xl p-4">
+  <h2 className="text-xl font-semibold mb-4 text-center">
+    📈 Tendencias de Promedios (últimos 15 días)
+  </h2>
 
-                  // 🕒 Convertir a timestamp (por día)
-                  const fecha = new Date(t.fecha);
-                  const key = fecha.toISOString().split("T")[0]; // yyyy-mm-dd
+  <div className="overflow-x-auto">
+    <div className="min-w-[900px]">
+      <ResponsiveContainer width="100%" height={350}>
+        <LineChart
+          data={(() => {
+            const tiemposPorDia = {};
+            tareas.forEach((t) => {
+              if (!t.fecha) return;
 
-                  let tiempoSol = null;
-                  let tiempoFin = null;
-                  if (t.fecha_comp)
-                    tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
-                  if (t.fecha_fin)
-                    tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
+              const fecha = new Date(t.fecha);
+              const key = fecha.toISOString().split("T")[0]; // yyyy-mm-dd
 
-                  if (!tiemposPorDia[key])
-                    tiemposPorDia[key] = { fecha: key, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
+              let tiempoSol = null;
+              let tiempoFin = null;
+              if (t.fecha_comp)
+                tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
+              if (t.fecha_fin)
+                tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
 
-                  if (tiempoSol !== null) {
-                    tiemposPorDia[key].totalSol += tiempoSol;
-                    tiemposPorDia[key].cantSol += 1;
-                  }
-                  if (tiempoFin !== null) {
-                    tiemposPorDia[key].totalFin += tiempoFin;
-                    tiemposPorDia[key].cantFin += 1;
-                  }
-                });
+              if (!tiemposPorDia[key])
+                tiemposPorDia[key] = { fecha: key, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
 
-                const datos = Object.values(tiemposPorDia)
-                  .map((d) => ({
-                    fecha: new Date(d.fecha).getTime(), // timestamp numérico
-                    promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
-                    promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
-                  }))
-                  .sort((a, b) => a.fecha - b.fecha);
+              if (tiempoSol !== null) {
+                tiemposPorDia[key].totalSol += tiempoSol;
+                tiemposPorDia[key].cantSol += 1;
+              }
+              if (tiempoFin !== null) {
+                tiemposPorDia[key].totalFin += tiempoFin;
+                tiemposPorDia[key].cantFin += 1;
+              }
+            });
 
-                return datos;
-              })()}
-              margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
+            const datos = Object.values(tiemposPorDia)
+              .map((d) => ({
+                fecha: new Date(d.fecha).getTime(),
+                promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
+                promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
+              }))
+              .sort((a, b) => a.fecha - b.fecha);
 
-              {/* 📅 Eje X con fechas bien espaciadas */}
-              <XAxis
-                dataKey="fecha"
-                type="number"
-                domain={["auto", "auto"]}
-                scale="time"
-                tickFormatter={(timestamp) => {
-                  const d = new Date(timestamp);
-                  return d.getDate(); // solo el número de día
-                }}
-                label={{ value: "Día del mes", position: "insideBottomRight", offset: -5 }}
-              />
+            // 🔹 Mostrar solo los últimos 15 días
+            return datos.slice(Math.max(0, datos.length - 15));
+          })()}
+          margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
 
-              {/* 🕒 Eje Y */}
-              <YAxis label={{ value: "Horas", angle: -90, position: "insideLeft" }} />
+          {/* 📅 Eje X - solo número del día */}
+          <XAxis
+            dataKey="fecha"
+            type="number"
+            domain={["auto", "auto"]}
+            scale="time"
+            tickFormatter={(timestamp) => new Date(timestamp).getDate()} // solo el día
+            label={{ value: "Día del mes", position: "insideBottomRight", offset: -5 }}
+            tick={{ fill: "#000", fontSize: 12 }}
+          />
 
-              <Tooltip
-                labelFormatter={(ts) =>
-                  new Date(ts).toLocaleString("es-AR", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                }
-                formatter={(v) => (typeof v === "number" ? `${v.toFixed(2)} h` : v)}
-              />
-              <Legend />
+          {/* 🕒 Eje Y */}
+          <YAxis
+            label={{
+              value: "Horas",
+              angle: -90,
+              position: "insideLeft",
+              fill: "#000",
+            }}
+            tick={{ fill: "#000", fontSize: 12 }}
+          />
 
-              {/* 📈 Líneas principales */}
-              <Line
-                type="monotone"
-                dataKey="promedioSol"
-                stroke="#3B82F6"
-                name="Promedio solución"
-                dot={{ r: 3 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="promedioFin"
-                stroke="#10B981"
-                name="Promedio finalización"
-                dot={{ r: 3 }}
-              />
+          <Tooltip
+            labelFormatter={(ts) =>
+              new Date(ts).toLocaleString("es-AR", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              })
+            }
+            formatter={(v) => (typeof v === "number" ? `${v.toFixed(2)} h` : v)}
+          />
+          <Legend />
 
-              {/* 📉 Líneas de tendencia (regresión simple) */}
-              {(() => {
-                const datos = (() => {
-                  const tiemposPorDia = {};
-                  tareas.forEach((t) => {
-                    if (!t.fecha) return;
-                    const fecha = new Date(t.fecha);
-                    const key = fecha.toISOString().split("T")[0];
-                    let tiempoSol = null;
-                    let tiempoFin = null;
-                    if (t.fecha_comp)
-                      tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
-                    if (t.fecha_fin)
-                      tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
-                    if (!tiemposPorDia[key])
-                      tiemposPorDia[key] = { fecha: key, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
-                    if (tiempoSol !== null) {
-                      tiemposPorDia[key].totalSol += tiempoSol;
-                      tiemposPorDia[key].cantSol += 1;
-                    }
-                    if (tiempoFin !== null) {
-                      tiemposPorDia[key].totalFin += tiempoFin;
-                      tiemposPorDia[key].cantFin += 1;
-                    }
-                  });
-                  return Object.values(tiemposPorDia)
-                    .map((d) => ({
-                      fecha: new Date(d.fecha).getTime(),
-                      promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
-                      promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
-                    }))
-                    .sort((a, b) => a.fecha - b.fecha);
-                })();
+          {/* 📈 Líneas principales */}
+          <Line
+            type="monotone"
+            dataKey="promedioSol"
+            stroke="#3B82F6"
+            name="Promedio solución"
+            dot={{ r: 3 }}
+          />
+          <Line
+            type="monotone"
+            dataKey="promedioFin"
+            stroke="#10B981"
+            name="Promedio finalización"
+            dot={{ r: 3 }}
+          />
 
-                const calcTrend = (arr) => {
-                  const n = arr.length;
-                  if (n === 0) return [];
-                  const x = arr.map((_, i) => i);
-                  const y = arr;
-                  const sumX = x.reduce((a, b) => a + b, 0);
-                  const sumY = y.reduce((a, b) => a + b, 0);
-                  const sumXY = x.reduce((a, c, i) => a + c * y[i], 0);
-                  const sumX2 = x.reduce((a, c) => a + c * c, 0);
-                  const denom = n * sumX2 - sumX * sumX;
-                  if (denom === 0) return new Array(n).fill(y[0] || 0);
-                  const slope = (n * sumXY - sumX * sumY) / denom;
-                  const intercept = (sumY - slope * sumX) / n;
-                  return arr.map((_, i) => intercept + slope * i);
-                };
+          {/* 📉 Líneas de tendencia */}
+          {(() => {
+            const tiemposPorDia = {};
+            tareas.forEach((t) => {
+              if (!t.fecha) return;
+              const fecha = new Date(t.fecha);
+              const key = fecha.toISOString().split("T")[0];
+              let tiempoSol = null;
+              let tiempoFin = null;
+              if (t.fecha_comp)
+                tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
+              if (t.fecha_fin)
+                tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
+              if (!tiemposPorDia[key])
+                tiemposPorDia[key] = { fecha: key, totalSol: 0, totalFin: 0, cantSol: 0, cantFin: 0 };
+              if (tiempoSol !== null) {
+                tiemposPorDia[key].totalSol += tiempoSol;
+                tiemposPorDia[key].cantSol += 1;
+              }
+              if (tiempoFin !== null) {
+                tiemposPorDia[key].totalFin += tiempoFin;
+                tiemposPorDia[key].cantFin += 1;
+              }
+            });
 
-                const tendenciaSol = calcTrend(datos.map((d) => d.promedioSol));
-                const tendenciaFin = calcTrend(datos.map((d) => d.promedioFin));
+            const datos = Object.values(tiemposPorDia)
+              .map((d) => ({
+                fecha: new Date(d.fecha).getTime(),
+                promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
+                promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0,
+              }))
+              .sort((a, b) => a.fecha - b.fecha)
+              .slice(Math.max(0, Object.values(tiemposPorDia).length - 15));
 
-                return (
-                  <>
-                    <Line
-                      type="monotone"
-                      data={datos.map((d, i) => ({ fecha: d.fecha, valor: tendenciaSol[i] }))}
-                      dataKey="valor"
-                      stroke="#1E40AF"
-                      strokeDasharray="5 5"
-                      name="Tendencia solución"
-                      dot={false}
-                    />
-                    <Line
-                      type="monotone"
-                      data={datos.map((d, i) => ({ fecha: d.fecha, valor: tendenciaFin[i] }))}
-                      dataKey="valor"
-                      stroke="#047857"
-                      strokeDasharray="5 5"
-                      name="Tendencia finalización"
-                      dot={false}
-                    />
-                  </>
-                );
-              })()}
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+            const calcTrend = (arr) => {
+              const n = arr.length;
+              if (n === 0) return [];
+              const x = arr.map((_, i) => i);
+              const y = arr;
+              const sumX = x.reduce((a, b) => a + b, 0);
+              const sumY = y.reduce((a, b) => a + b, 0);
+              const sumXY = x.reduce((a, c, i) => a + c * y[i], 0);
+              const sumX2 = x.reduce((a, c) => a + c * c, 0);
+              const denom = n * sumX2 - sumX * sumX;
+              if (denom === 0) return new Array(n).fill(y[0] || 0);
+              const slope = (n * sumXY - sumX * sumY) / denom;
+              const intercept = (sumY - slope * sumX) / n;
+              return arr.map((_, i) => intercept + slope * i);
+            };
+
+            const tendenciaSol = calcTrend(datos.map((d) => d.promedioSol));
+            const tendenciaFin = calcTrend(datos.map((d) => d.promedioFin));
+
+            return (
+              <>
+                <Line
+                  type="monotone"
+                  data={datos.map((d, i) => ({ fecha: d.fecha, valor: tendenciaSol[i] }))}
+                  dataKey="valor"
+                  stroke="#1E40AF"
+                  strokeDasharray="5 5"
+                  name="Tendencia solución"
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  data={datos.map((d, i) => ({ fecha: d.fecha, valor: tendenciaFin[i] }))}
+                  dataKey="valor"
+                  stroke="#047857"
+                  strokeDasharray="5 5"
+                  name="Tendencia finalización"
+                  dot={false}
+                />
+              </>
+            );
+          })()}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+</div>
 
       <p className="text-center text-xs text-gray-500 mt-2">
         Vista actual:{" "}
