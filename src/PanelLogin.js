@@ -116,6 +116,7 @@ function Supervision({ setVista }) {
 const [resumenTareas, setResumenTareas] = useState([]);
 const [resumenTareasConTendencia, setResumenTareasConTendencia] = useState([]);
 const [resumenTiempos, setResumenTiempos] = useState([]);
+  const [datosPromediosConTendencia, setDatosPromediosConTendencia] = useState([]);
 
   // Estados para popup por área
   const [selectedArea, setSelectedArea] = useState(null);
