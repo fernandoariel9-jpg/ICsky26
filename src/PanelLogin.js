@@ -211,8 +211,6 @@ function calcularTendencia(data, campo) {
   }));
 }
 
-const tendenciaSol = calcularTendencia(datosPromedios, "solucion");
-const tendenciaFin = calcularTendencia(datosPromedios, "finalizacion");
 
         // ----------------- Datos de promedio de solución y finalización -----------------
 const datosPromedios = (() => {
