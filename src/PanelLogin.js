@@ -152,7 +152,7 @@ const [resumenTiempos, setResumenTiempos] = useState([]);
   useEffect(() => {
   async function cargarResumenTiempos() {
     try {
-      const res = await fetch(API_URL.ResumenTiempos);
+      const res = await fetch(`${API_URL.Base}/api/resumen_tiempos`);
       const data = await res.json();
       setResumenTiempos(data);
     } catch (err) {
