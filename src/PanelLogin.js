@@ -22,7 +22,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  brush
+  brush,
 } from "recharts";
 
 const API_URL = "https://sky26.onrender.com/tareas";
@@ -842,7 +842,7 @@ const handleAreaClick = (areaName) => {
   </h3>
 
   <ResponsiveContainer width="100%" height={300}>
-    <LineChart data={datosPromediosConTendencia}>
+    <LineChart data={datosPromediosConTendenciaLocal}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis 
         dataKey="dia"
