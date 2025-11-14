@@ -773,102 +773,92 @@ const handleAreaClick = (areaName) => {
           </ResponsiveContainer>
         )}
 
-{/* 📊 Gráfico de pendientes vs en proceso */}
-<div className="bg-white p-4 rounded-xl shadow-md mt-6">
-  <h2 className="text-lg font-semibold text-gray-800 mb-3">
+{/* 📊 Gráfico: Pendientes vs En Proceso */}
+<div className="card shadow-lg p-4 rounded-xl bg-white w-full mt-6">
+  <h3 className="text-xl font-bold mb-4 text-center">
     Tareas Pendientes vs En Proceso (últimos 15 días)
-  </h2>
+  </h3>
 
-  <div className="overflow-x-auto">
-    <div className="min-w-[900px]">
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart
-  syncId="syncDias"
-  data={resumenTareasConTendencia
-  .filter(item => item && item.fecha)  // evita nulls
-  .map(item => ({
-    ...item,
-    dia: item.fecha?.substring(0, 10) || "", // evita crash
-  }))
-}
-  margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
->
-  <CartesianGrid strokeDasharray="3 3" />
+  <ResponsiveContainer width="100%" height={300}>
+    <LineChart
+      syncId="syncDias"
+      data={resumenTareasConTendencia.map((item) => ({
+        ...item,
+        dia: item?.fecha ? item.fecha.substring(0, 10) : "", 
+      }))}
+      margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
 
-  <XAxis 
-    dataKey="dia"
-    tickFormatter={(v) => new Date(v).getDate()} // solo número del día
-  />
+      <XAxis
+        dataKey="dia"
+        tickFormatter={(v) => (v ? new Date(v).getDate() : "")}
+      />
 
-  <YAxis />
-  <Tooltip 
-    labelFormatter={(v) => `Día ${new Date(v).getDate()}`}
-  />
-  <Legend />
+      <YAxis />
+      <Tooltip labelFormatter={(v) => `Día ${new Date(v).getDate()}`} />
+      <Legend />
 
-  <Line type="monotone" dataKey="pendientes" stroke="#ff6666" strokeWidth={2} />
-  <Line type="monotone" dataKey="en_proceso" stroke="#66b3ff" strokeWidth={2} />
-  <Line type="monotone" dataKey="tendenciaPendientes" stroke="#cc0000" strokeDasharray="5 5" />
-  <Line type="monotone" dataKey="tendenciaEnProceso" stroke="#0066cc" strokeDasharray="5 5" />
+      <Line type="monotone" dataKey="pendientes" stroke="#ff6666" strokeWidth={3} />
+      <Line type="monotone" dataKey="en_proceso" stroke="#66b3ff" strokeWidth={3} />
 
-  {/* Brush: muestra últimos 15 días pero permite ver más */}
-  <Brush 
-    dataKey="dia" 
-    height={25} 
-    stroke="#8884d8"
-    startIndex={Math.max(0, resumenTareasConTendencia.length - 15)}
-    endIndex={resumenTareasConTendencia.length - 1}
-  />
-</LineChart>
-      </ResponsiveContainer>
-    </div>
+      <Line type="monotone" dataKey="tendenciaPendientes" stroke="#cc0000" strokeDasharray="5 5" />
+      <Line type="monotone" dataKey="tendenciaEnProceso" stroke="#0066cc" strokeDasharray="5 5" />
+
+      <Brush
+        dataKey="dia"
+        height={25}
+        stroke="#666"
+        startIndex={Math.max(0, resumenTareasConTendencia.length - 15)}
+        endIndex={resumenTareasConTendencia.length - 1}
+      />
+    </LineChart>
+  </ResponsiveContainer>
+</div>
   </div>
 </div>
 </div>
 
-<div className="card shadow-lg p-4 rounded-xl bg-white w-full">
+{/* 📊 Gráfico: Promedio de horas */}
+<div className="card shadow-lg p-4 rounded-xl bg-white w-full mt-6">
   <h3 className="text-xl font-bold mb-4 text-center">
     Promedio de horas de solución y finalización (últimos días)
   </h3>
 
   <ResponsiveContainer width="100%" height={300}>
     <LineChart
-  syncId="syncDias"
-  data={resumenTiempos
-  .filter(item => item && item.fecha)
-  .map(item => ({
-    ...item,
-    dia: item.fecha?.substring(0, 10) || "",
-  }))
-}
->
-  <CartesianGrid strokeDasharray="3 3" />
+      syncId="syncDias"
+      data={resumenTiempos.map((item) => ({
+        ...item,
+        dia: item?.fecha ? item.fecha.substring(0, 10) : "",
+      }))}
+      margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
 
-  <XAxis 
-    dataKey="dia"
-    tickFormatter={(v) => new Date(v).getDate()} // número del día
-  />
+      <XAxis
+        dataKey="dia"
+        tickFormatter={(v) => (v ? new Date(v).getDate() : "")}
+      />
 
-  <YAxis />
-  <Tooltip 
-    labelFormatter={(v) => `Día ${new Date(v).getDate()}`}
-  />
-  <Legend />
+      <YAxis />
+      <Tooltip labelFormatter={(v) => `Día ${new Date(v).getDate()}`} />
+      <Legend />
 
-  <Line type="monotone" dataKey="promedio_solucion" stroke="#007bff" strokeWidth={3} />
-  <Line type="monotone" dataKey="promedio_finalizacion" stroke="#28a745" strokeWidth={3} />
-  <Line type="monotone" dataKey="tendenciaSol" stroke="#0056b3" strokeDasharray="5 5" />
-  <Line type="monotone" dataKey="tendenciaFin" stroke="#1d7a36" strokeDasharray="5 5" />
+      <Line type="monotone" dataKey="promedio_solucion" stroke="#007bff" strokeWidth={3} />
+      <Line type="monotone" dataKey="promedio_finalizacion" stroke="#28a745" strokeWidth={3} />
 
-  {/* Scroll sincronizado — mismos índices */}
-  <Brush 
-    dataKey="dia" 
-    height={25} 
-    stroke="#8884d8"
-    startIndex={Math.max(0, resumenTiempos.length - 15)}
-    endIndex={resumenTiempos.length - 1}
-  />
-</LineChart>
+      <Line type="monotone" dataKey="tendenciaSol" stroke="#0056b3" strokeDasharray="5 5" />
+      <Line type="monotone" dataKey="tendenciaFin" stroke="#1d7a36" strokeDasharray="5 5" />
+
+      <Brush
+        dataKey="dia"
+        height={25}
+        stroke="#666"
+        startIndex={Math.max(0, resumenTiempos.length - 15)}
+        endIndex={resumenTiempos.length - 1}
+      />
+    </LineChart>
   </ResponsiveContainer>
 </div>
 
