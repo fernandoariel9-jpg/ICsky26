@@ -22,7 +22,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  brush,
+  Brush,
 } from "recharts";
 
 const API_URL = "https://sky26.onrender.com/tareas";
