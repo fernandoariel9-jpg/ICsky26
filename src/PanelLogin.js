@@ -7,6 +7,7 @@ import AsistenteIAFlotante from "./AsistenteIAFlotante";
 import { PieChart as PieChartIcon } from "lucide-react";
 import RegistroUsuario from "./RegistroUsuario";
 import RegistroPersonal from "./RegistroPersonal";
+import { API_URL } from "./config";
 
 // --- imports extra para gráficos ---
 import {
@@ -152,7 +153,7 @@ const [resumenTiempos, setResumenTiempos] = useState([]);
   useEffect(() => {
   async function cargarResumenTiempos() {
     try {
-      const res = await fetch(`${API_URL.Base}/api/resumen_tiempos`);
+      const res = await fetch(API_URL.ResumenTiempos);
       const data = await res.json();
       setResumenTiempos(data);
     } catch (err) {
