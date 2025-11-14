@@ -7,7 +7,6 @@ import AsistenteIAFlotante from "./AsistenteIAFlotante";
 import { PieChart as PieChartIcon } from "lucide-react";
 import RegistroUsuario from "./RegistroUsuario";
 import RegistroPersonal from "./RegistroPersonal";
-import { API_URL } from "./config";
 
 // --- imports extra para gráficos ---
 import {
@@ -24,6 +23,8 @@ import {
   CartesianGrid,
   Brush,
 } from "recharts";
+
+const API_URL = "https://sky26.onrender.com/tareas";
 
 // ---------- Login ----------
 function PanelLogin({ onLogin }) {
