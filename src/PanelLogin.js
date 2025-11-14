@@ -114,6 +114,7 @@ function Supervision({ setVista }) {
   // 📈 Estados para guardar el resumen y su tendencia
 const [resumenTareas, setResumenTareas] = useState([]);
 const [resumenTareasConTendencia, setResumenTareasConTendencia] = useState([]);
+const [resumenTiempos, setResumenTiempos] = useState([]);
 
   // Estados para popup por área
   const [selectedArea, setSelectedArea] = useState(null);
@@ -148,6 +149,20 @@ const [resumenTareasConTendencia, setResumenTareasConTendencia] = useState([]);
   }, []);
 
   useEffect(() => {
+  async function cargarResumenTiempos() {
+    try {
+      const res = await fetch(`${API_URL.Tareas}/resumen_tiempos`);
+      const data = await res.json();
+      setResumenTiempos(data);
+    } catch (err) {
+      console.error("Error cargando resumen de tiempos:", err);
+    }
+  }
+
+  cargarResumenTiempos();
+}, []);
+
+  useEffect(() => {
   fetch("https://sky26.onrender.com/api/resumen_tareas")
     .then((res) => res.json())
     .then((data) => {
@@ -166,6 +181,42 @@ const [resumenTareasConTendencia, setResumenTareasConTendencia] = useState([]);
           ventana.reduce((acc, d) => acc + d.pendientes, 0) / ventana.length;
         const promedioProc =
           ventana.reduce((acc, d) => acc + d.en_proceso, 0) / ventana.length;
+
+        const datosPromedios = resumenTiempos.map(r => ({
+  dia: new Date(r.fecha).getDate(),   // solo número del día
+  solucion: Number(r.promedio_solucion),
+  finalizacion: Number(r.promedio_finalizacion)
+}));
+        // --- Tendencias ---
+function calcularTendencia(data, campo) {
+  if (data.length < 2) return data.map(d => ({ dia: d.dia, value: d[campo] }));
+
+  let n = data.length;
+  let sumX = 0;
+  let sumY = 0;
+  let sumXY = 0;
+  let sumX2 = 0;
+
+  data.forEach((d, i) => {
+    const x = i + 1;
+    const y = d[campo];
+    sumX += x;
+    sumY += y;
+    sumXY += x * y;
+    sumX2 += x * x;
+  });
+
+  const m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+  const b = (sumY - m * sumX) / n;
+
+  return data.map((d, i) => ({
+    dia: d.dia,
+    value: m * (i + 1) + b
+  }));
+}
+
+const tendenciaSol = calcularTendencia(datosPromedios, "solucion");
+const tendenciaFin = calcularTendencia(datosPromedios, "finalizacion");
 
         return {
           ...p,
@@ -721,6 +772,67 @@ const handleAreaClick = (areaName) => {
     </div>
   </div>
 </div>
+</div>
+
+{/* 📈 Promedios de Solución y Finalización (Horas) */}
+<div className="bg-white p-4 rounded-xl shadow-md mt-6">
+  <h2 className="text-lg font-bold mb-4">Promedio de Tiempos (horas)</h2>
+
+  <ResponsiveContainer width="100%" height={320}>
+    <LineChart data={datosPromedios}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="dia" tick={{ fill: "black" }} />
+      <YAxis tick={{ fill: "black" }} />
+
+      <Tooltip />
+      <Legend />
+      <Brush dataKey="dia" height={20} stroke="#8884d8" />
+
+      {/* Línea promedio de solución */}
+      <Line
+        type="monotone"
+        dataKey="solucion"
+        name="Promedio Solución"
+        stroke="#FF8C00"
+        strokeWidth={3}
+        dot={false}
+      />
+
+      {/* Línea de tendencia solución */}
+      <Line
+        type="monotone"
+        data={tendenciaSol}
+        dataKey="value"
+        name="Tendencia Solución"
+        stroke="#995500"
+        strokeDasharray="5 5"
+        strokeWidth={2}
+        dot={false}
+      />
+
+      {/* Línea promedio de finalización */}
+      <Line
+        type="monotone"
+        dataKey="finalizacion"
+        name="Promedio Finalización"
+        stroke="#00A8E8"
+        strokeWidth={3}
+        dot={false}
+      />
+
+      {/* Línea de tendencia finalización */}
+      <Line
+        type="monotone"
+        data={tendenciaFin}
+        dataKey="value"
+        name="Tendencia Finalización"
+        stroke="#004C70"
+        strokeDasharray="5 5"
+        strokeWidth={2}
+        dot={false}
+      />
+    </LineChart>
+  </ResponsiveContainer>
 </div>
 
        {/* ----------------- Gráfico de tendencias separado ----------------- */}
