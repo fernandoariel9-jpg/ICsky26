@@ -22,6 +22,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  brush
 } from "recharts";
 
 const API_URL = "https://sky26.onrender.com/tareas";
@@ -217,6 +218,81 @@ function calcularTendencia(data, campo) {
 
 const tendenciaSol = calcularTendencia(datosPromedios, "solucion");
 const tendenciaFin = calcularTendencia(datosPromedios, "finalizacion");
+
+        // ----------------- Datos de promedio de solución y finalización -----------------
+const datosPromedios = (() => {
+  const tiemposPorDia = {};
+
+  tareas.forEach((t) => {
+    if (!t.fecha) return;
+
+    const fecha = new Date(t.fecha).toISOString().split("T")[0];
+
+    let tiempoSol = null;
+    let tiempoFin = null;
+
+    if (t.fecha_comp)
+      tiempoSol = (new Date(t.fecha_comp) - new Date(t.fecha)) / (1000 * 60 * 60);
+
+    if (t.fecha_fin)
+      tiempoFin = (new Date(t.fecha_fin) - new Date(t.fecha)) / (1000 * 60 * 60);
+
+    if (!tiemposPorDia[fecha]) {
+      tiemposPorDia[fecha] = {
+        fecha,
+        totalSol: 0,
+        cantSol: 0,
+        totalFin: 0,
+        cantFin: 0
+      };
+    }
+
+    if (tiempoSol !== null) {
+      tiemposPorDia[fecha].totalSol += tiempoSol;
+      tiemposPorDia[fecha].cantSol += 1;
+    }
+
+    if (tiempoFin !== null) {
+      tiemposPorDia[fecha].totalFin += tiempoFin;
+      tiemposPorDia[fecha].cantFin += 1;
+    }
+  });
+
+  const lista = Object.values(tiemposPorDia)
+    .map((d) => ({
+      fecha: new Date(d.fecha).getTime(),
+      promedioSol: d.cantSol ? d.totalSol / d.cantSol : 0,
+      promedioFin: d.cantFin ? d.totalFin / d.cantFin : 0
+    }))
+    .sort((a, b) => a.fecha - b.fecha);
+
+  return lista.slice(Math.max(0, lista.length - 30)); // últimos 30 días
+})();
+
+// ---------- Función de tendencia lineal ----------
+function calcTrend(values) {
+  const n = values.length;
+  if (n === 0) return [];
+
+  const x = values.map((_, i) => i);
+  const y = values;
+  const sumX = x.reduce((a, b) => a + b, 0);
+  const sumY = y.reduce((a, b) => a + b, 0);
+  const sumXY = x.reduce((a, c, i) => a + c * y[i], 0);
+  const sumX2 = x.reduce((a, c) => a + c * c, 0);
+
+  const denom = n * sumX2 - sumX * sumX;
+  if (denom === 0) return new Array(n).fill(y[0]);
+
+  const slope = (n * sumXY - sumX * sumY) / denom;
+  const intercept = (sumY - slope * sumX) / n;
+
+  return values.map((_, i) => intercept + slope * i);
+}
+
+// Tendencias
+const tendenciaSol = calcTrend(datosPromedios.map((d) => d.promedioSol));
+const tendenciaFin = calcTrend(datosPromedios.map((d) => d.promedioFin));
 
         return {
           ...p,
@@ -779,59 +855,49 @@ const handleAreaClick = (areaName) => {
   <h2 className="text-lg font-bold mb-4">Promedio de Tiempos (horas)</h2>
 
   <ResponsiveContainer width="100%" height={320}>
-    <LineChart data={datosPromedios}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="dia" tick={{ fill: "black" }} />
-      <YAxis tick={{ fill: "black" }} />
+    <LineChart data={datosPromedios} syncId="panel">
+  <CartesianGrid strokeDasharray="3 3" />
 
-      <Tooltip />
-      <Legend />
-      <Brush dataKey="dia" height={20} stroke="#8884d8" />
+  <XAxis
+    dataKey="fecha"
+    type="number"
+    scale="time"
+    tickFormatter={(ts) => new Date(ts).getDate()}
+  />
 
-      {/* Línea promedio de solución */}
-      <Line
-        type="monotone"
-        dataKey="solucion"
-        name="Promedio Solución"
-        stroke="#FF8C00"
-        strokeWidth={3}
-        dot={false}
-      />
+  <YAxis />
 
-      {/* Línea de tendencia solución */}
-      <Line
-        type="monotone"
-        data={tendenciaSol}
-        dataKey="value"
-        name="Tendencia Solución"
-        stroke="#995500"
-        strokeDasharray="5 5"
-        strokeWidth={2}
-        dot={false}
-      />
+  <Tooltip formatter={(v) => `${v.toFixed(2)} h`} />
+  <Legend />
 
-      {/* Línea promedio de finalización */}
-      <Line
-        type="monotone"
-        dataKey="finalizacion"
-        name="Promedio Finalización"
-        stroke="#00A8E8"
-        strokeWidth={3}
-        dot={false}
-      />
+  <Line dataKey="promedioSol" stroke="#3B82F6" dot={{ r: 2 }} />
+  <Line dataKey="promedioFin" stroke="#10B981" dot={{ r: 2 }} />
 
-      {/* Línea de tendencia finalización */}
-      <Line
-        type="monotone"
-        data={tendenciaFin}
-        dataKey="value"
-        name="Tendencia Finalización"
-        stroke="#004C70"
-        strokeDasharray="5 5"
-        strokeWidth={2}
-        dot={false}
-      />
-    </LineChart>
+  {/* Tendencias */}
+  <Line
+    data={datosPromedios.map((d, i) => ({
+      fecha: d.fecha,
+      valor: tendenciaSol[i],
+    }))}
+    dataKey="valor"
+    stroke="#1E40AF"
+    strokeDasharray="5 5"
+    dot={false}
+  />
+
+  <Line
+    data={datosPromedios.map((d, i) => ({
+      fecha: d.fecha,
+      valor: tendenciaFin[i],
+    }))}
+    dataKey="valor"
+    stroke="#047857"
+    strokeDasharray="5 5"
+    dot={false}
+  />
+
+  <Brush dataKey="fecha" height={20} travellerWidth={8} />
+</LineChart>
   </ResponsiveContainer>
 </div>
 
