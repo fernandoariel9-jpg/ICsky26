@@ -183,34 +183,6 @@ const [resumenTiempos, setResumenTiempos] = useState([]);
         const promedioProc =
           ventana.reduce((acc, d) => acc + d.en_proceso, 0) / ventana.length;
 
-        // --- Tendencias ---
-function calcularTendencia(data, campo) {
-  if (data.length < 2) return data.map(d => ({ dia: d.dia, value: d[campo] }));
-
-  let n = data.length;
-  let sumX = 0;
-  let sumY = 0;
-  let sumXY = 0;
-  let sumX2 = 0;
-
-  data.forEach((d, i) => {
-    const x = i + 1;
-    const y = d[campo];
-    sumX += x;
-    sumY += y;
-    sumXY += x * y;
-    sumX2 += x * x;
-  });
-
-  const m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-  const b = (sumY - m * sumX) / n;
-
-  return data.map((d, i) => ({
-    dia: d.dia,
-    value: m * (i + 1) + b
-  }));
-}
-
 // ===================================================================
 // 🕒 Cálculo de promedios diarios de solución y finalización
 // ===================================================================
@@ -267,27 +239,6 @@ const datosPromedios = (() => {
   }));
 })();
 
-// ---------- Función de tendencia lineal ----------
-function calcTrend(values) {
-  const n = values.length;
-  if (n === 0) return [];
-
-  const x = values.map((_, i) => i);
-  const y = values;
-  const sumX = x.reduce((a, b) => a + b, 0);
-  const sumY = y.reduce((a, b) => a + b, 0);
-  const sumXY = x.reduce((a, c, i) => a + c * y[i], 0);
-  const sumX2 = x.reduce((a, c) => a + c * c, 0);
-
-  const denom = n * sumX2 - sumX * sumX;
-  if (denom === 0) return new Array(n).fill(y[0]);
-
-  const slope = (n * sumXY - sumX * sumY) / denom;
-  const intercept = (sumY - slope * sumX) / n;
-
-  return values.map((_, i) => intercept + slope * i);
-}
-
 // ===================================================================
 // 📈 Función regresión lineal para líneas de tendencia
 // ===================================================================
@@ -329,10 +280,6 @@ const datosPromediosConTendencia = (() => {
   }));
 })();
         
-// Tendencias
-const tendenciaSol = calcTrend(datosPromedios.map((d) => d.promedioSol));
-const tendenciaFin = calcTrend(datosPromedios.map((d) => d.promedioFin));
-
         return {
           ...p,
           tendencia_pendientes: Number(promedioPend.toFixed(2)),
