@@ -843,7 +843,7 @@ const handleAreaClick = (areaName) => {
   </h3>
 
   <ResponsiveContainer width="100%" height={300}>
-    <LineChart data={datosPromediosConTendenciaLocal}>
+    <LineChart data={datosPromediosConTendencia}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis 
         dataKey="dia"
