@@ -784,10 +784,13 @@ const handleAreaClick = (areaName) => {
       <ResponsiveContainer width="100%" height={300}>
         <LineChart
   syncId="syncDias"
-  data={resumenTareasConTendencia.map((item) => ({
+  data={resumenTareasConTendencia
+  .filter(item => item && item.fecha)  // evita nulls
+  .map(item => ({
     ...item,
-    dia: item.fecha.substring(0, 10), // formato YYYY-MM-DD
-  }))}
+    dia: item.fecha?.substring(0, 10) || "", // evita crash
+  }))
+}
   margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
 >
   <CartesianGrid strokeDasharray="3 3" />
@@ -831,10 +834,13 @@ const handleAreaClick = (areaName) => {
   <ResponsiveContainer width="100%" height={300}>
     <LineChart
   syncId="syncDias"
-  data={resumenTiempos.map((item) => ({
+  data={resumenTiempos
+  .filter(item => item && item.fecha)
+  .map(item => ({
     ...item,
-    dia: item.fecha.substring(0, 10), // igual que el otro gráfico
-  }))}
+    dia: item.fecha?.substring(0, 10) || "",
+  }))
+}
 >
   <CartesianGrid strokeDasharray="3 3" />
 
