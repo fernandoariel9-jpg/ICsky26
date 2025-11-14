@@ -5,7 +5,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
 import AsistenteIAFlotante from "./AsistenteIAFlotante";
 import { PieChart as PieChartIcon } from "lucide-react";
-
 import RegistroUsuario from "./RegistroUsuario";
 import RegistroPersonal from "./RegistroPersonal";
 
