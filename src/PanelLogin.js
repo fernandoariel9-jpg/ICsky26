@@ -183,11 +183,6 @@ const [resumenTiempos, setResumenTiempos] = useState([]);
         const promedioProc =
           ventana.reduce((acc, d) => acc + d.en_proceso, 0) / ventana.length;
 
-        const datosPromedios = resumenTiempos.map(r => ({
-  dia: new Date(r.fecha).getDate(),   // solo número del día
-  solucion: Number(r.promedio_solucion),
-  finalizacion: Number(r.promedio_finalizacion)
-}));
         // --- Tendencias ---
 function calcularTendencia(data, campo) {
   if (data.length < 2) return data.map(d => ({ dia: d.dia, value: d[campo] }));
