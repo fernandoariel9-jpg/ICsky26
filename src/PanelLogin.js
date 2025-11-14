@@ -153,7 +153,15 @@ const [resumenTiempos, setResumenTiempos] = useState([]);
     try {
       const res = await fetch(API_URL.ResumenTiempos);
       const data = await res.json();
-      setResumenTiempos(data);
+
+      // 🔥 Convertir datos al formato que el gráfico necesita
+      const datosFormateados = data.map((item) => ({
+        dia: item.fecha.substring(0, 10), // YYYY-MM-DD
+        promedio_solucion: Number(item.promedio_solucion),
+        promedio_finalizacion: Number(item.promedio_finalizacion),
+      }));
+
+      setResumenTiempos(datosFormateados);
     } catch (err) {
       console.error("Error cargando resumen de tiempos:", err);
     }
@@ -841,7 +849,7 @@ const handleAreaClick = (areaName) => {
   </h3>
 
   <ResponsiveContainer width="100%" height={300}>
-    <LineChart data={datosPromediosConTendencia}>
+    <LineChart data={resumenTiempos}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis 
         dataKey="dia"
