@@ -12,4 +12,9 @@ export const API_URL = {
   Areas: `${API_BASE_URL}/areas`,
   Servicios: `${API_BASE_URL}/servicios`,
   Tareas: `${API_BASE_URL}/tareas`,
+    // 👉 Agregar estos
+  API: `${API_BASE_URL}/api`,
+  ResumenTiempos: `${API_BASE_URL}/api/resumen_tiempos`,
+  ResumenTareas: `${API_BASE_URL}/api/resumen_tareas`,
+};
 };
