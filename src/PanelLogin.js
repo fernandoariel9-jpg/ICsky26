@@ -815,9 +815,6 @@ const handleAreaClick = (areaName) => {
     </LineChart>
   </ResponsiveContainer>
 </div>
-  </div>
-</div>
-</div>
 
 {/* 📊 Gráfico: Promedio de horas */}
 <div className="card shadow-lg p-4 rounded-xl bg-white w-full mt-6">
