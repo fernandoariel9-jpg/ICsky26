@@ -25,8 +25,6 @@ import {
   Brush,
 } from "recharts";
 
-const API_URL = "https://sky26.onrender.com/tareas";
-
 // ---------- Login ----------
 function PanelLogin({ onLogin }) {
   const [password, setPassword] = useState("");
