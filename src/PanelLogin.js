@@ -787,7 +787,12 @@ const handleAreaClick = (areaName) => {
       ? item.fecha.substring(0, 10)
       : item?.fecha instanceof Date
       ? item.fecha.toISOString().substring(0, 10)
-      : ""
+      : "",
+
+  pendientes: Number(item.pendientes) || 0,
+  en_proceso: Number(item.en_proceso) || 0,
+  tendencia_pendientes: Number(item.tendencia_pendientes) || 0,
+  tendencia_en_proceso: Number(item.tendencia_en_proceso) || 0,
 }))}
       margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
     >
@@ -834,7 +839,12 @@ const handleAreaClick = (areaName) => {
       ? item.fecha.substring(0, 10)
       : item?.fecha instanceof Date
       ? item.fecha.toISOString().substring(0, 10)
-      : ""
+      : "",
+
+  promedio_solucion: Number(item.promedio_solucion) || 0,
+  promedio_finalizacion: Number(item.promedio_finalizacion) || 0,
+  tendenciaSol: Number(item.tendenciaSol) || 0,
+  tendenciaFin: Number(item.tendenciaFin) || 0,
 }))}
       margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
     >
