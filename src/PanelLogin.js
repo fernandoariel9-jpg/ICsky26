@@ -837,7 +837,6 @@ const handleAreaClick = (areaName) => {
       : item?.fecha instanceof Date
       ? item.fecha.toISOString().substring(0, 10)
       : "",
-}))}
       }))}
       margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
     >
