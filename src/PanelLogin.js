@@ -868,6 +868,7 @@ const handleAreaClick = (areaName) => {
     />
   </LineChart>
 </ResponsiveContainer>
+      </div>
 
       <p className="text-center text-xs text-gray-500 mt-2">
         Vista actual:{" "}
