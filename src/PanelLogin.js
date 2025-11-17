@@ -805,8 +805,8 @@ const handleAreaClick = (areaName) => {
       <Line type="monotone" dataKey="pendientes" stroke="#ff6666" strokeWidth={3} />
       <Line type="monotone" dataKey="en_proceso" stroke="#66b3ff" strokeWidth={3} />
 
-      <Line type="monotone" dataKey="tendenciaPendientes" stroke="#cc0000" strokeDasharray="5 5" />
-      <Line type="monotone" dataKey="tendenciaEnProceso" stroke="#0066cc" strokeDasharray="5 5" />
+      <Line type="monotone" dataKey="tendencia_pendientes" stroke="#cc0000" strokeDasharray="5 5" />
+      <Line type="monotone" dataKey="tendencia_en_proceso" stroke="#0066cc" strokeDasharray="5 5" />
 
       <Brush
         dataKey="dia"
