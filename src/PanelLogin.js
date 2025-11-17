@@ -783,13 +783,14 @@ const handleAreaClick = (areaName) => {
     <LineChart
       syncId="syncDias"
       data={resumenTareasConTendencia.map((item) => ({
-        ...item,
-        dia: typeof item?.fecha === "string"
-  ? item.fecha.substring(0, 10)
-  : item?.fecha instanceof Date
-    ? item.fecha.toISOString().substring(0, 10)
-    : "", 
-      }))}
+  ...item,
+  dia:
+    typeof item?.fecha === "string"
+      ? item.fecha.substring(0, 10)
+      : item?.fecha instanceof Date
+      ? item.fecha.toISOString().substring(0, 10)
+      : "",
+}))}
       margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
     >
       <CartesianGrid strokeDasharray="3 3" />
@@ -837,7 +838,7 @@ const handleAreaClick = (areaName) => {
       : item?.fecha instanceof Date
       ? item.fecha.toISOString().substring(0, 10)
       : "",
-      }))}
+}))}
       margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
     >
       <CartesianGrid strokeDasharray="3 3" />
