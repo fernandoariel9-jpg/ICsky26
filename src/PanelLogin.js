@@ -829,8 +829,6 @@ const handleAreaClick = (areaName) => {
   <ResponsiveContainer width="100%" height={300}>
     <LineChart
       syncId="syncDias"
-      data={resumenTiempos.map((item) => ({
-        ...item,
        data={resumenTiempos.map((item) => ({
   ...item,
   dia:
