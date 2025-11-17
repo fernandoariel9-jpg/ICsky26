@@ -770,6 +770,7 @@ const handleAreaClick = (areaName) => {
             </PieChart>
           </ResponsiveContainer>
         )}
+          </div>
 
 <div className="card shadow-lg p-4 rounded-xl bg-white w-full mt-6">
   <h3 className="text-xl font-bold mb-4 text-center">
