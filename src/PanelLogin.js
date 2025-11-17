@@ -618,6 +618,7 @@ const handleAreaClick = (areaName) => {
     />
   </PieChart>
 </ResponsiveContainer>
+      </div>
 
         {/* === MODAL DETALLES POR ÁREA === */}
         <AnimatePresence>
