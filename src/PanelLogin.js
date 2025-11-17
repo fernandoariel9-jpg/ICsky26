@@ -772,6 +772,59 @@ const handleAreaClick = (areaName) => {
         )}
           </div>
 
+<div className="card shadow-lg p-4 rounded-xl bg-white w-full mt-6">
+  <h3 className="text-xl font-bold mb-4 text-center">
+    Tareas Pendientes vs En Proceso (últimos 15 días)
+  </h3>
+
+  <ResponsiveContainer width="100%" height={300}>
+    <LineChart
+      syncId="syncDias"
+      data={resumenTareasConTendencia.map((item) => ({
+  ...item,
+  dia:
+    typeof item?.fecha === "string"
+      ? item.fecha.substring(0, 10)
+      : item?.fecha instanceof Date
+      ? item.fecha.toISOString().substring(0, 10)
+      : "",
+
+  pendientes: Number(item.pendientes) || 0,
+  en_proceso: Number(item.en_proceso) || 0,
+  tendencia_pendientes: Number(item.tendencia_pendientes) || 0,
+  tendencia_en_proceso: Number(item.tendencia_en_proceso) || 0,
+}))}
+      margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
+
+      <XAxis
+        dataKey="dia"
+        tickFormatter={(v) => (v ? new Date(v).getDate() : "")}
+      />
+
+      <YAxis />
+      <Tooltip labelFormatter={(v) => `Día ${new Date(v).getDate()}`} />
+      <Legend />
+
+      <Line type="monotone" dataKey="pendientes" stroke="#ff6666" strokeWidth={3} />
+      <Line type="monotone" dataKey="en_proceso" stroke="#66b3ff" strokeWidth={3} />
+
+      <Line type="monotone" dataKey="tendencia_pendientes" stroke="#cc0000" strokeDasharray="5 5" />
+      <Line type="monotone" dataKey="tendencia_en_proceso" stroke="#0066cc" strokeDasharray="5 5" />
+
+      <Brush
+        dataKey="dia"
+        height={25}
+        stroke="#666"
+        startIndex={Math.max(0, resumenTareasConTendencia.length - 15)}
+        endIndex={resumenTareasConTendencia.length - 1}
+      />
+    </LineChart>
+  </ResponsiveContainer>
+</div>
+
+          
       <p className="text-center text-xs text-gray-500 mt-2">
         Vista actual:{" "}
         <span className="font-semibold">
