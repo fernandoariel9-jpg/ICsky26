@@ -772,7 +772,7 @@ const handleAreaClick = (areaName) => {
             </PieChart>
           </ResponsiveContainer>
         )}
-//---- Grafico tareas
+
 <div className="card shadow-lg p-4 rounded-xl bg-white w-full mt-6">
   <h3 className="text-xl font-bold mb-4 text-center">
     Tareas Pendientes vs En Proceso (últimos 15 días)
@@ -820,7 +820,6 @@ const handleAreaClick = (areaName) => {
   </ResponsiveContainer>
 </div>
 
-//----Grafico horas
 <div className="card shadow-lg p-4 rounded-xl bg-white w-full mt-6">
   <h3 className="text-xl font-bold mb-4 text-center">
     Promedio de horas de solución y finalización (últimos días)
