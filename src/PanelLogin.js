@@ -907,7 +907,9 @@ const handleAreaClick = (areaName) => {
                   });
                 })()}
               </Pie>
-              <Tooltip />
+              <Tooltip 
+                labelFormatter={(v) => `Día ${v.substring(8, 10)}`}
+                  />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -942,7 +944,7 @@ const handleAreaClick = (areaName) => {
 
       <XAxis
         dataKey="dia"
-        tickFormatter={(v) => (v ? new Date(v).getDate() : "")}
+        tickFormatter={(v) => v.substring(8, 10)}
       />
 
       <YAxis />
@@ -984,10 +986,12 @@ const handleAreaClick = (areaName) => {
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis 
         dataKey="dia"
-        tickFormatter={(v) => (v ? new Date(v).getDate() : "")}
+        tickFormatter={(v) => v.substring(8, 10)}
       />
       <YAxis />
-      <Tooltip />
+      <Tooltip 
+          labelFormatter={(v) => `Día ${v.substring(8, 10)}`}
+            />
       <Legend />
 
       {/* Líneas de datos reales */}
