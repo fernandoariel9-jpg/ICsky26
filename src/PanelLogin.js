@@ -875,7 +875,7 @@ const handleAreaClick = (areaName) => {
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis 
         dataKey="dia"
-        tickFormatter={(v) => v} 
+        tickFormatter={(v) => (v ? new Date(v).getDate() : "")}
       />
       <YAxis />
       <Tooltip />
