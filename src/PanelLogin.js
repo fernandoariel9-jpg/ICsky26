@@ -973,16 +973,7 @@ const handleAreaClick = (areaName) => {
   <ResponsiveContainer width="100%" height={200}>
     <LineChart 
       syncId="syncDias"
-      data={datosPromediosConTendencia.map(item => ({
-        ...item,
-        dia:
-          typeof item?.fecha === "string"
-            ? item.fecha.substring(0, 10)
-            : item?.fecha instanceof Date
-            ? item.fecha.toISOString().substring(0, 10)
-            : "",
-      }))}
-    >
+      data={datosPromediosConTendencia}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis 
         dataKey="dia"
