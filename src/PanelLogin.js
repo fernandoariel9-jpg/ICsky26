@@ -830,45 +830,97 @@ const handleAreaClick = (areaName) => {
   </h3>
 
   <ResponsiveContainer width="100%" height={300}>
-  <LineChart
-    syncId="syncDias"
-    data={datosPromediosConTendencia.map((item) => ({
-      ...item,
-      dia:
-        typeof item?.fecha === "string"
-          ? item.fecha.substring(0, 10)
-          : item?.fecha instanceof Date
-          ? item.fecha.toISOString().substring(0, 10)
-          : "",
-      promedio_solucion: Number(item.promedio_solucion) || 0,
-      promedio_finalizacion: Number(item.promedio_finalizacion) || 0,
-      tendenciaSol: Number(item.tendenciaSol) || 0,
-      tendenciaFin: Number(item.tendenciaFin) || 0,
-    }))}
-    margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
-  >
-    <CartesianGrid strokeDasharray="3 3" />
-    <XAxis dataKey="dia" tickFormatter={(v) => (v ? new Date(v).getDate() : "")} />
-    <YAxis />
-    <Tooltip labelFormatter={(v) => `Día ${new Date(v).getDate()}`} />
-    <Legend />
+    <LineChart
+      syncId="syncDias"
+      data={resumenTiempos.map((item, index) => {
+        const fecha =
+          typeof item.fecha === "string"
+            ? item.fecha.substring(0, 10)
+            : item.fecha instanceof Date
+            ? item.fecha.toISOString().substring(0, 10)
+            : "";
 
-    <Line type="monotone" dataKey="promedio_solucion" stroke="#007bff" strokeWidth={3} />
-    <Line type="monotone" dataKey="promedio_finalizacion" stroke="#28a745" strokeWidth={3} />
+        const dia = fecha || `dia_${index}`; // 🔒 nunca undefined
 
-    <Line type="monotone" dataKey="tendenciaSol" stroke="#0056b3" strokeDasharray="5 5" />
-    <Line type="monotone" dataKey="tendenciaFin" stroke="#1d7a36" strokeDasharray="5 5" />
+        return {
+          ...item,
+          dia,
+          promedio_solucion: Number(item.promedio_solucion) || 0,
+          promedio_finalizacion: Number(item.promedio_finalizacion) || 0,
+          tendenciaSol: Number(item.tendenciaSol) || 0,
+          tendenciaFin: Number(item.tendenciaFin) || 0,
+        };
+      })}
+      margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
 
-    <Brush
-      dataKey="dia"
-      height={25}
-      stroke="#666"
-      startIndex={Math.max(0, datosPromediosConTendencia.length - 15)}
-      endIndex={datosPromediosConTendencia.length - 1}
-    />
-  </LineChart>
-</ResponsiveContainer>
-      </div>
+      <XAxis
+        dataKey="dia"
+        tickFormatter={(v) => {
+          if (!v) return "";
+          const d = new Date(v);
+          return isNaN(d.getTime()) ? "" : d.getDate();
+        }}
+      />
+
+      <YAxis />
+
+      <Tooltip
+        labelFormatter={(v) => {
+          const d = new Date(v);
+          return isNaN(d.getTime()) ? "" : `Día ${d.getDate()}`;
+        }}
+      />
+
+      <Legend />
+
+      {/* Líneas principales */}
+      <Line
+        type="monotone"
+        dataKey="promedio_solucion"
+        stroke="#007bff"
+        strokeWidth={3}
+        dot={false}
+        isAnimationActive={false}
+      />
+      <Line
+        type="monotone"
+        dataKey="promedio_finalizacion"
+        stroke="#28a745"
+        strokeWidth={3}
+        dot={false}
+        isAnimationActive={false}
+      />
+
+      {/* Tendencias */}
+      <Line
+        type="monotone"
+        dataKey="tendenciaSol"
+        stroke="#0056b3"
+        strokeDasharray="5 5"
+        dot={false}
+        isAnimationActive={false}
+      />
+      <Line
+        type="monotone"
+        dataKey="tendenciaFin"
+        stroke="#1d7a36"
+        strokeDasharray="5 5"
+        dot={false}
+        isAnimationActive={false}
+      />
+
+      <Brush
+        dataKey="dia"
+        height={25}
+        stroke="#666"
+        startIndex={Math.max(0, resumenTiempos.length - 15)}
+        endIndex={resumenTiempos.length - 1}
+      />
+    </LineChart>
+  </ResponsiveContainer>
+</div>
 
       <p className="text-center text-xs text-gray-500 mt-2">
         Vista actual:{" "}
