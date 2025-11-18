@@ -819,7 +819,22 @@ const handleAreaClick = (areaName) => {
   <ResponsiveContainer width="100%" height={200}>
     <LineChart
       syncId="syncDias"
-      data={resumenTareasConTendencia}>
+      data={resumenTareasConTendencia.map((item) => ({
+  ...item,
+  dia:
+    typeof item?.fecha === "string"
+      ? item.fecha.substring(0, 10)
+      : item?.fecha instanceof Date
+      ? item.fecha.toISOString().substring(0, 10)
+      : "",
+
+  pendientes: Number(item.pendientes) || 0,
+  en_proceso: Number(item.en_proceso) || 0,
+  tendencia_pendientes: Number(item.tendencia_pendientes) || 0,
+  tendencia_en_proceso: Number(item.tendencia_en_proceso) || 0,
+}))}
+      margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
+    >
       <CartesianGrid strokeDasharray="3 3" />
 
       <XAxis
