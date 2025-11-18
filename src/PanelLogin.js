@@ -171,6 +171,45 @@ const [resumenTiempos, setResumenTiempos] = useState([]);
 }, []);
 
   useEffect(() => {
+  if (!resumenTiempos.length) return;
+
+  const calcularTendencia = (arr, campo) => {
+    const xs = arr.map((_, i) => i);
+    const ys = arr.map((p) => Number(p[campo]) || 0);
+
+    const n = xs.length;
+    const sumX = xs.reduce((a, b) => a + b, 0);
+    const sumY = ys.reduce((a, b) => a + b, 0);
+    const sumXY = xs.reduce((acc, x, i) => acc + x * ys[i], 0);
+    const sumXX = xs.reduce((acc, x) => acc + x * x, 0);
+
+    const m = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const b = (sumY - m * sumX) / n;
+
+    return arr.map((p, i) => ({
+      ...p,
+      tendencia: Number((m * i + b).toFixed(2)),
+    }));
+  };
+
+  // Clonar arreglo original
+  let datos = [...resumenTiempos];
+
+  // Tendencia solución
+  const sol = calcularTendencia(datos, "promedio_solucion");
+  // Tendencia finalización
+  const fin = calcularTendencia(datos, "promedio_finalizacion");
+
+  const combinado = datos.map((d, i) => ({
+    ...d,
+    tendenciaSol: sol[i].tendencia,
+    tendenciaFin: fin[i].tendencia,
+  }));
+
+  setDatosPromediosConTendencia(combinado);
+}, [resumenTiempos]);
+
+  useEffect(() => {
   fetch(API_URL.ResumenTareas)
     .then((res) => res.json())
     .then((data) => {
@@ -832,47 +871,72 @@ const handleAreaClick = (areaName) => {
   <ResponsiveContainer width="100%" height={300}>
     <LineChart
       syncId="syncDias"
-      data={resumenTiempos.map((item) => ({
-        ...item,
-        dia:
-          typeof item?.fecha === "string"
+      data={resumenTiempos.map((item, index) => {
+        // ================================
+        // 🛠 Normalización TOTAL de datos
+        // ================================
+        const fecha =
+          typeof item.fecha === "string"
             ? item.fecha.substring(0, 10)
-            : item?.fecha instanceof Date
+            : item.fecha instanceof Date
             ? item.fecha.toISOString().substring(0, 10)
-            : "",
+            : "";
 
-        promedio_solucion: Number(item.promedio_solucion) || 0,
-        promedio_finalizacion: Number(item.promedio_finalizacion) || 0,
-
-        // 🔥 NECESARIO PARA EVITAR ERROR #185
-        tendenciaSol: Number(item.tendenciaSol ?? item.promedio_solucion) || 0,
-        tendenciaFin: Number(item.tendenciaFin ?? item.promedio_finalizacion) || 0,
-      }))}
+        return {
+          ...item,
+          index,
+          dia: fecha,
+          promedio_solucion: Number(item.promedio_solucion) || 0,
+          promedio_finalizacion: Number(item.promedio_finalizacion) || 0,
+        };
+      })}
       margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
     >
       <CartesianGrid strokeDasharray="3 3" />
-
-      <XAxis
-        dataKey="dia"
-        tickFormatter={(v) => (v ? new Date(v).getDate() : "")}
-      />
-
+      <XAxis dataKey="dia" tickFormatter={(v) => (v ? new Date(v).getDate() : "")} />
       <YAxis />
       <Tooltip labelFormatter={(v) => `Día ${new Date(v).getDate()}`} />
       <Legend />
 
-      <Line type="monotone" dataKey="promedio_solucion" stroke="#007bff" strokeWidth={3} />
-      <Line type="monotone" dataKey="promedio_finalizacion" stroke="#28a745" strokeWidth={3} />
+      {/* SERIES PRINCIPALES */}
+      <Line
+        type="monotone"
+        dataKey="promedio_solucion"
+        stroke="#007bff"
+        strokeWidth={3}
+        dot={false}
+      />
+      <Line
+        type="monotone"
+        dataKey="promedio_finalizacion"
+        stroke="#28a745"
+        strokeWidth={3}
+        dot={false}
+      />
 
-      <Line type="monotone" dataKey="tendenciaSol" stroke="#0056b3" strokeDasharray="5 5" />
-      <Line type="monotone" dataKey="tendenciaFin" stroke="#1d7a36" strokeDasharray="5 5" />
+      {/* ==========================
+          TENDENCIAS REALES
+         ========================== */}
+      <Line
+        type="monotone"
+        dataKey="tendenciaSol"
+        stroke="#0056b3"
+        strokeDasharray="5 5"
+        dot={false}
+      />
+      <Line
+        type="monotone"
+        dataKey="tendenciaFin"
+        stroke="#1d7a36"
+        strokeDasharray="5 5"
+        dot={false}
+      />
 
       <Brush
         dataKey="dia"
         height={25}
         stroke="#666"
-        startIndex={Math.max(0, resumenTiempos.length - 15)}
-        endIndex={resumenTiempos.length - 1}
+        travellerWidth={12}
       />
     </LineChart>
   </ResponsiveContainer>
