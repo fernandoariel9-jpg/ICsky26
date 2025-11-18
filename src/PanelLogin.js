@@ -895,7 +895,7 @@ const handleAreaClick = (areaName) => {
         height={25}
         stroke="#666"
         startIndex={Math.max(0, resumenTareasConTendencia.length - 15)}
-        endIndex={resumenTareasConTendencia.length - 1}
+        endIndex={datosPromediosConTendencia.length - 1}
       />
     </LineChart>
   </ResponsiveContainer>
