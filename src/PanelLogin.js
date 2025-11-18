@@ -849,9 +849,6 @@ const handleAreaClick = (areaName) => {
       <Line type="monotone" dataKey="pendientes" stroke="#ff6666" strokeWidth={3} />
       <Line type="monotone" dataKey="en_proceso" stroke="#66b3ff" strokeWidth={3} />
 
-      <Line type="monotone" dataKey="tendencia_pendientes" stroke="#cc0000" strokeDasharray="5 5" />
-      <Line type="monotone" dataKey="tendencia_en_proceso" stroke="#0066cc" strokeDasharray="5 5" />
-
       <Brush
         dataKey="dia"
         height={25}
@@ -884,10 +881,6 @@ const handleAreaClick = (areaName) => {
       {/* Líneas de datos reales */}
       <Line type="monotone" dataKey="promedio_solucion" stroke="#007bff" strokeWidth={3} />
       <Line type="monotone" dataKey="promedio_finalizacion" stroke="#28a745" strokeWidth={3} />
-
-      {/* Tendencias */}
-      <Line type="monotone" dataKey="tendenciaSol" stroke="#0056b3" strokeDasharray="5 5" />
-      <Line type="monotone" dataKey="tendenciaFin" stroke="#1d7a36" strokeDasharray="5 5" />
 
       {/* Scroll */}
       <Brush
