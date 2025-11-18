@@ -944,11 +944,11 @@ const handleAreaClick = (areaName) => {
 
       <XAxis
         dataKey="dia"
-        tickFormatter={(v) => v.substring(8, 10)}
+        tickFormatter={(v) => (v ? new Date(v).getDate() : "")}
       />
 
       <YAxis />
-      <Tooltip labelFormatter={(v) => `Día ${new Date(v).getDate()}`} />
+      <Tooltip />
       <Legend />
 
       <Line type="monotone" dataKey="pendientes" stroke="#ff6666" strokeWidth={3} />
@@ -986,12 +986,10 @@ const handleAreaClick = (areaName) => {
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis 
         dataKey="dia"
-        tickFormatter={(v) => v.substring(8, 10)}
+        tickFormatter={(v) => (v ? new Date(v).getDate() : "")}
       />
       <YAxis />
-      <Tooltip 
-          labelFormatter={(v) => `Día ${v.substring(8, 10)}`}
-            />
+      <Tooltip />
       <Legend />
 
       {/* Líneas de datos reales */}
