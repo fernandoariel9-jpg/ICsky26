@@ -871,26 +871,7 @@ const handleAreaClick = (areaName) => {
   <ResponsiveContainer width="100%" height={300}>
     <LineChart
       syncId="syncDias"
-      data={resumenTiempos.map((item, index) => {
-        // --- Fecha segura ---
-        const fechaStr =
-          typeof item?.fecha === "string"
-            ? item.fecha.substring(0, 10)
-            : item?.fecha instanceof Date
-            ? item.fecha.toISOString().substring(0, 10)
-            : "";
-
-        return {
-          ...item,
-          dia: fechaStr,
-          promedio_solucion: Number(item.promedio_solucion) || 0,
-          promedio_finalizacion: Number(item.promedio_finalizacion) || 0,
-          tendenciaSol: Number(item.tendenciaSol) || 0,
-          tendenciaFin: Number(item.tendenciaFin) || 0,
-        };
-      })}
-      margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
-    >
+      data={datosPromediosConTendencia}>
       <CartesianGrid strokeDasharray="3 3" />
 
       <XAxis
