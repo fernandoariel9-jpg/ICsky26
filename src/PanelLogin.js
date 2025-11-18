@@ -863,69 +863,32 @@ const handleAreaClick = (areaName) => {
   </ResponsiveContainer>
 </div>
 
-        <div className="card shadow-lg p-4 rounded-xl bg-white w-full mt-6">
+        <div className="card shadow-lg p-4 rounded-xl bg-white w-full">
   <h3 className="text-xl font-bold mb-4 text-center">
     Promedio de horas de solución y finalización (últimos días)
   </h3>
 
   <ResponsiveContainer width="100%" height={300}>
-    <LineChart
-      syncId="syncDias"
-      data={datosPromediosConTendencia.map((item) => {
-        const fecha =
-          typeof item?.fecha === "string"
-            ? item.fecha.substring(0, 10)
-            : item?.fecha instanceof Date
-            ? item.fecha.toISOString().substring(0, 10)
-            : "";
-
-        // 💥 Aseguramos numericos válidos SIEMPRE
-        const promedio_solucion = isFinite(Number(item.promedio_solucion))
-          ? Number(item.promedio_solucion)
-          : 0;
-
-        const promedio_finalizacion = isFinite(Number(item.promedio_finalizacion))
-          ? Number(item.promedio_finalizacion)
-          : 0;
-
-        const tendenciaSol = isFinite(Number(item.tendenciaSol))
-          ? Number(item.tendenciaSol)
-          : promedio_solucion; // usa valor real si no hay tendencia
-
-        const tendenciaFin = isFinite(Number(item.tendenciaFin))
-          ? Number(item.tendenciaFin)
-          : promedio_finalizacion;
-
-        return {
-          ...item,
-          dia: fecha,
-          promedio_solucion,
-          promedio_finalizacion,
-          tendenciaSol,
-          tendenciaFin,
-        };
-      })}
-      margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
-    >
+    <LineChart data={datosPromediosConTendencia}>
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="dia" tickFormatter={(v) => (v ? new Date(v).getDate() : "")} />
+      <XAxis 
+        dataKey="dia"
+        tickFormatter={(v) => v} 
+      />
       <YAxis />
-      <Tooltip labelFormatter={(v) => `Día ${new Date(v).getDate()}`} />
+      <Tooltip />
       <Legend />
 
+      {/* Líneas de datos reales */}
       <Line type="monotone" dataKey="promedio_solucion" stroke="#007bff" strokeWidth={3} />
       <Line type="monotone" dataKey="promedio_finalizacion" stroke="#28a745" strokeWidth={3} />
 
+      {/* Tendencias */}
       <Line type="monotone" dataKey="tendenciaSol" stroke="#0056b3" strokeDasharray="5 5" />
       <Line type="monotone" dataKey="tendenciaFin" stroke="#1d7a36" strokeDasharray="5 5" />
 
-      <Brush
-        dataKey="dia"
-        height={25}
-        stroke="#666"
-        startIndex={Math.max(0, datosPromediosConTendencia.length - 15)}
-        endIndex={datosPromediosConTendencia.length - 1}
-      />
+      {/* Scroll */}
+      <Brush dataKey="dia" height={25} stroke="#8884d8" />
     </LineChart>
   </ResponsiveContainer>
 </div>
