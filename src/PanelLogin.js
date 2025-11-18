@@ -816,7 +816,7 @@ const handleAreaClick = (areaName) => {
     Tareas Pendientes vs En Proceso (últimos 15 días)
   </h3>
 
-  <ResponsiveContainer width="100%" height={300}>
+  <ResponsiveContainer width="100%" height={200}>
     <LineChart
       syncId="syncDias"
       data={resumenTareasConTendencia}>
@@ -850,10 +850,10 @@ const handleAreaClick = (areaName) => {
 
   <div className="card shadow-lg p-4 rounded-xl bg-white w-full">
   <h3 className="text-xl font-bold mb-4 text-center">
-    Promedio de horas de solución y finalización (últimos días)
+    Horas de solución vs finalización (últimos 15 días)
   </h3>
 
-  <ResponsiveContainer width="100%" height={300}>
+  <ResponsiveContainer width="100%" height={200}>
     <LineChart 
       syncId="syncDias"  
       data={datosPromediosConTendencia}>
