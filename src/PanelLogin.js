@@ -879,7 +879,7 @@ const handleAreaClick = (areaName) => {
         dataKey="dia"
         height={25}
         stroke="#666"
-        startIndex={Math.max(0, resumenTareasConTendencia.length - 15)}
+        startIndex={Math.max(0, datosPromediosConTendencia.length - 15)}
         endIndex={datosPromediosConTendencia.length - 1}
       />
     </LineChart>
