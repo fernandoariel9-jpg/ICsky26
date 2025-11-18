@@ -865,15 +865,18 @@ const handleAreaClick = (areaName) => {
 
         <div className="card shadow-lg p-4 rounded-xl bg-white w-full">
   <h3 className="text-xl font-bold mb-4 text-center">
-    Promedio de horas de solución y finalización (últimos días)
+    Promedio de horas de solución y finalización (últimos 15 días)
   </h3>
 
   <ResponsiveContainer width="100%" height={300}>
-    <LineChart data={datosPromediosConTendencia}>
+    <LineChart
+        syncId="syncDias"
+        data={datosPromediosConTendencia}>
+        
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis 
         dataKey="dia"
-        tickFormatter={(v) => v} 
+        tickFormatter={(v) => (v ? new Date(v).getDate() : "")} 
       />
       <YAxis />
       <Tooltip />
@@ -888,7 +891,13 @@ const handleAreaClick = (areaName) => {
       <Line type="monotone" dataKey="tendenciaFin" stroke="#1d7a36" strokeDasharray="5 5" />
 
       {/* Scroll */}
-      <Brush dataKey="dia" height={25} stroke="#8884d8" />
+      <Brush
+        dataKey="dia"
+        height={25}
+        stroke="#666"
+        startIndex={Math.max(0, resumenTareasConTendencia.length - 15)}
+        endIndex={datosPromediosConTendencia.length - 1}
+      />
     </LineChart>
   </ResponsiveContainer>
 </div>
