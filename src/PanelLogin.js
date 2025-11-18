@@ -832,84 +832,40 @@ const handleAreaClick = (areaName) => {
   <ResponsiveContainer width="100%" height={300}>
     <LineChart
       syncId="syncDias"
-      data={resumenTiempos.map((item, index) => {
-        const fecha =
-          typeof item.fecha === "string"
+      data={resumenTiempos.map((item) => ({
+        ...item,
+        dia:
+          typeof item?.fecha === "string"
             ? item.fecha.substring(0, 10)
-            : item.fecha instanceof Date
+            : item?.fecha instanceof Date
             ? item.fecha.toISOString().substring(0, 10)
-            : "";
+            : "",
 
-        const dia = fecha || `dia_${index}`; // 🔒 nunca undefined
+        promedio_solucion: Number(item.promedio_solucion) || 0,
+        promedio_finalizacion: Number(item.promedio_finalizacion) || 0,
 
-        return {
-          ...item,
-          dia,
-          promedio_solucion: Number(item.promedio_solucion) || 0,
-          promedio_finalizacion: Number(item.promedio_finalizacion) || 0,
-          tendenciaSol: Number(item.tendenciaSol) || 0,
-          tendenciaFin: Number(item.tendenciaFin) || 0,
-        };
-      })}
+        // 🔥 NECESARIO PARA EVITAR ERROR #185
+        tendenciaSol: Number(item.tendenciaSol ?? item.promedio_solucion) || 0,
+        tendenciaFin: Number(item.tendenciaFin ?? item.promedio_finalizacion) || 0,
+      }))}
       margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
     >
       <CartesianGrid strokeDasharray="3 3" />
 
       <XAxis
         dataKey="dia"
-        tickFormatter={(v) => {
-          if (!v) return "";
-          const d = new Date(v);
-          return isNaN(d.getTime()) ? "" : d.getDate();
-        }}
+        tickFormatter={(v) => (v ? new Date(v).getDate() : "")}
       />
 
       <YAxis />
-
-      <Tooltip
-        labelFormatter={(v) => {
-          const d = new Date(v);
-          return isNaN(d.getTime()) ? "" : `Día ${d.getDate()}`;
-        }}
-      />
-
+      <Tooltip labelFormatter={(v) => `Día ${new Date(v).getDate()}`} />
       <Legend />
 
-      {/* Líneas principales */}
-      <Line
-        type="monotone"
-        dataKey="promedio_solucion"
-        stroke="#007bff"
-        strokeWidth={3}
-        dot={false}
-        isAnimationActive={false}
-      />
-      <Line
-        type="monotone"
-        dataKey="promedio_finalizacion"
-        stroke="#28a745"
-        strokeWidth={3}
-        dot={false}
-        isAnimationActive={false}
-      />
+      <Line type="monotone" dataKey="promedio_solucion" stroke="#007bff" strokeWidth={3} />
+      <Line type="monotone" dataKey="promedio_finalizacion" stroke="#28a745" strokeWidth={3} />
 
-      {/* Tendencias */}
-      <Line
-        type="monotone"
-        dataKey="tendenciaSol"
-        stroke="#0056b3"
-        strokeDasharray="5 5"
-        dot={false}
-        isAnimationActive={false}
-      />
-      <Line
-        type="monotone"
-        dataKey="tendenciaFin"
-        stroke="#1d7a36"
-        strokeDasharray="5 5"
-        dot={false}
-        isAnimationActive={false}
-      />
+      <Line type="monotone" dataKey="tendenciaSol" stroke="#0056b3" strokeDasharray="5 5" />
+      <Line type="monotone" dataKey="tendenciaFin" stroke="#1d7a36" strokeDasharray="5 5" />
 
       <Brush
         dataKey="dia"
