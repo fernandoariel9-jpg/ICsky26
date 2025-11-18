@@ -558,7 +558,7 @@ const handleAreaClick = (areaName) => {
             })()}
           </div>
         )}
-
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* === GRÁFICO CIRCULAR DE TAREAS POR ÁREA (separado, con click) === */}
         <div className="p-4 shadow-md mb-8 bg-white rounded-xl">
           <h2 className="text-lg font-semibold mb-2 flex items-center">
@@ -658,6 +658,109 @@ const handleAreaClick = (areaName) => {
   </PieChart>
 </ResponsiveContainer>
       </div>
+
+{/* === GRÁFICO CIRCULAR DE TAREAS EN PROCESO POR ÁREA === */}
+<div className="p-4 shadow-md mb-8 bg-white rounded-xl">
+  <h2 className="text-lg font-semibold mb-2 flex items-center">
+    <PieChartIcon className="mr-2 text-blue-600" /> Tareas en proceso por Área
+  </h2>
+
+  <ResponsiveContainer width="100%" height={350}>
+    <PieChart>
+      {(() => {
+        // 🎯 Agrupar SOLO tareas en proceso (solucion = true, fin = false)
+        const conteo = {};
+        tareas.forEach((t) => {
+          if (t.solucion && !t.fin) {
+            const area = t.reasignado_a || t.area || "Sin área";
+            conteo[area] = (conteo[area] || 0) + 1;
+          }
+        });
+
+        const data = Object.keys(conteo).map((k) => ({
+          name: k,
+          value: conteo[k],
+        }));
+
+        // 🎨 Colores fijos (los mismos del gráfico de pendientes)
+        const coloresFijos = {
+          "Area 1": "#EEF207",
+          "Area 2": "#EF4444",
+          "Area 3": "#10B981",
+          "Area 4": "#3B82F6",
+          "Area 5": "#D25CF6",
+          "Area 6": "#f88408ff",
+          "Sin área": "#6B7280",
+        };
+
+        return (
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={70}
+            outerRadius={120}
+            dataKey="value"
+            labelLine={false}
+            label={({ cx, cy, midAngle, innerRadius, outerRadius, name, value }) => {
+              const RADIAN = Math.PI / 180;
+              const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+              const x = cx + radius * Math.cos(-midAngle * RADIAN);
+              const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+              return (
+                <text
+                  x={x}
+                  y={y}
+                  fill="#000"
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize={12}
+                  fontWeight="bold"
+                >
+                  {`${name}: ${value}`}
+                </text>
+              );
+            }}
+            onClick={(data) => handleAreaClick(data.name)} // mismo popup
+          >
+            {data.map((entry, index) => (
+              <Cell
+                key={`cell-proceso-${index}`}
+                fill={coloresFijos[entry.name] || "#6B7280"}
+              />
+            ))}
+          </Pie>
+        );
+      })()}
+
+      {/* Tooltip y leyenda */}
+      <Tooltip
+        contentStyle={{
+          backgroundColor: "#fff",
+          border: "1px solid #ccc",
+          color: "#000",
+          fontSize: "13px",
+        }}
+        itemStyle={{ color: "#000" }}
+        formatter={(value, name) => [`${value} tareas en proceso`, name]}
+        labelStyle={{ fontWeight: "bold", color: "#000" }}
+      />
+
+      <Legend
+        verticalAlign="bottom"
+        height={36}
+        wrapperStyle={{
+          paddingTop: "10px",
+          fontSize: "13px",
+          color: "#000",
+        }}
+      />
+    </PieChart>
+  </ResponsiveContainer>
+</div>
+</div>
+
         {/* === MODAL DETALLES POR ÁREA === */}
         <AnimatePresence>
           {selectedArea && detallesArea && (
