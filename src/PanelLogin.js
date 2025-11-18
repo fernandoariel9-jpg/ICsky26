@@ -863,44 +863,72 @@ const handleAreaClick = (areaName) => {
   </ResponsiveContainer>
 </div>
 
-        <div className="card shadow-lg p-4 rounded-xl bg-white w-full">
+  <div className="card shadow-lg p-4 rounded-xl bg-white w-full mt-6">
   <h3 className="text-xl font-bold mb-4 text-center">
-    Promedio de horas de solución y finalización (últimos 15 días)
+    Promedio de horas de solución y finalización (últimos días)
   </h3>
 
   <ResponsiveContainer width="100%" height={300}>
     <LineChart
-        syncId="syncDias"
-        data={datosPromediosConTendencia}>
-        
+      syncId="syncDias"
+      data={resumenTiempos.map((item, index) => {
+        // --- Fecha segura ---
+        const fechaStr =
+          typeof item?.fecha === "string"
+            ? item.fecha.substring(0, 10)
+            : item?.fecha instanceof Date
+            ? item.fecha.toISOString().substring(0, 10)
+            : "";
+
+        return {
+          ...item,
+          dia: fechaStr,
+          promedio_solucion: Number(item.promedio_solucion) || 0,
+          promedio_finalizacion: Number(item.promedio_finalizacion) || 0,
+          tendenciaSol: Number(item.tendenciaSol) || 0,
+          tendenciaFin: Number(item.tendenciaFin) || 0,
+        };
+      })}
+      margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
+    >
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis 
+
+      <XAxis
         dataKey="dia"
-        tickFormatter={(v) => (v ? new Date(v).getDate() : "")} 
+        tickFormatter={(v) => {
+          if (!v) return "";
+          const d = new Date(v);
+          return !isNaN(d) ? d.getDate() : "";
+        }}
       />
+
       <YAxis />
-      <Tooltip />
+
+      <Tooltip
+        labelFormatter={(v) => {
+          const d = new Date(v);
+          return !isNaN(d) ? `Día ${d.getDate()}` : "";
+        }}
+      />
+
       <Legend />
 
-      {/* Líneas de datos reales */}
       <Line type="monotone" dataKey="promedio_solucion" stroke="#007bff" strokeWidth={3} />
       <Line type="monotone" dataKey="promedio_finalizacion" stroke="#28a745" strokeWidth={3} />
 
-      {/* Tendencias */}
       <Line type="monotone" dataKey="tendenciaSol" stroke="#0056b3" strokeDasharray="5 5" />
       <Line type="monotone" dataKey="tendenciaFin" stroke="#1d7a36" strokeDasharray="5 5" />
 
-      {/* Scroll */}
       <Brush
         dataKey="dia"
         height={25}
         stroke="#666"
-        startIndex={Math.max(0, resumenTareasConTendencia.length - 15)}
-        endIndex={datosPromediosConTendencia.length - 1}
+        startIndex={Math.max(0, resumenTiempos.length - 15)}
+        endIndex={resumenTiempos.length - 1}
       />
     </LineChart>
   </ResponsiveContainer>
-</div>
+</div>      
 
       <p className="text-center text-xs text-gray-500 mt-2">
         Vista actual:{" "}
