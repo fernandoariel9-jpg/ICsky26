@@ -869,60 +869,65 @@ const handleAreaClick = (areaName) => {
   </h3>
 
   <ResponsiveContainer width="100%" height={300}>
-  <LineChart
-    syncId="syncDias"
-    data={datosPromediosConTendencia
-      .map((item) => {
-        const fechaValida =
-          item?.fecha && !isNaN(new Date(item.fecha).getTime())
-            ? new Date(item.fecha).toISOString().substring(0, 10)
-            : null;
+    <LineChart
+      syncId="syncDias"
+      data={datosPromediosConTendencia.map((item) => {
+        const fecha =
+          typeof item?.fecha === "string"
+            ? item.fecha.substring(0, 10)
+            : item?.fecha instanceof Date
+            ? item.fecha.toISOString().substring(0, 10)
+            : "";
 
-        // ❗ Si no hay fecha válida, NO incluir en el gráfico
-        if (!fechaValida) return null;
+        // 💥 Aseguramos numericos válidos SIEMPRE
+        const promedio_solucion = isFinite(Number(item.promedio_solucion))
+          ? Number(item.promedio_solucion)
+          : 0;
+
+        const promedio_finalizacion = isFinite(Number(item.promedio_finalizacion))
+          ? Number(item.promedio_finalizacion)
+          : 0;
+
+        const tendenciaSol = isFinite(Number(item.tendenciaSol))
+          ? Number(item.tendenciaSol)
+          : promedio_solucion; // usa valor real si no hay tendencia
+
+        const tendenciaFin = isFinite(Number(item.tendenciaFin))
+          ? Number(item.tendenciaFin)
+          : promedio_finalizacion;
 
         return {
           ...item,
-          dia: fechaValida,
-          promedio_solucion: Number(item.promedio_solucion) || 0,
-          promedio_finalizacion: Number(item.promedio_finalizacion) || 0,
-          tendenciaSol: Number(item.tendenciaSol) || 0,
-          tendenciaFin: Number(item.tendenciaFin) || 0,
+          dia: fecha,
+          promedio_solucion,
+          promedio_finalizacion,
+          tendenciaSol,
+          tendenciaFin,
         };
-      })
-      .filter(Boolean)} // elimina registros nulos
-    margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
-  >
-    <CartesianGrid strokeDasharray="3 3" />
+      })}
+      margin={{ top: 10, right: 15, left: 0, bottom: 10 }}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="dia" tickFormatter={(v) => (v ? new Date(v).getDate() : "")} />
+      <YAxis />
+      <Tooltip labelFormatter={(v) => `Día ${new Date(v).getDate()}`} />
+      <Legend />
 
-    <XAxis
-      dataKey="dia"
-      tickFormatter={(v) => new Date(v).getDate()} // SIEMPRE válido
-    />
+      <Line type="monotone" dataKey="promedio_solucion" stroke="#007bff" strokeWidth={3} />
+      <Line type="monotone" dataKey="promedio_finalizacion" stroke="#28a745" strokeWidth={3} />
 
-    <YAxis />
+      <Line type="monotone" dataKey="tendenciaSol" stroke="#0056b3" strokeDasharray="5 5" />
+      <Line type="monotone" dataKey="tendenciaFin" stroke="#1d7a36" strokeDasharray="5 5" />
 
-    <Tooltip
-      labelFormatter={(v) => `Día ${new Date(v).getDate()}`} // SIEMPRE válido
-    />
-
-    <Legend />
-
-    <Line type="monotone" dataKey="promedio_solucion" stroke="#007bff" strokeWidth={3} />
-    <Line type="monotone" dataKey="promedio_finalizacion" stroke="#28a745" strokeWidth={3} />
-
-    <Line type="monotone" dataKey="tendenciaSol" stroke="#0056b3" strokeDasharray="5 5" />
-    <Line type="monotone" dataKey="tendenciaFin" stroke="#1d7a36" strokeDasharray="5 5" />
-
-    <Brush
-      dataKey="dia"
-      height={25}
-      stroke="#666"
-      startIndex={Math.max(0, datosPromediosConTendencia.length - 15)}
-      endIndex={datosPromediosConTendencia.length - 1}
-    />
-  </LineChart>
-</ResponsiveContainer>
+      <Brush
+        dataKey="dia"
+        height={25}
+        stroke="#666"
+        startIndex={Math.max(0, datosPromediosConTendencia.length - 15)}
+        endIndex={datosPromediosConTendencia.length - 1}
+      />
+    </LineChart>
+  </ResponsiveContainer>
 </div>
 
       <p className="text-center text-xs text-gray-500 mt-2">
