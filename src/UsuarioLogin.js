@@ -103,15 +103,6 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu, 
           Ingresar
         </button>
 
-        {/* 🔹 Link para restablecer contraseña */}
-        <button
-          type="button"
-          onClick={switchToRecuperar}
-          className="text-blue-600 text-sm underline mt-1"
-        >
-          ¿Olvidaste tu contraseña?
-        </button>
-
         {/* 🔹 Botón volver al menú */}
         <button
           type="button"
@@ -131,5 +122,6 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu, 
     </div>
   );
 }
+
 
 
