@@ -410,6 +410,30 @@ if (busqueda.trim()) {
           Cerrar sesión
         </button>
       </div>
+{mostrarUsuarios && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-4 rounded-xl w-80 shadow-lg">
+      <h2 className="text-xl font-bold mb-3">Usuarios Registrados</h2>
+
+      <ul className="max-h-60 overflow-y-auto">
+        {usuarios.map((u) => (
+          <li key={u.id} className="border-b py-2">
+            <strong>{u.nombre}</strong>
+            <br />
+            <span className="text-gray-600 text-sm">{u.mail}</span>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={() => setMostrarUsuarios(false)}
+        className="mt-3 bg-red-500 text-white px-3 py-1 rounded-xl w-full"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+)}
 {/* 🔍 Cuadro de búsqueda global */}
 <div className="relative my-3">
   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -645,5 +669,6 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
