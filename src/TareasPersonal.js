@@ -369,7 +369,7 @@ if (busqueda.trim()) {
   };
 
   return (
-     {mostrarUsuarios && (
+    {mostrarUsuarios && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div className="bg-white p-4 rounded-xl w-80 shadow-lg">
       <h2 className="text-xl font-bold mb-3">Usuarios Registrados</h2>
@@ -669,6 +669,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
