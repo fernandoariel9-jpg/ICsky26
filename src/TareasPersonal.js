@@ -429,7 +429,7 @@ if (busqueda.trim()) {
           Cerrar sesión
         </button>
     <button
-  onClick={() => fetchUsuarios()}
+  onClick={fetchUsuarios}
   className="bg-indigo-500 text-white px-3 py-1 rounded-xl text-sm"
 >
   👥 Ver usuarios
@@ -670,6 +670,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
