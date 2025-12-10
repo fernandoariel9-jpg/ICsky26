@@ -369,71 +369,105 @@ if (busqueda.trim()) {
   };
 
   return (
+  <>
     {mostrarUsuarios && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-4 rounded-xl w-80 shadow-lg">
-      <h2 className="text-xl font-bold mb-3">Usuarios Registrados</h2>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-4 rounded-xl w-80 shadow-lg">
+          <h2 className="text-xl font-bold mb-3">Usuarios Registrados</h2>
 
-      <ul className="max-h-60 overflow-y-auto">
-        {usuarios.map((u) => (
-          <li key={u.id} className="border-b py-2">
-            <strong>{u.nombre}</strong>
-            <br />
-            <span className="text-gray-600 text-sm">{u.mail}</span>
-          </li>
-        ))}
-      </ul>
+          <ul className="max-h-60 overflow-y-auto">
+            {usuarios.map((u) => (
+              <li key={u.id} className="border-b py-2">
+                <strong>{u.nombre}</strong>
+                <br />
+                <span className="text-gray-600 text-sm">{u.mail}</span>
+              </li>
+            ))}
+          </ul>
 
-      <button
-        onClick={() => setMostrarUsuarios(false)}
-        className="mt-3 bg-red-500 text-white px-3 py-1 rounded-xl w-full"
-      >
-        Cerrar
-      </button>
-    </div>
-  </div>
-)}
+          <button
+            onClick={() => setMostrarUsuarios(false)}
+            className="mt-3 bg-red-500 text-white px-3 py-1 rounded-xl w-full"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    )}
+
     <div className="p-4 max-w-2xl mx-auto">
-      <p className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
-        {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
-     <button
+      <p
+        className={`text-center mb-4 font-semibold ${
+          notificacionesActivas ? "text-green-600" : "text-red-600"
+        }`}
+      >
+        {notificacionesActivas
+          ? "🔔 Notificaciones activadas"
+          : "🔕 Notificaciones desactivadas"}
+        <button
           onClick={() => toggleNotificaciones(personal.id)}
           className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm"
         >
-          {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
+          {notificacionesActivas
+            ? "🔕 Desactivar notificaciones"
+            : "🔔 Activar notificaciones"}
         </button>
-</p>
+      </p>
 
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
+
       <h1 className="text-2xl font-bold mb-4 text-center">
         📌 Registro de tareas de{" "}
-        <span className="text-blue-700">{personal?.nombre || personal?.mail || "Personal"}</span>
+        <span className="text-blue-700">
+          {personal?.nombre || personal?.mail || "Personal"}
+        </span>
       </h1>
 
       <div className="flex space-x-2 mb-4 justify-center">
-        <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">
+        <button
+          onClick={fetchTareas}
+          className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm"
+        >
           🔄 Actualizar lista
         </button>
-        <button onClick={handleExportarPDF} className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm">
-          📄 Exportar {filtro === "pendientes" ? "pendientes" : filtro === "enProceso" ? "en proceso" : "finalizadas"} en PDF
+
+        <button
+          onClick={handleExportarPDF}
+          className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          📄 Exportar{" "}
+          {filtro === "pendientes"
+            ? "pendientes"
+            : filtro === "enProceso"
+            ? "en proceso"
+            : "finalizadas"}{" "}
+          en PDF
         </button>
 
-          <button
-  onClick={() => setMostrarRegistro(true)}
-  className="bg-purple-500 text-white px-3 py-1 rounded-xl text-sm"
->
-  ➕ Registrar Usuario
-</button>
-          <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
+        <button
+          onClick={() => setMostrarRegistro(true)}
+          className="bg-purple-500 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          ➕ Registrar Usuario
+        </button>
+
+        <button
+          onClick={onLogout}
+          className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
+        >
           Cerrar sesión
         </button>
-    <button
-  onClick={fetchUsuarios}
-  className="bg-indigo-500 text-white px-3 py-1 rounded-xl text-sm"
->
-  👥 Ver usuarios
-</button>
+
+        <button
+          onClick={fetchUsuarios}
+          className="bg-indigo-500 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          👥 Ver usuarios
+        </button>
       </div>
+    </div>
+  </>
+);
 {/* 🔍 Cuadro de búsqueda global */}
 <div className="relative my-3">
   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -669,6 +703,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
