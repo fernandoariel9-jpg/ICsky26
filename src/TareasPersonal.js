@@ -368,8 +368,8 @@ if (busqueda.trim()) {
     toast.success(`✅ Exportado en PDF (${nombreLista})`);
   };
 
-  return (
-   <>
+return (
+  <>
     {mostrarUsuarios && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white p-4 rounded-xl w-80 shadow-lg">
@@ -394,12 +394,6 @@ if (busqueda.trim()) {
         </div>
       </div>
     )}
-
-    <div className="p-4 max-w-2xl mx-auto">
-      ...
-    </div>
-  </>
-);
 
     <div className="p-4 max-w-2xl mx-auto">
       <p
@@ -709,6 +703,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
