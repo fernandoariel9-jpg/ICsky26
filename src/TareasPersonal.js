@@ -23,6 +23,8 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [usuarios, setUsuarios] = useState([]);
+  const [mostrarUsuarios, setMostrarUsuarios] = useState(false);
 
   function getFechaLocal() {
     const d = new Date();
@@ -623,3 +625,4 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
