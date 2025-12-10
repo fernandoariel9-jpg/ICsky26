@@ -161,6 +161,20 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
+  const fetchUsuarios = async () => {
+  try {
+    const res = await fetch(`${API_URL.Base}/usuarios`);
+    if (!res.ok) throw new Error("Error al obtener usuarios");
+
+    const data = await res.json();
+    setUsuarios(data);
+    setMostrarUsuarios(true);
+  } catch (err) {
+    console.error("Error al cargar usuarios:", err);
+    toast.error("❌ No se pudieron cargar los usuarios");
+  }
+};
+
   useEffect(() => {
     fetchTareas();
     fetchAreas();
@@ -385,6 +399,12 @@ if (busqueda.trim()) {
   className="bg-purple-500 text-white px-3 py-1 rounded-xl text-sm"
 >
   ➕ Registrar Usuario
+</button>
+    <button
+  onClick={() => fetchUsuarios()}
+  className="bg-indigo-500 text-white px-3 py-1 rounded-xl text-sm"
+>
+  👥 Ver usuarios
 </button>
           <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
           Cerrar sesión
@@ -625,4 +645,5 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
