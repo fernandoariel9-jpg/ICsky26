@@ -23,6 +23,8 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [usuarios, setUsuarios] = useState([]);
+  const [mostrarUsuarios, setMostrarUsuarios] = useState(false);
 
   function getFechaLocal() {
     const d = new Date();
@@ -147,6 +149,20 @@ export default function TareasPersonal({ personal, onLogout }) {
       toast.error("Error al cargar tareas ❌");
     }
   };
+
+  const fetchUsuarios = async () => {
+  try {
+    const res = await fetch(`${API_URL.Base}/usuarios`);
+    if (!res.ok) throw new Error("Error al obtener usuarios");
+
+    const data = await res.json();
+    setUsuarios(data);
+    setMostrarUsuarios(true);
+  } catch (err) {
+    console.error("Error al cargar usuarios:", err);
+    toast.error("❌ No se pudieron cargar los usuarios");
+  }
+};
 
   const fetchAreas = async () => {
     try {
@@ -352,6 +368,31 @@ if (busqueda.trim()) {
     toast.success(`✅ Exportado en PDF (${nombreLista})`);
   };
 
+  {mostrarUsuarios && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-4 rounded-xl w-80 shadow-lg">
+      <h2 className="text-xl font-bold mb-3">Usuarios Registrados</h2>
+
+      <ul className="max-h-60 overflow-y-auto">
+        {usuarios.map((u) => (
+          <li key={u.id} className="border-b py-2">
+            <strong>{u.nombre}</strong>
+            <br />
+            <span className="text-gray-600 text-sm">{u.mail}</span>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={() => setMostrarUsuarios(false)}
+        className="mt-3 bg-red-500 text-white px-3 py-1 rounded-xl w-full"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+)}
+
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <p className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
@@ -387,6 +428,12 @@ if (busqueda.trim()) {
           <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
           Cerrar sesión
         </button>
+    <button
+  onClick={() => fetchUsuarios()}
+  className="bg-indigo-500 text-white px-3 py-1 rounded-xl text-sm"
+>
+  👥 Ver usuarios
+</button>
       </div>
 {/* 🔍 Cuadro de búsqueda global */}
 <div className="relative my-3">
@@ -623,6 +670,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
