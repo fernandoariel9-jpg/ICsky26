@@ -169,14 +169,19 @@ export default function TareasPersonal({ personal, onLogout }) {
     if (!res.ok) throw new Error("Error al obtener usuarios");
 
     const data = await res.json();
-    setUsuarios(data);
+
+    // 👉 Filtrar usuarios según el área del personal logueado
+    const filtrados = data.filter(
+      (u) => u.area?.toLowerCase() === personal.area?.toLowerCase()
+    );
+
+    setUsuarios(filtrados);
     setMostrarUsuarios(true);
   } catch (err) {
     console.error("Error al cargar usuarios:", err);
     toast.error("❌ No se pudieron cargar los usuarios");
   }
 };
-
   const handleSeleccionUsuario = (u) => {
   setEditUsuario({
     id: u.id,
@@ -796,6 +801,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
