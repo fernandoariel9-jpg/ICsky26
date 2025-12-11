@@ -199,6 +199,33 @@ export default function TareasPersonal({ personal, onLogout }) {
   setUsuarios(filtrados);
   setMostrarUsuarios(true);
 };
+
+  const verUsuarios = async () => {
+  try {
+    const res = await fetch(`${API_URL.Base}/usuarios`);
+    if (!res.ok) throw new Error("Error al obtener usuarios");
+
+    const data = await res.json();
+
+    const area = personal.area?.trim().toUpperCase();
+
+    // 👉 ADMIN ve todos
+    const filtrados =
+      area === "ADMIN"
+        ? data
+        : data.filter(
+            (u) => u.area?.trim().toUpperCase() === area
+          );
+
+    setUsuarios(filtrados);
+    setMostrarUsuarios(true); // 👉 ahora SÍ se muestran
+    console.log("Usuarios filtrados:", filtrados);
+
+  } catch (err) {
+    console.error("Error al cargar usuarios:", err);
+    toast.error("❌ No se pudieron cargar los usuarios");
+  }
+};
   
   const handleSeleccionUsuario = (u) => {
   setEditUsuario({
@@ -475,7 +502,7 @@ if (busqueda.trim()) {
   ➕ Registrar Usuario
 </button>
     <button
-  onClick={verUsuariosFiltrados}
+  onClick={verUsuarios}
   className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm"
 >
   👥 Ver Usuarios
@@ -819,6 +846,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
