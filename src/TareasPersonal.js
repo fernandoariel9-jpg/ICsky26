@@ -476,9 +476,9 @@ if (busqueda.trim()) {
 </button>
     <button
   onClick={verUsuariosFiltrados}
-  className="bg-blue-600 text-white px-4 py-2 rounded"
+  className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm"
 >
-  👥 Ver usuarios
+  👥 Ver Usuarios
 </button>
           <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
           Cerrar sesión
@@ -819,6 +819,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
