@@ -163,25 +163,43 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   };
 
-  const fetchUsuarios = async () => {
+ const fetchUsuarios = async () => {
   try {
     const res = await fetch(`${API_URL.Base}/usuarios`);
     if (!res.ok) throw new Error("Error al obtener usuarios");
 
     const data = await res.json();
 
-    // 👉 Filtrar usuarios según el área del personal logueado
-    const filtrados = data.filter(
-      (u) => u.area?.toLowerCase() === personal.area?.toLowerCase()
-    );
+    // 👉 Guardamos TODOS los usuarios
+    setUsuarios(data);
 
-    setUsuarios(filtrados);
-    setMostrarUsuarios(true);
   } catch (err) {
     console.error("Error al cargar usuarios:", err);
     toast.error("❌ No se pudieron cargar los usuarios");
   }
 };
+
+  const verUsuariosFiltrados = () => {
+  if (!usuarios.length) return;
+
+  const area = personal.area?.trim().toUpperCase();
+
+  // 👉 Si es administrador ve todos
+  if (area === "ADMIN") {
+    setUsuarios(usuarios);
+    setMostrarUsuarios(true);
+    return;
+  }
+
+  // 👉 Sino filtramos por área
+  const filtrados = usuarios.filter(
+    (u) => u.area?.trim().toUpperCase() === area
+  );
+
+  setUsuarios(filtrados);
+  setMostrarUsuarios(true);
+};
+  
   const handleSeleccionUsuario = (u) => {
   setEditUsuario({
     id: u.id,
@@ -457,8 +475,8 @@ if (busqueda.trim()) {
   ➕ Registrar Usuario
 </button>
     <button
-  onClick={() => fetchUsuarios()}
-  className="bg-indigo-500 text-white px-3 py-1 rounded-xl text-sm"
+  onClick={verUsuariosFiltrados}
+  className="bg-blue-600 text-white px-4 py-2 rounded"
 >
   👥 Ver usuarios
 </button>
@@ -801,6 +819,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
