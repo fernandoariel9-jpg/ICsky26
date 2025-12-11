@@ -25,6 +25,8 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [busqueda, setBusqueda] = useState("");
   const [usuarios, setUsuarios] = useState([]);
   const [mostrarUsuarios, setMostrarUsuarios] = useState(false);
+  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
+  const [editUsuario, setEditUsuario] = useState({});
 
   function getFechaLocal() {
     const d = new Date();
@@ -175,6 +177,16 @@ export default function TareasPersonal({ personal, onLogout }) {
   }
 };
 
+  const handleSeleccionUsuario = (u) => {
+  setEditUsuario({
+    id: u.id,
+    nombre: u.nombre,
+    mail: u.mail,
+    area: u.area || "",
+  });
+  setUsuarioSeleccionado(true);
+};
+
   useEffect(() => {
     fetchTareas();
     fetchAreas();
@@ -284,6 +296,45 @@ export default function TareasPersonal({ personal, onLogout }) {
       toast.error("❌ Error al reasignar tarea");
     }
   };
+
+  const guardarCambiosUsuario = async () => {
+  try {
+    const res = await fetch(`${API_URL.Base}/usuarios/${editUsuario.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(editUsuario),
+    });
+
+    if (!res.ok) throw new Error("Error al actualizar usuario");
+
+    toast.success("✅ Usuario actualizado correctamente");
+    setUsuarioSeleccionado(null);
+    fetchUsuarios();
+  } catch (err) {
+    console.error(err);
+    toast.error("❌ Error al guardar cambios");
+  }
+};
+
+const cambiarPassword = async (id) => {
+  const nueva = prompt("Ingrese la nueva contraseña:");
+  if (!nueva) return;
+
+  try {
+    const res = await fetch(`${API_URL.Base}/usuarios/${id}/password`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: nueva }),
+    });
+
+    if (!res.ok) throw new Error("Error al cambiar contraseña");
+
+    toast.success("🔐 Contraseña actualizada");
+  } catch (err) {
+    console.error(err);
+    toast.error("❌ Error al cambiar contraseña");
+  }
+};
 
     // 👉 Si el usuario elige "Registrar Usuario", mostrar ese formulario
   if (mostrarRegistro) {
@@ -417,7 +468,11 @@ if (busqueda.trim()) {
 
       <ul className="max-h-60 overflow-y-auto">
         {usuarios.map((u) => (
-          <li key={u.id} className="border-b py-2">
+          <li
+  key={u.id}
+  className="border-b py-2 cursor-pointer hover:bg-gray-100"
+  onClick={() => handleSeleccionUsuario(u)}
+>
             <strong>{u.nombre}</strong>
             <br />
             <span className="text-gray-600 text-sm">{u.mail}</span>
@@ -428,6 +483,65 @@ if (busqueda.trim()) {
       <button
         onClick={() => setMostrarUsuarios(false)}
         className="mt-3 bg-red-500 text-white px-3 py-1 rounded-xl w-full"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+)}
+{usuarioSeleccionado && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-5 rounded-xl w-96 shadow-xl">
+
+      <h2 className="text-xl font-bold mb-3 text-center">Editar Usuario</h2>
+
+      <label className="block mt-2">Nombre</label>
+      <input
+        className="border w-full p-2 rounded"
+        value={editUsuario.nombre}
+        onChange={(e) =>
+          setEditUsuario({ ...editUsuario, nombre: e.target.value })
+        }
+      />
+
+      <label className="block mt-2">Mail</label>
+      <input
+        className="border w-full p-2 rounded"
+        value={editUsuario.mail}
+        onChange={(e) =>
+          setEditUsuario({ ...editUsuario, mail: e.target.value })
+        }
+      />
+
+      <label className="block mt-2">Área</label>
+      <input
+        className="border w-full p-2 rounded"
+        value={editUsuario.area}
+        onChange={(e) =>
+          setEditUsuario({ ...editUsuario, area: e.target.value })
+        }
+      />
+
+      {/* Cambiar contraseña */}
+      <button
+        className="bg-yellow-500 text-white w-full py-2 mt-4 rounded-xl"
+        onClick={() => cambiarPassword(editUsuario.id)}
+      >
+        Cambiar contraseña
+      </button>
+
+      {/* Guardar */}
+      <button
+        className="bg-green-600 text-white w-full py-2 mt-2 rounded-xl"
+        onClick={guardarCambiosUsuario}
+      >
+        Guardar cambios
+      </button>
+
+      {/* Cancelar */}
+      <button
+        className="bg-red-500 text-white w-full py-2 mt-2 rounded-xl"
+        onClick={() => setUsuarioSeleccionado(null)}
       >
         Cerrar
       </button>
@@ -669,6 +783,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
