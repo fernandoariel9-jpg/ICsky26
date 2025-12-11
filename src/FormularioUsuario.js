@@ -17,8 +17,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const [loading, setLoading] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [filtro, setFiltro] = useState("pendientes"); // 👈 NUEVO estado para pestañas
-  const [mostrarContacto, setMostrarContacto] = useState(false);
-  const [mensajeAdmin, setMensajeAdmin] = useState("");
 
   useEffect(() => {
     fetchTareas();
@@ -251,35 +249,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     fetchTareas();
   };
 
-  const enviarMensajeAdmin = async () => {
-  if (!mensajeAdmin.trim()) {
-    toast.warn("Escriba un mensaje antes de enviar");
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_URL.Base}/contactar-admin`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        usuario: personal.nombre,
-        area: personal.area,
-        mensaje: mensajeAdmin,
-      }),
-    });
-
-    if (!res.ok) throw new Error("Error HTTP " + res.status);
-
-    toast.success("📨 Mensaje enviado al administrador");
-
-    setMostrarContacto(false);
-    setMensajeAdmin("");
-  } catch (err) {
-    console.error("Error:", err);
-    toast.error("❌ No se pudo enviar el mensaje");
-  }
-};
-
   const handleScan = (data) => {
     if (data) {
       let qrData;
@@ -329,12 +298,6 @@ return (
     🔄 Actualizar lista  
   </button>  
       <button
-  onClick={() => setMostrarContacto(true)}
-  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded shadow"
->
-  Contactar con el administrador
-</button>
-      <button
 onClick={onLogout}
 className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm"
     > 
@@ -360,53 +323,7 @@ Cerrar sesión
             onScan={handleScan}  
           />  
         </div>  
-      )} 
-{mostrarContacto && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-lg shadow-xl w-96">
-
-      <h2 className="text-xl font-bold mb-3 text-center">
-        Contactar con el administrador
-      </h2>
-
-      <p className="text-sm text-gray-600 mb-2">
-        Usuario: <span className="font-medium">{personal?.nombre}</span>
-      </p>
-
-      <p className="text-sm text-gray-600 mb-4">
-        Área: <span className="font-medium">{personal?.area}</span>
-      </p>
-
-      <textarea
-        className="w-full border rounded p-2 mb-4"
-        rows="4"
-        placeholder="Escriba su mensaje..."
-        value={mensajeAdmin}
-        onChange={(e) => setMensajeAdmin(e.target.value)}
-      />
-
-      <div className="flex justify-between">
-        <button
-          className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded"
-          onClick={() => {
-            setMostrarContacto(false);
-            setMensajeAdmin("");
-          }}
-        >
-          Cancelar
-        </button>
-
-        <button
-          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded"
-          onClick={enviarMensajeAdmin}
-        >
-          Enviar
-        </button>
-      </div>
-
-    </div>
-  </div>
-)}
+      )}
 
 {/* ✅ Pestañas con contadores */}  
   <div className="flex justify-center space-x-2 mb-4">  
