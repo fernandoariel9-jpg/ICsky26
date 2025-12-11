@@ -489,65 +489,78 @@ if (busqueda.trim()) {
     </div>
   </div>
 )}
+
 {usuarioSeleccionado && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-5 rounded-xl w-96 shadow-xl">
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-2xl shadow-2xl w-96 animate-fadeIn">
 
-      <h2 className="text-xl font-bold mb-3 text-center">Editar Usuario</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center text-blue-700">
+        Editar Usuario
+      </h2>
 
-      <label className="block mt-2">Nombre</label>
-      <input
-        className="border w-full p-2 rounded"
-        value={editUsuario.nombre}
-        onChange={(e) =>
-          setEditUsuario({ ...editUsuario, nombre: e.target.value })
-        }
-      />
+      <div className="space-y-3">
+        <div>
+          <label className="text-sm font-semibold">Nombre</label>
+          <input
+            className="border w-full p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={editUsuario.nombre}
+            onChange={(e) =>
+              setEditUsuario({ ...editUsuario, nombre: e.target.value })
+            }
+          />
+        </div>
 
-      <label className="block mt-2">Mail</label>
-      <input
-        className="border w-full p-2 rounded"
-        value={editUsuario.mail}
-        onChange={(e) =>
-          setEditUsuario({ ...editUsuario, mail: e.target.value })
-        }
-      />
+        <div>
+          <label className="text-sm font-semibold">Email</label>
+          <input
+            className="border w-full p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={editUsuario.mail}
+            onChange={(e) =>
+              setEditUsuario({ ...editUsuario, mail: e.target.value })
+            }
+          />
+        </div>
 
-      <label className="block mt-2">Área</label>
-      <input
-        className="border w-full p-2 rounded"
-        value={editUsuario.area}
-        onChange={(e) =>
-          setEditUsuario({ ...editUsuario, area: e.target.value })
-        }
-      />
+        <div>
+          <label className="text-sm font-semibold">Área</label>
+          <input
+            className="border w-full p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={editUsuario.area}
+            onChange={(e) =>
+              setEditUsuario({ ...editUsuario, area: e.target.value })
+            }
+          />
+        </div>
+      </div>
 
-      {/* Cambiar contraseña */}
-      <button
-        className="bg-yellow-500 text-white w-full py-2 mt-4 rounded-xl"
-        onClick={() => cambiarPassword(editUsuario.id)}
-      >
-        Cambiar contraseña
-      </button>
+      <div className="mt-5 space-y-2">
 
-      {/* Guardar */}
-      <button
-        className="bg-green-600 text-white w-full py-2 mt-2 rounded-xl"
-        onClick={guardarCambiosUsuario}
-      >
-        Guardar cambios
-      </button>
+        <button
+          onClick={() => cambiarPassword(editUsuario.id)}
+          className="w-full py-2 rounded-lg bg-yellow-500 text-white font-semibold hover:bg-yellow-600"
+        >
+          Cambiar contraseña
+        </button>
 
-      {/* Cancelar */}
-      <button
-        className="bg-red-500 text-white w-full py-2 mt-2 rounded-xl"
-        onClick={() => setUsuarioSeleccionado(null)}
-      >
-        Cerrar
-      </button>
+        <button
+          onClick={guardarCambiosUsuario}
+          className="w-full py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700"
+        >
+          Guardar Cambios
+        </button>
+
+        <button
+          onClick={() => setUsuarioSeleccionado(null)}
+          className="w-full py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600"
+        >
+          Cerrar
+        </button>
+
+      </div>
     </div>
   </div>
 )}
+
 {/* 🔍 Cuadro de búsqueda global */}
 <div className="relative my-3">
   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -783,6 +796,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
