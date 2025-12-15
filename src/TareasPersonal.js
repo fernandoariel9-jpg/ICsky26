@@ -232,6 +232,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     id: u.id,
     nombre: u.nombre,
     mail: u.mail,
+    movil: u.movil,
     area: u.area || "",
   });
   setUsuarioSeleccionado(true);
@@ -846,6 +847,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
