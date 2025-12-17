@@ -811,6 +811,44 @@ if (busqueda.trim()) {
 
             {filtro === "enProceso" && !t.fin && (
   <>
+    {/* BOTÓN ASOCIAR RIC02 */}
+    <button
+      onClick={() => setMostrarRic02(t.id)}
+      className="bg-blue-500 text-white px-3 py-1 rounded mt-2"
+    >
+      Asociar a RIC02
+    </button>
+
+    {/* CUADRO RIC02 */}
+    {mostrarRic02 === t.id && (
+      <div className="mt-2 flex items-center gap-2">
+        <input
+          type="number"
+          placeholder="Nº RIC02"
+          value={valorRic02}
+          onChange={(e) => setValorRic02(e.target.value)}
+          className="border p-1 rounded w-32"
+        />
+        <button
+          onClick={() => {
+            const textoRic02 = `Asociado a RIC02 Nº ${valorRic02}`;
+            handleSolucionChange(
+              t.id,
+              (soluciones[t.id] ?? t.solucion ?? "") +
+                ((soluciones[t.id] ?? t.solucion) ? "\n" : "") +
+                textoRic02
+            );
+            setValorRic02("");
+            setMostrarRic02(null);
+          }}
+          className="bg-green-600 text-white px-3 py-1 rounded"
+        >
+          OK
+        </button>
+      </div>
+    )}
+
+    {/* EDICIÓN DE SOLUCIÓN */}
     {editando === t.id ? (
       <>
         <textarea
@@ -889,6 +927,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
