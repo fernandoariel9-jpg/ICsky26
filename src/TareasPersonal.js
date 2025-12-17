@@ -808,8 +808,6 @@ if (busqueda.trim()) {
     )}
   </>
 )}
-              </>
-            )}
 
             {filtro === "enProceso" && !t.fin && (
   <>
@@ -891,6 +889,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
