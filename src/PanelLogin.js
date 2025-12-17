@@ -878,7 +878,7 @@ const handleAreaClick = (areaName) => {
                 data={(() => {
                   const conteo = {};
                   if (vistaGrafico === "area") {
-                    tareas.forEach(t => { const k = t.area || "Sin área"; conteo[k] = (conteo[k] || 0) + 1; });
+                    tareas.forEach(t => { const k = t.reasignado_a || t.area || "Sin área"; conteo[k] = (conteo[k] || 0) + 1; });
                   } else if (vistaGrafico === "personal") {
                     tareas.forEach(t => { const k = t.asignado || "Sin asignar"; conteo[k] = (conteo[k] || 0) + 1; });
                   } else if (vistaGrafico === "servicio") {
@@ -895,7 +895,7 @@ const handleAreaClick = (areaName) => {
                 {(() => {
                   const conteo = {};
                   if (vistaGrafico === "area") {
-                    tareas.forEach(t => { const k = t.area || "Sin área"; conteo[k] = (conteo[k] || 0) + 1; });
+                    tareas.forEach(t => { const k = t.reasignado_a || t.area || "Sin área"; conteo[k] = (conteo[k] || 0) + 1; });
                   } else if (vistaGrafico === "personal") {
                     tareas.forEach(t => { const k = t.asignado || "Sin asignar"; conteo[k] = (conteo[k] || 0) + 1; });
                   } else if (vistaGrafico === "servicio") {
