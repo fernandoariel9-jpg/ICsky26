@@ -402,7 +402,7 @@ const datosPromediosConTendencia = (() => {
       (t.tarea && t.tarea.toLowerCase().includes(texto)) ||
       (t.area && t.area.toLowerCase().includes(texto)) ||
       (t.servicio && t.servicio.toLowerCase().includes(texto)) ||
-      (t.reasignada_a && t.reasignada_a.toLowerCase().includes(texto)) ||
+      (t.reasignado_a && t.reasignado_a.toLowerCase().includes(texto)) ||
       (t.solucion && t.solucion.toLowerCase().includes(texto)) ||
       (t.asignado && t.asignado.toLowerCase().includes(texto))
     );
