@@ -27,6 +27,8 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [mostrarUsuarios, setMostrarUsuarios] = useState(false);
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
   const [editUsuario, setEditUsuario] = useState({});
+  const [mostrarRic02, setMostrarRic02] = useState(null);
+  const [valorRic02, setValorRic02] = useState("");
 
   function getFechaLocal() {
     const d = new Date();
@@ -754,6 +756,12 @@ if (busqueda.trim()) {
                 />
 
                 <button
+  onClick={() => setMostrarRic02(t.id)}
+  className="bg-blue-500 text-white px-3 py-1 rounded mr-2"
+>
+  Asociar a RIC02
+</button>
+                  <button
                   onClick={() => handleCompletar(t.id)}
                   className={`mt-2 px-3 py-1 rounded text-white ${
                     t.solucion
@@ -766,6 +774,31 @@ if (busqueda.trim()) {
                 </button>
               </>
             )}
+{mostrarRic02 === t.id && (
+  <div className="mt-2 flex items-center gap-2">
+    <input
+      type="number"
+      placeholder="Nº RIC02"
+      value={valorRic02}
+      onChange={(e) => setValorRic02(e.target.value)}
+      className="border p-1 rounded w-32"
+    />
+
+    <button
+      onClick={() => {
+        const textoRic02 = `Asociado a RIC02 Nº ${valorRic02}`;
+        setSolucion((prev) =>
+          prev ? `${prev}\n${textoRic02}` : textoRic02
+        );
+        setValorRic02("");
+        setMostrarRic02(null);
+      }}
+      className="bg-green-600 text-white px-3 py-1 rounded"
+    >
+      OK
+    </button>
+  </div>
+)}
 
             {filtro === "enProceso" && !t.fin && (
   <>
@@ -847,6 +880,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
