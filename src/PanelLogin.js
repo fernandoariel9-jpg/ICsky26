@@ -410,6 +410,7 @@ const datosPromediosConTendencia = (() => {
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin && filtrarBusqueda(t));
   const terminadas = tareas.filter((t) => t.solucion && !t.fin && filtrarBusqueda(t));
   const finalizadas = tareas.filter((t) => t.fin && filtrarBusqueda(t));
+  const tareasFiltradas = tareas.filter((t) => filtrarBusqueda(t));
 
   const tareasPorTab =
     tab === "pendientes" ? pendientes : tab === "terminadas" ? terminadas : finalizadas;
@@ -491,7 +492,7 @@ const handleAreaClick = (areaName) => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div className="bg-blue-100 p-3 rounded-xl">
             <p className="text-gray-600 text-sm">Total de tareas</p>
-            <p className="text-2xl font-bold">{tareas.length}</p>
+            <p className="text-2xl font-bold">{tareasFiltradas.length}</p>
           </div>
           <div className="bg-yellow-100 p-3 rounded-xl">
             <p className="text-gray-600 text-sm">Pendientes</p>
