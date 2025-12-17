@@ -739,70 +739,75 @@ if (busqueda.trim()) {
           {/* Botones según tipo de lista */}
           <div className="mt-3">
             {filtro === "pendientes" && (
-              <>
-                <button
-                  onClick={() => setModal(t)}
-                  className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2"
-                >
-                  🔄 Reasignar
-                </button>
+  <>
+    <button
+      onClick={() => setModal(t)}
+      className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2"
+    >
+      🔄 Reasignar
+    </button>
 
-                <textarea
-                  className="w-full p-2 border rounded mt-2"
-                  placeholder="Escriba la solución..."
-                  value={soluciones[t.id] || t.solucion || ""}
-                  onChange={(e) => handleSolucionChange(t.id, e.target.value)}
-                  disabled={!!t.solucion}
-                />
-                <div className="flex gap-2 mt-2">
-                <button
-  onClick={() => setMostrarRic02(t.id)}
-  className="bg-blue-500 text-white px-3 py-1 rounded mr-2"
->
-  Asociar a RIC02
-</button>
-                  <button
-                  onClick={() => handleCompletar(t.id)}
-                  className={`mt-2 px-3 py-1 rounded text-white ${
-                    t.solucion
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-500"
-                  }`}
-                  disabled={!!t.solucion}
-                >
-                  ✅ Completar
-                </button>
-                    </div>
-                      {mostrarRic02 === t.id && (
-        <div className="mt-2 flex items-center gap-2">
-          <input
-            type="number"
-            placeholder="Nº RIC02"
-            value={valorRic02}
-            onChange={(e) => setValorRic02(e.target.value)}
-            className="border p-1 rounded w-32"
-          />
+    <textarea
+      className="w-full p-2 border rounded mt-2"
+      placeholder="Escriba la solución..."
+      value={soluciones[t.id] || t.solucion || ""}
+      onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+      disabled={!!t.solucion}
+    />
 
-          <button
-            onClick={() => {
-              const textoRic02 = `Asociado a RIC02 Nº ${valorRic02}`;
-              handleSolucionChange(
-                t.id,
-                (soluciones[t.id] || t.solucion || "") +
-                  (soluciones[t.id] || t.solucion ? "\n" : "") +
-                  textoRic02
-              );
-              setValorRic02("");
-              setMostrarRic02(null);
-            }}
-            className="bg-green-600 text-white px-3 py-1 rounded"
-          >
-            OK
-          </button>
-        </div>
-      )}
-    </>
-  )}
+    {/* BOTONES */}
+    <div className="flex gap-2 mt-2">
+      <button
+        onClick={() => setMostrarRic02(t.id)}
+        className="bg-blue-500 text-white px-3 py-1 rounded"
+      >
+        Asociar a RIC02
+      </button>
+
+      <button
+        onClick={() => handleCompletar(t.id)}
+        className={`px-3 py-1 rounded text-white ${
+          t.solucion
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-green-500"
+        }`}
+        disabled={!!t.solucion}
+      >
+        ✅ Completar
+      </button>
+    </div>
+
+    {/* CUADRO RIC02 */}
+    {mostrarRic02 === t.id && (
+      <div className="mt-2 flex items-center gap-2">
+        <input
+          type="number"
+          placeholder="Nº RIC02"
+          value={valorRic02}
+          onChange={(e) => setValorRic02(e.target.value)}
+          className="border p-1 rounded w-32"
+        />
+
+        <button
+          onClick={() => {
+            const textoRic02 = `Asociado a RIC02 Nº ${valorRic02}`;
+            handleSolucionChange(
+              t.id,
+              (soluciones[t.id] || t.solucion || "") +
+                ((soluciones[t.id] || t.solucion) ? "\n" : "") +
+                textoRic02
+            );
+            setValorRic02("");
+            setMostrarRic02(null);
+          }}
+          className="bg-green-600 text-white px-3 py-1 rounded"
+        >
+          OK
+        </button>
+      </div>
+    )}
+  </>
+)}
               </>
             )}
 
@@ -886,6 +891,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
