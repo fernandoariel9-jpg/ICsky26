@@ -875,7 +875,7 @@ if (busqueda.trim()) {
     ) : (
       <button
         onClick={() => setEditando(t.id)}
-        className="mt-2 px-3 py-1 rounded bg-yellow-500 text-white text-sm"
+        className="mt-2 px-3 py-1 rounded bg-yellow-500 text-white"
       >
         ✏️ Editar solución
       </button>
@@ -927,6 +927,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
