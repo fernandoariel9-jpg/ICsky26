@@ -495,7 +495,7 @@ if (busqueda.trim()) {
           🔄 Actualizar lista
         </button>
         <button onClick={handleExportarPDF} className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm">
-          📄 Exportar {filtro === "pendientes" ? "pendientes" : filtro === "enProceso" ? "en proceso" : "finalizadas"} en PDF
+          📄 Exportar lista en PDF
         </button>
 
           <button
@@ -927,6 +927,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
