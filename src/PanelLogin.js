@@ -485,6 +485,29 @@ const handleAreaClick = (areaName) => {
       <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
       <h1 className="text-2xl font-bold text-center mb-2">📋 Panel de Supervisión</h1>
 
+      {/* Botones principales */}
+      <div className="flex justify-center space-x-2 mb-6">
+        <button
+          onClick={() => setVista("usuario")}
+          className="bg-blue-500 text-white px-4 py-2 rounded-xl"
+        >
+          Registrar Usuario
+        </button>
+        <button
+          onClick={() => setVista("personal")}
+          className="bg-green-500 text-white px-4 py-2 rounded-xl"
+        >
+          Registrar Personal
+        </button>
+            <button
+  onClick={() => setVista("editarPersonal")}
+  className="bg-yellow-500 text-white px-4 py-2 rounded-xl"
+>
+  ✏️ Editar Personal
+</button>
+      </div>
+
+
       {/* 📊 TABLERO DE CONTROL */}
       <div className="bg-white shadow-md rounded-xl p-4 mb-6">
         <h2 className="text-xl font-semibold mb-4 text-center">📈 Tablero de Control</h2>
@@ -1007,22 +1030,6 @@ const handleAreaClick = (areaName) => {
           {vistaGrafico.charAt(0).toUpperCase() + vistaGrafico.slice(1)}
         </span>
       </p>
-
-      {/* Botones principales */}
-      <div className="flex justify-center space-x-2 mb-6">
-        <button
-          onClick={() => setVista("usuario")}
-          className="bg-blue-500 text-white px-4 py-2 rounded-xl"
-        >
-          Registrar Usuario
-        </button>
-        <button
-          onClick={() => setVista("personal")}
-          className="bg-green-500 text-white px-4 py-2 rounded-xl"
-        >
-          Registrar Personal
-        </button>
-      </div>
 
       {/* 🔍 Cuadro de búsqueda */}
       <div className="relative flex justify-center mb-4">
