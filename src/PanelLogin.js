@@ -1196,6 +1196,86 @@ const handleAreaClick = (areaName) => {
   </div>
 )}
 
+{personalSeleccionado && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-2xl shadow-2xl w-96">
+
+      <h2 className="text-2xl font-bold mb-4 text-center text-blue-700">
+        Editar Personal
+      </h2>
+
+      <div className="space-y-3">
+
+        <div>
+          <label className="text-sm font-semibold">Nombre</label>
+          <input
+            className="border w-full p-2 rounded-lg"
+            value={editPersonal.nombre}
+            onChange={(e) =>
+              setEditPersonal({ ...editPersonal, nombre: e.target.value })
+            }
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold">Usuario</label>
+          <input
+            className="border w-full p-2 rounded-lg"
+            value={editPersonal.usuario}
+            onChange={(e) =>
+              setEditPersonal({ ...editPersonal, usuario: e.target.value })
+            }
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold">Área</label>
+          <input
+            className="border w-full p-2 rounded-lg"
+            value={editPersonal.area}
+            onChange={(e) =>
+              setEditPersonal({ ...editPersonal, area: e.target.value })
+            }
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold">Nueva contraseña</label>
+          <input
+            type="password"
+            className="border w-full p-2 rounded-lg"
+            value={nuevaPassword}
+            onChange={(e) => setNuevaPassword(e.target.value)}
+            placeholder="Opcional"
+          />
+        </div>
+
+      </div>
+
+      <div className="mt-5 space-y-2">
+
+        <button
+          onClick={guardarCambiosPersonal}
+          className="w-full py-2 rounded-lg bg-green-600 text-white font-semibold"
+        >
+          Guardar Cambios
+        </button>
+
+        <button
+          onClick={() => {
+            setPersonalSeleccionado(null);
+            setNuevaPassword("");
+          }}
+          className="w-full py-2 rounded-lg bg-red-500 text-white font-semibold"
+        >
+          Cerrar
+        </button>
+
+      </div>
+    </div>
+  </div>
+)}
+
       {/* Modal imagen */}
       <AnimatePresence>
         {modalImagen && (
