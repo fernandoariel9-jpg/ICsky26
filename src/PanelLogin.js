@@ -361,7 +361,7 @@ const datosPromediosConTendencia = (() => {
 
   const verPersonal = async () => {
   try {
-    const res = await fetch(API_URL.Personal);
+    const res = await fetch(API_URL.personal);
     const data = await res.json();
     setPersonal(data);
     setMostrarPersonal(true);
@@ -372,7 +372,7 @@ const datosPromediosConTendencia = (() => {
 
   const guardarCambiosPersonal = async () => {
   try {
-    await fetch(`${API_URL.Personal}/${editPersonal.id}`, {
+    await fetch(`${API_URL.personal}/${editPersonal.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
