@@ -370,6 +370,28 @@ const datosPromediosConTendencia = (() => {
   }
 };
 
+  const guardarCambiosPersonal = async () => {
+  try {
+    await fetch(`${API_URL.Personal}/${editPersonal.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nombre: editPersonal.nombre,
+        usuario: editPersonal.usuario,
+        area: editPersonal.area,
+        password: nuevaPassword || undefined,
+      }),
+    });
+
+    toast.success("Personal actualizado");
+    setPersonalSeleccionado(null);
+    setNuevaPassword("");
+    verPersonal();
+  } catch {
+    toast.error("Error al guardar cambios");
+  }
+};
+
   // Recalcular promedios cuando cambian las tareas
   useEffect(() => {
     const tiemposPorDia = {};
