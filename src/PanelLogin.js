@@ -346,17 +346,6 @@ const datosPromediosConTendencia = (() => {
     );
 }, []);
 
-  const verPersonal = async () => {
-  try {
-    const res = await fetch(API_URL.Personal);
-    const data = await res.json();
-    setPersonal(data);
-    setMostrarPersonal(true);
-  } catch (err) {
-    toast.error("Error cargando personal");
-  }
-};
-
   const fetchTareas = async () => {
     setLoading(true);
     try {
