@@ -510,7 +510,6 @@ const handleAreaClick = (areaName) => {
 >
   👷 Editar Personal
 </button>
-</button>
       </div>
 
       {/* 📊 TABLERO DE CONTROL */}
