@@ -1164,6 +1164,38 @@ const handleAreaClick = (areaName) => {
         </ul>
       )}
 
+{mostrarPersonal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-4 rounded-xl w-80 shadow-lg">
+      <h2 className="text-xl font-bold mb-3">Personal Registrado</h2>
+
+      <ul className="max-h-60 overflow-y-auto">
+        {personal.map((p) => (
+          <li
+            key={p.id}
+            className="border-b py-2 cursor-pointer hover:bg-gray-100"
+            onClick={() => {
+              setPersonalSeleccionado(p);
+              setEditPersonal({ ...p }); // CLAVE
+            }}
+          >
+            <strong>{p.nombre}</strong>
+            <br />
+            <span className="text-gray-600 text-sm">{p.area}</span>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={() => setMostrarPersonal(false)}
+        className="mt-3 bg-red-500 text-white px-3 py-1 rounded-xl w-full"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+)}
+
       {/* Modal imagen */}
       <AnimatePresence>
         {modalImagen && (
