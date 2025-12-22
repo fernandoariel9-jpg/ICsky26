@@ -18,7 +18,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const [showQR, setShowQR] = useState(false);
   const [filtro, setFiltro] = useState("pendientes"); // 👈 NUEVO estado para pestañas
   const [mostrarPopupFinalizar, setMostrarPopupFinalizar] = useState(false);
-  const [mostrarPopupFinalizar, setMostrarPopupFinalizar] = useState(false);
   const [cantidadPendientes, setCantidadPendientes] = useState(0);
 
 
