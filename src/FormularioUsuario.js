@@ -17,6 +17,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const [loading, setLoading] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [filtro, setFiltro] = useState("pendientes"); // 👈 NUEVO estado para pestañas
+  const [mostrarPopupFinalizar, setMostrarPopupFinalizar] = useState(false);
+
 
   useEffect(() => {
     fetchTareas();
@@ -38,11 +40,20 @@ export default function FormularioUsuario({ usuario, onLogout }) {
           ? usuario
           : usuario.nombre || usuario.mail || String(usuario);
 
-      setTareas(
-        data
-          .filter((t) => t.usuario === userIdentifier)
-          .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-      );
+      const tareasUsuario = data
+  .filter((t) => t.usuario === userIdentifier)
+  .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+setTareas(tareasUsuario);
+
+// 🔔 Popup si hay tareas en proceso
+const tieneEnProceso = tareasUsuario.some(
+  (t) => t.solucion && !t.fin
+);
+
+if (tieneEnProceso) {
+  setMostrarPopupFinalizar(true);
+}
     } catch {
       toast.error("Error al cargar tareas ❌");
     } finally {
@@ -529,6 +540,52 @@ Cerrar sesión
       </motion.div>  
     )}  
   </AnimatePresence>  
+      <AnimatePresence>
+  {mostrarPopupFinalizar && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <motion.div
+        initial={{ scale: 0.8 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0.8 }}
+        className="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl text-center"
+      >
+        <h2 className="text-lg font-bold mb-3">
+          ⚠️ Tareas pendientes de finalización
+        </h2>
+
+        <p className="text-gray-700 mb-4">
+          Tenés tareas ya solucionadas que aún no fueron finalizadas.
+          <br />
+          ¿Deseás finalizarlas ahora?
+        </p>
+
+        <div className="flex justify-center space-x-3">
+          <button
+            onClick={() => {
+              setFiltro("enProceso");
+              setMostrarPopupFinalizar(false);
+            }}
+            className="bg-green-600 text-white px-4 py-2 rounded-xl"
+          >
+            ✅ Sí
+          </button>
+
+          <button
+            onClick={() => setMostrarPopupFinalizar(false)}
+            className="bg-gray-400 text-white px-4 py-2 rounded-xl"
+          >
+            ❌ No
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
 
   <ToastContainer position="bottom-right" autoClose={2000} />  
 </div>
