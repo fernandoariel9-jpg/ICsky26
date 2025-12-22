@@ -18,6 +18,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const [showQR, setShowQR] = useState(false);
   const [filtro, setFiltro] = useState("pendientes"); // 👈 NUEVO estado para pestañas
   const [mostrarPopupFinalizar, setMostrarPopupFinalizar] = useState(false);
+  const [mostrarPopupFinalizar, setMostrarPopupFinalizar] = useState(false);
+  const [cantidadPendientes, setCantidadPendientes] = useState(0);
 
 
   useEffect(() => {
@@ -46,12 +48,18 @@ export default function FormularioUsuario({ usuario, onLogout }) {
 
 setTareas(tareasUsuario);
 
-// 🔔 Popup si hay tareas en proceso
-const tieneEnProceso = tareasUsuario.some(
+// 🔢 contar tareas en proceso
+const pendientesFinalizar = tareasUsuario.filter(
   (t) => t.solucion && !t.fin
 );
 
-if (tieneEnProceso) {
+// guardar cantidad
+setCantidadPendientes(pendientesFinalizar.length);
+
+// 🔕 mostrar popup SOLO una vez por sesión
+const popupYaMostrado = sessionStorage.getItem("popupFinalizarVisto");
+
+if (pendientesFinalizar.length > 0 && !popupYaMostrado) {
   setMostrarPopupFinalizar(true);
 }
     } catch {
@@ -559,10 +567,15 @@ Cerrar sesión
         </h2>
 
         <p className="text-gray-700 mb-4">
-          Tenés tareas ya solucionadas que aún no fueron finalizadas.
-          <br />
-          ¿Deseás finalizarlas ahora?
-        </p>
+  Tenés{" "}
+  <span className="font-bold text-red-600">
+    {cantidadPendientes}
+  </span>{" "}
+  tarea{cantidadPendientes !== 1 ? "s" : ""} pendiente
+  {cantidadPendientes !== 1 ? "s" : ""} de finalización.
+  <br />
+  ¿Deseás finalizarlas ahora?
+</p>
 
         <div className="flex justify-center space-x-3">
           <button
