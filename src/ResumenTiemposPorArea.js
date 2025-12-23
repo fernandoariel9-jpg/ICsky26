@@ -5,6 +5,16 @@ import {
 } from "recharts";
 import { API_URL } from "./config";
 
+const COLORES_AREAS = {
+  "Area 1": "#EEF207",
+  "Area 2": "#EF4444",
+  "Area 3": "#10B981",
+  "Area 4": "#3B82F6",
+  "Area 5": "#D25CF6",
+  "Area 6": "#f88408ff",
+  "Sin área": "#6B7280",
+};
+
 export default function AnaliticaTiempos() {
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
@@ -87,24 +97,51 @@ export default function AnaliticaTiempos() {
       {/* GRÁFICO BARRAS */}
       <div className="flex justify-center">
         <BarChart width={500} height={300} data={dataAreas}>
-          <XAxis dataKey="area" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="promSol" name="Solución (hs)" />
-          <Bar dataKey="promFin" name="Finalización (hs)" />
-        </BarChart>
+  <XAxis dataKey="area" />
+  <YAxis />
+  <Tooltip />
+  <Legend />
+
+  <Bar dataKey="promSol" name="Solución (hs)">
+    {dataAreas.map((entry, index) => (
+      <Cell
+        key={`sol-${index}`}
+        fill={COLORES_AREAS[entry.area] || "#9CA3AF"}
+      />
+    ))}
+  </Bar>
+
+  <Bar dataKey="promFin" name="Finalización (hs)">
+    {dataAreas.map((entry, index) => (
+      <Cell
+        key={`fin-${index}`}
+        fill={COLORES_AREAS[entry.area] || "#9CA3AF"}
+      />
+    ))}
+  </Bar>
+
+</BarChart>
       </div>
 
       {/* GRÁFICO RADAR */}
       <div className="flex justify-center">
         <RadarChart width={500} height={400} data={dataAreas} outerRadius={120}>
-          <PolarGrid />
-          <PolarAngleAxis dataKey="area" />
-          <Radar name="Solución" dataKey="promSol" fillOpacity={0.6} />
-          <Radar name="Finalización" dataKey="promFin" fillOpacity={0.6} />
-          <Legend />
-        </RadarChart>
+  <PolarGrid />
+  <PolarAngleAxis dataKey="area" />
+
+  {dataAreas.map((a, i) => (
+    <Radar
+      key={a.area}
+      name={a.area}
+      dataKey="promSol"
+      stroke={COLORES_AREAS[a.area] || "#9CA3AF"}
+      fill={COLORES_AREAS[a.area] || "#9CA3AF"}
+      fillOpacity={0.3}
+    />
+  ))}
+
+  <Legend />
+</RadarChart>
       </div>
 
       {/* ALERTA ÁREAS LENTAS */}
