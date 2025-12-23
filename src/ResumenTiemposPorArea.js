@@ -33,41 +33,15 @@ export default function AnaliticaTiempos() {
   }
 };
 
-  const avg = (arr) =>
-    arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
-
   // =======================
   // PROCESO POR ÁREA
   // =======================
-  const areas = {};
-  datos.forEach(d => {
-    if (!areas[d.area]) areas[d.area] = { sol: [], fin: [] };
-    if (d.t_sol) areas[d.area].sol.push(d.t_sol);
-    if (d.t_fin) areas[d.area].fin.push(d.t_fin);
-  });
-
-  const dataAreas = Object.keys(areas).map(a => ({
-    area: a,
-    promSol: avg(areas[a].sol) / 3600,
-    promFin: avg(areas[a].fin) / 3600,
-  }));
-
-  // =======================
-  // PROCESO POR PERSONAL
-  // =======================
-  const personal = {};
-  datos.forEach(d => {
-    if (!d.personal) return;
-    if (!personal[d.personal]) personal[d.personal] = { sol: [], fin: [] };
-    if (d.t_sol) personal[d.personal].sol.push(d.t_sol);
-    if (d.t_fin) personal[d.personal].fin.push(d.t_fin);
-  });
-
-  const dataPersonal = Object.keys(personal).map(p => ({
-    nombre: p,
-    promSol: avg(personal[p].sol) / 3600,
-    promFin: avg(personal[p].fin) / 3600,
-  }));
+  const dataAreas = datos.map(d => ({
+  area: d.area,
+  promSol: Number(d.promedio_solucion),
+  promFin: Number(d.promedio_finalizacion),
+  total: Number(d.total_tareas)
+}));
 
   // =======================
   // DETECCIÓN DE ÁREAS LENTAS
