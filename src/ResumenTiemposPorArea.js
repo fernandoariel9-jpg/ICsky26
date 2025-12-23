@@ -11,19 +11,22 @@ export default function AnaliticaTiempos() {
   const [datos, setDatos] = useState([]);
 
   const cargarDatos = async () => {
-    if (!desde || !hasta) return alert("Seleccioná rango de fechas");
+  if (!desde || !hasta) return alert("Seleccioná rango de fechas");
 
+  try {
     const res = await fetch(
       `${API_URL.TiemposAnalitica}?desde=${desde}&hasta=${hasta}`
     );
-    const data = await res.json();
-    if (!Array.isArray(data)) {
-  console.warn("Respuesta inválida del backend:", data);
-  setDatos([]);
-  return;
-}
 
-setDatos(data);
+    const data = await res.json();
+
+    if (!Array.isArray(data)) {
+      console.warn("Respuesta inválida del backend:", data);
+      setDatos([]);
+      return;
+    }
+
+    setDatos(data);
   } catch (err) {
     console.error("Error cargando analítica:", err);
     setDatos([]);
