@@ -17,8 +17,18 @@ export default function AnaliticaTiempos() {
       `${API_URL.TiemposAnalitica}?desde=${desde}&hasta=${hasta}`
     );
     const data = await res.json();
-    setDatos(data);
-  };
+    if (!Array.isArray(data)) {
+  console.warn("Respuesta inválida del backend:", data);
+  setDatos([]);
+  return;
+}
+
+setDatos(data);
+  } catch (err) {
+    console.error("Error cargando analítica:", err);
+    setDatos([]);
+  }
+};
 
   const avg = (arr) =>
     arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
