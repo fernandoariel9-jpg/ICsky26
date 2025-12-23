@@ -102,19 +102,19 @@ export default function AnaliticaTiempos() {
   <Tooltip />
   <Legend />
 
-  <Bar dataKey="promSol" name="Solución (hs)">
+  <Bar dataKey="promFin" name="Finalización (hs)">
     {dataAreas.map((entry, index) => (
       <Cell
-        key={`sol-${index}`}
+        key={`fin-${index}`}
         fill={COLORES_AREAS[entry.area] || "#9CA3AF"}
       />
     ))}
   </Bar>
 
-  <Bar dataKey="promFin" name="Finalización (hs)">
+    <Bar dataKey="promSol" name="Solución (hs)">
     {dataAreas.map((entry, index) => (
       <Cell
-        key={`fin-${index}`}
+        key={`sol-${index}`}
         fill={COLORES_AREAS[entry.area] || "#9CA3AF"}
       />
     ))}
