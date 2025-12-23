@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
-  RadarChart, Radar, PolarGrid, PolarAngleAxis
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, Cell
 } from "recharts";
 import { API_URL } from "./config";
 
