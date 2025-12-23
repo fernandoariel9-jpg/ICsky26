@@ -7,6 +7,7 @@ import AsistenteIAFlotante from "./AsistenteIAFlotante";
 import { PieChart as PieChartIcon } from "lucide-react";
 import RegistroUsuario from "./RegistroUsuario";
 import RegistroPersonal from "./RegistroPersonal";
+import ResumenTiemposPorArea from "./ResumenTiemposPorArea";
 import { API_URL } from "./config";
 
 // --- imports extra para gráficos ---
@@ -977,6 +978,14 @@ const handleAreaClick = (areaName) => {
           </ResponsiveContainer>
         )}
           </div>
+          {/* ================= RESUMEN DE TIEMPOS POR ÁREA ================= */}
+<div className="bg-white shadow-md rounded-xl p-4 mb-6 mt-6">
+  <h2 className="text-xl font-bold text-center mb-4 text-purple-700">
+    ⏱️ Tiempos promedio por Área
+  </h2>
+
+  <ResumenTiemposPorArea />
+</div>
 
 <div className="card shadow-lg p-4 rounded-xl bg-white w-full mt-6">
   <h3 className="text-xl font-bold mb-4 text-center">
