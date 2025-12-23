@@ -33,6 +33,8 @@ export default function AnaliticaTiempos() {
   }
 };
 
+  const avg = (arr) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+
   // =======================
   // PROCESO POR ÁREA
   // =======================
