@@ -62,7 +62,7 @@ export default function LoginPersonal({ onLogin, switchToRegister, switchToMenu 
       )}
 
       <img
-        src="/logosmall.png"
+        src="/logosmall_old.png"
         alt="Logo"
         className="mx-auto mb-4 w-24 h-auto"
       />
@@ -126,6 +126,7 @@ export default function LoginPersonal({ onLogin, switchToRegister, switchToMenu 
     </div>
   );
 }
+
 
 
 
