@@ -522,6 +522,7 @@ if (busqueda.trim()) {
   };
 
   return (
+    <>
     <div className="p-4 max-w-2xl mx-auto">
       <p className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
         {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
@@ -997,6 +998,7 @@ if (busqueda.trim()) {
     </li>
   ))}
 </ul>
+</div>
 {mostrarObservacion && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div className="bg-white p-4 rounded-lg w-full max-w-md">
@@ -1069,6 +1071,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
