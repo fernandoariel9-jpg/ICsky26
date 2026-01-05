@@ -30,6 +30,9 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [mostrarRic02, setMostrarRic02] = useState(null);
   const [valorRic02, setValorRic02] = useState("");
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [mostrarObservacion, setMostrarObservacion] = useState(false);
+  const [observacion, setObservacion] = useState("");
+  const [tareaObsId, setTareaObsId] = useState(null);
 
   function getFechaLocal() {
     const d = new Date();
@@ -1001,6 +1004,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
