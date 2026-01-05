@@ -1000,7 +1000,7 @@ if (busqueda.trim()) {
     }}
     className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
   >
-    📝 Observaciones
+    📝 Obs.
   </button>
 </div>
     )}
@@ -1085,6 +1085,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
