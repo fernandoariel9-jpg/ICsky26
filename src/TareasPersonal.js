@@ -145,6 +145,28 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   }
 
+  const guardarObservacion = async () => {
+  try {
+    await fetch(`${API_TAREAS}/${tareaObsId}/observacion`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ observacion }),
+    });
+
+    toast.success("Observación guardada");
+    setMostrarObservacion(false);
+
+    // 🔄 refrescar tareas si ya lo hacés
+    cargarTareas?.();
+
+  } catch (error) {
+    console.error(error);
+    toast.error("Error al guardar observación");
+  }
+};
+
   const fetchTareas = async () => {
     try {
       if (!personal?.area) return;
@@ -1017,6 +1039,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
