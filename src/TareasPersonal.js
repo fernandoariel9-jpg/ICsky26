@@ -978,16 +978,6 @@ if (busqueda.trim()) {
 >
   ✏️ Editar solución
 </button>
-             <button
-  onClick={() => {
-    setTareaObsId(tarea.id);
-    setObservacion(tarea.observacion || "");
-    setMostrarObservacion(true);
-  }}
-  className="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
->
-  📝 Observaciones
-</button>
     )}
   </>
 )}
@@ -1036,6 +1026,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
