@@ -59,7 +59,7 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu, 
 
   return (
     <div className="p-4 max-w-md mx-auto mt-20 relative">
-      <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
+      <img src="/logosmall_old.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
       <h1 className="text-2xl font-bold text-center mb-4">🔑 Ingreso de Usuario</h1>
 
       <form onSubmit={handleLogin} className="flex flex-col space-y-3">
@@ -122,6 +122,7 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu, 
     </div>
   );
 }
+
 
 
 
