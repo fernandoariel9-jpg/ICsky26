@@ -278,8 +278,11 @@ export default function TareasPersonal({ personal, onLogout }) {
 
   const handleCompletar = async (id) => {
     try {
-      const fecha_comp = getFechaLocal();
-      const solucion = soluciones[id] || "";
+const fecha_comp = getFechaLocal();
+const textoSolucion = soluciones[id] || "";
+
+// 👉 Agregar fecha y hora al inicio del texto
+const solucion = `[${fecha_comp}] ${textoSolucion}`;
       const url = `${API_TAREAS}/${id}/solucion`;
       const res = await fetch(url, {
         method: "PUT",
@@ -927,6 +930,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
