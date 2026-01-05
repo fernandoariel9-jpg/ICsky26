@@ -304,29 +304,49 @@ export default function TareasPersonal({ personal, onLogout }) {
 
   const handleEditarSolucion = async (id) => {
   try {
-    const nuevaSolucion = soluciones[id];
-    if (!nuevaSolucion) {
+    const textoNuevo = soluciones[id];
+    if (!textoNuevo) {
       toast.warn("Escriba una nueva solución antes de guardar ✏️");
       return;
     }
+
+    // 👉 buscamos la solución actual
+    const tareaActual = tareas.find((t) => t.id === id);
+    const solucionAnterior = tareaActual?.solucion || "";
+
+    const fecha = getFechaLocal();
+
+    // 👉 armamos historial
+    const solucionFinal = solucionAnterior
+      ? `${solucionAnterior}\n[${fecha}] ${textoNuevo}`
+      : `[${fecha}] ${textoNuevo}`;
 
     const url = `${API_TAREAS}/${id}/solucion`;
     const res = await fetch(url, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ solucion: nuevaSolucion, asignado: personal.nombre }),
+      body: JSON.stringify({
+        solucion: solucionFinal,
+        asignado: personal.nombre,
+      }),
     });
+
     if (!res.ok) throw new Error("Error HTTP " + res.status);
 
     setTareas((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, solucion: nuevaSolucion } : t))
+      prev.map((t) =>
+        t.id === id ? { ...t, solucion: solucionFinal } : t
+      )
     );
 
-    setEditando(null); // cerrar modo edición
-    toast.success("✏️ Solución actualizada correctamente");
+    // limpiamos input y salimos de edición
+    setSoluciones((prev) => ({ ...prev, [id]: "" }));
+    setEditando(null);
+
+    toast.success("📝 Historial de solución actualizado");
   } catch (err) {
     console.error("Error al editar solución", err);
-    toast.error("❌ Error al editar solución");
+    toast.error("❌ Error al actualizar solución");
   }
 };
 
@@ -930,4 +950,5 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
