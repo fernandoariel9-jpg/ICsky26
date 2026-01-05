@@ -481,7 +481,7 @@ if (busqueda.trim()) {
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const fecha = new Date().toLocaleString();
     const img = new Image();
-    img.src = "/logosmall.png";
+    img.src = "/logosmall_old.png";
     doc.addImage(img, "PNG", 10, 8, 20, 20);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
@@ -533,7 +533,7 @@ if (busqueda.trim()) {
         </button>
 </p>
 
-      <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
+      <img src="/logosmall_old.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
         📌 Registro de tareas de{" "}
         <span className="text-blue-700">{personal?.nombre || personal?.mail || "Personal"}</span>
@@ -1085,6 +1085,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
