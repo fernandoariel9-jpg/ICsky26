@@ -886,11 +886,11 @@ if (busqueda.trim()) {
     {editando === t.id ? (
       <>
         <textarea
-          className="w-full p-2 border rounded mt-2"
-          placeholder="Editar la solución..."
-          value={soluciones[t.id] ?? t.solucion ?? ""}
-          onChange={(e) => handleSolucionChange(t.id, e.target.value)}
-        />
+  className="w-full p-2 border rounded mt-2"
+  placeholder="Agregar nueva entrada al historial..."
+  value={soluciones[t.id] || ""}
+  onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+/>
         <div className="flex gap-2 mt-2">
           <button
             onClick={() => handleEditarSolucion(t.id)}
@@ -908,11 +908,14 @@ if (busqueda.trim()) {
       </>
     ) : (
       <button
-        onClick={() => setEditando(t.id)}
-        className="mt-2 px-3 py-1 rounded bg-yellow-500 text-white"
-      >
-        ✏️ Editar solución
-      </button>
+  onClick={() => {
+    setEditando(t.id);
+    setSoluciones((prev) => ({ ...prev, [t.id]: "" }));
+  }}
+  className="mt-2 px-3 py-1 rounded bg-yellow-500 text-white"
+>
+  ✏️ Editar solución
+</button>
     )}
   </>
 )}
@@ -961,6 +964,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
