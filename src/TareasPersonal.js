@@ -978,6 +978,16 @@ if (busqueda.trim()) {
 >
   ✏️ Editar solución
 </button>
+<button
+  onClick={() => {
+    setTareaObsId(tarea.id);
+    setObservacion(tarea.observacion || "");
+    setMostrarObservacion(true);
+  }}
+  className="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+>
+  📝 Observaciones
+</button>
     )}
   </>
 )}
@@ -987,6 +997,39 @@ if (busqueda.trim()) {
     </li>
   ))}
 </ul>
+{mostrarObservacion && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-4 rounded-lg w-full max-w-md">
+      <h3 className="text-lg font-semibold mb-2">
+        Observaciones
+      </h3>
+
+      <textarea
+        value={observacion}
+        onChange={(e) => setObservacion(e.target.value)}
+        rows={5}
+        className="w-full border rounded p-2 text-sm"
+        placeholder="Escriba una observación..."
+      />
+
+      <div className="flex justify-end gap-2 mt-3">
+        <button
+          onClick={() => setMostrarObservacion(false)}
+          className="px-3 py-1 text-sm bg-gray-300 rounded"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={guardarObservacion}
+          className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
+        >
+          Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
 {/* Modal de imagen ampliada */}
 {imagenAmpliada && (
@@ -1026,6 +1069,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
