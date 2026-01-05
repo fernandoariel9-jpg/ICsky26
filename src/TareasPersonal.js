@@ -29,6 +29,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [editUsuario, setEditUsuario] = useState({});
   const [mostrarRic02, setMostrarRic02] = useState(null);
   const [valorRic02, setValorRic02] = useState("");
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   function getFechaLocal() {
     const d = new Date();
@@ -517,25 +518,61 @@ if (busqueda.trim()) {
         <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">
           🔄 Actualizar lista
         </button>
-        <button onClick={handleExportarPDF} className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm">
-          📄 Exportar lista en PDF
-        </button>
+        <div className="relative">
+  <button
+    onClick={() => setMenuAbierto((v) => !v)}
+    className="bg-gray-700 text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2"
+  >
+    ☰ Acciones
+  </button>
 
-          <button
-  onClick={() => setMostrarRegistro(true)}
-  className="bg-purple-500 text-white px-3 py-1 rounded-xl text-sm"
->
-  ➕ Registrar Usuario
-</button>
-    <button
-  onClick={verUsuarios}
-  className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm"
->
-  👥 Ver Usuarios
-</button>
-          <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
-          Cerrar sesión
-        </button>
+  {menuAbierto && (
+    <div className="absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-lg z-50">
+      
+      <button
+        onClick={() => {
+          handleExportarPDF();
+          setMenuAbierto(false);
+        }}
+        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+      >
+        📄 Exportar lista en PDF
+      </button>
+
+      <button
+        onClick={() => {
+          setMostrarRegistro(true);
+          setMenuAbierto(false);
+        }}
+        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+      >
+        ➕ Registrar usuario
+      </button>
+
+      <button
+        onClick={() => {
+          verUsuarios();
+          setMenuAbierto(false);
+        }}
+        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+      >
+        👥 Ver usuarios
+      </button>
+
+      <div className="border-t my-1" />
+
+      <button
+        onClick={() => {
+          setMenuAbierto(false);
+          onLogout();
+        }}
+        className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 text-sm"
+      >
+        🚪 Cerrar sesión
+      </button>
+    </div>
+  )}
+</div>
       </div>
 {mostrarUsuarios && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -964,6 +1001,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
