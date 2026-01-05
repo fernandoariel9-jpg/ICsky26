@@ -145,6 +145,19 @@ export default function TareasPersonal({ personal, onLogout }) {
     }
   }
 
+  const fetchTareas = async () => {
+    try {
+      if (!personal?.area) return;
+      const res = await fetch(`${API_TAREAS}/${encodeURIComponent(personal.area)}`);
+      if (!res.ok) throw new Error("Error HTTP " + res.status);
+      const data = await res.json();
+      setTareas(data);
+    } catch (err) {
+      console.error("Error al cargar tareas:", err);
+      toast.error("Error al cargar tareas ❌");
+    }
+  };
+
   const guardarObservacion = async () => {
   try {
     await fetch(`${API_TAREAS}/${tareaObsId}/observacion`, {
@@ -158,27 +171,14 @@ export default function TareasPersonal({ personal, onLogout }) {
     toast.success("Observación guardada");
     setMostrarObservacion(false);
 
-    // 🔄 refrescar tareas si ya lo hacés
-    cargarTareas?.();
+    // 🔄 refrescar tareas
+    fetchTareas();
 
   } catch (error) {
     console.error(error);
     toast.error("Error al guardar observación");
   }
 };
-
-  const fetchTareas = async () => {
-    try {
-      if (!personal?.area) return;
-      const res = await fetch(`${API_TAREAS}/${encodeURIComponent(personal.area)}`);
-      if (!res.ok) throw new Error("Error HTTP " + res.status);
-      const data = await res.json();
-      setTareas(data);
-    } catch (err) {
-      console.error("Error al cargar tareas:", err);
-      toast.error("Error al cargar tareas ❌");
-    }
-  };
 
   const fetchAreas = async () => {
     try {
@@ -1039,6 +1039,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
