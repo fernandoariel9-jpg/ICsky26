@@ -1188,6 +1188,17 @@ const handleAreaClick = (areaName) => {
                     <p className="text-sm text-green-700 mt-1">⏰ Finalizado el: {t.fecha_fin}</p>
                   )}
                   {t.solucion && <p className="text-sm bg-gray-100 p-1 rounded mt-1">💡 Solución: {t.solucion}</p>}
+                   {t.observacion && (
+  <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
+    <p className="text-sm font-semibold mb-1 text-blue-700">
+      📝 Observaciones
+    </p>
+
+    <p className="text-sm text-gray-700 whitespace-pre-line">
+      {t.observacion}
+    </p>
+  </div>
+)}
                   {t.fin && <p className="text-green-600 font-semibold mt-1">✔️ Finalizada por el usuario</p>}
                 </div>
               </div>
