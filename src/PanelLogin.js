@@ -1187,7 +1187,22 @@ const handleAreaClick = (areaName) => {
                   {t.fecha_fin && (
                     <p className="text-sm text-green-700 mt-1">⏰ Finalizado el: {t.fecha_fin}</p>
                   )}
-                  {t.solucion && <p className="text-sm bg-gray-100 p-1 rounded mt-1">💡 Solución: {t.solucion}</p>}
+                 {t.solucion && (
+  <div className="mt-2 bg-gray-100 rounded p-2">
+    <p className="text-sm font-semibold mb-1">💡 Historial de solución</p>
+
+    <ul className="text-sm space-y-1 list-disc list-inside">
+      {t.solucion
+        .split("\n")
+        .filter((l) => l.trim())
+        .map((linea, idx) => (
+          <li key={idx} className="text-gray-700">
+            {linea}
+          </li>
+        ))}
+    </ul>
+  </div>
+)}
                    {t.observacion && (
   <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
     <p className="text-sm font-semibold mb-1 text-blue-700">
