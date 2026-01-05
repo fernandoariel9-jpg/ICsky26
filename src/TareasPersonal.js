@@ -247,6 +247,15 @@ export default function TareasPersonal({ personal, onLogout }) {
   }, [personal]);
 
   useEffect(() => {
+  const cerrar = () => setMenuAbierto(false);
+  if (menuAbierto) {
+    window.addEventListener("click", cerrar);
+  }
+  return () => window.removeEventListener("click", cerrar);
+}, [menuAbierto]);
+
+
+  useEffect(() => {
     const BACKEND_URL = "https://sky26.onrender.com";
     const mantenerActivo = () => {
       fetch(BACKEND_URL)
@@ -1001,6 +1010,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
