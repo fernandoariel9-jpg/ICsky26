@@ -29,10 +29,6 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [editUsuario, setEditUsuario] = useState({});
   const [mostrarRic02, setMostrarRic02] = useState(null);
   const [valorRic02, setValorRic02] = useState("");
-  const [menuAbierto, setMenuAbierto] = useState(false);
-  const [mostrarObservacion, setMostrarObservacion] = useState(false);
-  const [observacion, setObservacion] = useState("");
-  const [tareaObsId, setTareaObsId] = useState(null);
 
   function getFechaLocal() {
     const d = new Date();
@@ -248,7 +244,7 @@ export default function TareasPersonal({ personal, onLogout }) {
     fetchTareas();
     fetchAreas();
   }, [personal]);
-  
+
   useEffect(() => {
     const BACKEND_URL = "https://sky26.onrender.com";
     const mantenerActivo = () => {
@@ -282,11 +278,8 @@ export default function TareasPersonal({ personal, onLogout }) {
 
   const handleCompletar = async (id) => {
     try {
-const fecha_comp = getFechaLocal();
-const textoSolucion = soluciones[id] || "";
-
-// 👉 Agregar fecha y hora al inicio del texto
-const solucion = `[${fecha_comp}] ${textoSolucion}`;
+      const fecha_comp = getFechaLocal();
+      const solucion = soluciones[id] || "";
       const url = `${API_TAREAS}/${id}/solucion`;
       const res = await fetch(url, {
         method: "PUT",
@@ -308,49 +301,29 @@ const solucion = `[${fecha_comp}] ${textoSolucion}`;
 
   const handleEditarSolucion = async (id) => {
   try {
-    const textoNuevo = soluciones[id];
-    if (!textoNuevo) {
+    const nuevaSolucion = soluciones[id];
+    if (!nuevaSolucion) {
       toast.warn("Escriba una nueva solución antes de guardar ✏️");
       return;
     }
-
-    // 👉 buscamos la solución actual
-    const tareaActual = tareas.find((t) => t.id === id);
-    const solucionAnterior = tareaActual?.solucion || "";
-
-    const fecha = getFechaLocal();
-
-    // 👉 armamos historial
-    const solucionFinal = solucionAnterior
-      ? `${solucionAnterior}\n[${fecha}] ${textoNuevo}`
-      : `[${fecha}] ${textoNuevo}`;
 
     const url = `${API_TAREAS}/${id}/solucion`;
     const res = await fetch(url, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        solucion: solucionFinal,
-        asignado: personal.nombre,
-      }),
+      body: JSON.stringify({ solucion: nuevaSolucion, asignado: personal.nombre }),
     });
-
     if (!res.ok) throw new Error("Error HTTP " + res.status);
 
     setTareas((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, solucion: solucionFinal } : t
-      )
+      prev.map((t) => (t.id === id ? { ...t, solucion: nuevaSolucion } : t))
     );
 
-    // limpiamos input y salimos de edición
-    setSoluciones((prev) => ({ ...prev, [id]: "" }));
-    setEditando(null);
-
-    toast.success("📝 Historial de solución actualizado");
+    setEditando(null); // cerrar modo edición
+    toast.success("✏️ Solución actualizada correctamente");
   } catch (err) {
     console.error("Error al editar solución", err);
-    toast.error("❌ Error al actualizar solución");
+    toast.error("❌ Error al editar solución");
   }
 };
 
@@ -443,28 +416,6 @@ if (busqueda.trim()) {
       : finalizadas;
 }
 
-  const guardarObservacion = async () => {
-  try {
-    await fetch(`${API_TAREAS}/${tareaObsId}/observacion`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ observacion }),
-    });
-
-    toast.success("Observación guardada");
-    setMostrarObservacion(false);
-
-    // 🔄 refrescar tareas si ya lo hacés
-    cargarTareas?.();
-
-  } catch (error) {
-    console.error(error);
-    toast.error("Error al guardar observación");
-  }
-};
-
   const handleExportarPDF = async () => {
     const nombreLista =
       filtro === "pendientes"
@@ -543,61 +494,25 @@ if (busqueda.trim()) {
         <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">
           🔄 Actualizar lista
         </button>
-        <div className="relative">
-  <button
-    onClick={() => setMenuAbierto((v) => !v)}
-    className="bg-gray-700 text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2"
-  >
-    ☰ Acciones
-  </button>
+        <button onClick={handleExportarPDF} className="bg-green-600 text-white px-3 py-1 rounded-xl text-sm">
+          📄 Exportar lista en PDF
+        </button>
 
-  {menuAbierto && (
-    <div className="absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-lg z-50">
-      
-      <button
-        onClick={() => {
-          handleExportarPDF();
-          setMenuAbierto(false);
-        }}
-        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-      >
-        📄 Exportar lista en PDF
-      </button>
-
-      <button
-        onClick={() => {
-          setMostrarRegistro(true);
-          setMenuAbierto(false);
-        }}
-        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-      >
-        ➕ Registrar usuario
-      </button>
-
-      <button
-        onClick={() => {
-          verUsuarios();
-          setMenuAbierto(false);
-        }}
-        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-      >
-        👥 Ver usuarios
-      </button>
-
-      <div className="border-t my-1" />
-
-      <button
-        onClick={() => {
-          setMenuAbierto(false);
-          onLogout();
-        }}
-        className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 text-sm"
-      >
-        🚪 Cerrar sesión
-      </button>
-    </div>
-  )}
-</div>
+          <button
+  onClick={() => setMostrarRegistro(true)}
+  className="bg-purple-500 text-white px-3 py-1 rounded-xl text-sm"
+>
+  ➕ Registrar Usuario
+</button>
+    <button
+  onClick={verUsuarios}
+  className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm"
+>
+  👥 Ver Usuarios
+</button>
+          <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">
+          Cerrar sesión
+        </button>
       </div>
 {mostrarUsuarios && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -805,21 +720,10 @@ if (busqueda.trim()) {
           )}
 
           {t.solucion && (
-  <div className="mt-2 bg-gray-100 rounded p-2">
-    <p className="text-sm font-semibold mb-1">💡 Historial de solución</p>
-
-    <ul className="text-sm space-y-1 list-disc list-inside">
-      {t.solucion
-        .split("\n")
-        .filter((l) => l.trim())
-        .map((linea, idx) => (
-          <li key={idx} className="text-gray-700">
-            {linea}
-          </li>
-        ))}
-    </ul>
-  </div>
-)}
+            <p className="text-sm bg-gray-100 p-1 rounded mt-1">
+              💡 Solución: {t.solucion}
+            </p>
+          )}
 
           {t.fecha_comp && (
             <p className="text-xs text-gray-500 mt-1">
@@ -948,11 +852,11 @@ if (busqueda.trim()) {
     {editando === t.id ? (
       <>
         <textarea
-  className="w-full p-2 border rounded mt-2"
-  placeholder="Agregar nueva entrada al historial..."
-  value={soluciones[t.id] || ""}
-  onChange={(e) => handleSolucionChange(t.id, e.target.value)}
-/>
+          className="w-full p-2 border rounded mt-2"
+          placeholder="Editar la solución..."
+          value={soluciones[t.id] ?? t.solucion ?? ""}
+          onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+        />
         <div className="flex gap-2 mt-2">
           <button
             onClick={() => handleEditarSolucion(t.id)}
@@ -969,30 +873,14 @@ if (busqueda.trim()) {
         </div>
       </>
     ) : (
-  <div className="flex gap-2 mt-2">
-    <button
-      onClick={() => {
-        setEditando(t.id);
-        setSoluciones((prev) => ({ ...prev, [t.id]: "" }));
-      }}
-      className="px-3 py-1 rounded bg-yellow-500 text-white"
-    >
-      ✏️ Editar solución
-    </button>
-
-    <button
-      onClick={() => {
-        setTareaObsId(t.id);
-        setObservacion(t.observacion || "");
-        setMostrarObservacion(true);
-      }}
-      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
-    >
-      📝 Observaciones
-    </button>
-  </div>
- </div>
-)}
+      <button
+        onClick={() => setEditando(t.id)}
+        className="mt-2 px-3 py-1 rounded bg-yellow-500 text-white"
+      >
+        ✏️ Editar solución
+      </button>
+    )}
+  </>
 )}
           </div>
         </div>
@@ -1000,40 +888,6 @@ if (busqueda.trim()) {
     </li>
   ))}
 </ul>
-</div>
-{mostrarObservacion && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-4 rounded-lg w-full max-w-md">
-      <h3 className="text-lg font-semibold mb-2">
-        Observaciones
-      </h3>
-
-      <textarea
-        value={observacion}
-        onChange={(e) => setObservacion(e.target.value)}
-        rows={5}
-        className="w-full border rounded p-2 text-sm"
-        placeholder="Escriba una observación..."
-      />
-
-      <div className="flex justify-end gap-2 mt-3">
-        <button
-          onClick={() => setMostrarObservacion(false)}
-          className="px-3 py-1 text-sm bg-gray-300 rounded"
-        >
-          Cancelar
-        </button>
-
-        <button
-          onClick={guardarObservacion}
-          className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
-        >
-          Guardar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
 
 {/* Modal de imagen ampliada */}
 {imagenAmpliada && (
@@ -1071,9 +925,5 @@ if (busqueda.trim()) {
 
       <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
-);
+  );
 }
-
-
-
-
