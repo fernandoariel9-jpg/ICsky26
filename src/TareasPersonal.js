@@ -992,6 +992,8 @@ if (busqueda.trim()) {
       📝 Observaciones
     </button>
   </div>
+ </div>
+)}
 )}
           </div>
         </div>
@@ -1073,5 +1075,6 @@ if (busqueda.trim()) {
   </>
 );
 }
+
 
 
