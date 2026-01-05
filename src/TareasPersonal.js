@@ -821,6 +821,18 @@ if (busqueda.trim()) {
   </div>
 )}
 
+{t.observacion && (
+  <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
+    <p className="text-sm font-semibold mb-1 text-blue-700">
+      📝 Observaciones
+    </p>
+
+    <p className="text-sm text-gray-700 whitespace-pre-line">
+      {t.observacion}
+    </p>
+  </div>
+)}
+
           {t.fecha_comp && (
             <p className="text-xs text-gray-500 mt-1">
               ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
@@ -1073,6 +1085,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
