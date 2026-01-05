@@ -30,6 +30,9 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [mostrarRic02, setMostrarRic02] = useState(null);
   const [valorRic02, setValorRic02] = useState("");
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [mostrarObservacion, setMostrarObservacion] = useState(false);
+  const [observacion, setObservacion] = useState("");
+  const [tareaObsId, setTareaObsId] = useState(null);
 
   function getFechaLocal() {
     const d = new Date();
@@ -439,6 +442,28 @@ if (busqueda.trim()) {
       ? enProceso
       : finalizadas;
 }
+
+  const guardarObservacion = async () => {
+  try {
+    await fetch(`${API_TAREAS}/${tareaObsId}/observacion`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ observacion }),
+    });
+
+    toast.success("Observación guardada");
+    setMostrarObservacion(false);
+
+    // 🔄 refrescar tareas si ya lo hacés
+    cargarTareas?.();
+
+  } catch (error) {
+    console.error(error);
+    toast.error("Error al guardar observación");
+  }
+};
 
   const handleExportarPDF = async () => {
     const nombreLista =
@@ -953,6 +978,16 @@ if (busqueda.trim()) {
 >
   ✏️ Editar solución
 </button>
+             <button
+  onClick={() => {
+    setTareaObsId(tarea.id);
+    setObservacion(tarea.observacion || "");
+    setMostrarObservacion(true);
+  }}
+  className="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+>
+  📝 Observaciones
+</button>
     )}
   </>
 )}
@@ -974,6 +1009,40 @@ if (busqueda.trim()) {
       alt="Ampliada"
       className="max-w-full max-h-full rounded-lg shadow-lg"
     />
+  </div>
+)}
+
+{mostrarObservacion && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-4 rounded-lg w-full max-w-md">
+      <h3 className="text-lg font-semibold mb-2">
+        Observaciones
+      </h3>
+
+      <textarea
+        value={observacion}
+        onChange={(e) => setObservacion(e.target.value)}
+        rows={5}
+        className="w-full border rounded p-2 text-sm"
+        placeholder="Escriba una observación..."
+      />
+
+      <div className="flex justify-end gap-2 mt-3">
+        <button
+          onClick={() => setMostrarObservacion(false)}
+          className="px-3 py-1 text-sm bg-gray-300 rounded"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={guardarObservacion}
+          className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
+        >
+          Guardar
+        </button>
+      </div>
+    </div>
   </div>
 )}
 
@@ -1001,6 +1070,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
