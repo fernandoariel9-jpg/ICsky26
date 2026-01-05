@@ -947,24 +947,28 @@ if (busqueda.trim()) {
         </div>
       </>
     ) : (
-      <button
-  onClick={() => {
-    setEditando(t.id);
-    setSoluciones((prev) => ({ ...prev, [t.id]: "" }));
-  }}
-  className="mt-2 px-3 py-1 rounded bg-yellow-500 text-white"
->
-  ✏️ Editar solución
-</button><button
-  onClick={() => {
-    setTareaObsId(tarea.id);
-    setObservacion(tarea.observacion || "");
-    setMostrarObservacion(true);
-  }}
-  className="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
->
-  📝 Observaciones
-</button>
+      <div className="flex gap-2 mt-2">
+  <button
+    onClick={() => {
+      setEditando(t.id);
+      setSoluciones((prev) => ({ ...prev, [t.id]: "" }));
+    }}
+    className="px-3 py-1 rounded bg-yellow-500 text-white"
+  >
+    ✏️ Editar solución
+  </button>
+
+  <button
+    onClick={() => {
+      setTareaObsId(t.id);
+      setObservacion(t.observacion || "");
+      setMostrarObservacion(true);
+    }}
+    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+  >
+    📝 Observaciones
+  </button>
+</div>
     )}
   </>
 )}
@@ -1013,6 +1017,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
