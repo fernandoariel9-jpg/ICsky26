@@ -1070,38 +1070,6 @@ if (busqueda.trim()) {
 
       <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
-  );
+  </>
+);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
