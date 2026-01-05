@@ -246,15 +246,14 @@ export default function TareasPersonal({ personal, onLogout }) {
     fetchAreas();
   }, [personal]);
 
-  useEffect(() => {
+useEffect(() => {
   const cerrar = () => setMenuAbierto(false);
   if (menuAbierto) {
     window.addEventListener("click", cerrar);
   }
   return () => window.removeEventListener("click", cerrar);
 }, [menuAbierto]);
-
-
+  
   useEffect(() => {
     const BACKEND_URL = "https://sky26.onrender.com";
     const mantenerActivo = () => {
@@ -506,7 +505,88 @@ if (busqueda.trim()) {
   };
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
+    <>
+    {/* 🟦 Barra superior fija */}
+    <div className="fixed top-0 left-0 right-0 z-50 bg-gray-800 text-white shadow-md">
+      <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
+        
+        {/* Logo / Título */}
+        <div className="flex items-center gap-2">
+          <img src="/logosmall.png" alt="Logo" className="w-8 h-auto" />
+          <span className="font-semibold text-sm">
+            IC-SkyApp
+          </span>
+        </div>
+
+        {/* Usuario */}
+        <span className="text-sm hidden sm:block">
+          👤 {personal?.nombre || personal?.mail}
+        </span>
+
+        {/* Menú acciones */}
+        <div className="relative">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuAbierto((v) => !v);
+            }}
+            className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm"
+          >
+            ☰ Acciones
+          </button>
+
+          {menuAbierto && (
+            <div className="absolute right-0 mt-2 w-56 bg-white text-gray-800 border rounded-xl shadow-lg">
+              
+              <button
+                onClick={() => {
+                  handleExportarPDF();
+                  setMenuAbierto(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                📄 Exportar lista en PDF
+              </button>
+
+              <button
+                onClick={() => {
+                  setMostrarRegistro(true);
+                  setMenuAbierto(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                ➕ Registrar usuario
+              </button>
+
+              <button
+                onClick={() => {
+                  verUsuarios();
+                  setMenuAbierto(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                👥 Ver usuarios
+              </button>
+
+              <div className="border-t my-1" />
+
+              <button
+                onClick={() => {
+                  setMenuAbierto(false);
+                  onLogout();
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 text-sm"
+              >
+                🚪 Cerrar sesión
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* 🧱 Contenido principal */}
+    <div className="pt-20 p-4 max-w-2xl mx-auto">
       <p className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
         {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
      <button
@@ -1010,6 +1090,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
