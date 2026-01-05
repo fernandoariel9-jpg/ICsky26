@@ -71,7 +71,7 @@ function PanelLogin({ onLogin }) {
         </div>
       )}
       <h1 className="text-2xl font-bold text-center mb-4">
-        <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
+        <img src="/logosmall_old.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
         🔒 Acceso Panel de Supervisión
       </h1>
       <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
@@ -521,7 +521,7 @@ const handleAreaClick = (areaName) => {
 
   return (
     <div className="p-4 max-w-3xl mx-auto">
-      <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
+      <img src="/logosmall_old.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
       <h1 className="text-2xl font-bold text-center mb-2">📋 Panel de Supervisión</h1>
 
       {/* Botones principales */}
