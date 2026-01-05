@@ -1012,40 +1012,6 @@ if (busqueda.trim()) {
   </div>
 )}
 
-{mostrarObservacion && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-4 rounded-lg w-full max-w-md">
-      <h3 className="text-lg font-semibold mb-2">
-        Observaciones
-      </h3>
-
-      <textarea
-        value={observacion}
-        onChange={(e) => setObservacion(e.target.value)}
-        rows={5}
-        className="w-full border rounded p-2 text-sm"
-        placeholder="Escriba una observación..."
-      />
-
-      <div className="flex justify-end gap-2 mt-3">
-        <button
-          onClick={() => setMostrarObservacion(false)}
-          className="px-3 py-1 text-sm bg-gray-300 rounded"
-        >
-          Cancelar
-        </button>
-
-        <button
-          onClick={guardarObservacion}
-          className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
-        >
-          Guardar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
       {/* Modal de reasignación */}
       {modal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
@@ -1070,6 +1036,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
