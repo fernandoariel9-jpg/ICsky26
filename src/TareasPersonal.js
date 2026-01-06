@@ -33,6 +33,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [mostrarObservacion, setMostrarObservacion] = useState(false);
   const [observacion, setObservacion] = useState("");
   const [tareaObsId, setTareaObsId] = useState(null);
+  const [tareaObservacionActual, setTareaObservacionActual] = useState("");
 
   function getFechaLocal() {
     const d = new Date();
@@ -160,20 +161,28 @@ export default function TareasPersonal({ personal, onLogout }) {
 
   const guardarObservacion = async () => {
   try {
+    const fecha = getFechaLocal();
+
+    const nuevaLinea = `[${fecha}] ${observacion}`;
+
+    const observacionFinal =
+      (tareaObservacionActual || "").trim()
+        ? `${tareaObservacionActual}\n${nuevaLinea}`
+        : nuevaLinea;
+
     await fetch(`${API_TAREAS}/${tareaObsId}/observacion`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ observacion }),
+      body: JSON.stringify({ observacion: observacionFinal }),
     });
 
-    toast.success("Observación guardada");
+    toast.success("Observación agregada");
     setMostrarObservacion(false);
+    setObservacion("");
 
-    // 🔄 refrescar tareas
     fetchTareas();
-
   } catch (error) {
     console.error(error);
     toast.error("Error al guardar observación");
@@ -824,12 +833,19 @@ if (busqueda.trim()) {
 {t.observacion && (
   <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
     <p className="text-sm font-semibold mb-1 text-blue-700">
-      📝 Observaciones
+      📝 Historial de observaciones
     </p>
 
-    <p className="text-sm text-gray-700 whitespace-pre-line">
-      {t.observacion}
-    </p>
+    <ul className="text-sm space-y-1 list-disc list-inside">
+      {t.observacion
+        .split("\n")
+        .filter((l) => l.trim())
+        .map((linea, idx) => (
+          <li key={idx} className="text-gray-700">
+            {linea}
+          </li>
+        ))}
+    </ul>
   </div>
 )}
 
@@ -993,15 +1009,16 @@ if (busqueda.trim()) {
   </button>
 
   <button
-    onClick={() => {
-      setTareaObsId(t.id);
-      setObservacion(t.observacion || "");
-      setMostrarObservacion(true);
-    }}
-    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
-  >
-    📝 Obs.
-  </button>
+  onClick={() => {
+    setTareaObsId(t.id);
+    setTareaObservacionActual(t.observacion || "");
+    setObservacion("");
+    setMostrarObservacion(true);
+  }}
+  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+>
+  📝 Obs.
+</button>
 </div>
     )}
   </>
@@ -1085,6 +1102,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
