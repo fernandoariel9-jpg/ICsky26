@@ -832,18 +832,20 @@ if (busqueda.trim()) {
 
           {t.solucion && (
   <div className="mt-2 bg-gray-100 rounded p-2">
-    <p className="text-sm font-semibold mb-1">💡 Historial de solución</p>
+    <p className="text-sm font-semibold mb-1">
+      💡 Historial de solución
+    </p>
 
     <ul className="text-sm space-y-1 list-disc list-inside">
-  {t.solucion
-    .split("\n")
-    .filter((l) => l.trim())
-    .map((linea, idx) => (
-      <li key={idx} className="text-gray-700">
-        {linea}
-      </li>
-    ))}
-</ul>
+      {t.solucion
+        .split("\n")
+        .filter((l) => l.trim())
+        .map((linea, idx) => (
+          <li key={idx} className="text-gray-700">
+            {linea}
+          </li>
+        ))}
+    </ul>
   </div>
 )}
 
@@ -1125,4 +1127,5 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
