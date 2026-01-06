@@ -815,7 +815,7 @@ if (busqueda.trim()) {
 
           {t.solucion && (
   <div className="mt-2 bg-gray-100 rounded p-2">
-    <p className="text-sm font-semibold mb-1">💡 Historial de tareas</p>
+    <p className="text-sm font-semibold mb-1">💡 Historial de solución</p>
 
     <ul className="text-sm space-y-1 list-disc list-inside">
       {t.solucion
@@ -1102,6 +1102,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
