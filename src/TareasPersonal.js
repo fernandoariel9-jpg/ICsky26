@@ -815,29 +815,10 @@ if (busqueda.trim()) {
 
           {t.solucion && (
   <div className="mt-2 bg-gray-100 rounded p-2">
-    <p className="text-sm font-semibold mb-1">💡 Historial de solución</p>
+    <p className="text-sm font-semibold mb-1">💡 Historial de tareas</p>
 
     <ul className="text-sm space-y-1 list-disc list-inside">
       {t.solucion
-        .split("\n")
-        .filter((l) => l.trim())
-        .map((linea, idx) => (
-          <li key={idx} className="text-gray-700">
-            {linea}
-          </li>
-        ))}
-    </ul>
-  </div>
-)}
-
-{t.observacion && (
-  <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
-    <p className="text-sm font-semibold mb-1 text-blue-700">
-      📝 Historial de observaciones
-    </p>
-
-    <ul className="text-sm space-y-1 list-disc list-inside">
-      {t.observacion
         .split("\n")
         .filter((l) => l.trim())
         .map((linea, idx) => (
@@ -854,6 +835,25 @@ if (busqueda.trim()) {
               ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
             </p>
           )}
+
+{t.observacion && (
+  <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
+    <p className="text-sm font-semibold mb-1 text-blue-700">
+      📝 Procesos administrativos
+    </p>
+
+    <ul className="text-sm space-y-1 list-disc list-inside">
+      {t.observacion
+        .split("\n")
+        .filter((l) => l.trim())
+        .map((linea, idx) => (
+          <li key={idx} className="text-gray-700">
+            {linea}
+          </li>
+        ))}
+    </ul>
+  </div>
+)}
           {t.fecha_fin && (
             <p className="text-xs text-gray-500 mt-1">
               ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
@@ -1102,6 +1102,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
