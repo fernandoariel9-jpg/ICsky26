@@ -1125,3 +1125,4 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
