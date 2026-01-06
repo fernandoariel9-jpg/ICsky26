@@ -320,11 +320,18 @@ export default function TareasPersonal({ personal, onLogout }) {
       const solucion = `[${fecha_comp}] ${textoSolucion}`;
       const url = `${API_TAREAS}/${id}/solucion`;
       const res = await fetch(url, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ solucion, asignado: personal.nombre, fecha_comp }),
-      });
-      if (!res.ok) throw new Error("Error HTTP " + res.status);
+  method: "PUT",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ solucion, asignado: personal.nombre, fecha_comp }),
+});
+
+// 🚫 solución bloqueada por observaciones
+if (res.status === 403) {
+  toast.error("🔒 La solución está bloqueada porque se inicia trámite administrativo");
+  return;
+}
+
+if (!res.ok) throw new Error("Error HTTP " + res.status);
       setTareas((prev) =>
         prev.map((t) =>
           t.id === id ? { ...t, solucion, asignado: personal.nombre, fecha_comp } : t
@@ -357,16 +364,22 @@ export default function TareasPersonal({ personal, onLogout }) {
       : `[${fecha}] ${textoNuevo}`;
 
     const url = `${API_TAREAS}/${id}/solucion`;
-    const res = await fetch(url, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        solucion: solucionFinal,
-        asignado: personal.nombre,
-      }),
-    });
+const res = await fetch(url, {
+  method: "PUT",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    solucion: solucionFinal,
+    asignado: personal.nombre,
+  }),
+});
 
-    if (!res.ok) throw new Error("Error HTTP " + res.status);
+// 🚫 solución bloqueada por observaciones
+if (res.status === 403) {
+  toast.error("🔒 La solución está bloqueada porque se inicia trámite administrativo");
+  return;
+}
+
+if (!res.ok) throw new Error("Error HTTP " + res.status);
 
     setTareas((prev) =>
       prev.map((t) =>
@@ -529,6 +542,8 @@ if (busqueda.trim()) {
     doc.save(`Tareas_${nombreLista}_${new Date().toISOString().slice(0, 10)}.pdf`);
     toast.success(`✅ Exportado en PDF (${nombreLista})`);
   };
+
+  const tieneObservacion = t.observacion && t.observacion.trim() !== "";
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
@@ -998,15 +1013,21 @@ if (busqueda.trim()) {
       </>
     ) : (
       <div className="flex gap-2 mt-2">
+  {!tieneObservacion ? (
   <button
     onClick={() => {
       setEditando(t.id);
       setSoluciones((prev) => ({ ...prev, [t.id]: "" }));
     }}
-    className="px-3 py-1 rounded bg-yellow-500 text-white"
+    className="mt-2 px-3 py-1 rounded bg-yellow-500 text-white"
   >
     ✏️ Editar solución
   </button>
+) : (
+  <p className="mt-2 text-sm text-red-600">
+    🔒 Solución bloqueada por observaciones
+  </p>
+)}
 
   <button
   onClick={() => {
@@ -1102,6 +1123,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
