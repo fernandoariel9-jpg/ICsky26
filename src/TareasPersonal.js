@@ -543,8 +543,6 @@ if (busqueda.trim()) {
     toast.success(`✅ Exportado en PDF (${nombreLista})`);
   };
 
-  const tieneObservacion = t.observacion && t.observacion.trim() !== "";
-
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <p className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
@@ -765,7 +763,11 @@ if (busqueda.trim()) {
     </p>
   )}
 
-  {tareasFiltradas.map((t) => (
+  {tareasFiltradas.map((t) => {
+  const tieneObservacion =
+    t.observacion && t.observacion.trim() !== "";
+
+  return (
     <li key={t.id} className="p-3 rounded-xl shadow bg-white">
       <div className="flex items-start space-x-3">
         {/* Imagen clickeable para ampliar */}
@@ -1123,6 +1125,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
