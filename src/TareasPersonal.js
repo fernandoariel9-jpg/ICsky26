@@ -836,14 +836,13 @@ if (busqueda.trim()) {
 
     <ul className="text-sm space-y-1 list-disc list-inside">
       {t.solucion
-        .split("\n")
-        .filter((l) => l.trim())
-        .map((linea, idx) => (
-          <li key={idx} className="text-gray-700">
-            {linea}
-          </li>
-        );
-})}
+  .split("\n")
+  .filter((l) => l.trim())
+  .map((linea, idx) => (
+    <li key={idx} className="text-gray-700">
+      {linea}
+    </li>
+  ))}
     </ul>
   </div>
 )}
@@ -1126,6 +1125,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
