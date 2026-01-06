@@ -842,7 +842,8 @@ if (busqueda.trim()) {
     <li key={idx} className="text-gray-700">
       {linea}
     </li>
-  ))}
+   );
+})}
     </ul>
   </div>
 )}
@@ -1125,6 +1126,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
