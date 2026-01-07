@@ -1181,12 +1181,7 @@ const handleAreaClick = (areaName) => {
                     </p>
                   )}
                   <p className="text-sm text-gray-600 mt-1">📅 {t.fecha}</p>
-                  {t.fecha_comp && (
-                    <p className="text-sm text-blue-700 mt-1">⏰ Solucionado el: {t.fecha_comp}</p>
-                  )}
-                  {t.fecha_fin && (
-                    <p className="text-sm text-green-700 mt-1">⏰ Finalizado el: {t.fecha_fin}</p>
-                  )}
+          
                  {t.solucion && (
   <div className="mt-2 bg-gray-100 rounded p-2">
     <p className="text-sm font-semibold mb-1">💡 Historial de solución</p>
@@ -1203,17 +1198,34 @@ const handleAreaClick = (areaName) => {
     </ul>
   </div>
 )}
-                   {t.observacion && (
+                  {t.fecha_comp && (
+            <p className="text-xs text-gray-500 mt-1">
+              ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
+            </p>
+          )}
+
+{t.observacion && (
   <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
     <p className="text-sm font-semibold mb-1 text-blue-700">
-      📝 Observaciones
+      📝 Procesos administrativos
     </p>
 
-    <p className="text-sm text-gray-700 whitespace-pre-line">
-      {t.observacion}
-    </p>
+    <ul className="text-sm space-y-1 list-disc list-inside">
+      {t.observacion
+        .split("\n")
+        .filter((l) => l.trim())
+        .map((linea, idx) => (
+          <li key={idx} className="text-gray-700">
+            {linea}
+          </li>
+        ))}
+    </ul>
   </div>
 )}
+
+{t.fecha_fin && (
+                    <p className="text-sm text-green-700 mt-1">⏰ Finalizado el: {t.fecha_fin}</p>
+                  )}
                   {t.fin && <p className="text-green-600 font-semibold mt-1">✔️ Finalizada por el usuario</p>}
                 </div>
               </div>
