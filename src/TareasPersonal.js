@@ -545,15 +545,26 @@ if (busqueda.trim()) {
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
-      <p className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
-        {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
-     <button
-          onClick={() => toggleNotificaciones(personal.id)}
-          className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm"
-        >
-          {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
-        </button>
-</p>
+     <div
+  className={`text-center mb-4 font-semibold ${
+    notificacionesActivas ? "text-green-600" : "text-red-600"
+  }`}
+>
+  <p>
+    {notificacionesActivas
+      ? "🔔 Notificaciones activadas"
+      : "🔕 Notificaciones desactivadas"}
+  </p>
+
+  <button
+    onClick={() => toggleNotificaciones(personal.id)}
+    className="mt-2 bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm"
+  >
+    {notificacionesActivas
+      ? "🔕 Desactivar notificaciones"
+      : "🔔 Activar notificaciones"}
+  </button>
+</div>
 
       <img src="/logosmall_old.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
@@ -1127,5 +1138,6 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
