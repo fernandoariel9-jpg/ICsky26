@@ -1198,11 +1198,10 @@ const handleAreaClick = (areaName) => {
     </ul>
   </div>
 )}
-                  {t.fecha_comp && (
-            <p className="text-xs text-gray-500 mt-1">
-              ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
-            </p>
-          )}
+
+{t.fecha_comp && (
+                    <p className="text-sm text-blue-700 mt-1">⏰ Solucionado el: {t.fecha_comp}</p>
+                  )}
 
 {t.observacion && (
   <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
