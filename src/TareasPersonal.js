@@ -773,7 +773,7 @@ if (busqueda.trim()) {
       No hay tareas en esta categoría.
     </p>
   )}
-
+{/*
   {tareasFiltradas.map((t) => {
   const tieneObservacion =
     t.observacion && t.observacion.trim() !== "";
@@ -792,6 +792,7 @@ if (busqueda.trim()) {
             }
           />
         )}
+              */}
 
         <div className="flex-1">
           <p className="font-semibold text-base">
@@ -1138,6 +1139,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
