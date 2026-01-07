@@ -320,18 +320,11 @@ export default function TareasPersonal({ personal, onLogout }) {
       const solucion = `[${fecha_comp}] ${textoSolucion}`;
       const url = `${API_TAREAS}/${id}/solucion`;
       const res = await fetch(url, {
-  method: "PUT",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ solucion, asignado: personal.nombre, fecha_comp }),
-});
-
-// 🚫 solución bloqueada por observaciones
-if (res.status === 403) {
-  toast.error("🔒 La solución está bloqueada porque se inicia trámite administrativo");
-  return;
-}
-
-if (!res.ok) throw new Error("Error HTTP " + res.status);
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ solucion, asignado: personal.nombre, fecha_comp }),
+      });
+      if (!res.ok) throw new Error("Error HTTP " + res.status);
       setTareas((prev) =>
         prev.map((t) =>
           t.id === id ? { ...t, solucion, asignado: personal.nombre, fecha_comp } : t
@@ -364,22 +357,16 @@ if (!res.ok) throw new Error("Error HTTP " + res.status);
       : `[${fecha}] ${textoNuevo}`;
 
     const url = `${API_TAREAS}/${id}/solucion`;
-const res = await fetch(url, {
-  method: "PUT",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    solucion: solucionFinal,
-    asignado: personal.nombre,
-  }),
-});
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        solucion: solucionFinal,
+        asignado: personal.nombre,
+      }),
+    });
 
-// 🚫 solución bloqueada por observaciones
-if (res.status === 403) {
-  toast.error("🔒 La solución está bloqueada porque se inicia trámite administrativo");
-  return;
-}
-
-if (!res.ok) throw new Error("Error HTTP " + res.status);
+    if (!res.ok) throw new Error("Error HTTP " + res.status);
 
     setTareas((prev) =>
       prev.map((t) =>
@@ -545,26 +532,15 @@ if (busqueda.trim()) {
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
-     <div
-  className={`text-center mb-4 font-semibold ${
-    notificacionesActivas ? "text-green-600" : "text-red-600"
-  }`}
->
-  <p>
-    {notificacionesActivas
-      ? "🔔 Notificaciones activadas"
-      : "🔕 Notificaciones desactivadas"}
-  </p>
-
-  <button
-    onClick={() => toggleNotificaciones(personal.id)}
-    className="mt-2 bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm"
-  >
-    {notificacionesActivas
-      ? "🔕 Desactivar notificaciones"
-      : "🔔 Activar notificaciones"}
-  </button>
-</div>
+      <p className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
+        {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
+     <button
+          onClick={() => toggleNotificaciones(personal.id)}
+          className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm"
+        >
+          {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
+        </button>
+</p>
 
       <img src="/logosmall_old.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
@@ -773,12 +749,8 @@ if (busqueda.trim()) {
       No hay tareas en esta categoría.
     </p>
   )}
-{/*
-  {tareasFiltradas.map((t) => {
-  const tieneObservacion =
-    t.observacion && t.observacion.trim() !== "";
 
-  return (
+  {tareasFiltradas.map((t) => (
     <li key={t.id} className="p-3 rounded-xl shadow bg-white">
       <div className="flex items-start space-x-3">
         {/* Imagen clickeable para ampliar */}
@@ -792,7 +764,6 @@ if (busqueda.trim()) {
             }
           />
         )}
-              */}
 
         <div className="flex-1">
           <p className="font-semibold text-base">
@@ -844,9 +815,7 @@ if (busqueda.trim()) {
 
           {t.solucion && (
   <div className="mt-2 bg-gray-100 rounded p-2">
-    <p className="text-sm font-semibold mb-1">
-      💡 Historial de solución
-    </p>
+    <p className="text-sm font-semibold mb-1">💡 Historial de solución</p>
 
     <ul className="text-sm space-y-1 list-disc list-inside">
       {t.solucion
@@ -1029,21 +998,15 @@ if (busqueda.trim()) {
       </>
     ) : (
       <div className="flex gap-2 mt-2">
-  {!tieneObservacion ? (
   <button
     onClick={() => {
       setEditando(t.id);
       setSoluciones((prev) => ({ ...prev, [t.id]: "" }));
     }}
-    className="mt-2 px-3 py-1 rounded bg-yellow-500 text-white"
+    className="px-3 py-1 rounded bg-yellow-500 text-white"
   >
     ✏️ Editar solución
   </button>
-) : (
-  <p className="mt-2 text-sm text-red-600">
-    🔒 Solución bloqueada por observaciones
-  </p>
-)}
 
   <button
   onClick={() => {
@@ -1139,8 +1102,3 @@ if (busqueda.trim()) {
     </div>
   );
 }
-
-
-
-
-
