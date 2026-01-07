@@ -1180,7 +1180,7 @@ const handleAreaClick = (areaName) => {
                       👷‍♂️ Realizada por: <span className="font-semibold">{t.asignado}</span>
                     </p>
                   )}
-                  <p className="text-sm text-gray-600 mt-1">📅 {t.fecha}</p>
+                  <p className="text-sm text-gray-600 mt-1">📅 Iniciado el {t.fecha}</p>
           
                  {t.solucion && (
   <div className="mt-2 bg-gray-100 rounded p-2">
