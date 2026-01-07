@@ -487,23 +487,31 @@ Cerrar sesión
   </div>
 )}
 
-{t.observacion && (
-  <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
-    <p className="text-sm font-semibold mb-1 text-blue-700">
-      📝 Observaciones
-    </p>
-
-    <p className="text-sm text-gray-700 whitespace-pre-line">
-      {t.observacion}
-    </p>
-  </div>
-)}
-
-          {t.fecha_comp && (
+{t.fecha_comp && (
             <p className="text-xs text-gray-500 mt-1">
               ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
             </p>
           )}
+
+{t.observacion && (
+  <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
+    <p className="text-sm font-semibold mb-1 text-blue-700">
+      📝 Procesos administrativos
+    </p>
+
+    <ul className="text-sm space-y-1 list-disc list-inside">
+      {t.observacion
+        .split("\n")
+        .filter((l) => l.trim())
+        .map((linea, idx) => (
+          <li key={idx} className="text-gray-700">
+            {linea}
+          </li>
+        ))}
+    </ul>
+  </div>
+)}
+
           {t.fecha_fin && (
             <p className="text-xs text-gray-500 mt-1">
               ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
