@@ -813,7 +813,7 @@ if (busqueda.trim()) {
 
           {t.fecha && (
             <p className="text-sm text-gray-600 mt-1">
-              📅 {formatTimestamp(t.fecha)}
+              📅 Iniciado el {formatTimestamp(t.fecha)}
             </p>
           )}
 
@@ -1112,6 +1112,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
