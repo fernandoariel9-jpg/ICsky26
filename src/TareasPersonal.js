@@ -750,7 +750,10 @@ if (busqueda.trim()) {
     </p>
   )}
 
-  {tareasFiltradas.map((t) => (
+  {tareasFiltradas.map((t) => {
+  const tieneObservacion = t.observacion && t.observacion.trim() !== "";
+
+  return (
     <li key={t.id} className="p-3 rounded-xl shadow bg-white">
       <div className="flex items-start space-x-3">
         {/* Imagen clickeable para ampliar */}
@@ -876,7 +879,7 @@ if (busqueda.trim()) {
       placeholder="Escriba la solución..."
       value={soluciones[t.id] || t.solucion || ""}
       onChange={(e) => handleSolucionChange(t.id, e.target.value)}
-      disabled={!!t.solucion}
+      disabled={!!t.solucion || tieneObservacion}
     />
 
     {/* BOTONES */}
@@ -999,14 +1002,19 @@ if (busqueda.trim()) {
     ) : (
       <div className="flex gap-2 mt-2">
   <button
-    onClick={() => {
-      setEditando(t.id);
-      setSoluciones((prev) => ({ ...prev, [t.id]: "" }));
-    }}
-    className="px-3 py-1 rounded bg-yellow-500 text-white"
-  >
-    ✏️ Editar solución
-  </button>
+  onClick={() => {
+    setEditando(t.id);
+    setSoluciones((prev) => ({ ...prev, [t.id]: "" }));
+  }}
+  disabled={tieneObservacion}
+  className={`px-3 py-1 rounded text-white ${
+    tieneObservacion
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-yellow-500"
+  }`}
+>
+  ✏️ Editar solución
+</button>
 
   <button
   onClick={() => {
@@ -1102,4 +1110,5 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
