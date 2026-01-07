@@ -750,10 +750,7 @@ if (busqueda.trim()) {
     </p>
   )}
 
-  {tareasFiltradas.map((t) => {
-  const tieneObservacion = t.observacion && t.observacion.trim() !== "";
-
-  return (
+  {tareasFiltradas.map((t) => (
     <li key={t.id} className="p-3 rounded-xl shadow bg-white">
       <div className="flex items-start space-x-3">
         {/* Imagen clickeable para ampliar */}
@@ -828,8 +825,7 @@ if (busqueda.trim()) {
           <li key={idx} className="text-gray-700">
             {linea}
           </li>
-          );
-})}
+          ))}
     </ul>
   </div>
 )}
@@ -1111,6 +1107,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
