@@ -1031,7 +1031,8 @@ if (busqueda.trim()) {
         </div>
       </div>
     </li>
-  ))}
+  );
+})}
 </ul>
 
 {/* Modal de imagen ampliada */}
@@ -1106,6 +1107,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
