@@ -750,7 +750,11 @@ if (busqueda.trim()) {
     </p>
   )}
 
-  {tareasFiltradas.map((t) => (
+  {tareasFiltradas.map((t) => {
+  const tieneObservacion =
+    t.observacion && t.observacion.trim() !== "";
+
+  return (
     <li key={t.id} className="p-3 rounded-xl shadow bg-white">
       <div className="flex items-start space-x-3">
         {/* Imagen clickeable para ampliar */}
@@ -1102,6 +1106,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
