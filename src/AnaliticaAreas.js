@@ -8,7 +8,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { PieChart as PieChartIcon } from "lucide-react";
-import { API_URL } from "./config";
+
+const API_TAREAS = "https://sky26.onrender.com/tareas";
 
 const COLORES_AREAS = {
   "Area 1": "#EEF207",
@@ -20,25 +21,23 @@ const COLORES_AREAS = {
   "Sin área": "#6B7280",
 };
 
-export default function AnaliticaAreas({ handleAreaClick }) {
+export default function AnaliticaAreas() {
   const [tareas, setTareas] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTareas = async () => {
-      try {
-        const res = await fetch(`${API_URL}/tareas`);
-        const data = await res.json();
+    fetch(API_TAREAS)
+      .then((res) => {
+        if (!res.ok) throw new Error("Error API");
+        return res.json();
+      })
+      .then((data) => {
         setTareas(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Error cargando tareas:", error);
-        setTareas([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTareas();
+      })
+      .catch((err) => {
+        console.error("Error cargando tareas:", err);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
@@ -58,104 +57,65 @@ export default function AnaliticaAreas({ handleAreaClick }) {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
         {/* === TAREAS PENDIENTES === */}
-        <div className="p-4 shadow-md bg-white rounded-xl">
-          <h2 className="text-lg font-semibold mb-2 flex items-center">
-            <PieChartIcon className="mr-2 text-green-600" />
-            Tareas pendientes por Área
-          </h2>
-
-          <ResponsiveContainer width="100%" height={350}>
-            <PieChart>
-              <Pie
-                data={Object.entries(
-                  tareas.reduce((acc, t) => {
-                    if (!t.fin && !t.solucion) {
-                      const area = t.reasignado_a || t.area || "Sin área";
-                      acc[area] = (acc[area] || 0) + 1;
-                    }
-                    return acc;
-                  }, {})
-                ).map(([name, value]) => ({ name, value }))}
-                cx="50%"
-                cy="50%"
-                innerRadius={70}
-                outerRadius={120}
-                dataKey="value"
-                label
-                onClick={(d) => handleAreaClick?.(d.name)}
-              >
-                {Object.entries(
-                  tareas.reduce((acc, t) => {
-                    if (!t.fin && !t.solucion) {
-                      const area = t.reasignado_a || t.area || "Sin área";
-                      acc[area] = true;
-                    }
-                    return acc;
-                  }, {})
-                ).map(([area]) => (
-                  <Cell
-                    key={area}
-                    fill={COLORES_AREAS[area] || COLORES_AREAS["Sin área"]}
-                  />
-                ))}
-              </Pie>
-
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <Grafico
+          titulo="Tareas pendientes por Área"
+          iconColor="text-green-600"
+          tareas={tareas.filter(t => !t.fin && !t.solucion)}
+        />
 
         {/* === TAREAS EN PROCESO === */}
-        <div className="p-4 shadow-md bg-white rounded-xl">
-          <h2 className="text-lg font-semibold mb-2 flex items-center">
-            <PieChartIcon className="mr-2 text-blue-600" />
-            Tareas en proceso por Área
-          </h2>
+        <Grafico
+          titulo="Tareas en proceso por Área"
+          iconColor="text-blue-600"
+          tareas={tareas.filter(t => t.solucion && !t.fin)}
+        />
 
-          <ResponsiveContainer width="100%" height={350}>
-            <PieChart>
-              <Pie
-                data={Object.entries(
-                  tareas.reduce((acc, t) => {
-                    if (t.solucion && !t.fin) {
-                      const area = t.reasignado_a || t.area || "Sin área";
-                      acc[area] = (acc[area] || 0) + 1;
-                    }
-                    return acc;
-                  }, {})
-                ).map(([name, value]) => ({ name, value }))}
-                cx="50%"
-                cy="50%"
-                innerRadius={70}
-                outerRadius={120}
-                dataKey="value"
-                label
-                onClick={(d) => handleAreaClick?.(d.name)}
-              >
-                {Object.entries(
-                  tareas.reduce((acc, t) => {
-                    if (t.solucion && !t.fin) {
-                      const area = t.reasignado_a || t.area || "Sin área";
-                      acc[area] = true;
-                    }
-                    return acc;
-                  }, {})
-                ).map(([area]) => (
-                  <Cell
-                    key={area}
-                    fill={COLORES_AREAS[area] || COLORES_AREAS["Sin área"]}
-                  />
-                ))}
-              </Pie>
-
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
       </div>
+    </div>
+  );
+}
+
+function Grafico({ titulo, iconColor, tareas }) {
+  const data = Object.entries(
+    tareas.reduce((acc, t) => {
+      const area = t.reasignado_a || t.area || "Sin área";
+      acc[area] = (acc[area] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([name, value]) => ({ name, value }));
+
+  return (
+    <div className="p-4 shadow-md bg-white rounded-xl">
+      <h2 className={`text-lg font-semibold mb-2 flex items-center ${iconColor}`}>
+        <PieChartIcon className="mr-2" />
+        {titulo}
+      </h2>
+
+      <ResponsiveContainer width="100%" height={350}>
+        <PieChart>
+          <Pie
+            data={data}
+            dataKey="value"
+            cx="50%"
+            cy="50%"
+            innerRadius={70}
+            outerRadius={120}
+            label
+          >
+            {data.map((entry, index) => (
+              <Cell
+                key={index}
+                fill={COLORES_AREAS[entry.name] || "#6B7280"}
+              />
+            ))}
+          </Pie>
+
+          <Tooltip />
+          <Legend />
+        </PieChart>
+      </ResponsiveContainer>
     </div>
   );
 }
