@@ -120,8 +120,23 @@ function Grafico({ titulo, iconColor, tareas }) {
             ))}
           </Pie>
 
-          <Tooltip />
-          <Legend />
+          <Tooltip
+  contentStyle={{
+    backgroundColor: "#fff",
+    border: "1px solid #000",
+    color: "#000",
+    fontSize: "13px",
+  }}
+  itemStyle={{ color: "#000" }}
+  labelStyle={{ color: "#000", fontWeight: "bold" }}
+/>
+          <Legend
+  wrapperStyle={{
+    color: "#000",
+    fontSize: "13px",
+    fontWeight: 500,
+  }}
+/>
         </PieChart>
       </ResponsiveContainer>
     </div>
