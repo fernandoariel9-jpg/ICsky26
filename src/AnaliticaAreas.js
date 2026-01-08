@@ -119,7 +119,7 @@ function Grafico({ titulo, iconColor, tareas }) {
                 fontSize={12}
                 fontWeight="bold"
               >
-                {`${name}: ${value}`}
+                {value}
               </text>
             );
           }}
