@@ -103,15 +103,26 @@ function Grafico({ titulo, iconColor, tareas }) {
   innerRadius={70}
   outerRadius={120}
   labelLine={false}
-  label={({ name, value }) => (
-    <text
-      fill="#000"
-      fontSize={12}
-      fontWeight="bold"
-    >
-      {`${name}: ${value}`}
-    </text>
-  )}
+  label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, name, value }) => {
+            const RADIAN = Math.PI / 180;
+            const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+            const x = cx + radius * Math.cos(-midAngle * RADIAN);
+            const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+            return (
+              <text
+                x={x}
+                y={y}
+                fill="#000"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={12}
+                fontWeight="bold"
+              >
+                {`${name}: ${value}`}
+              </text>
+            );
+          }}
 >
             {data.map((entry, index) => (
               <Cell
