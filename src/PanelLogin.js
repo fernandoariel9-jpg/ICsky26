@@ -165,6 +165,8 @@ const [resumenTiempos, setResumenTiempos] = useState([]);
         dia: item.fecha.substring(0, 10), // YYYY-MM-DD
         promedio_solucion: Number(item.promedio_solucion),
         promedio_finalizacion: Number(item.promedio_finalizacion),
+        promedio_adm: Number(item.promedio_adm),
+        
       }));
 
       setResumenTiempos(datosFormateados);
@@ -576,6 +578,7 @@ const handleAreaClick = (areaName) => {
             {(() => {
               const tareasConComp = tareas.filter((t) => t.fecha && t.fecha_comp);
               const tareasConFin = tareas.filter((t) => t.fecha_comp && t.fecha_fin);
+              const tareasConAdm = tareas.filter((t) => t.fecha_adm && t.fecha_fin);
 
               const promedioSolucion =
                 tareasConComp.length > 0
@@ -600,6 +603,17 @@ const handleAreaClick = (areaName) => {
                     ).toFixed(1)
                   : "—";
 
+              const promedioAdministrativo =
+  tareasConAdm.length > 0
+    ? (
+        tareasConAdm.reduce(
+          (acc, t) =>
+            acc + (new Date(t.fecha_fin) - new Date(t.fecha_adm)) / (1000 * 60 * 60),
+          0
+        ) / tareasConAdm.length
+      ).toFixed(1)
+    : "—";
+
               return (
                 <>
                   <p className="text-sm text-gray-600">
@@ -616,6 +630,14 @@ const handleAreaClick = (areaName) => {
                         : "Sin datos"}
                     </span>
                   </p>
+                      <p className="text-sm text-gray-600">
+  🗂️ Tiempo promedio administrativo:{" "}
+  <span className="font-semibold">
+    {promedioAdministrativo !== "—"
+      ? `${promedioAdministrativo} h`
+      : "Sin datos"}
+  </span>
+</p>
                 </>
               );
             })()}
