@@ -102,6 +102,7 @@ function Grafico({ titulo, iconColor, tareas }) {
             cy="50%"
             innerRadius={70}
             outerRadius={120}
+            labelLine={false}
             label
           >
             {data.map((entry, index) => (
