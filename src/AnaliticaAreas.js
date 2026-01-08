@@ -96,15 +96,22 @@ function Grafico({ titulo, iconColor, tareas }) {
       <ResponsiveContainer width="100%" height={350}>
         <PieChart>
           <Pie
-            data={data}
-            dataKey="value"
-            cx="50%"
-            cy="50%"
-            innerRadius={70}
-            outerRadius={120}
-            labelLine={false}
-            label
-          >
+  data={data}
+  dataKey="value"
+  cx="50%"
+  cy="50%"
+  innerRadius={70}
+  outerRadius={120}
+  label={({ name, value }) => (
+    <text
+      fill="#000"
+      fontSize={12}
+      fontWeight="bold"
+    >
+      {`${name}: ${value}`}
+    </text>
+  )}
+>
             {data.map((entry, index) => (
               <Cell
                 key={index}
