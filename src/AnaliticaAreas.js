@@ -9,33 +9,6 @@ import {
 } from "recharts";
 import { PieChart as PieChartIcon } from "lucide-react";
 
-const [tareas, setTareas] = useState([]);
-
-useEffect(() => {
-  fetch("https://sky26.onrender.com/tareas")
-    .then(res => res.json())
-    .then(data => {
-      if (!Array.isArray(data)) {
-        console.warn("Respuesta inválida:", data);
-        setTareas([]);
-        return;
-      }
-      setTareas(data);
-    })
-    .catch(err => {
-      console.error("Error cargando tareas", err);
-      setTareas([]);
-    });
-}, []);
-
-if (!Array.isArray(tareas) || tareas.length === 0) {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-gray-500 text-lg">📊 Cargando analítica…</p>
-    </div>
-  );
-}
-
 const COLORES_AREAS = {
   "Area 1": "#EEF207",
   "Area 2": "#EF4444",
@@ -46,7 +19,18 @@ const COLORES_AREAS = {
   "Sin área": "#6B7280",
 };
 
-export default function AnaliticaAreas({ tareas, handleAreaClick }) {
+export default function AnaliticaAreas({ tareas = [], handleAreaClick }) {
+
+  if (!Array.isArray(tareas) || tareas.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500 text-lg">
+          📊 Cargando analítica de áreas…
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">
@@ -83,10 +67,7 @@ export default function AnaliticaAreas({ tareas, handleAreaClick }) {
                 onClick={(d) => handleAreaClick?.(d.name)}
               >
                 {Object.keys(COLORES_AREAS).map((area) => (
-                  <Cell
-                    key={area}
-                    fill={COLORES_AREAS[area]}
-                  />
+                  <Cell key={area} fill={COLORES_AREAS[area]} />
                 ))}
               </Pie>
 
@@ -124,10 +105,7 @@ export default function AnaliticaAreas({ tareas, handleAreaClick }) {
                 onClick={(d) => handleAreaClick?.(d.name)}
               >
                 {Object.keys(COLORES_AREAS).map((area) => (
-                  <Cell
-                    key={area}
-                    fill={COLORES_AREAS[area]}
-                  />
+                  <Cell key={area} fill={COLORES_AREAS[area]} />
                 ))}
               </Pie>
 
