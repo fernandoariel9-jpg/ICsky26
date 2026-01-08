@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   PieChart,
   Pie,
@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { PieChart as PieChartIcon } from "lucide-react";
+import { API_URL } from "../config";
 
 const COLORES_AREAS = {
   "Area 1": "#EEF207",
@@ -19,9 +20,28 @@ const COLORES_AREAS = {
   "Sin área": "#6B7280",
 };
 
-export default function AnaliticaAreas({ tareas = [], handleAreaClick }) {
+export default function AnaliticaAreas({ handleAreaClick }) {
+  const [tareas, setTareas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!Array.isArray(tareas) || tareas.length === 0) {
+  useEffect(() => {
+    const fetchTareas = async () => {
+      try {
+        const res = await fetch(`${API_URL}/tareas`);
+        const data = await res.json();
+        setTareas(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error cargando tareas:", error);
+        setTareas([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTareas();
+  }, []);
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-500 text-lg">
@@ -38,7 +58,6 @@ export default function AnaliticaAreas({ tareas = [], handleAreaClick }) {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
         {/* === TAREAS PENDIENTES === */}
         <div className="p-4 shadow-md bg-white rounded-xl">
           <h2 className="text-lg font-semibold mb-2 flex items-center">
@@ -66,8 +85,19 @@ export default function AnaliticaAreas({ tareas = [], handleAreaClick }) {
                 label
                 onClick={(d) => handleAreaClick?.(d.name)}
               >
-                {Object.keys(COLORES_AREAS).map((area) => (
-                  <Cell key={area} fill={COLORES_AREAS[area]} />
+                {Object.entries(
+                  tareas.reduce((acc, t) => {
+                    if (!t.fin && !t.solucion) {
+                      const area = t.reasignado_a || t.area || "Sin área";
+                      acc[area] = true;
+                    }
+                    return acc;
+                  }, {})
+                ).map(([area]) => (
+                  <Cell
+                    key={area}
+                    fill={COLORES_AREAS[area] || COLORES_AREAS["Sin área"]}
+                  />
                 ))}
               </Pie>
 
@@ -104,8 +134,19 @@ export default function AnaliticaAreas({ tareas = [], handleAreaClick }) {
                 label
                 onClick={(d) => handleAreaClick?.(d.name)}
               >
-                {Object.keys(COLORES_AREAS).map((area) => (
-                  <Cell key={area} fill={COLORES_AREAS[area]} />
+                {Object.entries(
+                  tareas.reduce((acc, t) => {
+                    if (t.solucion && !t.fin) {
+                      const area = t.reasignado_a || t.area || "Sin área";
+                      acc[area] = true;
+                    }
+                    return acc;
+                  }, {})
+                ).map(([area]) => (
+                  <Cell
+                    key={area}
+                    fill={COLORES_AREAS[area] || COLORES_AREAS["Sin área"]}
+                  />
                 ))}
               </Pie>
 
@@ -114,7 +155,6 @@ export default function AnaliticaAreas({ tareas = [], handleAreaClick }) {
             </PieChart>
           </ResponsiveContainer>
         </div>
-
       </div>
     </div>
   );
