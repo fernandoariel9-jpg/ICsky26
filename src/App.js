@@ -12,6 +12,8 @@ import FormularioUsuario from "./FormularioUsuario";
 import TareasPersonal from "./TareasPersonal";
 import PanelLogin from "./PanelLogin";
 import ManualUsuario from "./ManualUsuario";
+import AnaliticaAreas from "./pages/AnaliticaAreas";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
@@ -87,7 +89,24 @@ function Main() {
   return null;
 }
 
-export default Main;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+
+        {/* 🌐 URL pública accesible desde cualquier PC */}
+        <Route
+          path="/analitica-areas"
+          element={<AnaliticaAreas />}
+        />
+
+        {/* 🔁 Todo lo demás sigue funcionando igual */}
+        <Route path="/*" element={<Main />} />
+
+      </Routes>
+    </BrowserRouter>
+  );
+}
 
 // ToastContainer global
 export function Toast() {
