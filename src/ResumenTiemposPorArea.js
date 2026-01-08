@@ -94,57 +94,61 @@ export default function AnaliticaTiempos() {
         </button>
       </div>
 
-      {/* GRÁFICO BARRAS */}
-      <div className="flex justify-center">
-       <BarChart width={500} height={300} data={dataAreas}>
-  <XAxis dataKey="area" />
-  <YAxis />
-  <Tooltip />
-  <Legend />
+{/* CONTENEDOR DE GRÁFICOS */}
+<div className="flex flex-col lg:flex-row justify-center items-center gap-8 mt-6">
 
-  {/* PRIMERO Finalización */}
-  <Bar dataKey="promFin" name="Finalización (hs)">
-    {dataAreas.map((entry, index) => (
-      <Cell
-        key={`fin-${index}`}
-        fill={COLORES_AREAS[entry.area] || "#9CA3AF"}
-      />
-    ))}
-  </Bar>
+  {/* GRÁFICO BARRAS */}
+  <div className="flex justify-center">
+    <BarChart width={500} height={300} data={dataAreas}>
+      <XAxis dataKey="area" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
 
-  {/* DESPUÉS Solución */}
-  <Bar dataKey="promSol" name="Solución (hs)">
-    {dataAreas.map((entry, index) => (
-      <Cell
-        key={`sol-${index}`}
-        fill={COLORES_AREAS[entry.area] || "#9CA3AF"}
-      />
-    ))}
-  </Bar>
+      {/* PRIMERO Finalización */}
+      <Bar dataKey="promFin" name="Finalización (hs)">
+        {dataAreas.map((entry, index) => (
+          <Cell
+            key={`fin-${index}`}
+            fill={COLORES_AREAS[entry.area] || "#9CA3AF"}
+          />
+        ))}
+      </Bar>
 
-</BarChart>
-      </div>
+      {/* DESPUÉS Solución */}
+      <Bar dataKey="promSol" name="Solución (hs)">
+        {dataAreas.map((entry, index) => (
+          <Cell
+            key={`sol-${index}`}
+            fill={COLORES_AREAS[entry.area] || "#9CA3AF"}
+          />
+        ))}
+      </Bar>
+    </BarChart>
+  </div>
 
-      {/* GRÁFICO RADAR */}
-      <div className="flex justify-center">
-        <RadarChart width={500} height={400} data={dataAreas} outerRadius={120}>
-  <PolarGrid />
-  <PolarAngleAxis dataKey="area" />
+  {/* GRÁFICO RADAR */}
+  <div className="flex justify-center">
+    <RadarChart width={500} height={400} data={dataAreas} outerRadius={120}>
+      <PolarGrid />
+      <PolarAngleAxis dataKey="area" />
 
-  {dataAreas.map((a, i) => (
-    <Radar
-      key={a.area}
-      name={a.area}
-      dataKey="promSol"
-      stroke={COLORES_AREAS[a.area] || "#9CA3AF"}
-      fill={COLORES_AREAS[a.area] || "#9CA3AF"}
-      fillOpacity={0.3}
-    />
-  ))}
+      {dataAreas.map((a) => (
+        <Radar
+          key={a.area}
+          name={a.area}
+          dataKey="promSol"
+          stroke={COLORES_AREAS[a.area] || "#9CA3AF"}
+          fill={COLORES_AREAS[a.area] || "#9CA3AF"}
+          fillOpacity={0.3}
+        />
+      ))}
 
-  <Legend />
-</RadarChart>
-      </div>
+      <Legend />
+    </RadarChart>
+  </div>
+
+</div>
 
       {/* ALERTA ÁREAS LENTAS */}
       {areasLentas.length > 0 && (
