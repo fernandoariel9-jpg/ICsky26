@@ -9,6 +9,33 @@ import {
 } from "recharts";
 import { PieChart as PieChartIcon } from "lucide-react";
 
+const [tareas, setTareas] = useState([]);
+
+useEffect(() => {
+  fetch("https://sky26.onrender.com/tareas")
+    .then(res => res.json())
+    .then(data => {
+      if (!Array.isArray(data)) {
+        console.warn("Respuesta inválida:", data);
+        setTareas([]);
+        return;
+      }
+      setTareas(data);
+    })
+    .catch(err => {
+      console.error("Error cargando tareas", err);
+      setTareas([]);
+    });
+}, []);
+
+if (!Array.isArray(tareas) || tareas.length === 0) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-gray-500 text-lg">📊 Cargando analítica…</p>
+    </div>
+  );
+}
+
 const COLORES_AREAS = {
   "Area 1": "#EEF207",
   "Area 2": "#EF4444",
