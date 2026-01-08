@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { PieChart as PieChartIcon } from "lucide-react";
+import { API_URL } from "./config";
 
 const COLORES_AREAS = {
   "Area 1": "#EEF207",
