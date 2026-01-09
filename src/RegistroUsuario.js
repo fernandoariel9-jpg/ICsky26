@@ -45,6 +45,20 @@ export default function RegistroUsuario({ onRegister, onCancelar }) {
     }
   }, [servicio, subservicio, serviciosDisponibles]);
 
+useEffect(() => {
+  if (tipo === "supervisor") {
+    setArea(servicio || "");
+    return;
+  }
+
+  if (subservicio) {
+    const seleccionado = serviciosDisponibles.find(
+      (s) => s.servicio === servicio && s.subservicio === subservicio
+    );
+    setArea(seleccionado?.area || "");
+  }
+}, [tipo, servicio, subservicio, serviciosDisponibles]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -156,13 +170,13 @@ export default function RegistroUsuario({ onRegister, onCancelar }) {
         </select>
 
         {/* Select Subservicio dependiente */}
-        {servicio && (
-          <select
-            className="w-full p-2 border rounded"
-            value={subservicio}
-            onChange={(e) => setSubservicio(e.target.value)}
-            required
-          >
+        {servicio && tipo !== "supervisor" && (
+  <select
+    className="w-full p-2 border rounded"
+    value={subservicio}
+    onChange={(e) => setSubservicio(e.target.value)}
+    required
+  >
             <option value="">Seleccione un subservicio</option>
             {subserviciosDisponibles.map((s, i) => (
               <option key={i} value={s.subservicio}>
