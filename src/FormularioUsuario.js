@@ -28,49 +28,47 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   }, []);
 
   const fetchTareas = async () => {
-    setLoading(true);
-    try {
-      if (!usuario) return;
-      const token = localStorage.getItem("token");
+  setLoading(true);
+  try {
+    if (!usuario) return;
 
-const res = await fetch(API_TAREAS, {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
-      if (!res.ok) throw new Error("Error HTTP " + res.status);
-      const data = await res.json();
-      const userIdentifier =
-        typeof usuario === "string"
-          ? usuario
-          : usuario.nombre || usuario.mail || String(usuario);
+    const token = localStorage.getItem("token");
 
-      const tareasOrdenadas = data.sort(
-  (a, b) => new Date(b.fecha) - new Date(a.fecha)
-);
+    const res = await fetch(API_TAREAS, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-setTareas(tareasOrdenadas);
+    if (!res.ok) throw new Error("Error HTTP " + res.status);
 
-// 🔢 contar tareas en proceso
-const pendientesFinalizar = tareasUsuario.filter(
-  (t) => t.solucion && !t.fin
-);
+    const data = await res.json();
 
-// guardar cantidad
-setCantidadPendientes(pendientesFinalizar.length);
+    const tareasOrdenadas = data.sort(
+      (a, b) => new Date(b.fecha) - new Date(a.fecha)
+    );
 
-// 🔕 mostrar popup SOLO una vez por sesión
-const popupYaMostrado = sessionStorage.getItem("popupFinalizarVisto");
+    setTareas(tareasOrdenadas);
 
-if (pendientesFinalizar.length > 0 && !popupYaMostrado) {
-  setMostrarPopupFinalizar(true);
-}
-    } catch {
-      toast.error("Error al cargar tareas ❌");
-    } finally {
-      setLoading(false);
+    // 🔢 contar tareas en proceso
+    const pendientesFinalizar = tareasOrdenadas.filter(
+      (t) => t.solucion && !t.fin
+    );
+
+    setCantidadPendientes(pendientesFinalizar.length);
+
+    const popupYaMostrado = sessionStorage.getItem("popupFinalizarVisto");
+
+    if (pendientesFinalizar.length > 0 && !popupYaMostrado) {
+      setMostrarPopupFinalizar(true);
     }
-  };
+
+  } catch {
+    toast.error("Error al cargar tareas ❌");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const abrirModal = (img) => setModalImagen(img);
   const cerrarModal = () => setModalImagen(null);
