@@ -31,9 +31,13 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     setLoading(true);
     try {
       if (!usuario) return;
-      const areaParam = encodeURIComponent(usuario.area || "");
-      const url = areaParam ? `${API_TAREAS}/${areaParam}` : API_TAREAS;
-      const res = await fetch(url);
+      const token = localStorage.getItem("token");
+
+const res = await fetch(API_TAREAS, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
       if (!res.ok) throw new Error("Error HTTP " + res.status);
       const data = await res.json();
       const userIdentifier =
@@ -41,11 +45,11 @@ export default function FormularioUsuario({ usuario, onLogout }) {
           ? usuario
           : usuario.nombre || usuario.mail || String(usuario);
 
-      const tareasUsuario = data
-  .filter((t) => t.usuario === userIdentifier)
-  .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      const tareasOrdenadas = data.sort(
+  (a, b) => new Date(b.fecha) - new Date(a.fecha)
+);
 
-setTareas(tareasUsuario);
+setTareas(tareasOrdenadas);
 
 // 🔢 contar tareas en proceso
 const pendientesFinalizar = tareasUsuario.filter(
