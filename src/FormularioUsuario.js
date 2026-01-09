@@ -17,9 +17,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const [loading, setLoading] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [filtro, setFiltro] = useState("pendientes"); // 👈 NUEVO estado para pestañas
-  const [mostrarPopupFinalizar, setMostrarPopupFinalizar] = useState(false);
-  const [cantidadPendientes, setCantidadPendientes] = useState(0);
-
 
   useEffect(() => {
     fetchTareas();
@@ -28,47 +25,30 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   }, []);
 
   const fetchTareas = async () => {
-  setLoading(true);
-  try {
-    if (!usuario) return;
+    setLoading(true);
+    try {
+      if (!usuario) return;
+      const areaParam = encodeURIComponent(usuario.area || "");
+      const url = areaParam ? `${API_TAREAS}/${areaParam}` : API_TAREAS;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Error HTTP " + res.status);
+      const data = await res.json();
+      const userIdentifier =
+        typeof usuario === "string"
+          ? usuario
+          : usuario.nombre || usuario.mail || String(usuario);
 
-    const token = localStorage.getItem("token");
-
-    const res = await fetch(API_TAREAS, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!res.ok) throw new Error("Error HTTP " + res.status);
-
-    const data = await res.json();
-
-    const tareasOrdenadas = data.sort(
-      (a, b) => new Date(b.fecha) - new Date(a.fecha)
-    );
-
-    setTareas(tareasOrdenadas);
-
-    // 🔢 contar tareas en proceso
-    const pendientesFinalizar = tareasOrdenadas.filter(
-      (t) => t.solucion && !t.fin
-    );
-
-    setCantidadPendientes(pendientesFinalizar.length);
-
-    const popupYaMostrado = sessionStorage.getItem("popupFinalizarVisto");
-
-    if (pendientesFinalizar.length > 0 && !popupYaMostrado) {
-      setMostrarPopupFinalizar(true);
+      setTareas(
+        data
+          .filter((t) => t.usuario === userIdentifier)
+          .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+      );
+    } catch {
+      toast.error("Error al cargar tareas ❌");
+    } finally {
+      setLoading(false);
     }
-
-  } catch {
-    toast.error("Error al cargar tareas ❌");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const abrirModal = (img) => setModalImagen(img);
   const cerrarModal = () => setModalImagen(null);
@@ -302,7 +282,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
 
 return (
 <div className="p-4 max-w-2xl mx-auto">
-<img src="/logosmall_old.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
+<img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
 <h1 className="text-2xl font-bold mb-4 text-center">
 📌 Pedidos de tareas de{" "}
 <span className="text-blue-700">
@@ -468,52 +448,21 @@ Cerrar sesión
 
           {t.fecha && (
             <p className="text-sm text-gray-600 mt-1">
-              📅 Iniciado el {formatTimestamp(t.fecha)}
+              📅 {formatTimestamp(t.fecha)}
             </p>
           )}
 
           {t.solucion && (
-  <div className="mt-2 bg-gray-100 rounded p-2">
-    <p className="text-sm font-semibold mb-1">💡 Historial de solución</p>
+            <p className="text-sm bg-gray-100 p-1 rounded mt-1">
+              💡 Solución: {t.solucion}
+            </p>
+          )}
 
-    <ul className="text-sm space-y-1 list-disc list-inside">
-      {t.solucion
-        .split("\n")
-        .filter((l) => l.trim())
-        .map((linea, idx) => (
-          <li key={idx} className="text-gray-700">
-            {linea}
-          </li>
-        ))}
-    </ul>
-  </div>
-)}
-
-{t.fecha_comp && (
+          {t.fecha_comp && (
             <p className="text-xs text-gray-500 mt-1">
               ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
             </p>
           )}
-
-{t.observacion && (
-  <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
-    <p className="text-sm font-semibold mb-1 text-blue-700">
-      📝 Procesos administrativos
-    </p>
-
-    <ul className="text-sm space-y-1 list-disc list-inside">
-      {t.observacion
-        .split("\n")
-        .filter((l) => l.trim())
-        .map((linea, idx) => (
-          <li key={idx} className="text-gray-700">
-            {linea}
-          </li>
-        ))}
-    </ul>
-  </div>
-)}
-
           {t.fecha_fin && (
             <p className="text-xs text-gray-500 mt-1">
               ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
@@ -580,57 +529,6 @@ Cerrar sesión
       </motion.div>  
     )}  
   </AnimatePresence>  
-      <AnimatePresence>
-  {mostrarPopupFinalizar && (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-    >
-      <motion.div
-        initial={{ scale: 0.8 }}
-        animate={{ scale: 1 }}
-        exit={{ scale: 0.8 }}
-        className="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl text-center"
-      >
-        <h2 className="text-lg font-bold mb-3">
-          ⚠️ Tareas pendientes de finalización
-        </h2>
-
-        <p className="text-gray-700 mb-4">
-  Tenés{" "}
-  <span className="font-bold text-red-600">
-    {cantidadPendientes}
-  </span>{" "}
-  tarea{cantidadPendientes !== 1 ? "s" : ""} pendiente
-  {cantidadPendientes !== 1 ? "s" : ""} de finalización.
-  <br />
-  ¿Deseás finalizarlas ahora?
-</p>
-
-        <div className="flex justify-center space-x-3">
-          <button
-            onClick={() => {
-              setFiltro("enProceso");
-              setMostrarPopupFinalizar(false);
-            }}
-            className="bg-green-600 text-white px-4 py-2 rounded-xl"
-          >
-            ✅ Sí
-          </button>
-
-          <button
-            onClick={() => setMostrarPopupFinalizar(false)}
-            className="bg-gray-400 text-white px-4 py-2 rounded-xl"
-          >
-            ❌ No
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
 
   <ToastContainer position="bottom-right" autoClose={2000} />  
 </div>
