@@ -25,31 +25,30 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   }, []);
 
   const fetchTareas = async () => {
-  setLoading(true);
-  try {
-    if (!usuario) return;
+    setLoading(true);
+    try {
+      if (!usuario) return;
+      const areaParam = encodeURIComponent(usuario.area || "");
+      const url = areaParam ? `${API_TAREAS}/${areaParam}` : API_TAREAS;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Error HTTP " + res.status);
+      const data = await res.json();
+      const userIdentifier =
+        typeof usuario === "string"
+          ? usuario
+          : usuario.nombre || usuario.mail || String(usuario);
 
-    const params = new URLSearchParams({
-      mail: usuario.mail || "",
-      nombre: usuario.nombre || "",
-      tipo: usuario.tipo || "",
-      servicio: usuario.servicio || "",
-    });
-
-    const res = await fetch(`${API_TAREAS}?${params.toString()}`);
-    if (!res.ok) throw new Error("Error HTTP " + res.status);
-
-    const data = await res.json();
-
-    setTareas(
-      data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-    );
-  } catch (err) {
-    toast.error("Error al cargar tareas ❌");
-  } finally {
-    setLoading(false);
-  }
-};
+      setTareas(
+        data
+          .filter((t) => t.usuario === userIdentifier)
+          .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+      );
+    } catch {
+      toast.error("Error al cargar tareas ❌");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const abrirModal = (img) => setModalImagen(img);
   const cerrarModal = () => setModalImagen(null);
@@ -156,57 +155,77 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   };
 
   const handleCrearTarea = async (e) => {
-  e.preventDefault();
-  if (!nuevaTarea.trim()) return toast.error("Ingrese una descripción de tarea");
-  if (!usuario) return toast.error("Usuario no disponible");
+    e.preventDefault();
+    if (!nuevaTarea.trim()) return toast.error("Ingrese una descripción de tarea");
+    if (!usuario) return toast.error("Usuario no disponible");
 
-  // ✅ DEFINICIÓN CORRECTA (ACÁ ESTABA EL ERROR)
-  const userIdentifier =
-    typeof usuario === "string"
-      ? usuario
-      : usuario.nombre || usuario.mail || String(usuario);
+    const userIdentifier =
+      typeof usuario === "string"
+        ? usuario
+        : usuario.nombre || usuario.mail || String(usuario);
 
-  const areaValor = usuario?.area ?? null;
-  const servicioValor = usuario?.servicio ?? null;
-  const subservicioValor = usuario?.subservicio ?? null;
-  const fecha = getFechaLocal();
+    const areaValor = usuario?.area ?? null;
+    const servicioValor = usuario?.servicio ?? null;
+    const subservicioValor = usuario?.subservicio ?? null;
+    const fecha = getFechaLocal();
 
-  const bodyToSend = {
-    usuario: userIdentifier,
-    tarea: nuevaTarea,
-    area: areaValor,
-    servicio: servicioValor,
-    subservicio: subservicioValor,
-    imagen: nuevaImagen,
-    fin: false,
-    fecha,
+    const bodyToSend = {
+      usuario: userIdentifier,
+      tarea: nuevaTarea,
+      area: areaValor,
+      servicio: servicioValor,
+      subservicio: subservicioValor,
+      imagen: nuevaImagen,
+      fin: false,
+      fecha,
+    };
+
+    setLoading(true);
+    try {
+      if (!navigator.onLine) throw new Error("offline");
+
+      const res = await fetch(API_TAREAS, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyToSend),
+      });
+
+      const text = await res.text();
+      let payload;
+      try {
+        payload = text ? JSON.parse(text) : null;
+      } catch {
+        payload = text;
+      }
+
+      if (!res.ok) {
+        const serverMsg =
+          payload && typeof payload === "object" && payload.error
+            ? payload.error
+            : typeof payload === "string"
+            ? payload
+            : `HTTP ${res.status}`;
+        toast.error("❌ Error al crear tarea: " + serverMsg);
+        return;
+      }
+
+      setTareas((prev) => [payload, ...prev]);
+      setNuevaTarea("");
+      setNuevaImagen(null);
+      setPreviewImagen(null);
+      toast.success("✅ Tarea creada");
+    } catch (err) {
+      let pendientes = JSON.parse(localStorage.getItem("tareasPendientes") || "[]");
+      pendientes.push(bodyToSend);
+      localStorage.setItem("tareasPendientes", JSON.stringify(pendientes));
+      setNuevaTarea("");
+      setNuevaImagen(null);
+      setPreviewImagen(null);
+      toast.info("⚠️ Sin conexión: tarea guardada localmente");
+    } finally {
+      setLoading(false);
+    }
   };
-
-  setLoading(true);
-  try {
-    if (!navigator.onLine) throw new Error("offline");
-
-    const res = await fetch(API_TAREAS, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(bodyToSend),
-    });
-
-    if (!res.ok) throw new Error("Error al crear tarea");
-
-    const nueva = await res.json();
-    setTareas((prev) => [nueva, ...prev]);
-
-    setNuevaTarea("");
-    setNuevaImagen(null);
-    setPreviewImagen(null);
-    toast.success("✅ Tarea creada");
-  } catch {
-    toast.error("❌ Error al crear tarea");
-  } finally {
-    setLoading(false);
-  }
-};
 
   const enviarTareasPendientes = async () => {
     let pendientes = JSON.parse(localStorage.getItem("tareasPendientes") || "[]");
