@@ -14,6 +14,7 @@ export default function RegistroUsuario({ onRegister, onCancelar }) {
   const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [tipo, setTipo] = useState("comun"); // valor por defecto
 
   // Obtener todos los registros de la tabla servicios
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function RegistroUsuario({ onRegister, onCancelar }) {
           movil,
           mail,
           password,
+          tipo,
         }),
       });
 
@@ -120,6 +122,17 @@ export default function RegistroUsuario({ onRegister, onCancelar }) {
           required
           className="w-full p-2 border rounded"
         />
+
+        {/* Tipo de usuario */}
+<select
+  className="w-full p-2 border rounded"
+  value={tipo}
+  onChange={(e) => setTipo(e.target.value)}
+  required
+>
+  <option value="comun">Usuario común</option>
+  <option value="supervisor">Supervisor</option>
+</select>
 
         {/* Select Servicio */}
         <select
