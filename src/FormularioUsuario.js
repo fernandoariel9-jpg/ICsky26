@@ -25,30 +25,31 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   }, []);
 
   const fetchTareas = async () => {
-    setLoading(true);
-    try {
-      if (!usuario) return;
-      const areaParam = encodeURIComponent(usuario.area || "");
-      const url = areaParam ? `${API_TAREAS}/${areaParam}` : API_TAREAS;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Error HTTP " + res.status);
-      const data = await res.json();
-      const userIdentifier =
-        typeof usuario === "string"
-          ? usuario
-          : usuario.nombre || usuario.mail || String(usuario);
+  setLoading(true);
+  try {
+    if (!usuario) return;
 
-      setTareas(
-        data
-          .filter((t) => t.usuario === userIdentifier)
-          .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-      );
-    } catch {
-      toast.error("Error al cargar tareas ❌");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const params = new URLSearchParams({
+      mail: usuario.mail || "",
+      nombre: usuario.nombre || "",
+      tipo: usuario.tipo || "",
+      servicio: usuario.servicio || "",
+    });
+
+    const res = await fetch(`${API_TAREAS}?${params.toString()}`);
+    if (!res.ok) throw new Error("Error HTTP " + res.status);
+
+    const data = await res.json();
+
+    setTareas(
+      data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+    );
+  } catch (err) {
+    toast.error("Error al cargar tareas ❌");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const abrirModal = (img) => setModalImagen(img);
   const cerrarModal = () => setModalImagen(null);
@@ -158,11 +159,6 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     e.preventDefault();
     if (!nuevaTarea.trim()) return toast.error("Ingrese una descripción de tarea");
     if (!usuario) return toast.error("Usuario no disponible");
-
-    const userIdentifier =
-      typeof usuario === "string"
-        ? usuario
-        : usuario.nombre || usuario.mail || String(usuario);
 
     const areaValor = usuario?.area ?? null;
     const servicioValor = usuario?.servicio ?? null;
