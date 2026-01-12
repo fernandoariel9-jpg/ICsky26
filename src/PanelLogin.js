@@ -350,17 +350,22 @@ const datosPromediosConTendencia = (() => {
 }, []);
 
   const fetchTareas = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(API_URL.Tareas);
-      const data = await res.json();
-      setTareas(data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
-    } catch {
-      toast.error("Error al cargar tareas ❌");
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const res = await fetch(`${API_URL.Tareas}?panel=true`);
+    if (!res.ok) throw new Error("Error HTTP " + res.status);
+    const data = await res.json();
+
+    setTareas(
+      data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+    );
+  } catch (err) {
+    console.error(err);
+    toast.error("Error al cargar tareas ❌");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const verPersonal = async () => {
   try {
