@@ -25,30 +25,34 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   }, []);
 
   const fetchTareas = async () => {
-    setLoading(true);
-    try {
-      if (!usuario) return;
-      const areaParam = encodeURIComponent(usuario.area || "");
-      const url = areaParam ? `${API_TAREAS}/${areaParam}` : API_TAREAS;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Error HTTP " + res.status);
-      const data = await res.json();
-      const userIdentifier =
-        typeof usuario === "string"
-          ? usuario
-          : usuario.nombre || usuario.mail || String(usuario);
+  setLoading(true);
+  try {
+    if (!usuario) return;
 
-      setTareas(
-        data
-          .filter((t) => t.usuario === userIdentifier)
-          .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-      );
-    } catch {
-      toast.error("Error al cargar tareas ❌");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const userIdentifier =
+      typeof usuario === "string"
+        ? usuario
+        : usuario.mail || usuario.nombre;
+
+    const res = await fetch(
+      `${API_TAREAS}?usuario=${encodeURIComponent(userIdentifier)}`
+    );
+
+    if (!res.ok) throw new Error("Error HTTP " + res.status);
+
+    const data = await res.json();
+
+    // 👇 EL BACKEND YA FILTRA SEGÚN TIPO
+    setTareas(
+      data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+    );
+  } catch (err) {
+    console.error(err);
+    toast.error("Error al cargar tareas ❌");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const abrirModal = (img) => setModalImagen(img);
   const cerrarModal = () => setModalImagen(null);
