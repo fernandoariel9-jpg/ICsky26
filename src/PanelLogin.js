@@ -1085,13 +1085,7 @@ const handleAreaClick = (areaName) => {
       {/* Líneas de datos reales */}
       <Line type="monotone" dataKey="promedio_solucion" stroke="#007bff" strokeWidth={3} />
       <Line type="monotone" dataKey="promedio_finalizacion" stroke="#28a745" strokeWidth={3} />
-      <Line
-  type="monotone"
-  dataKey="promedio_adm"
-  stroke="#a855f7"
-  strokeWidth={3}
-  strokeDasharray="5 5"
-/>
+      <Line type="monotone" dataKey="promedio_adm" stroke="#a855f7" strokeWidth={3} />
 
       {/* Scroll */}
       <Brush
