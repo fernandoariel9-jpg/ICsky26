@@ -7,6 +7,7 @@ import autoTable from "jspdf-autotable";
 import RegistroUsuario from "./RegistroUsuario";
 import { FaWhatsapp } from "react-icons/fa";
 import { FaSearch } from "react-icons/fa";
+import guardias from "./guardias";
 
 const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
@@ -34,6 +35,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [observacion, setObservacion] = useState("");
   const [tareaObsId, setTareaObsId] = useState(null);
   const [tareaObservacionActual, setTareaObservacionActual] = useState("");
+  const [mostrarGuardias, setMostrarGuardias] = useState(false);
 
   function getFechaLocal() {
     const d = new Date();
@@ -602,6 +604,15 @@ if (busqueda.trim()) {
         }}
         className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 text-sm"
       >
+          <button
+  onClick={() => {
+    setMostrarGuardias(true);
+    setMenuAbierto(false);
+  }}
+  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+>
+  🛡️ Guardias
+</button>
         🚪 Cerrar sesión
       </button>
     </div>
@@ -753,6 +764,21 @@ if (busqueda.trim()) {
   {tareasFiltradas.map((t) => {
   const tieneObservacion =
     t.observacion && t.observacion.trim() !== "";
+
+    if (mostrarGuardias) {
+  return (
+    <div className="p-4 max-w-2xl mx-auto">
+      <button
+        onClick={() => setMostrarGuardias(false)}
+        className="mb-4 bg-gray-500 text-white px-3 py-1 rounded"
+      >
+        ⬅ Volver a tareas
+      </button>
+
+      <GuardiasServicios personalId={personal.id} />
+    </div>
+  );
+}
 
   return (
     <li key={t.id} className="p-3 rounded-xl shadow bg-white">
@@ -1112,6 +1138,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
