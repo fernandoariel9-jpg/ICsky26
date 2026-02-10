@@ -28,7 +28,7 @@ function getFechaLocal() {
   return `${año}-${mes}-${dia} ${hora}:${min}`;
 }
 
-export default function GuardiasServicios({ personalId, onConfirmar }) {
+export default function GuardiasServicios({ personalId, personalNombre, onConfirmar }) {
   const [visitas, setVisitas] = useState({});
   const [guardando, setGuardando] = useState(false);
 
@@ -79,6 +79,7 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
         },
         body: JSON.stringify({
           personal_id: personalId,
+          personal_nombre: personalNombre,
           servicio,
           fecha_hora: data.fechaHora,
           observaciones: data.observaciones || "",
