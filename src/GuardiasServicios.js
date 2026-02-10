@@ -57,7 +57,7 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
 
   try {
     for (const [servicio, data] of visitasRealizadas) {
-      const resp = await fetch("https://icsky26.onrender.com/api/guardias", {
+      const resp = await fetch("https://sky26.onrender.com/api/guardias", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
