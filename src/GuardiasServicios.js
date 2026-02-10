@@ -15,12 +15,25 @@ const SERVICIOS = [
   "Tomografía",
 ];
 
+function getFechaLocal() {
+  const d = new Date();
+  d.setSeconds(0, 0);
+
+  const año = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  const hora = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+
+  return `${año}-${mes}-${dia} ${hora}:${min}`;
+}
+
 export default function GuardiasServicios({ personalId, onConfirmar }) {
   const [visitas, setVisitas] = useState({});
   const [guardando, setGuardando] = useState(false);
 
   const handleCheck = (servicio, checked) => {
-    const ahora = new Date().toISOString();
+    const ahora = getFechaLocal();
 
     setVisitas((prev) => ({
       ...prev,
