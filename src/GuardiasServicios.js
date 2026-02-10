@@ -55,17 +55,21 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
 
     try {
       for (const [servicio, data] of visitasRealizadas) {
-        await fetch("/api/guardias", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            personal_id: personalId,
-            servicio,
-            fecha_hora: data.fechaHora,
-            observaciones: data.observaciones || "",
-          }),
-        });
-      }
+        const resp = await fetch("/api/guardias", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    personal_id: personalId,
+    servicio,
+    fecha_hora: data.fechaHora,
+    observaciones: data.observaciones || "",
+  }),
+});
+
+if (!resp.ok) {
+  const err = await resp.json();
+  throw new Error(err.error || "Error guardando guardia");
+}
 
       if (typeof onConfirmar === "function") {
         onConfirmar();
