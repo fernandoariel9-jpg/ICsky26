@@ -77,64 +77,70 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
   };
 
   return (
-    <div className="space-y-2 text-sm">
+    <div className="pb-24 text-sm">
       <h2 className="text-lg font-semibold mb-2">
-        Servicios a Visitar
+        🛡️ Guardias
       </h2>
 
-      {SERVICIOS.map((servicio) => {
-        const visita = visitas[servicio];
+      <div className="space-y-1">
+        {SERVICIOS.map((servicio) => {
+          const visita = visitas[servicio];
 
-        return (
-          <div
-            key={servicio}
-            className="border rounded-md px-2 py-1"
-          >
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={visita?.realizado || false}
-                onChange={(e) =>
-                  handleCheck(servicio, e.target.checked)
-                }
-              />
+          return (
+            <div
+              key={servicio}
+              className="border rounded-md px-2 py-2"
+            >
+              <label className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  className="w-5 h-5"
+                  checked={visita?.realizado || false}
+                  onChange={(e) =>
+                    handleCheck(servicio, e.target.checked)
+                  }
+                />
 
-              <span className="flex-1 truncate">
-                {servicio}
-              </span>
-
-              {visita?.fechaHora && (
-                <span className="text-xs text-gray-500">
-                  {new Date(visita.fechaHora).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                <span className="flex-1 leading-tight">
+                  {servicio}
                 </span>
+
+                {visita?.fechaHora && (
+                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                    {new Date(visita.fechaHora).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                )}
+              </label>
+
+              {visita?.realizado && (
+                <textarea
+                  rows={2}
+                  className="mt-2 w-full border rounded px-2 py-1 text-xs"
+                  placeholder="Observaciones"
+                  value={visita?.observaciones || ""}
+                  onChange={(e) =>
+                    handleObsChange(servicio, e.target.value)
+                  }
+                />
               )}
             </div>
+          );
+        })}
+      </div>
 
-            {visita?.realizado && (
-              <textarea
-                rows={2}
-                className="mt-1 w-full border rounded px-2 py-1 text-xs"
-                placeholder="Observaciones"
-                value={visita?.observaciones || ""}
-                onChange={(e) =>
-                  handleObsChange(servicio, e.target.value)
-                }
-              />
-            )}
-          </div>
-        );
-      })}
-
-      <button
-        onClick={confirmarVisitas}
-        disabled={guardando}
-        className="mt-3 w-full bg-blue-600 text-white py-2 rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
-      >
-        {guardando ? "Guardando..." : "✅ Confirmar visitas"}
-      </button>
+      {/* BOTÓN FIJO ABAJO */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-3">
+        <button
+          onClick={confirmarVisitas}
+          disabled={guardando}
+          className="w-full bg-blue-600 text-white py-3 rounded-xl text-base font-semibold disabled:opacity-50"
+        >
+          {guardando ? "Guardando..." : "✅ Confirmar visitas"}
+        </button>
+      </div>
     </div>
   );
 }
