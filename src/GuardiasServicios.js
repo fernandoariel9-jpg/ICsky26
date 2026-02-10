@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from "react"; 
 
 const SERVICIOS = [
   "Servicio de Terapía Intensiva Adultos",
@@ -67,7 +67,9 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
         });
       }
 
-      onConfirmar();
+      if (typeof onConfirmar === "function") {
+        onConfirmar();
+      }
     } catch (error) {
       console.error("Error guardando guardias", error);
       alert("Error al guardar las visitas");
@@ -131,7 +133,6 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
         })}
       </div>
 
-      {/* BOTÓN FIJO ABAJO */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-3">
         <button
           onClick={confirmarVisitas}
