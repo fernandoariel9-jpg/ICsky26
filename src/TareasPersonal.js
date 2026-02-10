@@ -7,7 +7,7 @@ import autoTable from "jspdf-autotable";
 import RegistroUsuario from "./RegistroUsuario";
 import { FaWhatsapp } from "react-icons/fa";
 import { FaSearch } from "react-icons/fa";
-import guardias from "./guardias";
+import GuardiasServicios from "./GuardiasServicios";
 
 const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
@@ -1140,6 +1140,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
