@@ -721,6 +721,21 @@ if (busqueda.trim()) {
   </div>
 )}
 
+    if (mostrarGuardias) {
+  return (
+    <div className="p-4 max-w-2xl mx-auto">
+      <button
+        onClick={() => setMostrarGuardias(false)}
+        className="mb-4 bg-gray-500 text-white px-3 py-1 rounded"
+      >
+        ⬅ Volver a tareas
+      </button>
+
+      <GuardiasServicios personalId={personal.id} />
+    </div>
+  );
+}
+
 {/* 🔍 Cuadro de búsqueda global */}
 <div className="relative my-3">
   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -766,21 +781,6 @@ if (busqueda.trim()) {
   {tareasFiltradas.map((t) => {
   const tieneObservacion =
     t.observacion && t.observacion.trim() !== "";
-
-    if (mostrarGuardias) {
-  return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <button
-        onClick={() => setMostrarGuardias(false)}
-        className="mb-4 bg-gray-500 text-white px-3 py-1 rounded"
-      >
-        ⬅ Volver a tareas
-      </button>
-
-      <GuardiasServicios personalId={personal.id} />
-    </div>
-  );
-}
 
   return (
     <li key={t.id} className="p-3 rounded-xl shadow bg-white">
@@ -1140,6 +1140,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
