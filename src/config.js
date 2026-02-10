@@ -17,4 +17,5 @@ export const API_URL = {
   ResumenTareas: `${API_BASE_URL}/api/resumen_tareas`,
   ResumenTiemposPorArea: `${API_BASE_URL}/api/resumen_tiempos_por_area`,
   TiemposAnalitica: `${API_BASE_URL}/api/tiempos_analitica`,
+  Guardias: `${API_BASE_URL}/api/guardias`
 };
