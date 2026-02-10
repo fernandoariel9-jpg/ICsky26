@@ -68,6 +68,9 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
         }),
       });
 
+      console.log("🧪 personalId:", personalId);
+console.log("🧪 visitas:", visitas);
+
       if (!resp.ok) {
         const err = await resp.json();
         throw new Error(err.error || "Error guardando guardia");
