@@ -449,6 +449,22 @@ const cambiarPassword = async (id) => {
   }
 };
 
+  // 👉 Si el usuario entra a Guardias
+if (mostrarGuardias) {
+  return (
+    <div className="p-4 max-w-2xl mx-auto">
+      <button
+        onClick={() => setMostrarGuardias(false)}
+        className="mb-4 bg-gray-500 text-white px-3 py-1 rounded"
+      >
+        ⬅ Volver a tareas
+      </button>
+
+      <GuardiasServicios personalId={personal.id} />
+    </div>
+  );
+}
+
     // 👉 Si el usuario elige "Registrar Usuario", mostrar ese formulario
   if (mostrarRegistro) {
     return <RegistroUsuario onCancelar={() => setMostrarRegistro(false)} />;
@@ -721,20 +737,6 @@ if (busqueda.trim()) {
   </div>
 )}
 
-    if (mostrarGuardias) {
-  return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <button
-        onClick={() => setMostrarGuardias(false)}
-        className="mb-4 bg-gray-500 text-white px-3 py-1 rounded"
-      >
-        ⬅ Volver a tareas
-      </button>
-
-      <GuardiasServicios personalId={personal.id} />
-    </div>
-  );
-}
 
 {/* 🔍 Cuadro de búsqueda global */}
 <div className="relative my-3">
@@ -1140,6 +1142,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
