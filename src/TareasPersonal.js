@@ -595,6 +595,16 @@ if (busqueda.trim()) {
         👥 Ver usuarios
       </button>
 
+      <button
+  onClick={() => {
+    setMostrarGuardias(true);
+    setMenuAbierto(false);
+  }}
+  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+>
+  🛡️ Guardias
+</button>
+
       <div className="border-t my-1" />
 
       <button
@@ -604,15 +614,7 @@ if (busqueda.trim()) {
         }}
         className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 text-sm"
       >
-          <button
-  onClick={() => {
-    setMostrarGuardias(true);
-    setMenuAbierto(false);
-  }}
-  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
->
-  🛡️ Guardias
-</button>
+          
         🚪 Cerrar sesión
       </button>
     </div>
@@ -1138,6 +1140,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
