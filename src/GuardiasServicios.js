@@ -1,4 +1,5 @@
 import React, { useState } from "react"; 
+import { API_URL } from "./config";
 
 const SERVICIOS = [
   "Servicio de Terapía Intensiva Adultos",
@@ -47,6 +48,7 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
 );
 
     console.log("✅ visitasRealizadas:", visitasRealizadas);
+    console.log("🌐 POST a:", API_URL.Guardias);
 
   if (visitasRealizadas.length === 0) {
     alert("No seleccionaste ningún servicio");
@@ -57,7 +59,7 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
 
   try {
     for (const [servicio, data] of visitasRealizadas) {
-      const resp = await fetch("https://sky26.onrender.com/api/guardias", {
+      const resp = await fetch(API_URL.Guardias, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
