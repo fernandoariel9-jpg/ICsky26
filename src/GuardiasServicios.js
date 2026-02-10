@@ -46,6 +46,8 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
     ([, data]) => data?.realizado
   );
 
+    console.log("✅ visitasRealizadas:", visitasRealizadas);
+
   if (visitasRealizadas.length === 0) {
     alert("No seleccionaste ningún servicio");
     return;
