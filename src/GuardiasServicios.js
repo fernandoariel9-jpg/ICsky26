@@ -43,8 +43,8 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
 
   const confirmarVisitas = async () => {
   const visitasRealizadas = Object.entries(visitas).filter(
-    ([, data]) => data?.realizado
-  );
+  ([, data]) => data?.realizado === true
+);
 
     console.log("✅ visitasRealizadas:", visitasRealizadas);
 
