@@ -462,6 +462,7 @@ if (mostrarGuardias) {
 
       <GuardiasServicios
   personalId={personal.id}
+  personalNombre={personal.nombre}
   onConfirmar={() => setMostrarGuardias(false)}
 />
     </div>
@@ -1145,6 +1146,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
