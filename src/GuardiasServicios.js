@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 
 const SERVICIOS = [
-  "STIA",
+  "Servicio de Terapía Intensiva Adultos",
   "Cardiología",
-  "SMU",
-  "SMU Pediátrica",
-  "SMU RX",
-  "Pediatría",
-  "Neonatología",
+  "Servicio Médico de Urgencias",
+  "Servicio Médico de Urgencias Pediátrica",
+  "Servicio Médico de Urgencias RX",
+  "Terapias Pediatría",
+  "Terapias Neonatología",
   "Hemodiálisis",
   "Rayos X Central",
   "Resonancia",
@@ -67,7 +67,7 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
         });
       }
 
-      onConfirmar(); // 🔙 volver a tareas
+      onConfirmar();
     } catch (error) {
       console.error("Error guardando guardias", error);
       alert("Error al guardar las visitas");
@@ -77,44 +77,61 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
   };
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Servicios a Visitar</h2>
+    <div className="space-y-2 text-sm">
+      <h2 className="text-lg font-semibold mb-2">
+        Servicios a Visitar
+      </h2>
 
-      {SERVICIOS.map((servicio) => (
-        <div key={servicio} className="p-3 border rounded-lg">
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              checked={visitas[servicio]?.realizado || false}
-              onChange={(e) => handleCheck(servicio, e.target.checked)}
-            />
-            <span className="font-medium">{servicio}</span>
+      {SERVICIOS.map((servicio) => {
+        const visita = visitas[servicio];
 
-            {visitas[servicio]?.fechaHora && (
-              <span className="text-sm text-gray-500">
-                {new Date(
-                  visitas[servicio].fechaHora
-                ).toLocaleTimeString()}
+        return (
+          <div
+            key={servicio}
+            className="border rounded-md px-2 py-1"
+          >
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={visita?.realizado || false}
+                onChange={(e) =>
+                  handleCheck(servicio, e.target.checked)
+                }
+              />
+
+              <span className="flex-1 truncate">
+                {servicio}
               </span>
+
+              {visita?.fechaHora && (
+                <span className="text-xs text-gray-500">
+                  {new Date(visita.fechaHora).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              )}
+            </div>
+
+            {visita?.realizado && (
+              <textarea
+                rows={2}
+                className="mt-1 w-full border rounded px-2 py-1 text-xs"
+                placeholder="Observaciones"
+                value={visita?.observaciones || ""}
+                onChange={(e) =>
+                  handleObsChange(servicio, e.target.value)
+                }
+              />
             )}
           </div>
+        );
+      })}
 
-          <textarea
-            className="mt-2 w-full border rounded p-2"
-            placeholder="Observaciones (opcional)"
-            value={visitas[servicio]?.observaciones || ""}
-            onChange={(e) =>
-              handleObsChange(servicio, e.target.value)
-            }
-          />
-        </div>
-      ))}
-
-      {/* BOTÓN CONFIRMAR */}
       <button
         onClick={confirmarVisitas}
         disabled={guardando}
-        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        className="mt-3 w-full bg-blue-600 text-white py-2 rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
       >
         {guardando ? "Guardando..." : "✅ Confirmar visitas"}
       </button>
