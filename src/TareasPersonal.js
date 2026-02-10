@@ -460,7 +460,10 @@ if (mostrarGuardias) {
         ⬅ Volver a tareas
       </button>
 
-      <GuardiasServicios personalId={personal.id} />
+      <GuardiasServicios
+  personalId={personal.id}
+  onConfirmar={() => setMostrarGuardias(false)}
+/>
     </div>
   );
 }
@@ -1142,6 +1145,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
