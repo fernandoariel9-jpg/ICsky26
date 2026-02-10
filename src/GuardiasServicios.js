@@ -42,45 +42,49 @@ export default function GuardiasServicios({ personalId, onConfirmar }) {
   };
 
   const confirmarVisitas = async () => {
-    const visitasRealizadas = Object.entries(visitas).filter(
-      ([, data]) => data.realizado
-    );
+  const visitasRealizadas = Object.entries(visitas).filter(
+    ([, data]) => data?.realizado
+  );
 
-    if (visitasRealizadas.length === 0) {
-      alert("No seleccionaste ningún servicio");
-      return;
-    }
+  if (visitasRealizadas.length === 0) {
+    alert("No seleccionaste ningún servicio");
+    return;
+  }
 
-    setGuardando(true);
+  setGuardando(true);
 
-    try {
-      for (const [servicio, data] of visitasRealizadas) {
-        const resp = await fetch("/api/guardias", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    personal_id: personalId,
-    servicio,
-    fecha_hora: data.fechaHora,
-    observaciones: data.observaciones || "",
-  }),
-});
+  try {
+    for (const [servicio, data] of visitasRealizadas) {
+      const resp = await fetch("/api/guardias", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          personal_id: personalId,
+          servicio,
+          fecha_hora: data.fechaHora,
+          observaciones: data.observaciones || "",
+        }),
+      });
 
-if (!resp.ok) {
-  const err = await resp.json();
-  throw new Error(err.error || "Error guardando guardia");
-}
-
-      if (typeof onConfirmar === "function") {
-        onConfirmar();
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.error || "Error guardando guardia");
       }
-    } catch (error) {
-      console.error("Error guardando guardias", error);
-      alert("Error al guardar las visitas");
-    } finally {
-      setGuardando(false);
     }
-  };
+
+    // volver a la vista de tareas
+    if (typeof onConfirmar === "function") {
+      onConfirmar();
+    }
+  } catch (error) {
+    console.error("Error guardando guardias", error);
+    alert("Error al guardar las visitas");
+  } finally {
+    setGuardando(false);
+  }
+};
 
   return (
     <div className="pb-24 text-sm">
