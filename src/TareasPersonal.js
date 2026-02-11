@@ -1048,7 +1048,7 @@ if (busqueda.trim()) {
       : "bg-yellow-500"
   }`}
 >
-  ✏️ Editar solución
+  ✏️ Editar solución o asociar a RIC 02
 </button>
 
   <button
@@ -1146,5 +1146,6 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
