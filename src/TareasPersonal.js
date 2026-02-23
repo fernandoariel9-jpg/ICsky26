@@ -292,7 +292,16 @@ export default function TareasPersonal({ personal, onLogout }) {
 
     if (!response.ok) {
       throw new Error("Error al guardar");
+        // limpiar campos
+  setDescripcionInterna("");
+  setDestinoInterno("");
+  
+  // cerrar modal si corresponde
+  setMostrarModalInterno(false);
+
+  alert("Pedido creado correctamente");
     }
+
 
     setModalPedidoInterno(false);
   } catch (error) {
@@ -1246,6 +1255,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
