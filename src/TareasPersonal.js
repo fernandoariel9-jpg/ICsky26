@@ -660,8 +660,11 @@ if (busqueda.trim()) {
 </button>
 
     <button
-  onClick={() => setModalPedidoInterno(true)}
-  className="px-3 py-1 bg-indigo-600 text-white rounded text-sm"
+  onClick={() => {
+    setMenuAbierto(false);
+    setModalPedidoInterno(true);
+  }}
+  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
 >
   ➕ Pedido Interno
 </button>
@@ -1246,6 +1249,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
