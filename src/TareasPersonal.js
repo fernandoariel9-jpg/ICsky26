@@ -278,34 +278,32 @@ export default function TareasPersonal({ personal, onLogout }) {
 
   try {
     const response = await fetch(`${API_URL.API}/ric01`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    tarea: descripcionInterna,
-    area: destinoInterno,
-    origen: "interno",
-    solicitado_por: personal?.nombre
-  })
-});
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tarea: descripcionInterna,
+        area: destinoInterno,
+        origen: "interno",
+        solicitado_por: personal?.nombre
+      })
+    });
 
     console.log("Status:", response.status);
 
     if (!response.ok) {
       throw new Error("Error al guardar");
-        // limpiar campos
-  setDescripcionInterna("");
-  setDestinoInterno("");
-  
-  // cerrar modal si corresponde
-  setMostrarModalInterno(false);
-
-  alert("Pedido creado correctamente");
     }
 
-
+    // ✅ SOLO si salió bien
+    setDescripcionInterna("");
+    setDestinoInterno("");
     setModalPedidoInterno(false);
+
+    alert("Pedido creado correctamente");
+
   } catch (error) {
     console.error(error);
+    alert("Hubo un error al guardar");
   }
 };
   
@@ -1255,6 +1253,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
