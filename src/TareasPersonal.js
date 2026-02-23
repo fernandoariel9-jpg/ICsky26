@@ -36,6 +36,10 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [tareaObsId, setTareaObsId] = useState(null);
   const [tareaObservacionActual, setTareaObservacionActual] = useState("");
   const [mostrarGuardias, setMostrarGuardias] = useState(false);
+  const [modalPedidoInterno, setModalPedidoInterno] = useState(false);
+  const [descripcionInterna, setDescripcionInterna] = useState("");
+  const [destinoInterno, setDestinoInterno] = useState("");
+  const [prioridadInterna, setPrioridadInterna] = useState("Media");
 
   function getFechaLocal() {
     const d = new Date();
@@ -264,6 +268,29 @@ export default function TareasPersonal({ personal, onLogout }) {
     console.error("Error al cargar usuarios:", err);
     toast.error("❌ No se pudieron cargar los usuarios");
   }
+};
+
+  const handleCrearPedidoInterno = async () => {
+  if (!descripcionInterna || !destinoInterno) {
+    alert("Complete los campos");
+    return;
+  }
+
+  await fetch("/api/ric01", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      descripcion: descripcionInterna,
+      area: destinoInterno,
+      prioridad: prioridadInterna,
+      origen: "interno",
+      solicitado_por: usuarioLogueado.nombre
+    })
+  });
+
+  setModalPedidoInterno(false);
+  setDescripcionInterna("");
+  setDestinoInterno("");
 };
   
   const handleSeleccionUsuario = (u) => {
@@ -625,6 +652,13 @@ if (busqueda.trim()) {
   🛡️ Guardias
 </button>
 
+    <button
+  onClick={() => setModalPedidoInterno(true)}
+  className="px-3 py-1 bg-indigo-600 text-white rounded text-sm"
+>
+  ➕ Pedido Interno
+</button>
+
       <div className="border-t my-1" />
 
       <button
@@ -666,6 +700,62 @@ if (busqueda.trim()) {
       >
         Cerrar
       </button>
+    </div>
+  </div>
+)}
+
+{modalPedidoInterno && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
+    <div className="bg-white p-6 rounded w-96">
+
+      <h2 className="text-lg font-bold mb-4">
+        Nuevo Pedido Interno
+      </h2>
+
+      <select
+        className="w-full border p-2 mb-3 rounded"
+        value={destinoInterno}
+        onChange={(e) => setDestinoInterno(e.target.value)}
+      >
+        <option value="">Seleccionar destino</option>
+        <option value="Mantenimiento">Mantenimiento</option>
+        <option value="Sistemas">Sistemas</option>
+        <option value="Electricidad">Electricidad</option>
+      </select>
+
+      <textarea
+        className="w-full border p-2 mb-3 rounded"
+        placeholder="Describa el pedido..."
+        value={descripcionInterna}
+        onChange={(e) => setDescripcionInterna(e.target.value)}
+      />
+
+      <select
+        className="w-full border p-2 mb-4 rounded"
+        value={prioridadInterna}
+        onChange={(e) => setPrioridadInterna(e.target.value)}
+      >
+        <option value="Baja">Baja</option>
+        <option value="Media">Media</option>
+        <option value="Alta">Alta</option>
+      </select>
+
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => setModalPedidoInterno(false)}
+          className="px-3 py-1 bg-gray-400 text-white rounded"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={handleCrearPedidoInterno}
+          className="px-3 py-1 bg-green-600 text-white rounded"
+        >
+          Crear
+        </button>
+      </div>
+
     </div>
   </div>
 )}
@@ -1146,6 +1236,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
