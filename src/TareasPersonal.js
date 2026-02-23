@@ -40,7 +40,6 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [descripcionInterna, setDescripcionInterna] = useState("");
   const [destinoInterno, setDestinoInterno] = useState("");
   const [prioridadInterna, setPrioridadInterna] = useState("Media");
-  const [areas, setAreas] = useState([]);
 
   function getFechaLocal() {
     const d = new Date();
@@ -1247,6 +1246,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
