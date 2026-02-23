@@ -277,16 +277,16 @@ export default function TareasPersonal({ personal, onLogout }) {
   }
 
   try {
-    const response = await fetch("/api/ric01", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tarea: descripcionInterna,
-        area: destinoInterno,
-        origen: "interno",
-        solicitado_por: personal?.nombre
-      })
-    });
+    const response = await fetch(`${API_URL.API}/ric01`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    tarea: descripcionInterna,
+    area: destinoInterno,
+    origen: "interno",
+    solicitado_por: personal?.nombre
+  })
+});
 
     console.log("Status:", response.status);
 
@@ -1246,6 +1246,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
