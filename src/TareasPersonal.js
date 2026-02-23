@@ -40,6 +40,7 @@ export default function TareasPersonal({ personal, onLogout }) {
   const [descripcionInterna, setDescripcionInterna] = useState("");
   const [destinoInterno, setDestinoInterno] = useState("");
   const [prioridadInterna, setPrioridadInterna] = useState("Media");
+  const [areas, setAreas] = useState([]);
 
   function getFechaLocal() {
     const d = new Date();
@@ -325,6 +326,13 @@ export default function TareasPersonal({ personal, onLogout }) {
     const interval = setInterval(mantenerActivo, 8 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+  fetch("/api/areas")
+    .then(res => res.json())
+    .then(data => setAreas(data))
+    .catch(err => console.error("Error cargando áreas:", err));
+}, []);
 
   useEffect(() => {
     if (!personal?.id) return;
@@ -713,15 +721,18 @@ if (busqueda.trim()) {
       </h2>
 
       <select
-        className="w-full border p-2 mb-3 rounded"
-        value={destinoInterno}
-        onChange={(e) => setDestinoInterno(e.target.value)}
-      >
-        <option value="">Seleccionar destino</option>
-        <option value="Mantenimiento">Mantenimiento</option>
-        <option value="Sistemas">Sistemas</option>
-        <option value="Electricidad">Electricidad</option>
-      </select>
+  className="w-full border p-2 mb-3 rounded"
+  value={destinoInterno}
+  onChange={(e) => setDestinoInterno(e.target.value)}
+>
+  <option value="">Seleccionar destino</option>
+
+  {areas.map((a) => (
+    <option key={a.id} value={a.area}>
+      {a.area}
+    </option>
+  ))}
+</select>
 
       <textarea
         className="w-full border p-2 mb-3 rounded"
@@ -1236,6 +1247,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
