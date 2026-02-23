@@ -276,21 +276,28 @@ export default function TareasPersonal({ personal, onLogout }) {
     return;
   }
 
-  await fetch("/api/ric01", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      descripcion: descripcionInterna,
-      area: destinoInterno,
-      prioridad: prioridadInterna,
-      origen: "interno",
-      solicitado_por: personal?.nombre
-    })
-  });
+  try {
+    const response = await fetch("/api/ric01", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tarea: descripcionInterna,
+        area: destinoInterno,
+        origen: "interno",
+        solicitado_por: personal?.nombre
+      })
+    });
 
-  setModalPedidoInterno(false);
-  setDescripcionInterna("");
-  setDestinoInterno("");
+    console.log("Status:", response.status);
+
+    if (!response.ok) {
+      throw new Error("Error al guardar");
+    }
+
+    setModalPedidoInterno(false);
+  } catch (error) {
+    console.error(error);
+  }
 };
   
   const handleSeleccionUsuario = (u) => {
@@ -742,16 +749,6 @@ if (busqueda.trim()) {
         value={descripcionInterna}
         onChange={(e) => setDescripcionInterna(e.target.value)}
       />
-
-      <select
-        className="w-full border p-2 mb-4 rounded"
-        value={prioridadInterna}
-        onChange={(e) => setPrioridadInterna(e.target.value)}
-      >
-        <option value="Baja">Baja</option>
-        <option value="Media">Media</option>
-        <option value="Alta">Alta</option>
-      </select>
 
       <div className="flex justify-end gap-2">
         <button
@@ -1249,6 +1246,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
