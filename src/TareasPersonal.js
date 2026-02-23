@@ -285,7 +285,7 @@ export default function TareasPersonal({ personal, onLogout }) {
       area: destinoInterno,
       prioridad: prioridadInterna,
       origen: "interno",
-      solicitado_por: usuarioLogueado.nombre
+      solicitado_por: personal?.nombre
     })
   });
 
@@ -1247,6 +1247,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
