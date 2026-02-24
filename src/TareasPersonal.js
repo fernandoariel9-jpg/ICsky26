@@ -1176,8 +1176,10 @@ if (busqueda.trim()) {
   📝 Obs.
 </button>
 </div>
-
-{tarea.solucionado && 
+    )}
+  </>
+)}
+  {tarea.solucionado && 
  tarea.usuario === personal.nombre && 
  !tarea.finalizado && (
   <button
@@ -1186,10 +1188,6 @@ if (busqueda.trim()) {
   >
     Finalizar
   </button>
-)}
-
-    )}
-  </>
 )}
           </div>
         </div>
@@ -1271,6 +1269,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
