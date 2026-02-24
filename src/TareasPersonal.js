@@ -665,16 +665,6 @@ if (busqueda.trim()) {
         👥 Ver usuarios
       </button>
 
-       <button
-          onClick={() => {
-            setMostrarGuardias(true);
-            setMenuAbierto(false);
-          }}
-          className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-        >
-          🛡️ Guardias
-        </button>
-
     <button
   onClick={() => {
     setMenuAbierto(false);
@@ -1255,6 +1245,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
