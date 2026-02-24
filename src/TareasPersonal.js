@@ -1175,6 +1175,16 @@ if (busqueda.trim()) {
 >
   📝 Obs.
 </button>
+    {tarea.solucionado && 
+ tarea.usuario === personal.nombre && 
+ !tarea.finalizado && (
+  <button
+    onClick={() => finalizarTarea(tarea.id)}
+    className="px-2 py-1 bg-blue-600 text-white rounded"
+  >
+    Finalizar
+  </button>
+)}
 </div>
     )}
   </>
@@ -1269,24 +1279,3 @@ if (busqueda.trim()) {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
