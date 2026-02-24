@@ -308,6 +308,20 @@ export default function TareasPersonal({ personal, onLogout }) {
     alert("Hubo un error al guardar");
   }
 };
+
+  const finalizarTarea = async (id) => {
+  try {
+    const res = await fetch(`${API_TAREAS}/finalizar/${id}`, {
+      method: "PUT"
+    });
+
+    if (!res.ok) throw new Error("Error");
+
+    fetchTareas(); // recargar lista
+  } catch (error) {
+    console.error(error);
+  }
+};
   
   const handleSeleccionUsuario = (u) => {
   setEditUsuario({
@@ -1162,6 +1176,18 @@ if (busqueda.trim()) {
   📝 Obs.
 </button>
 </div>
+
+{tarea.solucionado && 
+ tarea.usuario === personal.nombre && 
+ !tarea.finalizado && (
+  <button
+    onClick={() => finalizarTarea(tarea.id)}
+    className="px-2 py-1 bg-blue-600 text-white rounded"
+  >
+    Finalizar
+  </button>
+)}
+
     )}
   </>
 )}
@@ -1245,6 +1271,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
