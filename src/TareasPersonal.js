@@ -1175,30 +1175,21 @@ if (busqueda.trim()) {
 >
   📝 Obs.
 </button>
-    {tarea.solucionado && 
- tarea.usuario === personal.nombre && 
- !tarea.finalizado && (
-  <button
-    onClick={() => finalizarTarea(tarea.id)}
-    className="px-2 py-1 bg-blue-600 text-white rounded"
-  >
-    Finalizar
-  </button>
+    {t.solucionado &&
+      t.usuario === personal.nombre &&
+      !t.fin && (
+        <button
+          onClick={() => finalizarTarea(t.id)}
+          className="px-3 py-1 bg-green-600 text-white rounded text-sm"
+        >
+          ✅ Finalizar
+        </button>
 )}
 </div>
     )}
   </>
 )}
-  {tarea.solucionado && 
- tarea.usuario === personal.nombre && 
- !tarea.finalizado && (
-  <button
-    onClick={() => finalizarTarea(tarea.id)}
-    className="px-2 py-1 bg-blue-600 text-white rounded"
-  >
-    Finalizar
-  </button>
-)}
+
           </div>
         </div>
       </div>
@@ -1279,3 +1270,4 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
