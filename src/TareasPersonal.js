@@ -155,7 +155,9 @@ export default function TareasPersonal({ personal, onLogout }) {
   const fetchTareas = async () => {
     try {
       if (!personal?.area) return;
-      const res = await fetch(`${API_TAREAS}/${encodeURIComponent(personal.area)}`);
+      const res = await fetch(
+  `${API_TAREAS}/${encodeURIComponent(personal.area)}?personal=${encodeURIComponent(personal.nombre)}`
+);
       if (!res.ok) throw new Error("Error HTTP " + res.status);
       const data = await res.json();
       setTareas(data);
@@ -1253,6 +1255,7 @@ if (busqueda.trim()) {
     </div>
   );
 }
+
 
 
 
