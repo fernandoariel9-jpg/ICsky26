@@ -13,9 +13,30 @@ import TareasPersonal from "./TareasPersonal";
 import PanelLogin from "./PanelLogin";
 import ManualUsuario from "./ManualUsuario";
 import AnaliticaAreas from "./AnaliticaAreas";
+import Equipos from "./Equipos";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 const API_URL = "https://sky26.onrender.com/tareas";
+
+function PanelPersonal({ personal, onLogout }) {
+  const [vista, setVista] = useState("tareas");
+
+  return (
+    <>
+      {vista === "tareas" && (
+        <TareasPersonal
+          personal={personal}
+          onLogout={onLogout}
+          setVista={setVista}
+        />
+      )}
+
+      {vista === "equipos" && (
+        <Equipos setVista={setVista} />
+      )}
+    </>
+  );
+}
 
 function Main() {
   const [modo, setModo] = useState("menu"); // "menu", "loginUsuario", "registroUsuario", "loginPersonal", "registroPersonal"
@@ -40,7 +61,7 @@ function Main() {
   if (usuario) return <FormularioUsuario usuario={usuario} onLogout={handleLogout} />;
 
   // Personal logueado → TareasPersonal
-  if (personal) return <TareasPersonal personal={personal} onLogout={handleLogout} />;
+  if (personal) return <PanelPersonal personal={personal} onLogout={handleLogout} />;
 
   // Menú inicial
   if (modo === "menu") {
