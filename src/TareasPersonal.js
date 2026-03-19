@@ -689,6 +689,16 @@ if (busqueda.trim()) {
   ➕ Pedido Interno
 </button>
 
+    <button
+  onClick={() => {
+    setMenuAbierto(false);
+    irAEquipos(); // 👈 función de navegación
+  }}
+  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+>
+  🏥 Equipos
+</button>
+
       <div className="border-t my-1" />
 
       <button
