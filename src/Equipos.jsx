@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "./config";
 
-export default function Equipos() {
+export default function Equipos({ setVista }) {
   const [equipos, setEquipos] = useState([]);
   const [form, setForm] = useState({
     numero_serie: "",
@@ -91,7 +91,7 @@ export default function Equipos() {
 
   // ❌ Eliminar (opcional)
   const eliminarEquipo = async (id) => {
-  if (!confirm("¿Eliminar equipo?")) return;
+  if (!window.confirm("¿Eliminar equipo?")) return;
 
   try {
     await fetch(`${API_URL.Equipos}/${id}`, {
