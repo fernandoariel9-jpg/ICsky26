@@ -14,6 +14,7 @@ import PanelLogin from "./PanelLogin";
 import ManualUsuario from "./ManualUsuario";
 import AnaliticaAreas from "./AnaliticaAreas";
 import Equipos from "./Equipos";
+import PanelPersonal from "./PanelPersonal";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 const API_URL = "https://sky26.onrender.com/tareas";
