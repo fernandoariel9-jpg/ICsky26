@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_URL } from "../config";
 
 export default function Equipos() {
   const [equipos, setEquipos] = useState([]);
@@ -19,10 +20,10 @@ export default function Equipos() {
 
   // 🔄 Cargar equipos
   const cargarEquipos = async () => {
-    const res = await fetch("/api/equipos");
-    const data = await res.json();
-    setEquipos(data);
-  };
+  const res = await fetch(API_URL.Equipos);
+  const data = await res.json();
+  setEquipos(data);
+};
 
   useEffect(() => {
     cargarEquipos();
@@ -46,36 +47,36 @@ export default function Equipos() {
 
   // 💾 Guardar
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const url = editandoId
-      ? `/api/equipos/${editandoId}`
-      : "/api/equipos";
+  const url = editandoId
+    ? `${API_URL.Equipos}/${editandoId}`
+    : API_URL.Equipos;
 
-    const method = editandoId ? "PUT" : "POST";
+  const method = editandoId ? "PUT" : "POST";
 
-    await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
-    });
+  await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(form)
+  });
 
-    setForm({
-      numero_serie: "",
-      descripcion: "",
-      marca_modelo: "",
-      servicio: "",
-      sub_servicio: "",
-      encargado: "",
-      area: "",
-      periodo: "",
-      ultimo_mant: "",
-      estado: "activo"
-    });
+  setForm({
+    numero_serie: "",
+    descripcion: "",
+    marca_modelo: "",
+    servicio: "",
+    sub_servicio: "",
+    encargado: "",
+    area: "",
+    periodo: "",
+    ultimo_mant: "",
+    estado: "activo"
+  });
 
-    setEditandoId(null);
-    cargarEquipos();
-  };
+  setEditandoId(null);
+  cargarEquipos();
+};
 
   // ✏️ Editar
   const editarEquipo = (eq) => {
@@ -90,15 +91,18 @@ export default function Equipos() {
 
   // ❌ Eliminar (opcional)
   const eliminarEquipo = async (id) => {
-    if (!confirm("¿Eliminar equipo?")) return;
+  if (!confirm("¿Eliminar equipo?")) return;
 
-    await fetch(`/api/equipos/${id}`, {
+  try {
+    await fetch(`${API_URL.Equipos}/${id}`, {
       method: "DELETE"
     });
 
     cargarEquipos();
-  };
-
+  } catch (error) {
+    console.error("Error eliminando equipo:", error);
+  }
+};
   return (
     <div style={{ padding: 20 }}>
       <h2>Equipos</h2>
@@ -157,12 +161,18 @@ export default function Equipos() {
               <td>
                 {calcularProximo(eq.ultimo_mant, eq.periodo)}
               </td>
-              <td style={{
-  color: new Date(calcularProximo(eq.ultimo_mant, eq.periodo)) < new Date()
-    ? "red"
-    : "black"
-}}>
-              <td>{eq.estado}</td>
+              <td
+  style={{
+    color:
+      new Date(calcularProximo(eq.ultimo_mant, eq.periodo)) < new Date()
+        ? "red"
+        : "black"
+  }}
+>
+  {calcularProximo(eq.ultimo_mant, eq.periodo)}
+</td>
+
+<td>{eq.estado}</td>
               <td>
                 <button onClick={() => editarEquipo(eq)}>Editar</button>
                 <button onClick={() => eliminarEquipo(eq.id)}>Eliminar</button>
