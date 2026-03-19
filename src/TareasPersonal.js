@@ -12,7 +12,7 @@ import GuardiasServicios from "./GuardiasServicios";
 const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
 
-export default function TareasPersonal({ personal, onLogout }) {
+export default function TareasPersonal({ personal, onLogout, setVista }) {
   const [tareas, setTareas] = useState([]);
   const [soluciones, setSoluciones] = useState({});
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
