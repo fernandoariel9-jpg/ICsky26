@@ -18,26 +18,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
-function PanelPersonal({ personal, onLogout }) {
-  const [vista, setVista] = useState("tareas");
-
-  return (
-    <>
-      {vista === "tareas" && (
-        <TareasPersonal
-          personal={personal}
-          onLogout={onLogout}
-          setVista={setVista}
-        />
-      )}
-
-      {vista === "equipos" && (
-        <Equipos setVista={setVista} />
-      )}
-    </>
-  );
-}
-
 function Main() {
   const [modo, setModo] = useState("menu"); // "menu", "loginUsuario", "registroUsuario", "loginPersonal", "registroPersonal"
   const [usuario, setUsuario] = useState(null);
