@@ -107,6 +107,10 @@ export default function Equipos() {
     <div style={{ padding: 20 }}>
       <h2>Equipos</h2>
 
+      <button onClick={() => setVista("tareas")}>
+  ⬅ Volver
+</button>
+
       {/* 🧾 FORMULARIO */}
       <form onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
         <input name="numero_serie" placeholder="N° Serie" value={form.numero_serie} onChange={handleChange} required />
