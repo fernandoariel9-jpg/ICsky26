@@ -19,5 +19,6 @@ export const API_URL = {
   TiemposAnalitica: `${API_BASE_URL}/api/tiempos_analitica`,
   Equipos: `${API_BASE_URL}/api/equipos`,
   BuscarEquipo: `${API_BASE_URL}/equipos/serie`,
+  Ric01: `${API_BASE_URL}/ric01`,
   Guardias: `${API_BASE_URL}/api/guardias`
 };
