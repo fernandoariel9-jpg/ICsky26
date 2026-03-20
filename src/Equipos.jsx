@@ -5,6 +5,34 @@ export default function Equipos({ setVista }) {
   const [serie, setSerie] = useState("");
   const [equipo, setEquipo] = useState(null);
   const [error, setError] = useState("");
+  const [mostrarForm, setMostrarForm] = useState(false);
+  const [descripcion, setDescripcion] = useState("");
+
+  const guardarMantenimiento = async () => {
+  try {
+    const res = await fetch(API_URL.Ric01, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        numero_serie: equipo.numero_serie,
+        descripcion,
+        asignado: "tecnico", // después lo hacemos dinámico
+        fecha: new Date().toISOString()
+      })
+    });
+
+    if (!res.ok) throw new Error();
+
+    alert("Mantenimiento guardado ✅");
+    setMostrarForm(false);
+    setDescripcion("");
+
+  } catch {
+    alert("Error al guardar ❌");
+  }
+};
 
   const buscarEquipo = async () => {
     if (!serie) return;
@@ -61,6 +89,41 @@ export default function Equipos({ setVista }) {
       {error && (
         <p className="text-red-500 mt-3">{error}</p>
       )}
+
+      {equipo && (
+  <div className="bg-white shadow rounded-xl p-3 mt-3">
+    <p><b>Equipo:</b> {equipo.marca_modelo}</p>
+    <p><b>Serie:</b> {equipo.numero_serie}</p>
+    <p><b>Servicio:</b> {equipo.servicio}</p>
+    <p><b>Área:</b> {equipo.area}</p>
+    <p><b>Estado:</b> {equipo.estado}</p>
+
+    <button
+      onClick={() => setMostrarForm(true)}
+      className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full mt-3"
+    >
+      🛠️ Iniciar mantenimiento
+    </button>
+  </div>
+)}
+
+      {mostrarForm && (
+  <div className="bg-gray-100 p-3 rounded-xl mt-3">
+    <textarea
+      placeholder="Descripción del mantenimiento"
+      value={descripcion}
+      onChange={(e) => setDescripcion(e.target.value)}
+      className="w-full border p-2 rounded-xl mb-2"
+    />
+
+    <button
+      onClick={guardarMantenimiento}
+      className="bg-green-500 text-white px-4 py-2 rounded-xl w-full"
+    >
+      💾 Guardar
+    </button>
+  </div>
+)}
 
       {/* Volver */}
       <button
