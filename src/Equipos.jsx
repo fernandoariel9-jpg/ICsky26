@@ -1,34 +1,27 @@
 import { useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import { API_URL } from "./config";
 
 export default function Equipos({ setVista }) {
   const [serie, setSerie] = useState("");
-  const [escaneando, setEscaneando] = useState(false);
+  const [equipo, setEquipo] = useState(null);
+  const [error, setError] = useState("");
 
-  const iniciarEscaneo = async () => {
-    setEscaneando(true);
-
-    const scanner = new Html5Qrcode("reader");
+  const buscarEquipo = async () => {
+    if (!serie) return;
 
     try {
-      await scanner.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: 250,
-        },
-        (decodedText) => {
-          setSerie(decodedText);
-          scanner.stop();
-          setEscaneando(false);
-        },
-        (error) => {
-          // ignoramos errores de lectura continua
-        }
-      );
+      const res = await fetch(`${API_URL.BuscarEquipo}/${serie}`);
+
+      if (!res.ok) {
+        throw new Error("No encontrado");
+      }
+
+      const data = await res.json();
+      setEquipo(data);
+      setError("");
     } catch (err) {
-      console.error("Error al iniciar cámara", err);
-      setEscaneando(false);
+      setEquipo(null);
+      setError("Equipo no encontrado");
     }
   };
 
@@ -36,7 +29,7 @@ export default function Equipos({ setVista }) {
     <div className="p-4 max-w-md mx-auto">
       <h1 className="text-xl font-bold mb-4">🔧 Búsqueda de Equipos</h1>
 
-      {/* 🔍 Input manual */}
+      {/* Input */}
       <input
         type="text"
         placeholder="Número de serie"
@@ -45,23 +38,31 @@ export default function Equipos({ setVista }) {
         className="w-full border p-2 rounded-xl mb-3"
       />
 
-      {/* 📷 Botón escaneo */}
+      {/* Botón buscar */}
       <button
-        onClick={iniciarEscaneo}
-        className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full mb-3"
+        onClick={buscarEquipo}
+        className="bg-green-500 text-white px-4 py-2 rounded-xl w-full mb-3"
       >
-        📷 Escanear código
+        🔍 Buscar
       </button>
 
-      {/* 📷 Cámara */}
-      {escaneando && (
-        <div
-          id="reader"
-          className="w-full mt-4 border rounded-xl overflow-hidden"
-        />
+      {/* Resultado */}
+      {equipo && (
+        <div className="bg-white shadow rounded-xl p-3 mt-3">
+          <p><b>Equipo:</b> {equipo.marca_modelo}</p>
+          <p><b>Serie:</b> {equipo.numero_serie}</p>
+          <p><b>Servicio:</b> {equipo.servicio}</p>
+          <p><b>Área:</b> {equipo.area}</p>
+          <p><b>Estado:</b> {equipo.estado}</p>
+        </div>
       )}
 
-      {/* 🔙 Volver */}
+      {/* Error */}
+      {error && (
+        <p className="text-red-500 mt-3">{error}</p>
+      )}
+
+      {/* Volver */}
       <button
         onClick={() => setVista("tareas")}
         className="bg-gray-400 text-white px-4 py-2 rounded-xl w-full mt-4"
