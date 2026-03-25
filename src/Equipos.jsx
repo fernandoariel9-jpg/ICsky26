@@ -77,7 +77,8 @@ export default function Equipos({ setVista }) {
       {/* Resultado */}
       {equipo && (
         <div className="bg-white shadow rounded-xl p-3 mt-3">
-          <p><b>Equipo:</b> {equipo.marca_modelo}</p>
+          <p><b>Equipo:</b> {equipo.descripcion}</p>
+          <p><b>Marca:</b> {equipo.marca_modelo}</p>
           <p><b>Serie:</b> {equipo.numero_serie}</p>
           <p><b>Servicio:</b> {equipo.servicio}</p>
           <p><b>Área:</b> {equipo.area}</p>
@@ -92,11 +93,13 @@ export default function Equipos({ setVista }) {
 
       {equipo && (
   <div className="bg-white shadow rounded-xl p-3 mt-3">
-    <p><b>Equipo:</b> {equipo.marca_modelo}</p>
+    <p><b>Equipo:</b> {equipo.descripcion}</p>
+    <p><b>Marca:</b> {equipo.marca_modelo}</p>
     <p><b>Serie:</b> {equipo.numero_serie}</p>
     <p><b>Servicio:</b> {equipo.servicio}</p>
     <p><b>Área:</b> {equipo.area}</p>
     <p><b>Estado:</b> {equipo.estado}</p>
+    <p><b>Ultimo mantenimiento:</b> {equipo.ultimo_mant}</p>
 
     <button
       onClick={() => setMostrarForm(true)}
