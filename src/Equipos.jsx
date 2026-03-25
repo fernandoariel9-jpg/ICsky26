@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { API_URL } from "./config";
 
-export default function Equipos({ setVista }) {
+export default function Equipos({ setVista, personal }) {
   const [serie, setSerie] = useState("");
   const [equipo, setEquipo] = useState(null);
   const [error, setError] = useState("");
@@ -14,27 +14,57 @@ export default function Equipos({ setVista }) {
 
   const guardarMantenimiento = async () => {
   try {
+    const fechaLocal = new Date().toLocaleString();
+
     const res = await fetch(API_URL.Ric01, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
+        usuario: personal.nombre, // o el campo que uses
+        fecha: fechaLocal,
+        tarea: observaciones,
+        diagnostico: diagnosticoSeleccionado,
+        tipo_mantenimiento: tipoMantenimiento,
+        descripcion: equipo.descripcion,
         numero_serie: equipo.numero_serie,
-        descripcion,
-        asignado: "tecnico", // después lo hacemos dinámico
-        fecha: new Date().toISOString()
+        area: personal.area,
+        servicio: equipo.servicio,
+        subservicio: equipo.sub_servicio,
+        asignado: personal.nombre
       })
     });
 
     if (!res.ok) throw new Error();
 
     alert("Mantenimiento guardado ✅");
+
     setMostrarForm(false);
     setDescripcion("");
+    setObservaciones("");
+    setDiagnosticoSeleccionado("");
+    setTipoMantenimiento("");
 
   } catch {
     alert("Error al guardar ❌");
+  }
+};
+  const cargarDiagnosticos = async () => {
+  try {
+    const res = await fetch(API_URL.DiagnosticosRIC02);
+    const data = await res.json();
+    setDiagnosticos(data);
+  } catch {
+    alert("Error cargando diagnósticos");
+  }
+};
+
+  const handleTipoChange = (value) => {
+  setTipoMantenimiento(value);
+
+  if (value === "Correctivo") {
+    cargarDiagnosticos();
   }
 };
 
@@ -105,6 +135,46 @@ export default function Equipos({ setVista }) {
 
       {mostrarForm && (
   <div className="bg-gray-100 p-3 rounded-xl mt-3">
+
+    {/* Tipo de mantenimiento */}
+    <select
+      value={tipoMantenimiento}
+      onChange={(e) => handleTipoChange(e.target.value)}
+      className="w-full border p-2 rounded-xl mb-2"
+    >
+      <option value="">Seleccionar tipo</option>
+      <option value="Correctivo">Correctivo</option>
+      <option value="Preventivo">Preventivo</option>
+      <option value="Verificación">Verificación</option>
+    </select>
+
+    {/* Diagnóstico SOLO si es correctivo */}
+    {tipoMantenimiento === "Correctivo" && (
+      <>
+        <select
+          value={diagnosticoSeleccionado}
+          onChange={(e) => setDiagnosticoSeleccionado(e.target.value)}
+          className="w-full border p-2 rounded-xl mb-2"
+        >
+          <option value="">Seleccionar diagnóstico</option>
+          {diagnosticos.map((d, i) => (
+            <option key={i} value={d.diagnostico}>
+              {d.diagnostico}
+            </option>
+          ))}
+        </select>
+
+        {/* Observaciones */}
+        <textarea
+          placeholder="Observaciones"
+          value={observaciones}
+          onChange={(e) => setObservaciones(e.target.value)}
+          className="w-full border p-2 rounded-xl mb-2"
+        />
+      </>
+    )}
+
+    {/* Descripción (general) */}
     <textarea
       placeholder="Descripción del mantenimiento"
       value={descripcion}
