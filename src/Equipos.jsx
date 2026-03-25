@@ -32,7 +32,9 @@ export default function Equipos({ setVista, personal }) {
         area: personal.area,
         servicio: equipo.servicio,
         subservicio: equipo.sub_servicio,
-        asignado: personal.nombre
+        asignado: personal.nombre,
+        solicitado_por: personal.nombre,
+        origen: "interno"
       })
     });
 
