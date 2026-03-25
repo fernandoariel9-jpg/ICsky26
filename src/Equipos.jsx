@@ -14,7 +14,7 @@ export default function Equipos({ setVista, personal }) {
 
   const guardarMantenimiento = async () => {
   try {
-    const fechaLocal = new Date().toLocaleString();
+    const fechaLocal = new Date().toISOString().slice(0, 19).replace("T", " ");
 
     const res = await fetch(API_URL.Ric01, {
       method: "POST",
