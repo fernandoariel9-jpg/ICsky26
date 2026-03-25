@@ -36,20 +36,22 @@ export default function Equipos({ setVista, personal }) {
       })
     });
 
-    if (!res.ok) throw new Error();
+    const data = await res.json(); // 👈 AGREGAR
+
+    console.log("RESPUESTA BACKEND:", data); // 👈 CLAVE
+
+    if (!res.ok) {
+      throw new Error(data.error || "Error desconocido");
+    }
 
     alert("Mantenimiento guardado ✅");
 
-    setMostrarForm(false);
-    setDescripcion("");
-    setObservaciones("");
-    setDiagnosticoSeleccionado("");
-    setTipoMantenimiento("");
-
-  } catch {
+  } catch (error) {
+    console.error("ERROR COMPLETO:", error); // 👈 CLAVE
     alert("Error al guardar ❌");
   }
 };
+  
   const cargarDiagnosticos = async () => {
   try {
     const res = await fetch(API_URL.DiagnosticosRIC02);
