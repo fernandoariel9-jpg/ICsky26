@@ -7,6 +7,10 @@ export default function Equipos({ setVista }) {
   const [error, setError] = useState("");
   const [mostrarForm, setMostrarForm] = useState(false);
   const [descripcion, setDescripcion] = useState("");
+  const [tipoMantenimiento, setTipoMantenimiento] = useState("");
+  const [diagnosticos, setDiagnosticos] = useState([]);
+  const [diagnosticoSeleccionado, setDiagnosticoSeleccionado] = useState("");
+  const [observaciones, setObservaciones] = useState("");
 
   const guardarMantenimiento = async () => {
   try {
