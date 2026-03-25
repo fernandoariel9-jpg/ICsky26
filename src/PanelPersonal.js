@@ -16,8 +16,11 @@ export default function PanelPersonal({ personal, onLogout }) {
       )}
 
       {vista === "equipos" && (
-        <Equipos setVista={setVista} />
-      )}
+  <Equipos 
+    setVista={setVista} 
+    personal={personal} 
+  />
+)}
     </>
   );
 }
