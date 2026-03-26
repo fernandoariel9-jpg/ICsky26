@@ -41,6 +41,11 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   const [destinoInterno, setDestinoInterno] = useState("");
   const [prioridadInterna, setPrioridadInterna] = useState("Media");
 
+  const iniciarMantenimientoDesdeTarea = (tarea) => {
+  localStorage.setItem("tareaActiva", JSON.stringify(tarea));
+  setVista("equipos");
+};
+
   function getFechaLocal() {
     const d = new Date();
     d.setSeconds(0, 0);
@@ -1031,6 +1036,12 @@ if (busqueda.trim()) {
     >
       🔄 Reasignar
     </button>
+    <button
+  onClick={() => iniciarMantenimientoDesdeTarea(tarea)}
+  className="bg-blue-500 text-white px-3 py-1 rounded-lg mt-2"
+>
+  🔧 Iniciar mantenimiento
+</button>
 
     <textarea
       className="w-full p-2 border rounded mt-2"
