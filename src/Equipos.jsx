@@ -34,7 +34,6 @@ export default function Equipos({ setVista, personal }) {
         subservicio: equipo.sub_servicio,
         asignado: personal.nombre,
         solicitado_por: personal.nombre,
-        observacion: observaciones,
         origen: "interno"
       })
     });
@@ -47,20 +46,18 @@ export default function Equipos({ setVista, personal }) {
 
     alert("Mantenimiento guardado ✅");
 
-    // ✅ actualizar estado del equipo (CLAVE)
-    setEquipo(prev => ({
-      ...prev,
-      mantenimiento_id: data.id
-    }));
-
-    // ✅ cerrar form
+    // ✅ CERRAR FORM
     setMostrarForm(false);
 
-    // ✅ limpiar form
+    // ✅ LIMPIAR CAMPOS
     setTipoMantenimiento("");
     setDiagnosticoSeleccionado("");
     setObservaciones("");
     setDescripcion("");
+
+    // 🔁 OPCIONAL (recomendado)
+    setEquipo(null);
+    setSerie("");
 
   } catch (error) {
     console.error("ERROR COMPLETO:", error);
