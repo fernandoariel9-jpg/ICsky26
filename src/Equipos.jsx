@@ -24,7 +24,7 @@ export default function Equipos({ setVista, personal }) {
       body: JSON.stringify({
         usuario: personal.nombre,
         fecha: fechaLocal,
-        tarea: observaciones,
+        tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
         diagnostico: diagnosticoSeleccionado,
         tipo_mantenimiento: tipoMantenimiento,
         descripcion: equipo.descripcion,
@@ -34,6 +34,7 @@ export default function Equipos({ setVista, personal }) {
         subservicio: equipo.sub_servicio,
         asignado: personal.nombre,
         solicitado_por: personal.nombre,
+        observacio: observaciones,
         origen: "interno"
       })
     });
