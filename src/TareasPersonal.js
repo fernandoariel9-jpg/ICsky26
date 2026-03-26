@@ -1036,20 +1036,7 @@ if (busqueda.trim()) {
     >
       🔄 Reasignar
     </button>
-{tareas.map((tarea) => (
-  <div key={tarea.id} className="bg-white p-3 rounded-xl mb-2">
 
-    <p>{tarea.descripcion}</p>
-
-    <button
-      onClick={() => iniciarMantenimientoDesdeTarea(tarea)}
-      className="bg-blue-500 text-white px-3 py-1 rounded-lg mt-2"
-    >
-      🔧 Iniciar mantenimiento
-    </button>
-
-  </div>
-))}
     <textarea
       className="w-full p-2 border rounded mt-2"
       placeholder="Escriba la solución..."
