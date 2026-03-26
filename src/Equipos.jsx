@@ -12,18 +12,6 @@ export default function Equipos({ setVista, personal }) {
   const [diagnosticoSeleccionado, setDiagnosticoSeleccionado] = useState("");
   const [observaciones, setObservaciones] = useState("");
 
-  const existeAbierto = await pool.query(
-  `SELECT id FROM ric01 
-   WHERE numero_serie = $1 AND fin = false`,
-  [numero_serie]
-);
-
-if (existeAbierto.rows.length > 0) {
-  return res.status(400).json({
-    error: "El equipo ya tiene un mantenimiento abierto"
-  });
-}
-
   const guardarMantenimiento = async () => {
   try {
     const fechaLocal = new Date().toISOString().slice(0, 19).replace("T", " ");
@@ -83,6 +71,18 @@ if (existeAbierto.rows.length > 0) {
     cargarDiagnosticos();
   }
 };
+
+  const existeAbierto = await pool.query(
+  `SELECT id FROM ric01 
+   WHERE numero_serie = $1 AND fin = false`,
+  [numero_serie]
+);
+
+if (existeAbierto.rows.length > 0) {
+  return res.status(400).json({
+    error: "El equipo ya tiene un mantenimiento abierto"
+  });
+}
 
   const buscarEquipo = async () => {
     if (!serie) return;
