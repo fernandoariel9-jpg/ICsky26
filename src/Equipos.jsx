@@ -171,7 +171,7 @@ export default function Equipos({ setVista, personal }) {
         {/* Observaciones */}
         <textarea
           placeholder="Observaciones"
-          value={observaciones}
+          value={observacion}
           onChange={(e) => setObservaciones(e.target.value)}
           className="w-full border p-2 rounded-xl mb-2"
         />
