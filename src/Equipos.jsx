@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { API_URL } from "./config";
+import { useEffect } from "react";
 
 export default function Equipos({ setVista, personal }) {
   const [serie, setSerie] = useState("");
@@ -12,9 +13,22 @@ export default function Equipos({ setVista, personal }) {
   const [diagnosticoSeleccionado, setDiagnosticoSeleccionado] = useState("");
   const [observaciones, setObservaciones] = useState("");
 
+  useEffect(() => {
+  const tareaGuardada = localStorage.getItem("tareaActiva");
+
+  if (tareaGuardada) {
+    const tarea = JSON.parse(tareaGuardada);
+
+    // 👉 podés mostrar info de la tarea si querés
+    console.log("Tarea activa:", tarea);
+  }
+}, []);
+
   const guardarMantenimiento = async () => {
   try {
     const fechaLocal = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+    const tareaActiva = JSON.parse(localStorage.getItem("tareaActiva"));
 
     const res = await fetch(API_URL.Ric01, {
       method: "POST",
@@ -22,7 +36,9 @@ export default function Equipos({ setVista, personal }) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        usuario: personal.nombre,
+        usuario: tareaActiva
+          ? tareaActiva.usuario   // 👈 usuario original de la tarea
+          : personal.nombre,      // 👈 fallback
         fecha: fechaLocal,
         tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
         diagnostico: diagnosticoSeleccionado,
@@ -124,6 +140,13 @@ export default function Equipos({ setVista, personal }) {
       </button>
 
       {/* Resultado */}
+
+{localStorage.getItem("tareaActiva") && (
+  <div className="bg-yellow-100 p-2 rounded mb-3">
+    🔧 Iniciando mantenimiento desde tarea
+  </div>
+)}
+      
 {equipo && (
   <div className="bg-white shadow rounded-xl p-3 mt-3">
     <p><b>Equipo:</b> {equipo.descripcion}</p>
