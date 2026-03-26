@@ -22,7 +22,7 @@ export default function Equipos({ setVista, personal }) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        usuario: personal.nombre, // o el campo que uses
+        usuario: personal.nombre,
         fecha: fechaLocal,
         tarea: observaciones,
         diagnostico: diagnosticoSeleccionado,
@@ -38,9 +38,7 @@ export default function Equipos({ setVista, personal }) {
       })
     });
 
-    const data = await res.json(); // 👈 AGREGAR
-
-    console.log("RESPUESTA BACKEND:", data); // 👈 CLAVE
+    const data = await res.json();
 
     if (!res.ok) {
       throw new Error(data.error || "Error desconocido");
@@ -48,22 +46,24 @@ export default function Equipos({ setVista, personal }) {
 
     alert("Mantenimiento guardado ✅");
 
-     // ✅ CERRAR FORM
+    // ✅ actualizar estado del equipo (CLAVE)
+    setEquipo(prev => ({
+      ...prev,
+      mantenimiento_id: data.id
+    }));
+
+    // ✅ cerrar form
     setMostrarForm(false);
 
-    // ✅ LIMPIAR CAMPOS
+    // ✅ limpiar form
     setTipoMantenimiento("");
     setDiagnosticoSeleccionado("");
     setObservaciones("");
     setDescripcion("");
 
-    // 🔁 OPCIONAL (recomendado)
-    setEquipo(null);
-    setSerie("");
-
   } catch (error) {
-    console.error("ERROR COMPLETO:", error); // 👈 CLAVE
-    alert("Error al guardar ❌");
+    console.error("ERROR COMPLETO:", error);
+    alert(error.message);
   }
 };
   
