@@ -1037,13 +1037,6 @@ if (busqueda.trim()) {
       🔄 Reasignar
     </button>
 
-            <button
-          onClick={() => iniciarMantenimientoDesdeTarea(t)}
-          className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
-        >
-          🔧 Iniciar mantenimiento
-        </button>
-
     <textarea
       className="w-full p-2 border rounded mt-2"
       placeholder="Escriba la solución..."
