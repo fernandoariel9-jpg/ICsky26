@@ -50,8 +50,9 @@ export default function Equipos({ setVista, personal }) {
         subservicio: equipo.sub_servicio,
         asignado: personal.nombre,
         solicitado_por: personal.nombre,
-        solucion: observaciones,
-        origen: "interno"
+        origen: "interno",
+        tarea_id: tareaActiva?.id || null,
+        solucion: observaciones
       })
     });
 
