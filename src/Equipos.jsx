@@ -48,6 +48,19 @@ export default function Equipos({ setVista, personal }) {
 
     alert("Mantenimiento guardado ✅");
 
+     // ✅ CERRAR FORM
+    setMostrarForm(false);
+
+    // ✅ LIMPIAR CAMPOS
+    setTipoMantenimiento("");
+    setDiagnosticoSeleccionado("");
+    setObservaciones("");
+    setDescripcion("");
+
+    // 🔁 OPCIONAL (recomendado)
+    setEquipo(null);
+    setSerie("");
+
   } catch (error) {
     console.error("ERROR COMPLETO:", error); // 👈 CLAVE
     alert("Error al guardar ❌");
