@@ -72,18 +72,6 @@ export default function Equipos({ setVista, personal }) {
   }
 };
 
-  const existeAbierto = await pool.query(
-  `SELECT id FROM ric01 
-   WHERE numero_serie = $1 AND fin = false`,
-  [numero_serie]
-);
-
-if (existeAbierto.rows.length > 0) {
-  return res.status(400).json({
-    error: "El equipo ya tiene un mantenimiento abierto"
-  });
-}
-
   const buscarEquipo = async () => {
     if (!serie) return;
 
