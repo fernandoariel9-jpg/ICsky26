@@ -1038,11 +1038,14 @@ if (busqueda.trim()) {
     </button>
 
           <button
-          onClick={() => iniciarMantenimientoDesdeTarea(t)}
-          className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
-        >
-          🔧 Cargar equipo
-        </button>
+  onClick={() => {
+    localStorage.setItem("tareaActiva", JSON.stringify(t));
+    setVista("seleccionarEquipo");
+  }}
+  className="bg-blue-500 text-white px-3 py-1 rounded"
+>
+  🧩 Cargar equipo
+</button>
 
     <textarea
       className="w-full p-2 border rounded mt-2"
