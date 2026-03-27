@@ -1041,7 +1041,7 @@ if (busqueda.trim()) {
           onClick={() => iniciarMantenimientoDesdeTarea(t)}
           className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
         >
-          🔧 Iniciar mantenimiento
+          🔧 Cargar equipo
         </button>
 
     <textarea
