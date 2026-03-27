@@ -965,11 +965,16 @@ if (busqueda.trim()) {
               🧩 Subservicio: <span className="font-medium">{t.subservicio}</span>
             </p>
           )}
+          {t.descripcion && (
+            <p className="text-sm text-green-600 mt-1">
+             🔧 Equipo: {t.descripcion}
+            </p>
+          )}
           {t.numero_serie && (
-  <p className="text-sm text-green-600 mt-1">
-    🔧 Equipo: {t.numero_serie}
-  </p>
-)}
+            <p className="text-sm text-green-600 mt-1">
+             🔧 N/S: {t.numero_serie}
+            </p>
+          )}
 
           {t.reasignado_a && (
             <p className="text-sm text-purple-700 mt-1">
