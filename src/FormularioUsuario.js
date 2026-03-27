@@ -444,6 +444,17 @@ Cerrar sesión
             </p>
           )}
 
+          {t.descripcion && (
+            <p className="text-sm text-green-600 mt-1">
+             🔧 Equipo: {t.descripcion}
+            </p>
+          )}
+          {t.numero_serie && (
+            <p className="text-sm text-green-600 mt-1">
+             🔧 N/S: {t.numero_serie}
+            </p>
+          )}
+
           {t.asignado && (
             <p className="text-sm text-gray-700 mt-1">
               👷‍♂️ Asignado a: <span className="font-semibold">{t.asignado}</span>
