@@ -1,6 +1,7 @@
 import { useState } from "react";
 import TareasPersonal from "./TareasPersonal";
 import Equipos from "./Equipos";
+import SeleccionEquipo from "./SeleccionEquipo";
 
 export default function PanelPersonal({ personal, onLogout }) {
   const [vista, setVista] = useState("tareas");
