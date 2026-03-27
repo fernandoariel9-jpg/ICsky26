@@ -1,30 +1,42 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { API_URL } from "./config";
 
-const SeleccionEquipo = ({ setVista }) => {
-  const [equipos, setEquipos] = useState([]);
-  const [busqueda, setBusqueda] = useState("");
-
-  const tareaActiva = JSON.parse(localStorage.getItem("tareaActiva"));
+export default function SeleccionEquipo({ setVista }) {
+  const [serie, setSerie] = useState("");
+  const [equipo, setEquipo] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(API_URL.Equipos)
-      .then(res => res.json())
-      .then(data => setEquipos(data))
-      .catch(err => console.error("Error cargando equipos:", err));
+    const tareaGuardada = localStorage.getItem("tareaActiva");
+
+    if (!tareaGuardada) {
+      alert("No hay tarea activa");
+      setVista("tareas");
+    }
   }, []);
 
-  const equiposFiltrados = equipos.filter(e =>
-    `${e.descripcion} ${e.marca_modelo} ${e.numero_serie}`
-      .toLowerCase()
-      .includes(busqueda.toLowerCase())
-  );
-
-  const handleSeleccionarEquipo = async (equipo) => {
-    if (!tareaActiva) return;
+  const buscarEquipo = async () => {
+    if (!serie) return;
 
     try {
-      await fetch(`${API_URL.AsignarEquipo}/${tareaActiva.id}`, {
+      const res = await fetch(`${API_URL.BuscarEquipo}/${serie}`);
+
+      if (!res.ok) throw new Error();
+
+      const data = await res.json();
+      setEquipo(data);
+      setError("");
+    } catch {
+      setEquipo(null);
+      setError("Equipo no encontrado");
+    }
+  };
+
+  const seleccionarEquipo = async () => {
+    try {
+      const tareaActiva = JSON.parse(localStorage.getItem("tareaActiva"));
+
+      await fetch(`${API_URL.Ric01}/asignar-equipo/${tareaActiva.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
@@ -39,42 +51,77 @@ const SeleccionEquipo = ({ setVista }) => {
         })
       });
 
-      localStorage.removeItem("tareaActiva");
+      alert("Equipo asignado ✅");
 
+      localStorage.removeItem("tareaActiva");
       setVista("tareas");
 
     } catch (error) {
-      console.error("Error asignando equipo:", error);
+      console.error(error);
+      alert("Error al asignar equipo");
     }
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-3">Seleccionar equipo</h2>
+    <div className="p-4 max-w-md mx-auto">
+      <h1 className="text-xl font-bold mb-4">🔎 Seleccionar Equipo</h1>
 
+      {/* Input */}
       <input
         type="text"
-        placeholder="Buscar equipo..."
-        className="w-full p-2 border rounded mb-3"
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
+        placeholder="Número de serie"
+        value={serie}
+        onChange={(e) => setSerie(e.target.value)}
+        className="w-full border p-2 rounded-xl mb-3"
       />
 
-      <div className="space-y-2">
-        {equiposFiltrados.map((e) => (
-          <div
-            key={e.numero_serie}
-            onClick={() => handleSeleccionarEquipo(e)}
-            className="p-3 border rounded cursor-pointer hover:bg-gray-100"
+      {/* Botón buscar */}
+      <button
+        onClick={buscarEquipo}
+        className="bg-green-500 text-white px-4 py-2 rounded-xl w-full mb-3"
+      >
+        🔍 Buscar
+      </button>
+
+      {/* Aviso tarea activa */}
+      {localStorage.getItem("tareaActiva") && (
+        <div className="bg-yellow-100 p-2 rounded mb-3">
+          📋 Asignando equipo a tarea
+        </div>
+      )}
+
+      {/* Resultado */}
+      {equipo && (
+        <div className="bg-white shadow rounded-xl p-3 mt-3">
+          <p><b>Equipo:</b> {equipo.descripcion}</p>
+          <p><b>Marca:</b> {equipo.marca_modelo}</p>
+          <p><b>Serie:</b> {equipo.numero_serie}</p>
+          <p><b>Servicio:</b> {equipo.servicio}</p>
+          <p><b>Área:</b> {equipo.area}</p>
+          <p><b>Estado:</b> {equipo.estado}</p>
+          <p><b>Último mantenimiento:</b> {equipo.ultimo_mant}</p>
+
+          <button
+            onClick={seleccionarEquipo}
+            className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full mt-3"
           >
-            <p className="font-semibold">{e.descripcion}</p>
-            <p className="text-sm text-gray-600">{e.marca_modelo}</p>
-            <p className="text-sm text-gray-500">Serie: {e.numero_serie}</p>
-          </div>
-        ))}
-      </div>
+            ✅ Seleccionar equipo
+          </button>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <p className="text-red-500 mt-3">{error}</p>
+      )}
+
+      {/* Volver */}
+      <button
+        onClick={() => setVista("tareas")}
+        className="bg-gray-400 text-white px-4 py-2 rounded-xl w-full mt-4"
+      >
+        ← Volver
+      </button>
     </div>
   );
-};
-
-export default SeleccionEquipo;
+}
