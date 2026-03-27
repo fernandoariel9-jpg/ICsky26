@@ -1037,14 +1037,21 @@ if (busqueda.trim()) {
       🔄 Reasignar
     </button>
 
-          <button
+    <button
   onClick={() => {
-    localStorage.setItem("tareaActiva", JSON.stringify(t));
+    localStorage.setItem("tareaActiva", JSON.stringify(tarea));
     setVista("seleccionarEquipo");
   }}
-  className="bg-blue-500 text-white px-3 py-1 rounded"
+  disabled={tarea.numero_serie} // 👈 CLAVE
+  className={`px-3 py-2 rounded-xl w-full mt-2 ${
+    tarea.numero_serie
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-blue-500 text-white"
+  }`}
 >
-  🧩 Cargar equipo
+  {tarea.numero_serie
+    ? "✅ Equipo ya asignado"
+    : "➕ Cargar equipo"}
 </button>
 
     <textarea
