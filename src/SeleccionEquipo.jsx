@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_URL } from "./config";
 
 const SeleccionEquipo = ({ setVista }) => {
   const [equipos, setEquipos] = useState([]);
@@ -7,7 +8,7 @@ const SeleccionEquipo = ({ setVista }) => {
   const tareaActiva = JSON.parse(localStorage.getItem("tareaActiva"));
 
   useEffect(() => {
-    fetch("http://localhost:3001/equipos")
+    fetch(API_URL.Equipos)
       .then(res => res.json())
       .then(data => setEquipos(data))
       .catch(err => console.error("Error cargando equipos:", err));
@@ -23,7 +24,7 @@ const SeleccionEquipo = ({ setVista }) => {
     if (!tareaActiva) return;
 
     try {
-      await fetch(`http://localhost:3001/ric01/asignar-equipo/${tareaActiva.id}`, {
+      await fetch(`${API_URL.AsignarEquipo}/${tareaActiva.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
