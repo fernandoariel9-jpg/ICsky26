@@ -965,6 +965,11 @@ if (busqueda.trim()) {
               🧩 Subservicio: <span className="font-medium">{t.subservicio}</span>
             </p>
           )}
+          {t.numero_serie && (
+  <p className="text-sm text-green-600 mt-1">
+    🔧 Equipo: {t.numero_serie}
+  </p>
+)}
 
           {t.reasignado_a && (
             <p className="text-sm text-purple-700 mt-1">
@@ -1030,29 +1035,35 @@ if (busqueda.trim()) {
           <div className="mt-3">
             {filtro === "pendientes" && (
   <>
-    <button
-      onClick={() => setModal(t)}
-      className="px-3 py-1 bg-purple-500 text-white rounded text-sm mr-2"
-    >
-      🔄 Reasignar
-    </button>
+    <div className="flex gap-2 flex-wrap">
 
-    <button
-  onClick={() => {
-    localStorage.setItem("tareaActiva", JSON.stringify(tarea));
-    setVista("seleccionarEquipo");
-  }}
-  disabled={tarea.numero_serie} // 👈 CLAVE
-  className={`px-3 py-2 rounded-xl w-full mt-2 ${
-    tarea.numero_serie
-      ? "bg-gray-400 cursor-not-allowed"
-      : "bg-blue-500 text-white"
-  }`}
->
-  {tarea.numero_serie
-    ? "✅ Equipo ya asignado"
-    : "➕ Cargar equipo"}
-</button>
+  {/* REASIGNAR */}
+  <button
+    onClick={() => setModal(t)}
+    className="px-3 py-1 bg-purple-500 text-white rounded text-sm"
+  >
+    🔄 Reasignar
+  </button>
+
+  {/* CARGAR EQUIPO */}
+  <button
+    onClick={() => {
+      localStorage.setItem("tareaActiva", JSON.stringify(t));
+      setVista("seleccionarEquipo");
+    }}
+    disabled={!!t.numero_serie}
+    className={`px-3 py-1 rounded text-sm text-white ${
+      t.numero_serie
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-blue-500"
+    }`}
+  >
+    {t.numero_serie
+      ? "✅ Equipo asignado"
+      : "➕ Cargar equipo"}
+  </button>
+
+</div>
 
     <textarea
       className="w-full p-2 border rounded mt-2"
