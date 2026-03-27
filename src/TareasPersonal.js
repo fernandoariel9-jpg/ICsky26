@@ -1065,7 +1065,7 @@ if (busqueda.trim()) {
   >
     {t.numero_serie
       ? "✅ Equipo asignado"
-      : "➕ Cargar equipo"}
+      : "➕ Asignar equipo"}
   </button>
 
 </div>
