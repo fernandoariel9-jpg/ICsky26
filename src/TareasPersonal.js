@@ -41,7 +41,7 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   const [destinoInterno, setDestinoInterno] = useState("");
   const [prioridadInterna, setPrioridadInterna] = useState("Media");
 
-  const iniciarMantenimientoDesdeTarea = (tarea) => {
+  const cargarEquipoDesdeTarea = (tarea) => {
   localStorage.setItem("tareaActiva", JSON.stringify(tarea));
   setVista("equipos");
 };
