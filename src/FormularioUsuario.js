@@ -517,23 +517,40 @@ Cerrar sesión
           {/* 🔹 Botones según tipo de lista */}
           <div className="mt-3 space-x-2">
             {filtro === "pendientes" && (
-              <button
-                onClick={() => {
-                  const nuevaDescripcion = prompt("Editar tarea:", t.tarea);
-                  if (!nuevaDescripcion) return;
-                  // Actualiza localmente solo, puedes integrar PUT después
-                  setTareas((prev) =>
-                    prev.map((task) =>
-                      task.id === t.id ? { ...task, tarea: nuevaDescripcion } : task
-                    )
-                  );
-                  toast.success("✏️ Tarea editada");
-                }}
-                className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
-              >
-                ✏️ Editar tarea
-              </button>
-            )}
+  <button
+    onClick={async () => {
+      const nuevaDescripcion = prompt("Editar tarea:", t.tarea);
+      if (!nuevaDescripcion || !nuevaDescripcion.trim()) return;
+
+      try {
+        const res = await fetch(`${API_TAREAS}/${t.id}/editar`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tarea: nuevaDescripcion }),
+        });
+
+        if (!res.ok) throw new Error("Error HTTP " + res.status);
+
+        const tareaActualizada = await res.json();
+
+        // ✅ actualizar estado local con lo que devuelve el backend
+        setTareas((prev) =>
+          prev.map((task) =>
+            task.id === t.id ? tareaActualizada : task
+          )
+        );
+
+        toast.success("✏️ Tarea actualizada correctamente");
+      } catch (err) {
+        console.error(err);
+        toast.error("❌ Error al actualizar la tarea");
+      }
+    }}
+    className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
+  >
+    ✏️ Editar tarea
+  </button>
+)}
 
             {filtro === "enProceso" && !t.fin && (
               <button
