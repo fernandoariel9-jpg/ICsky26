@@ -192,8 +192,9 @@ export default function Equipos({ setVista, personal }) {
     <p><b>Serie:</b> {equipo.numero_serie}</p>
     <p><b>Servicio:</b> {equipo.servicio}</p>
     <p><b>Área:</b> {equipo.area}</p>
+    <p><b>Estado:</b> {equipo.estado}</p>
     <div className="mt-2">
-  <p className="text-sm font-semibold mb-1">Estado:</p>
+  <p className="text-sm font-semibold mb-1">Cambiar estado:</p>
 
   <select
     value={equipo.estado || ""}
