@@ -12,6 +12,11 @@ export default function Equipos({ setVista, personal }) {
   const [diagnosticos, setDiagnosticos] = useState([]);
   const [diagnosticoSeleccionado, setDiagnosticoSeleccionado] = useState("");
   const [observaciones, setObservaciones] = useState("");
+  const [estados, setEstados] = useState([]);
+
+  useEffect(() => {
+  fetchEstados();
+}, []);
 
   useEffect(() => {
   const tareaGuardada = localStorage.getItem("tareaActiva");
@@ -23,6 +28,37 @@ export default function Equipos({ setVista, personal }) {
     console.log("Tarea activa:", tarea);
   }
 }, []);
+
+  const fetchEstados = async () => {
+  try {
+    const res = await fetch(API_URL.Estados);
+    const data = await res.json();
+    setEstados(data);
+  } catch (err) {
+    console.error("Error cargando estados:", err);
+  }
+};
+
+  const cambiarEstado = async (id, nuevoEstado) => {
+  try {
+    const res = await fetch(`${API_URL.Equipos}/${id}/estado`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estado: nuevoEstado }),
+    });
+
+    if (!res.ok) throw new Error("Error HTTP");
+
+    const actualizado = await res.json();
+
+    // ✅ actualizar equipo en pantalla
+    setEquipo(actualizado);
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Error al actualizar estado");
+  }
+};
 
   const guardarMantenimiento = async () => {
   try {
@@ -156,7 +192,23 @@ export default function Equipos({ setVista, personal }) {
     <p><b>Serie:</b> {equipo.numero_serie}</p>
     <p><b>Servicio:</b> {equipo.servicio}</p>
     <p><b>Área:</b> {equipo.area}</p>
-    <p><b>Estado:</b> {equipo.estado}</p>
+    <div className="mt-2">
+  <p className="text-sm font-semibold mb-1">Estado:</p>
+
+  <select
+    value={equipo.estado || ""}
+    onChange={(e) => cambiarEstado(equipo.id, e.target.value)}
+    className="w-full border rounded px-2 py-1 text-sm"
+  >
+    <option value="">Seleccionar estado</option>
+
+    {estados.map((est) => (
+      <option key={est.id} value={est.nombre}>
+        {est.nombre}
+      </option>
+    ))}
+  </select>
+</div>
     <p><b>Último mantenimiento:</b> {equipo.ultimo_mant}</p>
 
     <button
