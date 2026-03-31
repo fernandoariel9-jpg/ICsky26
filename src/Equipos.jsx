@@ -203,8 +203,8 @@ export default function Equipos({ setVista, personal }) {
     <option value="">Seleccionar estado</option>
 
     {estados.map((est) => (
-      <option key={est.id} value={est.nombre}>
-        {est.nombre}
+      <option key={est.id} value={est.estado}>
+        {est.estado}
       </option>
     ))}
   </select>
