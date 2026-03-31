@@ -22,5 +22,6 @@ export const API_URL = {
   Ric01: `${API_BASE_URL}/ric01`,
   DiagnosticosRIC02: `${API_BASE_URL}/diagnosticos/ric02`,
   Guardias: `${API_BASE_URL}/api/guardias`,
+  Estados: `${API_BASE_URL}/estados`,
   AsignarEquipo: `${API_BASE_URL}/ric01/asignar-equipo`
 };
