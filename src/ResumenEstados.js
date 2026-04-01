@@ -7,6 +7,7 @@ export default function ResumenEstados() {
   const [autorizado, setAutorizado] = useState(false);
   const [mostrarToken, setMostrarToken] = useState(false);
   const [recordar, setRecordar] = useState(false);
+  const [alertas, setAlertas] = useState([]);
 
   // 🔁 cargar token guardado
   useEffect(() => {
@@ -16,6 +17,21 @@ export default function ResumenEstados() {
       setRecordar(true);
     }
   }, []);
+
+  const fetchAlertas = async () => {
+  try {
+    const res = await fetch(API_URL.AlertasEquipos, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+
+    const data = await res.json();
+    setAlertas(data);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const validarToken = async () => {
     if (token === "ingeclinHR") {
@@ -89,6 +105,8 @@ export default function ResumenEstados() {
       </div>
     );
   }
+await fetchResumen();
+await fetchAlertas();
 
 const total = datos.reduce((acc, item) => acc + Number(item.cantidad), 0);
 
@@ -116,3 +134,16 @@ const total = datos.reduce((acc, item) => acc + Number(item.cantidad), 0);
     </div>
   );
 }
+{alertas.length > 0 && (
+  <div className="mt-4 bg-red-100 border border-red-400 text-red-700 p-3 rounded-xl">
+    <h2 className="font-bold mb-2">
+      ⚠️ Equipos críticos fuera de servicio
+    </h2>
+
+    {alertas.map((eq, index) => (
+      <div key={index} className="text-sm border-b py-1">
+        {eq.descripcion} - Serie: {eq.numero_serie} ({eq.estado})
+      </div>
+    ))}
+  </div>
+)}
