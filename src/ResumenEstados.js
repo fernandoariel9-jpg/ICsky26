@@ -43,7 +43,8 @@ export default function ResumenEstados() {
         localStorage.removeItem("tokenResumen");
       }
 
-      fetchResumen();
+    await fetchResumen();
+    await fetchAlertas();
     } else {
       alert("❌ Token incorrecto");
     }
@@ -105,8 +106,6 @@ export default function ResumenEstados() {
       </div>
     );
   }
-await fetchResumen();
-await fetchAlertas();
 
 const total = datos.reduce((acc, item) => acc + Number(item.cantidad), 0);
 
