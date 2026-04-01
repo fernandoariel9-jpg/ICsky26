@@ -280,18 +280,12 @@ export default function ResumenEstados() {
     {/* 📊 GRÁFICOS */}
     <div className="grid grid-cols-2 gap-6">
 
-      {/* 🥧 PIE ESTADOS */}
       <div className="bg-gray-800 p-4 rounded-xl">
         <h2 className="mb-2">Estados</h2>
 
         <ResponsiveContainer width="100%" height={250}>
           <PieChart>
-            <Pie
-              data={dataEstados}
-              dataKey="value"
-              outerRadius={100}
-              label
-            >
+            <Pie data={dataEstados} dataKey="value" outerRadius={100} label>
               {dataEstados.map((entry, index) => (
                 <Cell key={index} fill={COLORS[index % COLORS.length]} />
               ))}
@@ -300,7 +294,6 @@ export default function ResumenEstados() {
         </ResponsiveContainer>
       </div>
 
-      {/* 📊 BARRAS POR TIPO */}
       <div className="bg-gray-800 p-4 rounded-xl">
         <h2 className="mb-2">Equipos por tipo</h2>
 
@@ -317,9 +310,8 @@ export default function ResumenEstados() {
 
     </div>
 
-    {/* 🚨 ALERTAS GRANDES */}
+    {/* 🚨 ALERTAS */}
     <div className="mt-6">
-
       <h2 className="text-xl mb-3 text-red-400">
         🚨 Alertas críticas
       </h2>
@@ -340,26 +332,23 @@ export default function ResumenEstados() {
       )}
     </div>
 
+    {/* 🔍 MODAL (AHORA SÍ DENTRO DEL RETURN) */}
+    {equipoSeleccionado && (
+      <div className="fixed bottom-4 right-4 bg-white text-black p-4 rounded-xl shadow-xl w-80">
+        <h3 className="font-bold mb-2">🔍 Detalle del equipo</h3>
+
+        <p><b>Equipo:</b> {equipoSeleccionado.descripcion}</p>
+        <p><b>Serie:</b> {equipoSeleccionado.numero_serie}</p>
+        <p><b>Estado:</b> {equipoSeleccionado.estado}</p>
+
+        <button
+          onClick={() => setEquipoSeleccionado(null)}
+          className="mt-2 px-3 py-1 bg-gray-600 text-white rounded"
+        >
+          Cerrar
+        </button>
+      </div>
+    )}
+
   </div>
 );
-
-      {/* 🔍 MODAL */}
-      {equipoSeleccionado && (
-        <div className="mt-4 p-3 border rounded-xl bg-gray-100">
-          <h3 className="font-bold">🔍 Detalle del equipo</h3>
-
-          <p><b>Equipo:</b> {equipoSeleccionado.descripcion}</p>
-          <p><b>Serie:</b> {equipoSeleccionado.numero_serie}</p>
-          <p><b>Estado:</b> {equipoSeleccionado.estado}</p>
-
-          <button
-            onClick={() => setEquipoSeleccionado(null)}
-            className="mt-2 px-3 py-1 bg-gray-500 text-white rounded"
-          >
-            Cerrar
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
