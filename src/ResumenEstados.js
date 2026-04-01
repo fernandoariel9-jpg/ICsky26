@@ -246,87 +246,102 @@ export default function ResumenEstados() {
   const COLORS = ["#22c55e", "#ef4444", "#facc15", "#3b82f6", "#a855f7"];
 
   return (
-    <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-xl font-bold mb-4">
-        📊 Estado de Equipos
-      </h1>
+  <div className="p-6 bg-gray-900 text-white min-h-screen">
 
-      {datos.map((item, index) => {
-        const porcentaje = total
-          ? ((item.cantidad / total) * 100).toFixed(1)
-          : 0;
+    {/* 🧠 HEADER */}
+    <h1 className="text-3xl font-bold mb-6 text-center">
+      🏥 Dashboard Equipamiento
+    </h1>
 
-        return (
-          <div key={index} className="flex justify-between border-b py-2">
-            <span>{item.estado}</span>
-            <span className="font-bold">
-              {item.cantidad} ({porcentaje}%)
-            </span>
-          </div>
-        );
-      })}
+    {/* 📊 KPIs */}
+    <div className="grid grid-cols-3 gap-4 mb-6">
 
-      {/* 🏥 EQUIPOS CRÍTICOS */}
-      <h2 className="mt-6 font-bold text-lg">
-        🏥 Equipos críticos
+      <div className="bg-gray-800 p-4 rounded-xl text-center">
+        <h2 className="text-sm">Total Equipos</h2>
+        <p className="text-3xl font-bold">{total}</p>
+      </div>
+
+      <div className="bg-green-600 p-4 rounded-xl text-center">
+        <h2 className="text-sm">Activos</h2>
+        <p className="text-3xl font-bold">
+          {resumenTipos.reduce((acc, t) => acc + Number(t.activos), 0)}
+        </p>
+      </div>
+
+      <div className="bg-red-600 p-4 rounded-xl text-center">
+        <h2 className="text-sm">Fuera de servicio</h2>
+        <p className="text-3xl font-bold">
+          {resumenTipos.reduce((acc, t) => acc + Number(t.no_activos), 0)}
+        </p>
+      </div>
+
+    </div>
+
+    {/* 📊 GRÁFICOS */}
+    <div className="grid grid-cols-2 gap-6">
+
+      {/* 🥧 PIE ESTADOS */}
+      <div className="bg-gray-800 p-4 rounded-xl">
+        <h2 className="mb-2">Estados</h2>
+
+        <ResponsiveContainer width="100%" height={250}>
+          <PieChart>
+            <Pie
+              data={dataEstados}
+              dataKey="value"
+              outerRadius={100}
+              label
+            >
+              {dataEstados.map((entry, index) => (
+                <Cell key={index} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* 📊 BARRAS POR TIPO */}
+      <div className="bg-gray-800 p-4 rounded-xl">
+        <h2 className="mb-2">Equipos por tipo</h2>
+
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={dataTipos}>
+            <XAxis dataKey="name" hide />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="activos" stackId="a" fill="#22c55e" />
+            <Bar dataKey="no_activos" stackId="a" fill="#ef4444" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+    </div>
+
+    {/* 🚨 ALERTAS GRANDES */}
+    <div className="mt-6">
+
+      <h2 className="text-xl mb-3 text-red-400">
+        🚨 Alertas críticas
       </h2>
 
-      {["TOMOGRAFO", "RESONADOR", "ANGIOGRAFO", "MAMOGRAFO", "ORTOPANTOMOGRAFO", "SERIOGRAFO"].map((tipo) => {
-        const equipo = alertas.find(
-          (e) => e.descripcion?.toUpperCase() === tipo
-        );
-
-        const estaActivo = !equipo;
-
-        return (
-          <div
-            key={tipo}
-            className="flex items-center justify-between border-b py-2 cursor-pointer"
-            onClick={() => !estaActivo && setEquipoSeleccionado(equipo)}
-          >
-            <span>{tipo}</span>
-
-            <span
-              className={`w-4 h-4 rounded-full ${
-                estaActivo ? "bg-green-500" : "bg-red-500"
-              }`}
-            ></span>
-          </div>
-        );
-      })}
-
-      {/* 🚨 ALERTAS POR GRUPOS */}
-      <h2 className="mt-6 font-bold text-lg text-red-600">
-        🚨 Alertas operativas
-      </h2>
-
-      {alertasGrupos.length === 0 ? (
-        <div className="text-green-600 mt-2">
-          ✅ Todos los grupos operativos OK
+      {alertasAvanzadas.length === 0 ? (
+        <div className="bg-green-600 p-4 rounded-xl text-center">
+          ✅ Todo operativo
         </div>
       ) : (
-        alertasGrupos.map((a, i) => (
-          <div key={i} className="flex justify-between py-2 text-red-600">
-            <span>{a}</span>
-            <span className="w-4 h-4 rounded-full bg-red-500"></span>
+        alertasAvanzadas.map((a, i) => (
+          <div
+            key={i}
+            className="bg-red-600 p-4 rounded-xl mb-2 text-lg font-bold"
+          >
+            {a.mensaje}
           </div>
         ))
       )}
+    </div>
 
-      {/* 🚨 ALERTAS AVANZADAS */}
-      {alertasAvanzadas.length > 0 && (
-        <div className="mt-6">
-          <h2 className="font-bold text-lg mb-2 text-red-600">
-            🚨 Alertas críticas
-          </h2>
-
-          {alertasAvanzadas.map((a, i) => (
-            <div key={i} className="bg-red-500 text-white p-3 rounded-xl mb-2">
-              {a.mensaje}
-            </div>
-          ))}
-        </div>
-      )}
+  </div>
+);
 
       {/* 🔍 MODAL */}
       {equipoSeleccionado && (
