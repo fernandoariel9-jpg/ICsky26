@@ -10,6 +10,63 @@ export default function ResumenEstados() {
   const [alertas, setAlertas] = useState([]);
   const [equipoSeleccionado, setEquipoSeleccionado] = useState(null);
 
+  const calcularAlertasGrupos = () => {
+  const alertasGrupo = [];
+
+  const contar = (tipo) => {
+    const total = datos
+      .filter((d) => d.estado === "Activo")
+      .reduce((acc, d) => acc + Number(d.cantidad), 0);
+
+    const noActivos = alertas.filter(
+      (e) => e.descripcion.toUpperCase() === tipo
+    ).length;
+
+    return { total, noActivos };
+  };
+
+  // 🟥 RX
+  ["FLAT PANEL", "ARCO EN C", "EQUIPO RX MOVIL"].forEach((tipo) => {
+    const { total, noActivos } = contar(tipo);
+
+    if (total > 0 && noActivos / total >= 0.5) {
+      alertasGrupo.push(`RX - ${tipo} crítico`);
+    }
+  });
+
+  // 🟥 Centro quirúrgico
+  const cqCriticos = [
+    "BOMBA EXTRACORPOREA",
+    "FACOEMULSIFICADOR",
+    "CRANEOTOMO",
+    "BALON DE CONTRAPULSACION",
+    "MICROSCOPIO DE NEURO",
+    "LITOTRIPTOR",
+    "HISTEROSCOPIO",
+  ];
+
+  cqCriticos.forEach((tipo) => {
+    const existe = alertas.find(
+      (e) => e.descripcion.toUpperCase() === tipo
+    );
+
+    if (existe) {
+      alertasGrupo.push(`Centro Quirúrgico - ${tipo} fuera de servicio`);
+    }
+  });
+
+  // 🟥 Gastro
+  const gastro = alertas.filter(
+    (e) => e.descripcion.toUpperCase() === "VIDEOCOLONOSCOPIO"
+  );
+
+  if (gastro.length >= 1) {
+    alertasGrupo.push("Gastroenterología - riesgo en videocolonoscopios");
+  }
+
+  return alertasGrupo;
+};
+
   // 🔁 cargar token guardado
   useEffect(() => {
     const tokenGuardado = localStorage.getItem("tokenResumen");
@@ -105,6 +162,8 @@ export default function ResumenEstados() {
   }
 
   const total = datos.reduce((acc, item) => acc + Number(item.cantidad), 0);
+
+  const alertasGrupos = calcularAlertasGrupos();
 
   // 📊 DATA
   return (
@@ -239,6 +298,26 @@ if (noActivosGastro / totalGastro >= 0.5 && noActivosGastro > 0) {
           estaActivo ? "bg-green-500" : "bg-red-500"
         }`}
       ></span>
+          {/* 🚨 ALERTAS POR GRUPOS */}
+<h2 className="mt-6 font-bold text-lg text-red-600">
+  🚨 Alertas operativas
+</h2>
+
+{alertasGrupos.length === 0 ? (
+  <div className="text-green-600 mt-2">
+    ✅ Todos los grupos operativos OK
+  </div>
+) : (
+  alertasGrupos.map((a, i) => (
+    <div
+      key={i}
+      className="flex items-center justify-between border-b py-2 text-red-600"
+    >
+      <span>{a}</span>
+      <span className="w-4 h-4 rounded-full bg-red-500"></span>
+    </div>
+  ))
+)}                                                                                   
     </div>
   );
 })}
