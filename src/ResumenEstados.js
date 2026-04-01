@@ -10,63 +10,6 @@ export default function ResumenEstados() {
   const [alertas, setAlertas] = useState([]);
   const [equipoSeleccionado, setEquipoSeleccionado] = useState(null);
 
-  const calcularAlertasGrupos = () => {
-  const alertasGrupo = [];
-
-  const contar = (tipo) => {
-    const total = datos
-      .filter((d) => d.estado === "Activo")
-      .reduce((acc, d) => acc + Number(d.cantidad), 0);
-
-    const noActivos = alertas.filter(
-      (e) => e.descripcion.toUpperCase() === tipo
-    ).length;
-
-    return { total, noActivos };
-  };
-
-  // 🟥 RX
-  ["FLAT PANEL", "ARCO EN C", "EQUIPO RX MOVIL"].forEach((tipo) => {
-    const { total, noActivos } = contar(tipo);
-
-    if (total > 0 && noActivos / total >= 0.5) {
-      alertasGrupo.push(`RX - ${tipo} crítico`);
-    }
-  });
-
-  // 🟥 Centro quirúrgico
-  const cqCriticos = [
-    "BOMBA EXTRACORPOREA",
-    "FACOEMULSIFICADOR",
-    "CRANEOTOMO",
-    "BALON DE CONTRAPULSACION",
-    "MICROSCOPIO DE NEURO",
-    "LITOTRIPTOR",
-    "HISTEROSCOPIO",
-  ];
-
-  cqCriticos.forEach((tipo) => {
-    const existe = alertas.find(
-      (e) => e.descripcion.toUpperCase() === tipo
-    );
-
-    if (existe) {
-      alertasGrupo.push(`Centro Quirúrgico - ${tipo} fuera de servicio`);
-    }
-  });
-
-  // 🟥 Gastro
-  const gastro = alertas.filter(
-    (e) => e.descripcion.toUpperCase() === "VIDEOCOLONOSCOPIO"
-  );
-
-  if (gastro.length >= 1) {
-    alertasGrupo.push("Gastroenterología - riesgo en videocolonoscopios");
-  }
-
-  return alertasGrupo;
-};
-
   // 🔁 cargar token guardado
   useEffect(() => {
     const tokenGuardado = localStorage.getItem("tokenResumen");
@@ -118,6 +61,117 @@ export default function ResumenEstados() {
     }
   };
 
+  // 🔹 ALERTAS POR GRUPOS
+  const calcularAlertasGrupos = () => {
+    const alertasGrupo = [];
+
+    const contar = (tipo) => {
+      const total = 2; // ⚠️ ajustar según realidad
+      const noActivos = alertas.filter(
+        (e) => e.descripcion?.toUpperCase().includes(tipo)
+      ).length;
+
+      return { total, noActivos };
+    };
+
+    ["FLAT PANEL", "ARCO EN C", "EQUIPO RX MOVIL"].forEach((tipo) => {
+      const { total, noActivos } = contar(tipo);
+
+      if (total > 0 && noActivos / total >= 0.5) {
+        alertasGrupo.push(`RX - ${tipo} crítico`);
+      }
+    });
+
+    const cqCriticos = [
+      "BOMBA EXTRACORPOREA",
+      "FACOEMULSIFICADOR",
+      "CRANEOTOMO",
+      "BALON DE CONTRAPULSACION",
+      "MICROSCOPIO DE NEURO",
+      "LITOTRIPTOR",
+      "HISTEROSCOPIO",
+    ];
+
+    cqCriticos.forEach((tipo) => {
+      const existe = alertas.find((e) =>
+        e.descripcion?.toUpperCase().includes(tipo)
+      );
+
+      if (existe) {
+        alertasGrupo.push(`Centro Quirúrgico - ${tipo} fuera de servicio`);
+      }
+    });
+
+    const gastro = alertas.filter((e) =>
+      e.descripcion?.toUpperCase().includes("VIDEOCOLONOSCOPIO")
+    );
+
+    if (gastro.length >= 1) {
+      alertasGrupo.push("Gastroenterología - riesgo en videocolonoscopios");
+    }
+
+    return alertasGrupo;
+  };
+
+  // 🔹 ALERTAS AVANZADAS
+  const calcularAlertasAvanzadas = () => {
+    const alertasAvanzadas = [];
+
+    const rxTipos = ["FLAT PANEL", "ARCO EN C", "RX MOVIL"];
+
+    rxTipos.forEach((tipo) => {
+      const noActivos = alertas.filter((e) =>
+        e.descripcion?.toUpperCase().includes(tipo)
+      ).length;
+
+      const total = 2; // ⚠️ ajustar
+
+      if (noActivos / total >= 0.5 && noActivos > 0) {
+        alertasAvanzadas.push({
+          mensaje: `🚨 RX (${tipo}): ${noActivos}/${total} fuera de servicio`,
+        });
+      }
+    });
+
+    const quirurgicos = [
+      "BOMBA EXTRACORPOREA",
+      "FACOEMULSIFICADOR",
+      "CRANEOTOMO",
+      "BALON DE CONTRAPULSACION",
+      "MICROSCOPIO",
+      "LITOTRIPTOR",
+      "HISTEROSCOPIO",
+    ];
+
+    quirurgicos.forEach((tipo) => {
+      const noActivo = alertas.find((e) =>
+        e.descripcion?.toUpperCase().includes(tipo)
+      );
+
+      if (noActivo) {
+        alertasAvanzadas.push({
+          mensaje: `🚨 QUIRÓFANO: ${tipo} fuera de servicio`,
+        });
+      }
+    });
+
+    const gastro = "VIDEOCOLONOSCOPIO";
+
+    const noActivosGastro = alertas.filter((e) =>
+      e.descripcion?.toUpperCase().includes(gastro)
+    ).length;
+
+    const totalGastro = 2; // ⚠️ ajustar
+
+    if (noActivosGastro / totalGastro >= 0.5 && noActivosGastro > 0) {
+      alertasAvanzadas.push({
+        mensaje: `🚨 GASTRO: ${noActivosGastro}/${totalGastro} fuera de servicio`,
+      });
+    }
+
+    return alertasAvanzadas;
+  };
+
   // 🔐 LOGIN
   if (!autorizado) {
     return (
@@ -164,8 +218,8 @@ export default function ResumenEstados() {
   const total = datos.reduce((acc, item) => acc + Number(item.cantidad), 0);
 
   const alertasGrupos = calcularAlertasGrupos();
+  const alertasAvanzadas = calcularAlertasAvanzadas();
 
-  // 📊 DATA
   return (
     <div className="p-4 max-w-md mx-auto">
       <h1 className="text-xl font-bold mb-4">
@@ -187,176 +241,85 @@ export default function ResumenEstados() {
         );
       })}
 
-      {/* 🏥 EQUIPOS CRÍTICOS VISUAL */}
-<h2 className="mt-6 font-bold text-lg">
-  🏥 Equipos críticos
-</h2>
+      {/* 🏥 EQUIPOS CRÍTICOS */}
+      <h2 className="mt-6 font-bold text-lg">
+        🏥 Equipos críticos
+      </h2>
 
-{["TOMOGRAFO", "RESONADOR", "ANGIOGRAFO", "MAMOGRAFO", "ORTOPANTOMOGRAFO", "SERIOGRAFO"].map((tipo) => {
-  const equipo = alertas.find(
-    (e) => e.descripcion.toUpperCase() === tipo
-  );
+      {["TOMOGRAFO", "RESONADOR", "ANGIOGRAFO", "MAMOGRAFO", "ORTOPANTOMOGRAFO", "SERIOGRAFO"].map((tipo) => {
+        const equipo = alertas.find(
+          (e) => e.descripcion?.toUpperCase() === tipo
+        );
 
-  const estaActivo = (tipo) => {
-  return !alertas.find(
-    (e) => e.descripcion?.toUpperCase().includes(tipo)
-  );
-};
+        const estaActivo = !equipo;
 
-  const alertasAvanzadas = [];
+        return (
+          <div
+            key={tipo}
+            className="flex items-center justify-between border-b py-2 cursor-pointer"
+            onClick={() => !estaActivo && setEquipoSeleccionado(equipo)}
+          >
+            <span>{tipo}</span>
 
-// 🔴 RX
-const contarNoActivos = (tipo) =>
-  alertas.filter((e) =>
-    e.descripcion?.toUpperCase().includes(tipo)
-  ).length;
+            <span
+              className={`w-4 h-4 rounded-full ${
+                estaActivo ? "bg-green-500" : "bg-red-500"
+              }`}
+            ></span>
+          </div>
+        );
+      })}
 
-const contarTotal = (tipo) =>
-  datos
-    .filter((d) => d.estado) // usamos datos solo como referencia global
-    .reduce((acc) => acc, 0); // no usamos esto realmente
+      {/* 🚨 ALERTAS POR GRUPOS */}
+      <h2 className="mt-6 font-bold text-lg text-red-600">
+        🚨 Alertas operativas
+      </h2>
 
-// ⚠️ mejor: calcular sobre alertas + activos
-const contarEquipos = (tipo) => {
-  const total = alertas.filter((e) =>
-    e.descripcion?.toUpperCase().includes(tipo)
-  ).length;
+      {alertasGrupos.length === 0 ? (
+        <div className="text-green-600 mt-2">
+          ✅ Todos los grupos operativos OK
+        </div>
+      ) : (
+        alertasGrupos.map((a, i) => (
+          <div key={i} className="flex justify-between py-2 text-red-600">
+            <span>{a}</span>
+            <span className="w-4 h-4 rounded-full bg-red-500"></span>
+          </div>
+        ))
+      )}
 
-  // ⚠️ si querés precisión real, esto debería venir de backend
-  return total;
-};
+      {/* 🚨 ALERTAS AVANZADAS */}
+      {alertasAvanzadas.length > 0 && (
+        <div className="mt-6">
+          <h2 className="font-bold text-lg mb-2 text-red-600">
+            🚨 Alertas críticas
+          </h2>
 
-// RX condiciones (basado en alertas)
-const rxTipos = ["FLAT PANEL", "ARCO EN C", "RX MOVIL"];
+          {alertasAvanzadas.map((a, i) => (
+            <div key={i} className="bg-red-500 text-white p-3 rounded-xl mb-2">
+              {a.mensaje}
+            </div>
+          ))}
+        </div>
+      )}
 
-rxTipos.forEach((tipo) => {
-  const noActivos = alertas.filter((e) =>
-    e.descripcion?.toUpperCase().includes(tipo)
-  ).length;
+      {/* 🔍 MODAL */}
+      {equipoSeleccionado && (
+        <div className="mt-4 p-3 border rounded-xl bg-gray-100">
+          <h3 className="font-bold">🔍 Detalle del equipo</h3>
 
-  // ⚠️ asumimos total conocido = 2 (ajustable)
-  const total = 2; // 👈 CAMBIAR SEGÚN TU REALIDAD
+          <p><b>Equipo:</b> {equipoSeleccionado.descripcion}</p>
+          <p><b>Serie:</b> {equipoSeleccionado.numero_serie}</p>
+          <p><b>Estado:</b> {equipoSeleccionado.estado}</p>
 
-  if (noActivos / total >= 0.5 && noActivos > 0) {
-    alertasAvanzadas.push({
-      tipo: "critico",
-      mensaje: `🚨 RX (${tipo}): ${noActivos}/${total} fuera de servicio`,
-    });
-  }
-});
-
-// 🔴 CENTRO QUIRURGICO
-const quirurgicos = [
-  "BOMBA EXTRACORPOREA",
-  "FACOEMULSIFICADOR",
-  "CRANEOTOMO",
-  "BALON DE CONTRAPULSACION",
-  "MICROSCOPIO",
-  "LITOTRIPTOR",
-  "HISTEROSCOPIO",
-];
-
-quirurgicos.forEach((tipo) => {
-  const noActivo = alertas.find((e) =>
-    e.descripcion?.toUpperCase().includes(tipo)
-  );
-
-  if (noActivo) {
-    alertasAvanzadas.push({
-      tipo: "critico",
-      mensaje: `🚨 QUIRÓFANO: ${tipo} fuera de servicio`,
-    });
-  }
-});
-
-// 🔴 GASTRO
-const gastro = "VIDEOCOLONOSCOPIO";
-
-const noActivosGastro = alertas.filter((e) =>
-  e.descripcion?.toUpperCase().includes(gastro)
-).length;
-
-const totalGastro = 2; // 👈 AJUSTAR
-
-if (noActivosGastro / totalGastro >= 0.5 && noActivosGastro > 0) {
-  alertasAvanzadas.push({
-    tipo: "critico",
-    mensaje: `🚨 GASTRO: ${noActivosGastro}/${totalGastro} videocolonoscopios fuera de servicio`,
-  });
-}
-
-  return (
-    <div
-      key={tipo}
-      className="flex items-center justify-between border-b py-2 cursor-pointer"
-      onClick={() => !estaActivo && setEquipoSeleccionado(equipo)}
-    >
-      <span>{tipo}</span>
-
-      <span
-        className={`w-4 h-4 rounded-full ${
-          estaActivo ? "bg-green-500" : "bg-red-500"
-        }`}
-      ></span>
-          {/* 🚨 ALERTAS POR GRUPOS */}
-<h2 className="mt-6 font-bold text-lg text-red-600">
-  🚨 Alertas operativas
-</h2>
-
-{alertasGrupos.length === 0 ? (
-  <div className="text-green-600 mt-2">
-    ✅ Todos los grupos operativos OK
-  </div>
-) : (
-  alertasGrupos.map((a, i) => (
-    <div
-      key={i}
-      className="flex items-center justify-between border-b py-2 text-red-600"
-    >
-      <span>{a}</span>
-      <span className="w-4 h-4 rounded-full bg-red-500"></span>
-    </div>
-  ))
-)}                                                                                   
-    </div>
-  );
-})}
-
-{/* 🔍 MODAL / DETALLE */}
-{equipoSeleccionado && (
-  <div className="mt-4 p-3 border rounded-xl bg-gray-100">
-    <h3 className="font-bold">
-      🔍 Detalle del equipo
-    </h3>
-
-    <p><b>Equipo:</b> {equipoSeleccionado.descripcion}</p>
-    <p><b>Serie:</b> {equipoSeleccionado.numero_serie}</p>
-    <p><b>Estado:</b> {equipoSeleccionado.estado}</p>
-
-    <button
-      onClick={() => setEquipoSeleccionado(null)}
-      className="mt-2 px-3 py-1 bg-gray-500 text-white rounded"
-    >
-      Cerrar
-    </button>
-  </div>
-)}
+          <button
+            onClick={() => setEquipoSeleccionado(null)}
+            className="mt-2 px-3 py-1 bg-gray-500 text-white rounded"
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
     </div>
   );
 }
-{alertasAvanzadas.length > 0 && (
-  <div className="mt-6">
-    <h2 className="font-bold text-lg mb-2">
-      🚨 Alertas operativas
-    </h2>
-
-    {alertasAvanzadas.map((a, i) => (
-      <div
-        key={i}
-        className="bg-red-500 text-white p-3 rounded-xl mb-2"
-      >
-        {a.mensaje}
-      </div>
-    ))}
-  </div>
-)}
