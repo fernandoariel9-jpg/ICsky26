@@ -1,9 +1,25 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "./config";
+import { useLocation } from "react-router-dom";
 
 export default function ResumenEstados() {
   const [datos, setDatos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [autorizado, setAutorizado] = useState(false);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get("token");
+
+    // 👉 TOKEN HARDCODEADO (simple)
+    if (token === "ingeclinHR") {
+      setAutorizado(true);
+      fetchResumen();
+    } else {
+      setAutorizado(false);
+    }
+  }, []);
 
   const fetchResumen = async () => {
     try {
@@ -11,17 +27,18 @@ export default function ResumenEstados() {
       const data = await res.json();
       setDatos(data);
     } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
+      console.error(error);
     }
   };
 
-  useEffect(() => {
-    fetchResumen();
-  }, []);
-
-  if (loading) return <p className="p-4">Cargando...</p>;
+  // ❌ BLOQUEO
+  if (!autorizado) {
+    return (
+      <div className="p-4 text-center text-red-500">
+        🚫 Acceso no autorizado
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 max-w-md mx-auto">
@@ -29,17 +46,12 @@ export default function ResumenEstados() {
         📊 Estado de Equipos
       </h1>
 
-      <div className="bg-white shadow rounded-xl p-4">
-        {datos.map((item, index) => (
-          <div
-            key={index}
-            className="flex justify-between border-b py-2"
-          >
-            <span>{item.estado}</span>
-            <span className="font-bold">{item.cantidad}</span>
-          </div>
-        ))}
-      </div>
+      {datos.map((item, index) => (
+        <div key={index} className="flex justify-between border-b py-2">
+          <span>{item.estado}</span>
+          <span className="font-bold">{item.cantidad}</span>
+        </div>
+      ))}
     </div>
   );
 }
