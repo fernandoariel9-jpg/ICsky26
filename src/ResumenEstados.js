@@ -22,7 +22,7 @@ export default function ResumenEstados() {
   try {
     const res = await fetch(API_URL.AlertasEquipos, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        Authorization: `Bearer ${token}`, // 👈 usar el token que ingresás
       },
     });
 
