@@ -138,7 +138,93 @@ export default function ResumenEstados() {
     (e) => e.descripcion.toUpperCase() === tipo
   );
 
-  const estaActivo = !equipo;
+  const estaActivo = (tipo) => {
+  return !alertas.find(
+    (e) => e.descripcion?.toUpperCase().includes(tipo)
+  );
+};
+
+  const alertasAvanzadas = [];
+
+// 🔴 RX
+const contarNoActivos = (tipo) =>
+  alertas.filter((e) =>
+    e.descripcion?.toUpperCase().includes(tipo)
+  ).length;
+
+const contarTotal = (tipo) =>
+  datos
+    .filter((d) => d.estado) // usamos datos solo como referencia global
+    .reduce((acc) => acc, 0); // no usamos esto realmente
+
+// ⚠️ mejor: calcular sobre alertas + activos
+const contarEquipos = (tipo) => {
+  const total = alertas.filter((e) =>
+    e.descripcion?.toUpperCase().includes(tipo)
+  ).length;
+
+  // ⚠️ si querés precisión real, esto debería venir de backend
+  return total;
+};
+
+// RX condiciones (basado en alertas)
+const rxTipos = ["FLAT PANEL", "ARCO EN C", "RX MOVIL"];
+
+rxTipos.forEach((tipo) => {
+  const noActivos = alertas.filter((e) =>
+    e.descripcion?.toUpperCase().includes(tipo)
+  ).length;
+
+  // ⚠️ asumimos total conocido = 2 (ajustable)
+  const total = 2; // 👈 CAMBIAR SEGÚN TU REALIDAD
+
+  if (noActivos / total >= 0.5 && noActivos > 0) {
+    alertasAvanzadas.push({
+      tipo: "critico",
+      mensaje: `🚨 RX (${tipo}): ${noActivos}/${total} fuera de servicio`,
+    });
+  }
+});
+
+// 🔴 CENTRO QUIRURGICO
+const quirurgicos = [
+  "BOMBA EXTRACORPOREA",
+  "FACOEMULSIFICADOR",
+  "CRANEOTOMO",
+  "BALON DE CONTRAPULSACION",
+  "MICROSCOPIO",
+  "LITOTRIPTOR",
+  "HISTEROSCOPIO",
+];
+
+quirurgicos.forEach((tipo) => {
+  const noActivo = alertas.find((e) =>
+    e.descripcion?.toUpperCase().includes(tipo)
+  );
+
+  if (noActivo) {
+    alertasAvanzadas.push({
+      tipo: "critico",
+      mensaje: `🚨 QUIRÓFANO: ${tipo} fuera de servicio`,
+    });
+  }
+});
+
+// 🔴 GASTRO
+const gastro = "VIDEOCOLONOSCOPIO";
+
+const noActivosGastro = alertas.filter((e) =>
+  e.descripcion?.toUpperCase().includes(gastro)
+).length;
+
+const totalGastro = 2; // 👈 AJUSTAR
+
+if (noActivosGastro / totalGastro >= 0.5 && noActivosGastro > 0) {
+  alertasAvanzadas.push({
+    tipo: "critico",
+    mensaje: `🚨 GASTRO: ${noActivosGastro}/${totalGastro} videocolonoscopios fuera de servicio`,
+  });
+}
 
   return (
     <div
@@ -179,3 +265,19 @@ export default function ResumenEstados() {
     </div>
   );
 }
+{alertasAvanzadas.length > 0 && (
+  <div className="mt-6">
+    <h2 className="font-bold text-lg mb-2">
+      🚨 Alertas operativas
+    </h2>
+
+    {alertasAvanzadas.map((a, i) => (
+      <div
+        key={i}
+        className="bg-red-500 text-white p-3 rounded-xl mb-2"
+      >
+        {a.mensaje}
+      </div>
+    ))}
+  </div>
+)}
