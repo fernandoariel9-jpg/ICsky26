@@ -9,6 +9,7 @@ export default function ResumenEstados() {
   const [recordar, setRecordar] = useState(false);
   const [alertas, setAlertas] = useState([]);
   const [equipoSeleccionado, setEquipoSeleccionado] = useState(null);
+  const [resumenTipos, setResumenTipos] = useState([]);
 
   // 🔁 cargar token guardado
   useEffect(() => {
@@ -18,6 +19,21 @@ export default function ResumenEstados() {
       setRecordar(true);
     }
   }, []);
+
+  const fetchResumenTipos = async () => {
+  try {
+    const res = await fetch(API_URL.ResumenTipos, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    setResumenTipos(data);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const fetchResumen = async () => {
     try {
@@ -56,6 +72,7 @@ export default function ResumenEstados() {
 
       await fetchResumen();
       await fetchAlertas();
+      await fetchResumenTipos();
     } else {
       alert("❌ Token incorrecto");
     }
@@ -63,114 +80,99 @@ export default function ResumenEstados() {
 
   // 🔹 ALERTAS POR GRUPOS
   const calcularAlertasGrupos = () => {
-    const alertasGrupo = [];
+  const alertasGrupo = [];
 
-    const contar = (tipo) => {
-      const total = 2; // ⚠️ ajustar según realidad
-      const noActivos = alertas.filter(
-        (e) => e.descripcion?.toUpperCase().includes(tipo)
-      ).length;
+  const getTipo = (tipo) =>
+    resumenTipos.find((t) => t.tipo === tipo);
 
-      return { total, noActivos };
-    };
+  // RX
+  ["FLAT PANEL", "ARCO EN C", "EQUIPO RX MOVIL"].forEach((tipo) => {
+    const data = getTipo(tipo);
 
-    ["FLAT PANEL", "ARCO EN C", "EQUIPO RX MOVIL"].forEach((tipo) => {
-      const { total, noActivos } = contar(tipo);
-
-      if (total > 0 && noActivos / total >= 0.5) {
-        alertasGrupo.push(`RX - ${tipo} crítico`);
+    if (data && data.total > 0) {
+      if (data.no_activos / data.total >= 0.5) {
+        alertasGrupo.push(`RX - ${tipo} crítico (${data.no_activos}/${data.total})`);
       }
-    });
-
-    const cqCriticos = [
-      "BOMBA EXTRACORPOREA",
-      "FACOEMULSIFICADOR",
-      "CRANEOTOMO",
-      "BALON DE CONTRAPULSACION",
-      "MICROSCOPIO DE NEURO",
-      "LITOTRIPTOR",
-      "HISTEROSCOPIO",
-    ];
-
-    cqCriticos.forEach((tipo) => {
-      const existe = alertas.find((e) =>
-        e.descripcion?.toUpperCase().includes(tipo)
-      );
-
-      if (existe) {
-        alertasGrupo.push(`Centro Quirúrgico - ${tipo} fuera de servicio`);
-      }
-    });
-
-    const gastro = alertas.filter((e) =>
-      e.descripcion?.toUpperCase().includes("VIDEOCOLONOSCOPIO")
-    );
-
-    if (gastro.length >= 1) {
-      alertasGrupo.push("Gastroenterología - riesgo en videocolonoscopios");
     }
+  });
 
-    return alertasGrupo;
-  };
+  // Centro quirúrgico
+  const cqCriticos = [
+    "BOMBA EXTRACORPOREA",
+    "FACOEMULSIFICADOR",
+    "CRANEOTOMO",
+    "BALON DE CONTRAPULSACION",
+    "MICROSCOPIO DE NEURO",
+    "LITOTRIPTOR",
+    "HISTEROSCOPIO",
+  ];
+
+  cqCriticos.forEach((tipo) => {
+    const data = getTipo(tipo);
+
+    if (data && data.no_activos > 0) {
+      alertasGrupo.push(`Centro Quirúrgico - ${tipo} fuera de servicio`);
+    }
+  });
+
+  // Gastro
+  const gastro = getTipo("VIDEOCOLONOSCOPIO");
+
+  if (gastro && gastro.no_activos / gastro.total >= 0.5) {
+    alertasGrupo.push(`Gastro - ${gastro.no_activos}/${gastro.total} fuera de servicio`);
+  }
+
+  return alertasGrupo;
+};
 
   // 🔹 ALERTAS AVANZADAS
   const calcularAlertasAvanzadas = () => {
-    const alertasAvanzadas = [];
+  const alertasAvanzadas = [];
 
-    const rxTipos = ["FLAT PANEL", "ARCO EN C", "RX MOVIL"];
+  const getTipo = (tipo) =>
+    resumenTipos.find((t) => t.tipo === tipo);
 
-    rxTipos.forEach((tipo) => {
-      const noActivos = alertas.filter((e) =>
-        e.descripcion?.toUpperCase().includes(tipo)
-      ).length;
+  // RX
+  ["FLAT PANEL", "ARCO EN C", "EQUIPO RX MOVIL"].forEach((tipo) => {
+    const data = getTipo(tipo);
 
-      const total = 2; // ⚠️ ajustar
-
-      if (noActivos / total >= 0.5 && noActivos > 0) {
-        alertasAvanzadas.push({
-          mensaje: `🚨 RX (${tipo}): ${noActivos}/${total} fuera de servicio`,
-        });
-      }
-    });
-
-    const quirurgicos = [
-      "BOMBA EXTRACORPOREA",
-      "FACOEMULSIFICADOR",
-      "CRANEOTOMO",
-      "BALON DE CONTRAPULSACION",
-      "MICROSCOPIO",
-      "LITOTRIPTOR",
-      "HISTEROSCOPIO",
-    ];
-
-    quirurgicos.forEach((tipo) => {
-      const noActivo = alertas.find((e) =>
-        e.descripcion?.toUpperCase().includes(tipo)
-      );
-
-      if (noActivo) {
-        alertasAvanzadas.push({
-          mensaje: `🚨 QUIRÓFANO: ${tipo} fuera de servicio`,
-        });
-      }
-    });
-
-    const gastro = "VIDEOCOLONOSCOPIO";
-
-    const noActivosGastro = alertas.filter((e) =>
-      e.descripcion?.toUpperCase().includes(gastro)
-    ).length;
-
-    const totalGastro = 2; // ⚠️ ajustar
-
-    if (noActivosGastro / totalGastro >= 0.5 && noActivosGastro > 0) {
+    if (data && data.total > 0 && data.no_activos / data.total >= 0.5) {
       alertasAvanzadas.push({
-        mensaje: `🚨 GASTRO: ${noActivosGastro}/${totalGastro} fuera de servicio`,
+        mensaje: `🚨 RX (${tipo}): ${data.no_activos}/${data.total} fuera de servicio`,
       });
     }
+  });
 
-    return alertasAvanzadas;
-  };
+  // Quirófano
+  [
+    "BOMBA EXTRACORPOREA",
+    "FACOEMULSIFICADOR",
+    "CRANEOTOMO",
+    "BALON DE CONTRAPULSACION",
+    "MICROSCOPIO DE NEURO",
+    "LITOTRIPTOR",
+    "HISTEROSCOPIO",
+  ].forEach((tipo) => {
+    const data = getTipo(tipo);
+
+    if (data && data.no_activos > 0) {
+      alertasAvanzadas.push({
+        mensaje: `🚨 QUIRÓFANO: ${tipo} fuera de servicio`,
+      });
+    }
+  });
+
+  // Gastro
+  const gastro = getTipo("VIDEOCOLONOSCOPIO");
+
+  if (gastro && gastro.no_activos / gastro.total >= 0.5) {
+    alertasAvanzadas.push({
+      mensaje: `🚨 GASTRO: ${gastro.no_activos}/${gastro.total} fuera de servicio`,
+    });
+  }
+
+  return alertasAvanzadas;
+};
 
   // 🔐 LOGIN
   if (!autorizado) {
