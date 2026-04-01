@@ -105,7 +105,7 @@ export default function App() {
 
         {/* 🔁 Todo lo demás sigue funcionando igual */}
         <Route path="/*" element={<Main />} />
-
+        <Route path="/estado-equipos" element={<ResumenEstados />} />
       </Routes>
     </BrowserRouter>
   );
