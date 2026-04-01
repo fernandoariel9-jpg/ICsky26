@@ -250,7 +250,7 @@ export default function ResumenEstados() {
 
     {/* 🧠 HEADER */}
     <h1 className="text-3xl font-bold mb-6 text-center">
-      🏥 Dashboard Equipamiento
+      🏥 Equipamiento a cargo del Servicio de Ingeniería Clínica HPDDGR
     </h1>
 
     {/* 📊 KPIs */}
