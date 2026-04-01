@@ -18,20 +18,30 @@ export default function ResumenEstados() {
     }
   }, []);
 
-  const fetchAlertas = async () => {
-  try {
-    const res = await fetch(API_URL.AlertasEquipos, {
-      headers: {
-        Authorization: `Bearer ${token}`, // 👈 usar el token que ingresás
-      },
-    });
+  const fetchResumen = async () => {
+    try {
+      const res = await fetch(API_URL.ResumenEstados);
+      const data = await res.json();
+      setDatos(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-    const data = await res.json();
-    setAlertas(data);
-  } catch (error) {
-    console.error(error);
-  }
-};
+  const fetchAlertas = async () => {
+    try {
+      const res = await fetch(API_URL.AlertasEquipos, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      setAlertas(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const validarToken = async () => {
     if (token === "ingeclinHR") {
@@ -43,20 +53,10 @@ export default function ResumenEstados() {
         localStorage.removeItem("tokenResumen");
       }
 
-    await fetchResumen();
-    await fetchAlertas();
+      await fetchResumen();
+      await fetchAlertas();
     } else {
       alert("❌ Token incorrecto");
-    }
-  };
-
-  const fetchResumen = async () => {
-    try {
-      const res = await fetch(API_URL.ResumenEstados);
-      const data = await res.json();
-      setDatos(data);
-    } catch (error) {
-      console.error(error);
     }
   };
 
@@ -68,7 +68,6 @@ export default function ResumenEstados() {
           🔐 Acceso
         </h1>
 
-        {/* INPUT TOKEN */}
         <input
           type={mostrarToken ? "text" : "password"}
           placeholder="Ingresar token"
@@ -77,7 +76,6 @@ export default function ResumenEstados() {
           className="w-full border p-2 rounded-xl mb-2"
         />
 
-        {/* VER TOKEN */}
         <button
           onClick={() => setMostrarToken(!mostrarToken)}
           className="text-sm text-blue-500 mb-2"
@@ -85,7 +83,6 @@ export default function ResumenEstados() {
           {mostrarToken ? "🙈 Ocultar" : "👁 Ver token"}
         </button>
 
-        {/* RECORDAR */}
         <div className="flex items-center mb-3">
           <input
             type="checkbox"
@@ -96,7 +93,6 @@ export default function ResumenEstados() {
           <label>Recordar token</label>
         </div>
 
-        {/* BOTON */}
         <button
           onClick={validarToken}
           className="bg-green-500 text-white px-4 py-2 rounded-xl w-full"
@@ -107,7 +103,7 @@ export default function ResumenEstados() {
     );
   }
 
-const total = datos.reduce((acc, item) => acc + Number(item.cantidad), 0);
+  const total = datos.reduce((acc, item) => acc + Number(item.cantidad), 0);
 
   // 📊 DATA
   return (
@@ -117,56 +113,34 @@ const total = datos.reduce((acc, item) => acc + Number(item.cantidad), 0);
       </h1>
 
       {datos.map((item, index) => {
-  const porcentaje = total
-    ? ((item.cantidad / total) * 100).toFixed(1)
-    : 0;
+        const porcentaje = total
+          ? ((item.cantidad / total) * 100).toFixed(1)
+          : 0;
 
-  return (
-  <div className="p-4 max-w-md mx-auto">
-    <h1 className="text-xl font-bold mb-4">
-      📊 Estado de Equipos
-    </h1>
-
-    {datos.map((item, index) => {
-      const porcentaje = total
-        ? ((item.cantidad / total) * 100).toFixed(1)
-        : 0;
-
-      // 📊 DATA
-return (
-  <div className="p-4 max-w-md mx-auto">
-    <h1 className="text-xl font-bold mb-4">
-      📊 Estado de Equipos
-    </h1>
-
-    {datos.map((item, index) => {
-      const porcentaje = total
-        ? ((item.cantidad / total) * 100).toFixed(1)
-        : 0;
-
-      return (
-        <div key={index} className="flex justify-between border-b py-2">
-          <span>{item.estado}</span>
-          <span className="font-bold">
-            {item.cantidad} ({porcentaje}%)
-          </span>
-        </div>
-      );
-    })}
-
-    {/* 👇 ALERTAS */}
-    {alertas.length > 0 && (
-      <div className="mt-4 bg-red-100 border border-red-400 text-red-700 p-3 rounded-xl">
-        <h2 className="font-bold mb-2">
-          ⚠️ Equipos críticos fuera de servicio
-        </h2>
-
-        {alertas.map((eq, index) => (
-          <div key={index} className="text-sm border-b py-1">
-            {eq.descripcion} - Serie: {eq.numero_serie} ({eq.estado})
+        return (
+          <div key={index} className="flex justify-between border-b py-2">
+            <span>{item.estado}</span>
+            <span className="font-bold">
+              {item.cantidad} ({porcentaje}%)
+            </span>
           </div>
-        ))}
-      </div>
-    )}
-  </div>
-);
+        );
+      })}
+
+      {/* ⚠️ ALERTAS */}
+      {alertas.length > 0 && (
+        <div className="mt-4 bg-red-100 border border-red-400 text-red-700 p-3 rounded-xl">
+          <h2 className="font-bold mb-2">
+            ⚠️ Equipos críticos fuera de servicio
+          </h2>
+
+          {alertas.map((eq, index) => (
+            <div key={index} className="text-sm border-b py-1">
+              {eq.descripcion} - Serie: {eq.numero_serie} ({eq.estado})
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
