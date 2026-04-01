@@ -128,8 +128,8 @@ export default function ResumenEstados() {
         );
       })}
 
-      {/* ⚠️ ALERTAS */}
-     <h2 className="mt-6 font-bold text-lg">
+      {/* 🏥 EQUIPOS CRÍTICOS VISUAL */}
+<h2 className="mt-6 font-bold text-lg">
   🏥 Equipos críticos
 </h2>
 
@@ -138,7 +138,7 @@ export default function ResumenEstados() {
     (e) => e.descripcion.toUpperCase() === tipo
   );
 
-  const estaActivo = !equipo; // si no está en alertas → está activo
+  const estaActivo = !equipo;
 
   return (
     <div
@@ -157,6 +157,7 @@ export default function ResumenEstados() {
   );
 })}
 
+{/* 🔍 MODAL / DETALLE */}
 {equipoSeleccionado && (
   <div className="mt-4 p-3 border rounded-xl bg-gray-100">
     <h3 className="font-bold">
@@ -175,3 +176,6 @@ export default function ResumenEstados() {
     </button>
   </div>
 )}
+    </div>
+  );
+}
