@@ -132,6 +132,18 @@ const total = datos.reduce((acc, item) => acc + Number(item.cantidad), 0);
         ? ((item.cantidad / total) * 100).toFixed(1)
         : 0;
 
+      // 📊 DATA
+return (
+  <div className="p-4 max-w-md mx-auto">
+    <h1 className="text-xl font-bold mb-4">
+      📊 Estado de Equipos
+    </h1>
+
+    {datos.map((item, index) => {
+      const porcentaje = total
+        ? ((item.cantidad / total) * 100).toFixed(1)
+        : 0;
+
       return (
         <div key={index} className="flex justify-between border-b py-2">
           <span>{item.estado}</span>
@@ -142,7 +154,7 @@ const total = datos.reduce((acc, item) => acc + Number(item.cantidad), 0);
       );
     })}
 
-    {/* 👇 ALERTAS VAN ACA */}
+    {/* 👇 ALERTAS */}
     {alertas.length > 0 && (
       <div className="mt-4 bg-red-100 border border-red-400 text-red-700 p-3 rounded-xl">
         <h2 className="font-bold mb-2">
