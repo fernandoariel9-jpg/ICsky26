@@ -1,5 +1,16 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "./config";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 
 export default function ResumenEstados() {
   const [datos, setDatos] = useState([]);
@@ -34,6 +45,17 @@ export default function ResumenEstados() {
     console.error(error);
   }
 };
+
+    const dataEstados = datos.map((d) => ({
+    name: d.estado,
+    value: Number(d.cantidad),
+  }));
+
+  const dataTipos = resumenTipos.map((t) => ({
+    name: t.tipo,
+    activos: Number(t.activos),
+    no_activos: Number(t.no_activos),
+  }));
 
   const fetchResumen = async () => {
     try {
@@ -221,6 +243,7 @@ export default function ResumenEstados() {
 
   const alertasGrupos = calcularAlertasGrupos();
   const alertasAvanzadas = calcularAlertasAvanzadas();
+  const COLORS = ["#22c55e", "#ef4444", "#facc15", "#3b82f6", "#a855f7"];
 
   return (
     <div className="p-4 max-w-md mx-auto">
