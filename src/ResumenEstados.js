@@ -8,6 +8,7 @@ export default function ResumenEstados() {
   const [mostrarToken, setMostrarToken] = useState(false);
   const [recordar, setRecordar] = useState(false);
   const [alertas, setAlertas] = useState([]);
+  const [equipoSeleccionado, setEquipoSeleccionado] = useState(null);
 
   // 🔁 cargar token guardado
   useEffect(() => {
@@ -128,19 +129,49 @@ export default function ResumenEstados() {
       })}
 
       {/* ⚠️ ALERTAS */}
-      {alertas.length > 0 && (
-        <div className="mt-4 bg-red-100 border border-red-400 text-red-700 p-3 rounded-xl">
-          <h2 className="font-bold mb-2">
-            ⚠️ Equipos críticos fuera de servicio
-          </h2>
+     <h2 className="mt-6 font-bold text-lg">
+  🏥 Equipos críticos
+</h2>
 
-          {alertas.map((eq, index) => (
-            <div key={index} className="text-sm border-b py-1">
-              {eq.descripcion} - Serie: {eq.numero_serie} ({eq.estado})
-            </div>
-          ))}
-        </div>
-      )}
+{["TOMOGRAFO", "RESONADOR", "ANGIOGRAFO", "MAMOGRAFO", "ORTOPANTOMOGRAFO", "SERIOGRAFO"].map((tipo) => {
+  const equipo = alertas.find(
+    (e) => e.descripcion.toUpperCase() === tipo
+  );
+
+  const estaActivo = !equipo; // si no está en alertas → está activo
+
+  return (
+    <div
+      key={tipo}
+      className="flex items-center justify-between border-b py-2 cursor-pointer"
+      onClick={() => !estaActivo && setEquipoSeleccionado(equipo)}
+    >
+      <span>{tipo}</span>
+
+      <span
+        className={`w-4 h-4 rounded-full ${
+          estaActivo ? "bg-green-500" : "bg-red-500"
+        }`}
+      ></span>
     </div>
   );
-}
+})}
+
+{equipoSeleccionado && (
+  <div className="mt-4 p-3 border rounded-xl bg-gray-100">
+    <h3 className="font-bold">
+      🔍 Detalle del equipo
+    </h3>
+
+    <p><b>Equipo:</b> {equipoSeleccionado.descripcion}</p>
+    <p><b>Serie:</b> {equipoSeleccionado.numero_serie}</p>
+    <p><b>Estado:</b> {equipoSeleccionado.estado}</p>
+
+    <button
+      onClick={() => setEquipoSeleccionado(null)}
+      className="mt-2 px-3 py-1 bg-gray-500 text-white rounded"
+    >
+      Cerrar
+    </button>
+  </div>
+)}
