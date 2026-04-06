@@ -18,6 +18,14 @@ export default function ResumenEstados() {
     }
   }, []);
 
+  useEffect(() => {
+  if (autorizado) {
+    fetchDashboard();
+    const interval = setInterval(fetchDashboard, 30000);
+    return () => clearInterval(interval);
+  }
+}, [autorizado]);
+
   // 🔹 NUEVO FETCH ÚNICO
   const fetchDashboard = async () => {
   try {
