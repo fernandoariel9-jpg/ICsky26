@@ -35,7 +35,7 @@ export default function ResumenEstados() {
   ANGIOGRAFO: FaHeartbeat,
   "CITOMETRO DE FLUJO": MdBiotech,
   PLETISMOGRAFO: FaWaveSquare,
-  "MONITOR MULTIPARAMETRICO": FaDesktop,
+  "MONITOR MULTIPARAMETRICO RESONANCIA": FaDesktop,
   "COLCHON TERMICO": FaThermometerHalf,
   ESPECTROMETRO: MdOutlineScience,
   MULTIPLEX: MdMemory,
