@@ -202,6 +202,22 @@ export default function ResumenEstados() {
     const key = eq.descripcion?.toUpperCase().trim();
     const Icono = iconosEquipos[key] || FaQuestionCircle;
 
+    const estado = eq.estado?.toUpperCase().trim();
+
+    let colorClase = "";
+    let animacion = "";
+
+    if (estado === "ACTIVO") {
+      colorClase = "text-green-400";
+    } else if (estado === "FUERA DE SERVICIO") {
+      colorClase = "text-red-500";
+      animacion = "animate-pulse";
+    } else if (estado === "INGRESADO") {
+      colorClase = "text-yellow-400";
+    } else {
+      colorClase = "text-gray-400";
+    }
+
     return (
       <div
         key={i}
@@ -210,9 +226,7 @@ export default function ResumenEstados() {
       >
         {/* 🔹 ICONO */}
         <Icono
-          className={`text-4xl mb-2 ${
-            eq.activo ? "text-green-400" : "text-red-500"
-          }`}
+          className={`text-4xl mb-2 ${colorClase} ${animacion}`}
         />
 
         {/* 🔹 NOMBRE CHICO */}
