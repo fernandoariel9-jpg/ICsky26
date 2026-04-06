@@ -26,6 +26,6 @@ export const API_URL = {
   ResumenTipos: "/api/equipos/resumen-tipos",
   AlertasEquipos: `${API_BASE_URL}/api/equipos/alertas`,
   ResumenEstados: `${API_BASE_URL}/api/equipos/estados/resumen`,
-  DashboardResumen: `${API_BASE_URL}/api/dashboard/resumen`,
+  DashboardResumen: "/api/dashboard/resumen",
   AsignarEquipo: `${API_BASE_URL}/ric01/asignar-equipo`
 };
