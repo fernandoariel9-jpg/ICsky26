@@ -162,7 +162,7 @@ export default function ResumenEstados() {
   return (
     <div className="p-6 bg-gray-900 text-white min-h-screen">
 
-      <h1 className="text-3xl font-bold mb-6 text-center">
+      <h1 className="text-3xl font-bold mb-4 text-center">
         🏥 Equipamiento a cargo del Servicio de Ingeniería Clínica HPDDGR
       </h1>
 
