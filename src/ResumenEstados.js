@@ -197,28 +197,32 @@ export default function ResumenEstados() {
             Cargando...
           </div>
         ) : (
-          resumen.criticos.map((eq, i) => {
-  const key = eq.descripcion?.toUpperCase().trim();
-  const Icono = iconosEquipos[key] || FaQuestionCircle;
+         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+  {resumen.criticos.map((eq, i) => {
+    const key = eq.descripcion?.toUpperCase().trim();
+    const Icono = iconosEquipos[key] || FaQuestionCircle;
 
-  return (
-    <div
-      key={i}
-      className="flex justify-between items-center bg-gray-800 p-4 rounded-xl mb-2 cursor-pointer"
-      onClick={() => setEquipoSeleccionado(eq)}
-    >
-      {/* 🔹 ICONO */}
-      <div className="text-3xl">
-        <Icono />
+    return (
+      <div
+        key={i}
+        onClick={() => setEquipoSeleccionado(eq)}
+        className="bg-gray-800 p-4 rounded-xl cursor-pointer flex flex-col items-center justify-center hover:scale-105 transition"
+      >
+        {/* 🔹 ICONO */}
+        <Icono
+          className={`text-4xl mb-2 ${
+            eq.activo ? "text-green-400" : "text-red-500"
+          }`}
+        />
+
+        {/* 🔹 NOMBRE CHICO */}
+        <span className="text-xs text-center opacity-80">
+          {eq.descripcion}
+        </span>
       </div>
-
-      {/* 🔹 ESTADO */}
-      <span className="font-bold text-xl">
-        {eq.activo ? "🟢" : "🔴"}
-      </span>
-    </div>
-  );
-})
+    );
+  })}
+</div>
         )}
       </div>
 
