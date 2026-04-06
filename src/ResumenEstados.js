@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "./config";
 import {
-  FaXRay,
   FaBrain,
+  FaXRay,
   FaHeartbeat,
   FaVial,
   FaWaveSquare,
   FaDesktop,
-  FaThermometerHalf
+  FaThermometerHalf,
+  FaQuestionCircle
 } from "react-icons/fa";
 
 import {
@@ -19,8 +20,6 @@ import {
 
 import { GiElectric } from "react-icons/gi";
 
-import { FaQuestionCircle } from "react-icons/fa";
-
 export default function ResumenEstados() {
   const [resumen, setResumen] = useState(null);
   const [token, setToken] = useState("");
@@ -28,6 +27,20 @@ export default function ResumenEstados() {
   const [mostrarToken, setMostrarToken] = useState(false);
   const [recordar, setRecordar] = useState(false);
   const [equipoSeleccionado, setEquipoSeleccionado] = useState(null);
+
+  const iconosEquipos = {
+  RESONADOR: FaBrain,
+  TOMOGRAFO: FaXRay,
+  MAMOGRAFO: MdMonitorHeart,
+  ANGIOGRAFO: FaHeartbeat,
+  "CITOMETRO DE FLUJO": MdBiotech,
+  PLETISMOGRAFO: FaWaveSquare,
+  "MONITOR MULTIPARAMETRICO": FaDesktop,
+  "COLCHON TERMICO": FaThermometerHalf,
+  ESPECTROMETRO: MdOutlineScience,
+  MULTIPLEX: MdMemory,
+  "ELECTROFORESIS CAPILAR": GiElectric,
+};
 
   // 🔁 cargar token guardado
   useEffect(() => {
@@ -45,22 +58,6 @@ export default function ResumenEstados() {
     return () => clearInterval(interval);
   }
 }, [autorizado]);
-
-  const Icono = iconosEquipos[eq.descripcion] || FaQuestionCircle;
-
-  const iconosEquipos = {
-  RESONADOR: FaBrain,                     // 🧠
-  TOMOGRAFO: FaXRay,                      // ☢️
-  MAMOGRAFO: MdMonitorHeart,              // ❤️ imagen médica
-  ANGIOGRAFO: FaHeartbeat,                // ❤️ vascular
-  "CITOMETRO DE FLUJO": MdBiotech,        // 🧬 biotecnología
-  PLETISMOGRAFO: FaWaveSquare,            // 📈 ondas
-  "MONITOR MULTIPARAMETRICO": FaDesktop,  // 🖥 monitor
-  "COLCHON TERMICO": FaThermometerHalf,   // 🌡 temperatura
-  ESPECTROMETRO: MdOutlineScience,        // 🔬 análisis
-  MULTIPLEX: MdMemory,                    // 🧠 procesamiento múltiple
-  "ELECTROFORESIS CAPILAR": GiElectric,   // ⚡ separación eléctrica
-};
 
   // 🔹 NUEVO FETCH ÚNICO
   const fetchDashboard = async () => {
@@ -162,27 +159,6 @@ export default function ResumenEstados() {
   const activos = resumen?.activos || 0;
   const no_activos = resumen?.no_activos || 0;
 
-const overlayStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  background: "rgba(0,0,0,0.7)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1000,
-};
-
-const modalStyle = {
-  background: "#111",
-  padding: "30px",
-  borderRadius: "10px",
-  color: "white",
-  minWidth: "300px",
-};
-
   return (
     <div className="p-6 bg-gray-900 text-white min-h-screen">
 
@@ -211,48 +187,56 @@ const modalStyle = {
       </div>
 
       {/* 🚨 EQUIPOS CRÍTICOS */}
-      <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-  {resumen?.criticos?.map((eq, index) => {
-    const Icono = iconosEquipos[eq.descripcion] || FaLaptopMedical;
+      <div>
+        <h2 className="text-xl mb-3 text-red-400">
+          🚨 Equipos críticos
+        </h2>
 
-    return (
-      <div
-        key={index}
-        onClick={() => setEquipoSeleccionado(eq)}
-        style={{
-          cursor: "pointer",
-          fontSize: "40px",
-          color: eq.activo ? "#00ff88" : "#ff3b3b",
-          transition: "transform 0.2s",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.2)")}
-        onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-      >
+        {!resumen?.criticos ? (
+          <div className="bg-gray-700 p-4 rounded-xl text-center">
+            Cargando...
+          </div>
+        ) : (
+          resumen.criticos.map((eq, i) => {
+  const key = eq.descripcion?.toUpperCase().trim();
+  const Icono = iconosEquipos[key] || FaQuestionCircle;
+
+  return (
+    <div
+      key={i}
+      className="flex justify-between items-center bg-gray-800 p-4 rounded-xl mb-2 cursor-pointer"
+      onClick={() => setEquipoSeleccionado(eq)}
+    >
+      {/* 🔹 ICONO */}
+      <div className="text-3xl">
         <Icono />
       </div>
-    );
-  })}
-</div>
+
+      {/* 🔹 ESTADO */}
+      <span className="font-bold text-xl">
+        {eq.activo ? "🟢" : "🔴"}
+      </span>
+    </div>
+  );
+})
+        )}
+      </div>
 
       {/* 🔍 MODAL */}
       {equipoSeleccionado && (
-  <div style={overlayStyle}>
-    <div style={modalStyle}>
-      <h2>{equipoSeleccionado.descripcion}</h2>
-      <p><strong>Serie:</strong> {equipoSeleccionado.numero_serie}</p>
-      <p>
-        <strong>Estado:</strong>{" "}
-        <span style={{ color: equipoSeleccionado.activo ? "green" : "red" }}>
-          {equipoSeleccionado.estado}
-        </span>
-      </p>
+        <div className="fixed bottom-4 right-4 bg-white text-black p-4 rounded-xl shadow-xl w-80">
+          <p><b>{equipoSeleccionado.descripcion}</b></p>
+          <p>Serie: {equipoSeleccionado.numero_serie}</p>
+          <p>Estado: {equipoSeleccionado.estado}</p>
 
-      <button onClick={() => setEquipoSeleccionado(null)}>
-        Cerrar
-      </button>
-    </div>
-  </div>
-)}
+          <button
+            onClick={() => setEquipoSeleccionado(null)}
+            className="mt-2 px-3 py-1 bg-gray-600 text-white rounded"
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
 
     </div>
   );
