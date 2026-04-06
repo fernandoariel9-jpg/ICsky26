@@ -20,19 +20,39 @@ export default function ResumenEstados() {
 
   // 🔹 NUEVO FETCH ÚNICO
   const fetchDashboard = async () => {
-    try {
-      const res = await fetch(API_URL.DashboardResumen, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  try {
+    const res = await fetch(API_URL.DashboardResumen, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-      const data = await res.json();
-      setResumen(data);
-    } catch (error) {
-      console.error(error);
+    // 👇 Primero validamos status
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Error HTTP:", res.status, errorText);
+      return;
     }
-  };
+
+    // 👇 Detectamos tipo de respuesta
+    const contentType = res.headers.get("content-type");
+
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await res.text();
+      console.error("❌ La respuesta NO es JSON:", text);
+      return;
+    }
+
+    // 👇 Ahora sí parseamos seguro
+    const data = await res.json();
+
+    console.log("✅ Dashboard:", data);
+    setResumen(data);
+
+  } catch (error) {
+    console.error("Error en fetchDashboard:", error);
+  }
+};
 
   // 🔐 LOGIN
   const validarToken = async () => {
