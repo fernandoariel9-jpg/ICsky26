@@ -316,10 +316,6 @@ export default function ResumenEstados() {
           </button>
         </div>
       )}
-
-    </div>
-  );
-}
 {grupoSeleccionado && (
   <div className="fixed bottom-4 left-4 bg-white text-black p-4 rounded-xl shadow-xl w-96 max-h-[400px] overflow-y-auto">
     
@@ -359,3 +355,7 @@ export default function ResumenEstados() {
     </button>
   </div>
 )}
+    </div>
+  );
+}
+
