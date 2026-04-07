@@ -262,9 +262,9 @@ export default function ResumenEstados() {
       {Object.entries(resumen.grupos).map(([key, grupo], i) => {
 
         const nombreMap = {
-          diagnostico_imagen: "Diagnóstico por Imagen",
-          centro_quirurgico: "Centro Quirúrgico",
-          gastroenterologia: "Gastroenterología",
+          diagnostico_imagen: "Equipos de RX",
+          centro_quirurgico: "Equipos de Centro Quirúrgico",
+          gastroenterologia: "Equipos de Gastroenterología",
         };
 
         const nombre = nombreMap[key] || key;
