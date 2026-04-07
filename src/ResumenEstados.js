@@ -350,12 +350,7 @@ if (grupo.estado === "OFF") {
 
       <p className="text-sm mb-1">
   <span className="text-gray-400">Equipos inactivos:</span>{" "}
-  <span className="text-blue-400 font-semibold">
-    {grupoSeleccionado.subgrupos
-  .map(sg => `${sg.descripciones[0]}: ${sg.porcentaje.toFixed(0)}%`)
-  .join(" | ")
-}
-  </span>
+  
 </p>
 
 <p className="text-sm mb-4">
