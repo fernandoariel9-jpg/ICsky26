@@ -348,9 +348,20 @@ if (grupo.no_activos > 0) {
         {grupoSeleccionado.nombre}
       </h3>
 
-      <p className="text-sm mb-4">
-        {grupoSeleccionado.no_activos} equipos fuera de servicio
-      </p>
+      <p className="text-sm mb-1">
+  <span className="text-gray-400">Disponibilidad:</span>{" "}
+  <span className="text-blue-400 font-semibold">
+    {grupoSeleccionado.porcentaje.toFixed(0)}%
+  </span>
+</p>
+
+<p className="text-sm mb-4">
+  <span className="text-gray-400">Estado:</span>{" "}
+  <span className="text-red-400 font-semibold">
+    {grupoSeleccionado.no_activos} / {grupoSeleccionado.total}
+  </span>{" "}
+  fuera de servicio
+</p>
 
       {grupoSeleccionado.detalle.length === 0 ? (
         <p className="text-green-400">✔ Todos activos</p>
