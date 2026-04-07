@@ -305,11 +305,6 @@ export default function ResumenEstados() {
             <span className="text-xs text-center opacity-80">
               {nombre}
             </span>
-
-            {/* 🔹 % opcional */}
-            <span className="text-xs opacity-60 mt-1">
-              {grupo.porcentaje.toFixed(0)}%
-            </span>
           </div>
         );
       })}
