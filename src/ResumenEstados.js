@@ -273,17 +273,14 @@ export default function ResumenEstados() {
 
         const estado = grupo.estado?.toUpperCase();
 
-        let colorClase = "";
-        let animacion = "";
+        let colorClase = "text-green-400";
+let animacion = "";
 
-        if (estado === "ACTIVO") {
-          colorClase = "text-green-400";
-        } else if (estado === "OFF") {
-          colorClase = "text-red-500";
-          animacion = "animate-pulse";
-        } else {
-          colorClase = "text-yellow-400";
-        }
+// 🔴 Si hay cualquier equipo no activo → rojo
+if (grupo.no_activos > 0) {
+  colorClase = "text-red-500";
+  animacion = "animate-pulse";
+}
 
         return (
           <div
