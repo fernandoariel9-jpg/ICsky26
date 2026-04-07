@@ -322,10 +322,6 @@ export default function ResumenEstados() {
   )}
 </div>
 
-    </div>
-  )}
-</div>
-
       {/* 🔍 MODAL */}
       {equipoSeleccionado && (
   <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
