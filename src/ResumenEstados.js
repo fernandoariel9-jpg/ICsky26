@@ -254,31 +254,46 @@ export default function ResumenEstados() {
   ) : (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-      {Object.entries(resumen.grupos).map(([key, grupo], i) => {
+     {Object.entries(resumen.grupos).map(([key, grupo], i) => {
 
-        const nombreMap = {
-          diagnostico_imagen: "Diagnóstico por Imagen",
-          centro_quirurgico: "Centro Quirúrgico",
-          gastroenterologia: "Gastroenterología",
-        };
+  const nombreMap = {
+    diagnostico_imagen: "Diagnóstico por Imagen",
+    centro_quirurgico: "Centro Quirúrgico",
+    gastroenterologia: "Gastroenterología",
+  };
 
-        const nombre = nombreMap[key] || key;
+  const nombre = nombreMap[key] || key;
 
-        const esOff = grupo.estado === "OFF";
+  const esOff = grupo.estado === "OFF";
 
-        const colorFondo = esOff ? "bg-red-600" : "bg-green-600";
-        const animacion = esOff ? "animate-pulse" : "";
+  const colorFondo = esOff ? "bg-red-600" : "bg-green-600";
+  const animacion = esOff ? "animate-pulse" : "";
 
-        <div
-  key={i}
-  onClick={() =>
-    setGrupoSeleccionado({
-      nombre,
-      ...grupo
-    })
-  }
-  className={`p-4 rounded-xl text-center flex flex-col justify-center items-center ${colorFondo} ${animacion} cursor-pointer hover:scale-105 transition`}
->
+  return ( // 🔥 FALTABA ESTO
+    <div
+      key={i}
+      onClick={() =>
+        setGrupoSeleccionado({
+          nombre,
+          ...grupo
+        })
+      }
+      className={`p-4 rounded-xl text-center flex flex-col justify-center items-center ${colorFondo} ${animacion} cursor-pointer hover:scale-105 transition`}
+    >
+      <span className="text-sm font-semibold">
+        {nombre}
+      </span>
+
+      <span className="text-2xl font-bold mt-1">
+        {grupo.porcentaje.toFixed(0)}%
+      </span>
+
+      <span className="text-xs opacity-80 mt-1">
+        {grupo.no_activos} / {grupo.total} fuera de servicio
+      </span>
+    </div>
+  );
+})}
             {/* 🔹 NOMBRE */}
             <span className="text-sm font-semibold">
               {nombre}
@@ -316,10 +331,6 @@ export default function ResumenEstados() {
           </button>
         </div>
       )}
-    </div>
-  );
-}
-
 {grupoSeleccionado && (
   <div className="fixed bottom-4 left-4 bg-white text-black p-4 rounded-xl shadow-xl w-96 max-h-[400px] overflow-y-auto">
     
@@ -360,3 +371,6 @@ export default function ResumenEstados() {
   </div>
 )}
 
+    </div>
+  );
+}
