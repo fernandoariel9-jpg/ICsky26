@@ -349,7 +349,7 @@ if (grupo.no_activos > 0) {
       </h3>
 
       <p className="text-sm mb-1">
-  <span className="text-gray-400">Disponibilidad:</span>{" "}
+  <span className="text-gray-400">Equipos inactivos:</span>{" "}
   <span className="text-blue-400 font-semibold">
     {grupoSeleccionado.porcentaje.toFixed(0)}%
   </span>
