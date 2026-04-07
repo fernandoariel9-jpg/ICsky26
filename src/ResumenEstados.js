@@ -316,45 +316,6 @@ export default function ResumenEstados() {
           </button>
         </div>
       )}
-{grupoSeleccionado && (
-  <div className="fixed bottom-4 left-4 bg-white text-black p-4 rounded-xl shadow-xl w-96 max-h-[400px] overflow-y-auto">
-    
-    <h3 className="font-bold mb-2">
-      {grupoSeleccionado.nombre}
-    </h3>
-
-    <p className="text-sm mb-3">
-      {grupoSeleccionado.no_activos} equipos fuera de servicio
-    </p>
-
-    {grupoSeleccionado.detalle.length === 0 ? (
-      <p className="text-green-600">✔ Todos activos</p>
-    ) : (
-      <div className="space-y-2">
-        {grupoSeleccionado.detalle.map((eq, i) => (
-          <div key={i} className="border-b pb-1">
-            <p className="text-sm font-semibold">
-              {eq.descripcion}
-            </p>
-            <p className="text-xs">
-              Serie: {eq.numero_serie}
-            </p>
-            <p className="text-xs text-red-600">
-              Estado: {eq.estado}
-            </p>
-          </div>
-        ))}
-      </div>
-    )}
-
-    <button
-      onClick={() => setGrupoSeleccionado(null)}
-      className="mt-3 px-3 py-1 bg-gray-600 text-white rounded"
-    >
-      Cerrar
-    </button>
-  </div>
-)}
     </div>
   );
 }
