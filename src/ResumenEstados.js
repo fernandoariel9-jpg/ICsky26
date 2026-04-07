@@ -252,10 +252,6 @@ export default function ResumenEstados() {
 
 {/* 🏥 ESTADO POR SERVICIOS */}
 <div className="mt-8">
-  <h2 className="text-xl mb-3 text-blue-400">
-    🏥 Estado por servicios
-  </h2>
-
   {!resumen?.grupos ? (
     <div className="bg-gray-700 p-4 rounded-xl text-center">
       Cargando...
