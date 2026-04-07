@@ -372,15 +372,6 @@ export default function ResumenEstados() {
   </div>
 )}
 
-    <button
-      onClick={() => setGrupoSeleccionado(null)}
-      className="mt-3 px-3 py-1 bg-gray-600 text-white rounded"
-    >
-      Cerrar
-    </button>
-  </div>
-)}
-
     </div>
   );
 }
