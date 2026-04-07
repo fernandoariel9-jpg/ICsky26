@@ -355,6 +355,9 @@ export default function ResumenEstados() {
       <h3 className="text-lg font-bold mb-2 text-blue-400">
         {grupoSeleccionado.nombre}
       </h3>
+   <span className="text-xs opacity-60 mt-1">
+              {grupo.porcentaje.toFixed(0)}%
+            </span>
 
       <p className="text-sm mb-4">
         {grupoSeleccionado.no_activos} equipos fuera de servicio
