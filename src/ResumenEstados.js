@@ -276,8 +276,8 @@ export default function ResumenEstados() {
         let colorClase = "text-green-400";
 let animacion = "";
 
-// 🔴 Si hay cualquier equipo no activo → rojo
-if (grupo.no_activos > 0) {
+// ✅ USAR estado del backend
+if (grupo.estado === "OFF") {
   colorClase = "text-red-500";
   animacion = "animate-pulse";
 }
@@ -351,14 +351,18 @@ if (grupo.no_activos > 0) {
       <p className="text-sm mb-1">
   <span className="text-gray-400">Equipos inactivos:</span>{" "}
   <span className="text-blue-400 font-semibold">
-    {grupoSeleccionado.porcentaje.toFixed(0)}%
+    {grupoSeleccionado.subgrupos
+  .map(sg => `${sg.descripciones[0]}: ${sg.porcentaje.toFixed(0)}%`)
+  .join(" | ")
+}
   </span>
 </p>
 
 <p className="text-sm mb-4">
   <span className="text-gray-400">Estado:</span>{" "}
   <span className="text-red-400 font-semibold">
-    {grupoSeleccionado.no_activos} / {grupoSeleccionado.total}
+    {grupoSeleccionado.subgrupos.reduce((acc, sg) => acc + sg.no_activos, 0)} / 
+{grupoSeleccionado.subgrupos.reduce((acc, sg) => acc + sg.total, 0)}
   </span>{" "}
   fuera de servicio
 </p>
