@@ -20,6 +20,9 @@ import {
 
 import { GiElectric } from "react-icons/gi";
 
+import { FaHospital, FaUserMd, FaProcedures } from "react-icons/fa";
+import { MdMedicalServices } from "react-icons/md";
+
 export default function ResumenEstados() {
   const [resumen, setResumen] = useState(null);
   const [token, setToken] = useState("");
@@ -41,6 +44,12 @@ export default function ResumenEstados() {
   ESPECTROMETRO: MdOutlineScience,
   MULTIPLEX: MdMemory,
   "ELECTROFORESIS CAPILAR": GiElectric,
+};
+
+  const iconosServicios = {
+  diagnostico_imagen: FaHospital,
+  centro_quirurgico: FaProcedures,
+  gastroenterologia: FaUserMd,
 };
 
   // 🔁 cargar token guardado
@@ -254,46 +263,64 @@ export default function ResumenEstados() {
   ) : (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-     {Object.entries(resumen.grupos).map(([key, grupo], i) => {
+      {Object.entries(resumen.grupos).map(([key, grupo], i) => {
 
-  const nombreMap = {
-    diagnostico_imagen: "Diagnóstico por Imagen",
-    centro_quirurgico: "Centro Quirúrgico",
-    gastroenterologia: "Gastroenterología",
-  };
+        const nombreMap = {
+          diagnostico_imagen: "Diagnóstico por Imagen",
+          centro_quirurgico: "Centro Quirúrgico",
+          gastroenterologia: "Gastroenterología",
+        };
 
-  const nombre = nombreMap[key] || key;
+        const nombre = nombreMap[key] || key;
 
-  const esOff = grupo.estado === "OFF";
+        const Icono = iconosServicios[key] || MdMedicalServices;
 
-  const colorFondo = esOff ? "bg-red-600" : "bg-green-600";
-  const animacion = esOff ? "animate-pulse" : "";
+        const estado = grupo.estado?.toUpperCase();
 
-  return ( // 🔥 FALTABA ESTO
-    <div
-      key={i}
-      onClick={() =>
-        setGrupoSeleccionado({
-          nombre,
-          ...grupo
-        })
-      }
-      className={`p-4 rounded-xl text-center flex flex-col justify-center items-center ${colorFondo} ${animacion} cursor-pointer hover:scale-105 transition`}
-    >
-      <span className="text-sm font-semibold">
-        {nombre}
-      </span>
+        let colorClase = "";
+        let animacion = "";
 
-      <span className="text-2xl font-bold mt-1">
-        {grupo.porcentaje.toFixed(0)}%
-      </span>
+        if (estado === "ACTIVO") {
+          colorClase = "text-green-400";
+        } else if (estado === "OFF") {
+          colorClase = "text-red-500";
+          animacion = "animate-pulse";
+        } else {
+          colorClase = "text-yellow-400";
+        }
 
-      <span className="text-xs opacity-80 mt-1">
-        {grupo.no_activos} / {grupo.total} fuera de servicio
-      </span>
+        return (
+          <div
+            key={i}
+            onClick={() =>
+              setGrupoSeleccionado({
+                nombre,
+                ...grupo
+              })
+            }
+            className="bg-gray-800 p-4 rounded-xl cursor-pointer flex flex-col items-center justify-center hover:scale-105 transition"
+          >
+            {/* 🔹 ICONO */}
+            <Icono
+              className={`text-4xl mb-2 ${colorClase} ${animacion}`}
+            />
+
+            {/* 🔹 NOMBRE */}
+            <span className="text-xs text-center opacity-80">
+              {nombre}
+            </span>
+
+            {/* 🔹 % opcional */}
+            <span className="text-xs opacity-60 mt-1">
+              {grupo.porcentaje.toFixed(0)}%
+            </span>
+          </div>
+        );
+      })}
+
     </div>
-  );
-})}
+  )}
+</div>
 
     </div>
   )}
