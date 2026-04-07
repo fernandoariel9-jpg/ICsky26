@@ -301,49 +301,76 @@ export default function ResumenEstados() {
 
       {/* 🔍 MODAL */}
       {equipoSeleccionado && (
-        <div className="fixed bottom-4 right-4 bg-white text-black p-4 rounded-xl shadow-xl w-80">
-          <p><b>{equipoSeleccionado.descripcion}</b></p>
-          <p>Serie: {equipoSeleccionado.numero_serie}</p>
-          <p>Estado: {equipoSeleccionado.estado}</p>
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+    
+    <div className="bg-gray-900 text-white p-6 rounded-2xl shadow-2xl w-80 border border-cyan-400/30 animate-scaleIn">
 
-          <button
-            onClick={() => setEquipoSeleccionado(null)}
-            className="mt-2 px-3 py-1 bg-gray-600 text-white rounded"
-          >
-            Cerrar
-          </button>
+      <h3 className="text-lg font-bold mb-3 text-cyan-400">
+        {equipoSeleccionado.descripcion}
+      </h3>
+
+      <p className="text-sm mb-1">
+        <span className="text-gray-400">Serie:</span> {equipoSeleccionado.numero_serie}
+      </p>
+
+      <p className="text-sm mb-4">
+        <span className="text-gray-400">Estado:</span>{" "}
+        <span className="text-red-400">{equipoSeleccionado.estado}</span>
+      </p>
+
+      <button
+        onClick={() => setEquipoSeleccionado(null)}
+        className="w-full mt-2 py-2 bg-cyan-500 hover:bg-cyan-600 rounded-xl transition"
+      >
+        Cerrar
+      </button>
+
+    </div>
+  </div>
+)}
+{grupoSeleccionado && (
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+
+    <div className="bg-gray-900 text-white p-6 rounded-2xl shadow-2xl w-96 max-h-[80vh] overflow-y-auto border border-blue-400/30 animate-scaleIn">
+
+      <h3 className="text-lg font-bold mb-2 text-blue-400">
+        {grupoSeleccionado.nombre}
+      </h3>
+
+      <p className="text-sm mb-4">
+        {grupoSeleccionado.no_activos} equipos fuera de servicio
+      </p>
+
+      {grupoSeleccionado.detalle.length === 0 ? (
+        <p className="text-green-400">✔ Todos activos</p>
+      ) : (
+        <div className="space-y-2">
+          {grupoSeleccionado.detalle.map((eq, i) => (
+            <div key={i} className="border-b border-gray-700 pb-2">
+              <p className="text-sm font-semibold">
+                {eq.descripcion}
+              </p>
+              <p className="text-xs text-gray-400">
+                Serie: {eq.numero_serie}
+              </p>
+              <p className="text-xs text-red-400">
+                Estado: {eq.estado}
+              </p>
+            </div>
+          ))}
         </div>
       )}
-{grupoSeleccionado && (
-  <div className="fixed bottom-4 left-4 bg-white text-black p-4 rounded-xl shadow-xl w-96 max-h-[400px] overflow-y-auto">
-    
-    <h3 className="font-bold mb-2">
-      {grupoSeleccionado.nombre}
-    </h3>
 
-    <p className="text-sm mb-3">
-      {grupoSeleccionado.no_activos} equipos fuera de servicio
-    </p>
+      <button
+        onClick={() => setGrupoSeleccionado(null)}
+        className="w-full mt-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-xl transition"
+      >
+        Cerrar
+      </button>
 
-    {grupoSeleccionado.detalle.length === 0 ? (
-      <p className="text-green-600">✔ Todos activos</p>
-    ) : (
-      <div className="space-y-2">
-        {grupoSeleccionado.detalle.map((eq, i) => (
-          <div key={i} className="border-b pb-1">
-            <p className="text-sm font-semibold">
-              {eq.descripcion}
-            </p>
-            <p className="text-xs">
-              Serie: {eq.numero_serie}
-            </p>
-            <p className="text-xs text-red-600">
-              Estado: {eq.estado}
-            </p>
-          </div>
-        ))}
-      </div>
-    )}
+    </div>
+  </div>
+)}
 
     <button
       onClick={() => setGrupoSeleccionado(null)}
