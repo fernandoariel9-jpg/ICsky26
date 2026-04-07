@@ -294,23 +294,6 @@ export default function ResumenEstados() {
     </div>
   );
 })}
-            {/* 🔹 NOMBRE */}
-            <span className="text-sm font-semibold">
-              {nombre}
-            </span>
-
-            {/* 🔹 % */}
-            <span className="text-2xl font-bold mt-1">
-              {grupo.porcentaje.toFixed(0)}%
-            </span>
-
-            {/* 🔹 DETALLE */}
-            <span className="text-xs opacity-80 mt-1">
-              {grupo.no_activos} / {grupo.total} fuera de servicio
-            </span>
-          </div>
-        );
-      })}
 
     </div>
   )}
