@@ -27,6 +27,7 @@ export default function ResumenEstados() {
   const [mostrarToken, setMostrarToken] = useState(false);
   const [recordar, setRecordar] = useState(false);
   const [equipoSeleccionado, setEquipoSeleccionado] = useState(null);
+  const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
 
   const iconosEquipos = {
   RESONADOR: FaBrain,
@@ -268,11 +269,16 @@ export default function ResumenEstados() {
         const colorFondo = esOff ? "bg-red-600" : "bg-green-600";
         const animacion = esOff ? "animate-pulse" : "";
 
-        return (
-          <div
-            key={i}
-            className={`p-4 rounded-xl text-center flex flex-col justify-center items-center ${colorFondo} ${animacion}`}
-          >
+        <div
+  key={i}
+  onClick={() =>
+    setGrupoSeleccionado({
+      nombre,
+      ...grupo
+    })
+  }
+  className={`p-4 rounded-xl text-center flex flex-col justify-center items-center ${colorFondo} ${animacion} cursor-pointer hover:scale-105 transition`}
+>
             {/* 🔹 NOMBRE */}
             <span className="text-sm font-semibold">
               {nombre}
@@ -314,3 +320,42 @@ export default function ResumenEstados() {
     </div>
   );
 }
+{grupoSeleccionado && (
+  <div className="fixed bottom-4 left-4 bg-white text-black p-4 rounded-xl shadow-xl w-96 max-h-[400px] overflow-y-auto">
+    
+    <h3 className="font-bold mb-2">
+      {grupoSeleccionado.nombre}
+    </h3>
+
+    <p className="text-sm mb-3">
+      {grupoSeleccionado.no_activos} equipos fuera de servicio
+    </p>
+
+    {grupoSeleccionado.detalle.length === 0 ? (
+      <p className="text-green-600">✔ Todos activos</p>
+    ) : (
+      <div className="space-y-2">
+        {grupoSeleccionado.detalle.map((eq, i) => (
+          <div key={i} className="border-b pb-1">
+            <p className="text-sm font-semibold">
+              {eq.descripcion}
+            </p>
+            <p className="text-xs">
+              Serie: {eq.numero_serie}
+            </p>
+            <p className="text-xs text-red-600">
+              Estado: {eq.estado}
+            </p>
+          </div>
+        ))}
+      </div>
+    )}
+
+    <button
+      onClick={() => setGrupoSeleccionado(null)}
+      className="mt-3 px-3 py-1 bg-gray-600 text-white rounded"
+    >
+      Cerrar
+    </button>
+  </div>
+)}
