@@ -265,6 +265,7 @@ export default function ResumenEstados() {
           diagnostico_imagen: "Equipos de RX",
           centro_quirurgico: "Equipos de Centro Quirúrgico",
           gastroenterologia: "Equipos de Gastroenterología",
+          tomografos: "Tomógrafos",
         };
 
         const nombre = nombreMap[key] || key;
