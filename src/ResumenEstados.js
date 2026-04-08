@@ -169,7 +169,6 @@ export default function ResumenEstados() {
   const activos = resumen?.activos || 0;
   const no_activos = resumen?.no_activos || 0;
   const ordenGrupos = [
-  "tomografos",
   "diagnostico_imagen",
   "centro_quirurgico",
   "gastroenterologia",
@@ -291,7 +290,6 @@ const Icono = eq.esGrupo
   if (!grupo) return null;
 
   const nombreMap = {
-    tomografos: "Tomógrafos",
     diagnostico_imagen: "Equipos de RX",
     centro_quirurgico: "Equipos de Centro Quirúrgico",
     gastroenterologia: "Equipos de Gastroenterología",
