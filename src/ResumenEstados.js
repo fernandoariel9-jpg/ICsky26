@@ -239,10 +239,10 @@ const Icono = eq.esGrupo
     } else if (estado === "FUERA DE SERVICIO") {
       colorClase = "text-red-500";
       animacion = "animate-pulse";
-    } else if (estado === "INGRESADO") {
+    } else if (estado === "ACTIVO RESTRINGIDO") {
       colorClase = "text-yellow-400";
     } else {
-      colorClase = "text-gray-400";
+      colorClase = "text-red-500";
     }
 
     return (
