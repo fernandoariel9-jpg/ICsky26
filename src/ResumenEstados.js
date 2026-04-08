@@ -182,6 +182,19 @@ const tomografosCard = resumen?.grupos?.tomografos
     }]
   : [];
 
+const criticosOrdenados = [...(resumen?.criticos || [])];
+
+const indexResonador = criticosOrdenados.findIndex(
+  eq => eq.descripcion?.toUpperCase().includes("RESONADOR")
+);
+
+if (indexResonador !== -1 && tomografosCard.length > 0) {
+  criticosOrdenados.splice(indexResonador + 1, 0, tomografosCard[0]);
+} else {
+  // fallback si no encuentra resonador
+  criticosOrdenados.push(...tomografosCard);
+}
+
   return (
     <div className="p-6 bg-gray-900 text-white min-h-screen">
 
@@ -222,7 +235,7 @@ const tomografosCard = resumen?.grupos?.tomografos
         ) : (
          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           
-  {[...resumen.criticos, ...tomografosCard].map((eq, i) => {
+  {criticosOrdenados.map((eq, i) => {
     const key = eq.descripcion?.toUpperCase().trim();
 
 const Icono = eq.esGrupo
