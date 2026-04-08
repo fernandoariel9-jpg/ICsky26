@@ -174,6 +174,14 @@ export default function ResumenEstados() {
   "centro_quirurgico",
   "gastroenterologia",
 ];
+const tomografosCard = resumen?.grupos?.tomografos
+  ? [{
+      descripcion: "TOMOGRAFOS",
+      estado: resumen.grupos.tomografos.estado === "ON" ? "ACTIVO" : "FUERA DE SERVICIO",
+      esGrupo: true,
+      data: resumen.grupos.tomografos
+    }]
+  : [];
 
   return (
     <div className="p-6 bg-gray-900 text-white min-h-screen">
@@ -214,14 +222,7 @@ export default function ResumenEstados() {
           </div>
         ) : (
          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          const tomografosCard = resumen?.grupos?.tomografos
-  ? [{
-      descripcion: "TOMOGRAFOS",
-      estado: resumen.grupos.tomografos.estado === "ON" ? "ACTIVO" : "FUERA DE SERVICIO",
-      esGrupo: true,
-      data: resumen.grupos.tomografos
-    }]
-  : [];
+          
   [...resumen.criticos, ...tomografosCard].map((eq, i) => {
     const key = eq.descripcion?.toUpperCase().trim();
 
