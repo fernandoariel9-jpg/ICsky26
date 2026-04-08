@@ -168,6 +168,12 @@ export default function ResumenEstados() {
   const total = resumen?.total || 0;
   const activos = resumen?.activos || 0;
   const no_activos = resumen?.no_activos || 0;
+  const ordenGrupos = [
+  "tomografos",
+  "diagnostico_imagen",
+  "centro_quirurgico",
+  "gastroenterologia",
+];
 
   return (
     <div className="p-6 bg-gray-900 text-white min-h-screen">
@@ -281,13 +287,6 @@ export default function ResumenEstados() {
     colorClase = "text-red-500";
     animacion = "animate-pulse";
   }
-
-  const ordenGrupos = [
-  "tomografos",
-  "diagnostico_imagen",
-  "centro_quirurgico",
-  "gastroenterologia",
-];
 
   return (
     <div
