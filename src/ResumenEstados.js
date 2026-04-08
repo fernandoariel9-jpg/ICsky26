@@ -259,53 +259,55 @@ export default function ResumenEstados() {
   ) : (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-      {Object.entries(resumen.grupos).map(([key, grupo], i) => {
+     {ordenGrupos.map((key, i) => {
+  const grupo = resumen.grupos[key];
+  if (!grupo) return null;
 
-        const nombreMap = {
-          tomografos: "Tomógrafos",
-          diagnostico_imagen: "Equipos de RX",
-          centro_quirurgico: "Equipos de Centro Quirúrgico",
-          gastroenterologia: "Equipos de Gastroenterología",
-        };
+  const nombreMap = {
+    tomografos: "Tomógrafos",
+    diagnostico_imagen: "Equipos de RX",
+    centro_quirurgico: "Equipos de Centro Quirúrgico",
+    gastroenterologia: "Equipos de Gastroenterología",
+  };
 
-        const nombre = nombreMap[key] || key;
+  const nombre = nombreMap[key] || key;
 
-        const Icono = iconosServicios[key] || MdMedicalServices;
+  const Icono = iconosServicios[key] || MdMedicalServices;
 
-        const estado = grupo.estado?.toUpperCase();
+  let colorClase = "text-green-400";
+  let animacion = "";
 
-        let colorClase = "text-green-400";
-let animacion = "";
+  if (grupo.estado === "OFF") {
+    colorClase = "text-red-500";
+    animacion = "animate-pulse";
+  }
 
-// ✅ USAR estado del backend
-if (grupo.estado === "OFF") {
-  colorClase = "text-red-500";
-  animacion = "animate-pulse";
-}
+  const ordenGrupos = [
+  "tomografos",
+  "diagnostico_imagen",
+  "centro_quirurgico",
+  "gastroenterologia",
+];
 
-        return (
-          <div
-            key={i}
-            onClick={() =>
-              setGrupoSeleccionado({
-                nombre,
-                ...grupo
-              })
-            }
-            className="bg-gray-800 p-4 rounded-xl cursor-pointer flex flex-col items-center justify-center hover:scale-105 transition"
-          >
-            {/* 🔹 ICONO */}
-            <Icono
-              className={`text-4xl mb-2 ${colorClase} ${animacion}`}
-            />
+  return (
+    <div
+      key={i}
+      onClick={() =>
+        setGrupoSeleccionado({
+          nombre,
+          ...grupo
+        })
+      }
+      className="bg-gray-800 p-4 rounded-xl cursor-pointer flex flex-col items-center justify-center hover:scale-105 transition"
+    >
+      <Icono className={`text-4xl mb-2 ${colorClase} ${animacion}`} />
 
-            {/* 🔹 NOMBRE */}
-            <span className="text-xs text-center opacity-80">
-              {nombre}
-            </span>
-          </div>
-        );
-      })}
+      <span className="text-xs text-center opacity-80">
+        {nombre}
+      </span>
+    </div>
+  );
+})}
 
     </div>
   )}
