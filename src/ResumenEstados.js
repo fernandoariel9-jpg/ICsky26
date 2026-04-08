@@ -223,7 +223,7 @@ const tomografosCard = resumen?.grupos?.tomografos
         ) : (
          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           
-  [...resumen.criticos, ...tomografosCard].map((eq, i) => {
+  {[...resumen.criticos, ...tomografosCard].map((eq, i) => {
     const key = eq.descripcion?.toUpperCase().trim();
 
 const Icono = eq.esGrupo
