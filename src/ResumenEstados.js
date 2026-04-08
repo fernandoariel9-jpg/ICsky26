@@ -169,6 +169,7 @@ export default function ResumenEstados() {
   const activos = resumen?.activos || 0;
   const no_activos = resumen?.no_activos || 0;
   const ordenGrupos = [
+  "tomografos",
   "diagnostico_imagen",
   "centro_quirurgico",
   "gastroenterologia",
