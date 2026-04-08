@@ -214,9 +214,20 @@ export default function ResumenEstados() {
           </div>
         ) : (
          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-  {resumen.criticos.map((eq, i) => {
+          const tomografosCard = resumen?.grupos?.tomografos
+  ? [{
+      descripcion: "TOMOGRAFOS",
+      estado: resumen.grupos.tomografos.estado === "ON" ? "ACTIVO" : "FUERA DE SERVICIO",
+      esGrupo: true,
+      data: resumen.grupos.tomografos
+    }]
+  : [];
+  [...resumen.criticos, ...tomografosCard].map((eq, i) => {
     const key = eq.descripcion?.toUpperCase().trim();
-    const Icono = iconosEquipos[key] || FaQuestionCircle;
+
+const Icono = eq.esGrupo
+  ? FaXRay
+  : iconosEquipos[key] || FaQuestionCircle;
 
     const estado = eq.estado?.toUpperCase().trim();
 
@@ -237,7 +248,16 @@ export default function ResumenEstados() {
     return (
       <div
         key={i}
-        onClick={() => setEquipoSeleccionado(eq)}
+        onClick={() => {
+  if (eq.esGrupo) {
+    setGrupoSeleccionado({
+      nombre: "Tomógrafos",
+      ...eq.data
+    });
+  } else {
+    setEquipoSeleccionado(eq);
+  }
+}}
         className="bg-gray-800 p-4 rounded-xl cursor-pointer flex flex-col items-center justify-center hover:scale-105 transition"
       >
         {/* 🔹 ICONO */}
