@@ -34,7 +34,6 @@ export default function ResumenEstados() {
 
   const iconosEquipos = {
   RESONADOR: FaBrain,
-  TOMOGRAFO: FaXRay,
   MAMOGRAFO: MdMonitorHeart,
   ANGIOGRAFO: FaHeartbeat,
   "CITOMETRO DE FLUJO": MdBiotech,
@@ -50,6 +49,7 @@ export default function ResumenEstados() {
   diagnostico_imagen: FaHospital,
   centro_quirurgico: FaProcedures,
   gastroenterologia: FaUserMd,
+  tomografos: FaXRay,
 };
 
   // 🔁 cargar token guardado
@@ -262,10 +262,10 @@ export default function ResumenEstados() {
       {Object.entries(resumen.grupos).map(([key, grupo], i) => {
 
         const nombreMap = {
+          tomografos: "Tomógrafos",
           diagnostico_imagen: "Equipos de RX",
           centro_quirurgico: "Equipos de Centro Quirúrgico",
           gastroenterologia: "Equipos de Gastroenterología",
-          tomografos: "Tomógrafos",
         };
 
         const nombre = nombreMap[key] || key;
