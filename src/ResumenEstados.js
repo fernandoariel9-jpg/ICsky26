@@ -359,6 +359,11 @@ const Icono = eq.esGrupo
       </h3>
 
       <p className="text-sm mb-1">
+  <span className="text-gray-400">Marca / Modelo:</span>{" "}
+  {equipoSeleccionado.marca_modelo || "Sin datos"}
+</p>
+
+      <p className="text-sm mb-1">
         <span className="text-gray-400">Serie:</span> {equipoSeleccionado.numero_serie}
       </p>
 
