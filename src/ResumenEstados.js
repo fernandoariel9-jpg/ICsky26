@@ -125,7 +125,7 @@ export default function ResumenEstados() {
   // 🔐 LOGIN VIEW
   if (!autorizado) {
     return (
-      <div className="p-4 max-w-sm mx-auto">
+      <div className="p-4 max-w-sm mx-auto"><img src="/logosmall_old.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
         <h1 className="text-xl font-bold mb-4 text-center">
           🔐 Acceso
         </h1>
