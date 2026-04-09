@@ -299,9 +299,12 @@ const Icono = eq.esGrupo
   ) : (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-     {ordenGrupos.map((key, i) => {
-  const grupo = resumen.grupos[key];
-  if (!grupo) return null;
+     {ordenGrupos
+  .filter(key => key !== "tomografos")
+  .map((key, i) => {
+
+    const grupo = resumen.grupos[key];
+    if (!grupo) return null;
 
   const nombreMap = {
     diagnostico_imagen: "Equipos de RX",
