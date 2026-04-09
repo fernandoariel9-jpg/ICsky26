@@ -200,7 +200,7 @@ if (indexResonador !== -1 && tomografosCard.length > 0) {
     <div className="p-6 bg-gray-900 text-white min-h-screen">
 
       <h1 className="text-2xl font-bold mb-4 text-center">
-        🏥 Equipamiento a cargo del Servicio de Ingeniería Clínica HPDDGR
+        <img src="/logosmall.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />🏥 Equipamiento a cargo del Servicio de Ingeniería Clínica HPDDGR
       </h1>
 
       {/* 📊 KPIs */}
