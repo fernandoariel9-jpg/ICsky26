@@ -421,9 +421,7 @@ const Icono = eq.esGrupo
         <div className="space-y-2">
           {grupoSeleccionado.detalle.map((eq, i) => (
             <div key={i} className="border-b border-gray-700 pb-2">
-              <p className="text-sm font-semibold">
-                {eq.marca_modelo}
-              </p>
+              
               <p className="text-sm font-semibold">
                 {eq.descripcion}
               </p>
