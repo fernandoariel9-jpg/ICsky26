@@ -364,7 +364,17 @@ const Icono = eq.esGrupo
 
       <p className="text-sm mb-4">
         <span className="text-gray-400">Estado:</span>{" "}
-        <span className="text-red-400">{equipoSeleccionado.estado}</span>
+        <span
+  className={
+    ["ACTIVO", "ACTIVO RESTRINGIDO"].includes(
+      equipoSeleccionado.estado?.toUpperCase().trim()
+    )
+      ? "text-green-400"
+      : "text-red-400"
+  }
+>
+  {equipoSeleccionado.estado}
+</span>
       </p>
 
       <button
