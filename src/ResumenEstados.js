@@ -299,9 +299,7 @@ const Icono = eq.esGrupo
   ) : (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-     {ordenGrupos
-  .filter(key => key !== "tomografos")
-  .map((key) => {
+     {ordenGrupos.map((key, i) => {
   const grupo = resumen.grupos[key];
   if (!grupo) return null;
 
