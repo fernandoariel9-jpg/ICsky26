@@ -551,6 +551,14 @@ const handleAreaClick = (areaName) => {
 >
   👷 Editar Personal
 </button>
+
+    <button
+  onClick={() => window.open("https://icsky26.onrender.com/estado-equipos", "_blank")}
+  className="bg-purple-600 text-white px-4 py-2 rounded-xl w-full"
+>
+  Ver estado de equipos
+</button>
+    
       </div>
 
       {/* 📊 TABLERO DE CONTROL */}
