@@ -248,7 +248,7 @@ function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToReg
   };
 
   return loggedIn ? (
-    <div className="p-4 max-w-md mx-auto">
+    <div className="p-4 max-w-md mx-auto pb-40">
       <Supervision />
 
       {/* 🔹 Botones visibles dentro del modo supervisor */}
