@@ -31,6 +31,7 @@ export default function ResumenEstados() {
   const [recordar, setRecordar] = useState(false);
   const [equipoSeleccionado, setEquipoSeleccionado] = useState(null);
   const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
+  const [modalEstados, setModalEstados] = useState(false);
 
   const iconosEquipos = {
   RESONADOR: FaBrain,
@@ -216,10 +217,13 @@ if (indexResonador !== -1 && tomografosCard.length > 0) {
           <p className="text-3xl font-bold">{activos}</p>
         </div>
 
-        <div className="bg-red-600 p-4 rounded-xl text-center">
-          <h2>Fuera de servicio</h2>
-          <p className="text-3xl font-bold">{no_activos}</p>
-        </div>
+        <div
+  onClick={() => setModalEstados(true)}
+  className="bg-red-600 p-4 rounded-xl text-center cursor-pointer hover:scale-105 transition"
+>
+  <h2>Fuera de servicio</h2>
+  <p className="text-3xl font-bold">{no_activos}</p>
+</div>
 
       </div>
 
@@ -446,7 +450,49 @@ const Icono = eq.esGrupo
     </div>
   </div>
 )}
+{/* 📋 MODAL ESTADOS */}
+{modalEstados && (
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
 
+    <div className="bg-gray-900 text-white p-6 rounded-2xl shadow-2xl w-96 border border-red-400/30 animate-scaleIn">
+
+      <h3 className="text-xl font-bold mb-4 text-red-400">
+        Equipos fuera de servicio por estado
+      </h3>
+
+      <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+
+        {Object.entries(
+          resumen?.detalle_estados || {}
+        ).map(([estado, cantidad], i) => (
+
+          <div
+            key={i}
+            className="flex justify-between items-center bg-gray-800 p-3 rounded-xl"
+          >
+            <span className="text-sm">
+              {estado}
+            </span>
+
+            <span className="font-bold text-red-400">
+              {cantidad}
+            </span>
+          </div>
+
+        ))}
+
+      </div>
+
+      <button
+        onClick={() => setModalEstados(false)}
+        className="w-full mt-4 py-2 bg-red-500 hover:bg-red-600 rounded-xl transition"
+      >
+        Cerrar
+      </button>
+
+    </div>
+  </div>
+)}
     </div>
   );
 }
