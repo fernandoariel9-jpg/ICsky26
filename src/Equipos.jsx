@@ -168,7 +168,7 @@ if (
     } catch (err) {
       setEquipo(null);
       setError("Equipo no encontrado");
-    }}
+    }
   };
 
   return (
@@ -331,5 +331,5 @@ if (
         ← Volver
       </button>
     </div>
-  );
+  );}
 }
