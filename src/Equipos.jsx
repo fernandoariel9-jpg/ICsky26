@@ -80,6 +80,7 @@ export default function Equipos({ setVista, personal }) {
         diagnostico: diagnosticoSeleccionado,
         tipo_mantenimiento: tipoMantenimiento,
         descripcion: equipo.descripcion,
+        marca_modelo: equipo.marca_modelo,
         numero_serie: equipo.numero_serie,
         area: personal.area,
         servicio: equipo.servicio,
