@@ -152,17 +152,6 @@ export default function Equipos({ setVista, personal }) {
 setEquipo(data);
 setError("");
 
-// Si existe mantenimiento abierto
-if (
-  data.estado &&
-  data.estado.toLowerCase() !== "activo" &&
-  data.mantenimiento_id
-) {
-  setTipoMantenimiento(data.tipo_mantenimiento || "");
-  setDiagnosticoSeleccionado(data.diagnostico || "");
-
-  setMostrarForm(true);
-}
     } catch (err) {
       setEquipo(null);
       setError("Equipo no encontrado");
