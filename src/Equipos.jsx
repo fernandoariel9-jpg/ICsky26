@@ -168,7 +168,7 @@ if (
     } catch (err) {
       setEquipo(null);
       setError("Equipo no encontrado");
-    }
+    }}
   };
 
   return (
