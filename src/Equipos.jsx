@@ -148,8 +148,21 @@ export default function Equipos({ setVista, personal }) {
       }
 
       const data = await res.json();
-      setEquipo(data);
-      setError("");
+
+setEquipo(data);
+setError("");
+
+// Si existe mantenimiento abierto
+if (
+  data.estado &&
+  data.estado.toLowerCase() !== "activo" &&
+  data.mantenimiento_id
+) {
+  setTipoMantenimiento(data.tipo_mantenimiento || "");
+  setDiagnosticoSeleccionado(data.diagnostico || "");
+
+  setMostrarForm(true);
+}
     } catch (err) {
       setEquipo(null);
       setError("Equipo no encontrado");
@@ -215,21 +228,34 @@ export default function Equipos({ setVista, personal }) {
     <button
   onClick={() => setMostrarForm(true)}
   className={`px-4 py-2 rounded-xl w-full mt-3 ${
-    equipo.estado?.toUpperCase() !== "ACTIVO"
+    equipo.estado?.toLowerCase() !== "activo"
       ? "bg-yellow-500"
       : "bg-blue-500"
   } text-white`}
 >
-  {equipo.estado?.toUpperCase() !== "ACTIVO"
+  {equipo.estado?.toLowerCase() !== "activo"
     ? "🔧 Continuar mantenimiento"
     : "🛠️ Iniciar mantenimiento"}
 </button>
-    {equipo.estado?.toUpperCase() !== "ACTIVO" && (
-  <p className="text-yellow-600 mt-2">
-    ⚠️ Este equipo tiene un mantenimiento en curso
-  </p>
-)}
-  </div>
+{equipo.estado?.toLowerCase() !== "activo" &&
+  equipo.mantenimiento_id && (
+    <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2 text-sm">
+      <p>
+        🔧 Mantenimiento abierto #{equipo.mantenimiento_id}
+      </p>
+
+      {equipo.tipo_mantenimiento && (
+        <p>
+          Tipo: {equipo.tipo_mantenimiento}
+        </p>
+      )}
+
+      {equipo.diagnostico && (
+        <p>
+          Diagnóstico: {equipo.diagnostico}
+        </p>
+      )}
+    </div>
 )}
 
 {/* Error */}
