@@ -163,6 +163,8 @@ if (
 
   setMostrarForm(true);
 
+  }
+
     } catch (err) {
       setEquipo(null);
       setError("Equipo no encontrado");
