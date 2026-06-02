@@ -331,5 +331,5 @@ if (
         ← Volver
       </button>
     </div>
-  });
+  );
 }
