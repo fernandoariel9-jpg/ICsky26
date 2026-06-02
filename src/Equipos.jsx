@@ -162,7 +162,6 @@ if (
   setDiagnosticoSeleccionado(data.diagnostico || "");
 
   setMostrarForm(true);
-}
 
     } catch (err) {
       setEquipo(null);
