@@ -215,20 +215,20 @@ export default function Equipos({ setVista, personal }) {
     <button
   onClick={() => setMostrarForm(true)}
   className={`px-4 py-2 rounded-xl w-full mt-3 ${
-    equipo.mantenimiento_id
+    equipo.estado?.toUpperCase() !== "ACTIVO"
       ? "bg-yellow-500"
       : "bg-blue-500"
   } text-white`}
 >
-  {equipo.mantenimiento_id
+  {equipo.estado?.toUpperCase() !== "ACTIVO"
     ? "🔧 Continuar mantenimiento"
     : "🛠️ Iniciar mantenimiento"}
 </button>
-    {equipo.mantenimiento_id && (
-      <p className="text-yellow-600 mt-2">
-        ⚠️ Este equipo ya tiene un mantenimiento en curso
-      </p>
-    )}
+    {equipo.estado?.toUpperCase() !== "ACTIVO" && (
+  <p className="text-yellow-600 mt-2">
+    ⚠️ Este equipo tiene un mantenimiento en curso
+  </p>
+)}
   </div>
 )}
 
