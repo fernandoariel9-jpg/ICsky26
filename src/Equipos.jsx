@@ -97,7 +97,7 @@ export default function Equipos({ setVista, personal }) {
             diagnostico: diagnosticoSeleccionado,
             descripcion,
             solucion: observaciones,
-            fecha_comp
+            fecha_comp: getFechaLocal
           })
         }
       );
