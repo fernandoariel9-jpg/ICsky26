@@ -62,55 +62,98 @@ export default function Equipos({ setVista, personal }) {
 
   const guardarMantenimiento = async () => {
   try {
-    const fechaLocal = new Date().toISOString().slice(0, 19).replace("T", " ");
+    const fechaLocal = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace("T", " ");
 
-    const tareaActiva = JSON.parse(localStorage.getItem("tareaActiva"));
+    const tareaActiva = JSON.parse(
+      localStorage.getItem("tareaActiva")
+    );
 
-    const res = await fetch(API_URL.Ric01, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        usuario: tareaActiva
-          ? tareaActiva.usuario   // 👈 usuario original de la tarea
-          : personal.nombre,      // 👈 fallback
-        fecha: fechaLocal,
-        tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
-        diagnostico: diagnosticoSeleccionado,
-        tipo_mantenimiento: tipoMantenimiento,
-        descripcion: equipo.descripcion,
-        marca_modelo: equipo.marca_modelo,
-        numero_serie: equipo.numero_serie,
-        area: personal.area,
-        servicio: equipo.servicio,
-        subservicio: equipo.sub_servicio,
-        asignado: personal.nombre,
-        solicitado_por: personal.nombre,
-        origen: "interno",
-        tarea_id: tareaActiva?.id || null,
-        solucion: observaciones
-      })
-    });
+    const continuar =
+      equipo?.estado?.toLowerCase() !== "activo" &&
+      equipo?.mantenimiento_id;
+
+    let res;
+
+    // 🔧 CONTINUAR MANTENIMIENTO EXISTENTE
+    if (continuar) {
+      res = await fetch(
+        `${API_URL.Ric01}/${equipo.mantenimiento_id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            diagnostico: diagnosticoSeleccionado,
+            descripcion,
+            solucion: observaciones
+          })
+        }
+      );
+    }
+
+    // 🆕 CREAR NUEVO MANTENIMIENTO
+    else {
+      res = await fetch(API_URL.Ric01, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          usuario: tareaActiva
+            ? tareaActiva.usuario
+            : personal.nombre,
+
+          fecha: fechaLocal,
+
+          tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
+
+          diagnostico: diagnosticoSeleccionado,
+          tipo_mantenimiento: tipoMantenimiento,
+
+          descripcion: equipo.descripcion,
+          marca_modelo: equipo.marca_modelo,
+          numero_serie: equipo.numero_serie,
+
+          area: personal.area,
+          servicio: equipo.servicio,
+          subservicio: equipo.sub_servicio,
+
+          asignado: personal.nombre,
+          solicitado_por: personal.nombre,
+
+          origen: "interno",
+          tarea_id: tareaActiva?.id || null,
+
+          solucion: observaciones
+        })
+      });
+    }
 
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(data.error || "Error desconocido");
+      throw new Error(
+        data.error || "Error desconocido"
+      );
     }
 
-    alert("Mantenimiento guardado ✅");
+    alert(
+      continuar
+        ? "Mantenimiento actualizado ✅"
+        : "Mantenimiento iniciado ✅"
+    );
 
-    // ✅ CERRAR FORM
     setMostrarForm(false);
 
-    // ✅ LIMPIAR CAMPOS
     setTipoMantenimiento("");
     setDiagnosticoSeleccionado("");
     setObservaciones("");
     setDescripcion("");
 
-    // 🔁 OPCIONAL (recomendado)
     setEquipo(null);
     setSerie("");
 
