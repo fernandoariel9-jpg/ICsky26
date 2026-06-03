@@ -343,7 +343,7 @@ if (
         <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
           <p>
             🔧 Tipo de mantenimiento:
-            <strong> {tipoMantenimiento}</strong>
+            <strong> {equipo.tipo_mantenimiento}</strong>
           </p>
         </div>
     )}
