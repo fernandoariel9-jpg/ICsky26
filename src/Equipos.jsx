@@ -311,20 +311,36 @@ if (
   <p className="text-red-500 mt-3">{error}</p>
 )}
 
-      {mostrarForm && (
+     {mostrarForm && (
   <div className="bg-gray-100 p-3 rounded-xl mt-3">
 
-    {/* Tipo de mantenimiento */}
-    <select
-      value={tipoMantenimiento}
-      onChange={(e) => handleTipoChange(e.target.value)}
-      className="w-full border p-2 rounded-xl mb-2"
-    >
-      <option value="">Seleccionar tipo</option>
-      <option value="Correctivo">Correctivo</option>
-      <option value="Preventivo">Preventivo</option>
-      <option value="Verificación">Verificación</option>
-    </select>
+    {/* NUEVO MANTENIMIENTO */}
+    {!(
+      equipo?.estado?.toLowerCase() !== "activo" &&
+      equipo?.mantenimiento_id
+    ) && (
+      <select
+        value={tipoMantenimiento}
+        onChange={(e) => handleTipoChange(e.target.value)}
+        className="w-full border p-2 rounded-xl mb-2"
+      >
+        <option value="">Seleccionar tipo</option>
+        <option value="Correctivo">Correctivo</option>
+        <option value="Preventivo">Preventivo</option>
+        <option value="Verificación">Verificación</option>
+      </select>
+    )}
+
+    {/* MANTENIMIENTO EXISTENTE */}
+    {equipo?.estado?.toLowerCase() !== "activo" &&
+      equipo?.mantenimiento_id && (
+        <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+          <p>
+            🔧 Tipo de mantenimiento:
+            <strong> {tipoMantenimiento}</strong>
+          </p>
+        </div>
+    )}
 
     {/* Diagnóstico SOLO si es correctivo */}
     {tipoMantenimiento === "Correctivo" && (
