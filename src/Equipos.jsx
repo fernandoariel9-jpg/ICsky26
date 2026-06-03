@@ -344,37 +344,26 @@ if (
 
     {/* Diagnóstico SOLO si es correctivo */}
     {tipoMantenimiento === "Correctivo" && (
-      <>
-        <select
-          value={diagnosticoSeleccionado}
-          onChange={(e) => setDiagnosticoSeleccionado(e.target.value)}
-          className="w-full border p-2 rounded-xl mb-2"
-        >
-          <option value="">Seleccionar diagnóstico</option>
-          {diagnosticos.map((d, i) => (
-            <option key={i} value={d.diagnostico}>
-              {d.diagnostico}
-            </option>
-          ))}
-        </select>
+  <select
+    value={diagnosticoSeleccionado}
+    onChange={(e) => setDiagnosticoSeleccionado(e.target.value)}
+    className="w-full border p-2 rounded-xl mb-2"
+  >
+    <option value="">Seleccionar diagnóstico</option>
 
-        {/* Observaciones */}
-        <textarea
-          placeholder="Observaciones"
-          value={observaciones}
-          onChange={(e) => setObservaciones(e.target.value)}
-          className="w-full border p-2 rounded-xl mb-2"
-        />
-      </>
-    )}
-
-    {/* Descripción (general) */}
+    {diagnosticos.map((d, i) => (
+      <option key={i} value={d.diagnostico}>
+        {d.diagnostico}
+      </option>
+    ))}
+  </select>
+)}
     <textarea
-      placeholder="Descripción del mantenimiento"
-      value={descripcion}
-      onChange={(e) => setDescripcion(e.target.value)}
-      className="w-full border p-2 rounded-xl mb-2"
-    />
+  placeholder="Observaciones"
+  value={observaciones}
+  onChange={(e) => setObservaciones(e.target.value)}
+  className="w-full border p-2 rounded-xl mb-2"
+/>
 
     <button
       onClick={guardarMantenimiento}
