@@ -60,17 +60,19 @@ export default function Equipos({ setVista, personal }) {
   }
 };
 
+    function getFechaLocal() {
+    const d = new Date();
+    d.setSeconds(0, 0);
+    const año = d.getFullYear();
+    const mes = String(d.getMonth() + 1).padStart(2, "0");
+    const dia = String(d.getDate()).padStart(2, "0");
+    const hora = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+    return `${año}-${mes}-${dia} ${hora}:${min}`;
+  }
+
   const guardarMantenimiento = async () => {
   try {
-    const fechaLocal = new Date()
-      .toISOString()
-      .slice(0, 19)
-      .replace("T", " ");
-
-    const fecha_comp = new Date()
-  .toISOString()
-  .slice(0, 19)
-  .replace("T", " ");
 
     const tareaActiva = JSON.parse(
       localStorage.getItem("tareaActiva")
@@ -113,7 +115,7 @@ export default function Equipos({ setVista, personal }) {
             ? tareaActiva.usuario
             : personal.nombre,
 
-          fecha: fechaLocal,
+          fecha: getFechaLocal,
 
           tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
 
