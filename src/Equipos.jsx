@@ -67,6 +67,11 @@ export default function Equipos({ setVista, personal }) {
       .slice(0, 19)
       .replace("T", " ");
 
+    const fecha_comp = new Date()
+  .toISOString()
+  .slice(0, 19)
+  .replace("T", " ");
+
     const tareaActiva = JSON.parse(
       localStorage.getItem("tareaActiva")
     );
@@ -89,7 +94,8 @@ export default function Equipos({ setVista, personal }) {
           body: JSON.stringify({
             diagnostico: diagnosticoSeleccionado,
             descripcion,
-            solucion: observaciones
+            solucion: observaciones,
+            fecha_comp
           })
         }
       );
