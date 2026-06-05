@@ -8,6 +8,7 @@ import RegistroUsuario from "./RegistroUsuario";
 import { FaWhatsapp } from "react-icons/fa";
 import { FaSearch } from "react-icons/fa";
 import GuardiasServicios from "./GuardiasServicios";
+import ResumenEstados from "./ResumenEstados";
 
 const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
@@ -40,6 +41,7 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   const [descripcionInterna, setDescripcionInterna] = useState("");
   const [destinoInterno, setDestinoInterno] = useState("");
   const [prioridadInterna, setPrioridadInterna] = useState("Media");
+  const [mostrarPanelControl, setMostrarPanelControl] = useState(false);
 
   const cargarEquipoDesdeTarea = (tarea) => {
   localStorage.setItem("tareaActiva", JSON.stringify(tarea));
@@ -518,6 +520,21 @@ const cambiarPassword = async (id) => {
   }
 };
 
+  if (mostrarPanelControl) {
+  return (
+    <div className="p-4">
+      <button
+        onClick={() => setMostrarPanelControl(false)}
+        className="mb-4 bg-gray-500 text-white px-3 py-1 rounded"
+      >
+        ⬅ Volver a tareas
+      </button>
+
+      <ResumenEstados />
+    </div>
+  );
+}
+
   // 👉 Si el usuario entra a Guardias
 if (mostrarGuardias) {
   return (
@@ -692,6 +709,16 @@ if (busqueda.trim()) {
   className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
 >
   ➕ Pedido Interno
+</button>
+
+    <button
+  onClick={() => {
+    setMostrarPanelControl(true);
+    setMenuAbierto(false);
+  }}
+  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+>
+  📊 Panel de control
 </button>
 
     <button
