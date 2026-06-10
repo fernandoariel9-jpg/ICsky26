@@ -44,7 +44,9 @@ export default function Equipos({ setVista, personal }) {
     const res = await fetch(`${API_URL.Equipos}/${id}/estado`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estado: nuevoEstado }),
+      body: JSON.stringify({
+      estado: nuevoEstado,
+      usuario: personal.nombre})
     });
 
     if (!res.ok) throw new Error("Error HTTP");
