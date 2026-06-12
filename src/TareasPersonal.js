@@ -997,9 +997,16 @@ if (busqueda.trim()) {
              🔧 Equipo: {t.descripcion}
             </p>
           )}
+
           {t.numero_serie && (
             <p className="text-sm text-green-600 mt-1">
              🔧 N/S: {t.numero_serie}
+            </p>
+          )}
+
+          {t.estado && (
+            <p className="text-sm text-green-600 mt-1">
+             🔧 Estado: {t.estado}
             </p>
           )}
 
