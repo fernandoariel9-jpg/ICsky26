@@ -13,6 +13,8 @@ export default function Equipos({ setVista, personal }) {
   const [diagnosticoSeleccionado, setDiagnosticoSeleccionado] = useState("");
   const [observaciones, setObservaciones] = useState("");
   const [estados, setEstados] = useState([]);
+  const [mostrarFinalizar, setMostrarFinalizar] = useState(false);
+  const [estadoFinal, setEstadoFinal] = useState("");
 
   useEffect(() => {
   fetchEstados();
@@ -212,15 +214,9 @@ export default function Equipos({ setVista, personal }) {
 
   const finalizarMantenimiento = async () => {
 
-  const nuevoEstado = prompt(
-    "Estado final del equipo:\n\n" +
-    "Activo\n" +
-    "Fuera de servicio\n" +
-    "Rep. en fábrica\n" +
-    "De baja"
-  );
-
-  if (!nuevoEstado) return;
+  if (!estadoFinal) {
+    return alert("Seleccione un estado para el equipo");
+  }
 
   try {
 
@@ -238,7 +234,7 @@ export default function Equipos({ setVista, personal }) {
         },
         body: JSON.stringify({
           fecha_fin: fechaFin,
-          estado: nuevoEstado,
+          estado: estadoFinal,
           numero_serie: equipo.numero_serie,
           usuario: personal.nombre
         })
@@ -248,18 +244,34 @@ export default function Equipos({ setVista, personal }) {
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(data.error);
+      throw new Error(
+        data.error || "Error al finalizar mantenimiento"
+      );
     }
 
-    alert("Mantenimiento finalizado");
+    alert("✅ Mantenimiento finalizado");
 
+    // cerrar modal
+    setMostrarFinalizar(false);
+    setEstadoFinal("");
+
+    // limpiar formulario
     setMostrarForm(false);
+    setTipoMantenimiento("");
+    setDiagnosticoSeleccionado("");
+    setObservaciones("");
+    setDescripcion("");
+
+    // limpiar equipo actual
     setEquipo(null);
     setSerie("");
 
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
+    // eliminar tarea activa si existe
+    localStorage.removeItem("tareaActiva");
+
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
   }
 };
   
@@ -466,7 +478,7 @@ if (
 />
 
     <button
-  onClick={finalizarMantenimiento}
+  onClick={() => setMostrarFinalizar(true)}
   className="bg-red-500 text-white px-4 py-2 rounded-xl w-full mt-2"
 >
   ✅ Finalizar mantenimiento
@@ -478,6 +490,62 @@ if (
     >
       💾 Guardar
     </button>
+  </div>
+)}
+
+      {mostrarFinalizar && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-5 rounded-xl shadow-xl w-96">
+
+      <h2 className="text-lg font-bold mb-4">
+        Finalizar mantenimiento
+      </h2>
+
+      <p className="mb-2">
+        ¿En qué estado queda el equipo?
+      </p>
+
+      <select
+        value={estadoFinal}
+        onChange={(e) => setEstadoFinal(e.target.value)}
+        className="w-full border p-2 rounded mb-4"
+      >
+        <option value="">
+          Seleccionar estado
+        </option>
+
+        {estados.map((est) => (
+          <option
+            key={est.id}
+            value={est.estado}
+          >
+            {est.estado}
+          </option>
+        ))}
+      </select>
+
+      <div className="flex gap-2">
+
+        <button
+          onClick={() => {
+            setMostrarFinalizar(false);
+            setEstadoFinal("");
+          }}
+          className="flex-1 bg-gray-500 text-white py-2 rounded"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={finalizarMantenimiento}
+          className="flex-1 bg-green-600 text-white py-2 rounded"
+        >
+          Confirmar
+        </button>
+
+      </div>
+
+    </div>
   </div>
 )}
 
