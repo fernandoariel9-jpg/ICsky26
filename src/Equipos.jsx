@@ -209,6 +209,59 @@ export default function Equipos({ setVista, personal }) {
     alert(error.message);
   }
 };
+
+  const finalizarMantenimiento = async () => {
+
+  const nuevoEstado = prompt(
+    "Estado final del equipo:\n\n" +
+    "Activo\n" +
+    "Fuera de servicio\n" +
+    "Rep. en fábrica\n" +
+    "De baja"
+  );
+
+  if (!nuevoEstado) return;
+
+  try {
+
+    const fechaFin = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace("T", " ");
+
+    const res = await fetch(
+      `${API_URL.Ric01}/finalizar/${equipo.mantenimiento_id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fecha_fin: fechaFin,
+          estado: nuevoEstado,
+          numero_serie: equipo.numero_serie,
+          usuario: personal.nombre
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error);
+    }
+
+    alert("Mantenimiento finalizado");
+
+    setMostrarForm(false);
+    setEquipo(null);
+    setSerie("");
+
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+  }
+};
   
   const cargarDiagnosticos = async () => {
   try {
@@ -411,6 +464,13 @@ if (
   onChange={(e) => setObservaciones(e.target.value)}
   className="w-full border p-2 rounded-xl mb-2"
 />
+
+    <button
+  onClick={finalizarMantenimiento}
+  className="bg-red-500 text-white px-4 py-2 rounded-xl w-full mt-2"
+>
+  ✅ Finalizar mantenimiento
+</button>
 
     <button
       onClick={guardarMantenimiento}
