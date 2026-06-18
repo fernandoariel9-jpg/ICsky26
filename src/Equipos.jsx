@@ -136,7 +136,7 @@ export default function Equipos({ setVista, personal }) {
           },
           body: JSON.stringify({
             diagnostico: diagnosticoSeleccionado,
-            descripcion,
+            descripcion: descripcion,
             solucion: observaciones,
             fecha_comp: getFechaLocal
           })
