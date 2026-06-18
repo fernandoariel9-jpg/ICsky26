@@ -444,18 +444,35 @@ if (
     )}
 
     {/* MANTENIMIENTO EXISTENTE */}
-    {equipo?.estado?.toLowerCase() !== "activo" &&
-      equipo?.mantenimiento_id && (
-        <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
-          <p>
-            🔧 Tipo de mantenimiento:
-            <strong> {equipo.tipo_mantenimiento}</strong>
-          </p>
-        </div>
-    )}
+  {equipo?.estado?.toLowerCase() !== "activo" &&
+  equipo?.mantenimiento_id && (
+    <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+      <p>
+        🔧 Tipo de mantenimiento:
+        <strong> {equipo.tipo_mantenimiento}</strong>
+      </p>
 
-    {/* Diagnóstico SOLO si es correctivo */}
-    {tipoMantenimiento === "Correctivo" && (
+      {equipo.diagnostico && (
+        <p className="mt-1">
+          📋 Diagnóstico:
+          <strong> {equipo.diagnostico}</strong>
+        </p>
+      )}
+
+      {equipo.fecha_inicio && (
+        <p className="mt-1 text-sm text-gray-600">
+          📅 Iniciado:
+          <strong> {formatTimestamp(equipo.fecha_inicio)}</strong>
+        </p>
+      )}
+    </div>
+)}
+
+   {/* Diagnóstico SOLO para mantenimiento NUEVO correctivo */}
+{!(
+  equipo?.estado?.toLowerCase() !== "activo" &&
+  equipo?.mantenimiento_id
+) && tipoMantenimiento === "Correctivo" && (
   <select
     value={diagnosticoSeleccionado}
     onChange={(e) => setDiagnosticoSeleccionado(e.target.value)}
