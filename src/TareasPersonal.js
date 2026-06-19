@@ -998,6 +998,12 @@ if (busqueda.trim()) {
             </p>
           )}
 
+          {t.marca_modelo && (
+            <p className="text-sm text-green-600 mt-1">
+             🔧 Equipo: {t.marca_modelo}
+            </p>
+          )}
+
           {t.numero_serie && (
             <p className="text-sm text-green-600 mt-1">
              🔧 N/S: {t.numero_serie}
