@@ -1000,7 +1000,7 @@ if (busqueda.trim()) {
 
           {t.marca_modelo && (
             <p className="text-sm text-green-600 mt-1">
-             🔧 Equipo: {t.marca_modelo}
+             🔧 Marca: {t.marca_modelo}
             </p>
           )}
 
@@ -1012,13 +1012,13 @@ if (busqueda.trim()) {
 
           {t.servicio && (
             <p className="text-sm text-green-600 mt-1">
-             🔧 Estado: {t.servicio}
+             🔧 Servicio: {t.servicio}
             </p>
           )}
 
           {t.subservicio && (
             <p className="text-sm text-green-600 mt-1">
-             🔧 Estado: {t.subservicio}
+             🔧 Sub Servicio: {t.subservicio}
             </p>
           )}
 
