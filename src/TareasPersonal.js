@@ -319,34 +319,17 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   }
 };
 
-  const finalizarTarea = async (id, estadoEquipo) => {
+  const finalizarTarea = async (id) => {
   try {
+    const res = await fetch(`${API_TAREAS}/finalizar/${id}`, {
+      method: "PUT"
+    });
 
-    const res = await fetch(
-      `${API_URL.Tareas}/${id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          fin: true,
-          estado_equipo: estadoEquipo
-        })
-      }
-    );
+    if (!res.ok) throw new Error("Error");
 
-    if (!res.ok) {
-      throw new Error();
-    }
-
-    setMostrarFinalizar(null);
-
-    cargarTareas();
-
+    fetchTareas(); // recargar lista
   } catch (error) {
     console.error(error);
-    alert("Error al finalizar tarea");
   }
 };
   
