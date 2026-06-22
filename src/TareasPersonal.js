@@ -1293,7 +1293,7 @@ if (busqueda.trim()) {
       !t.fin && (
         <button
   onClick={() => {
-    setMostrarFinalizar(tarea);
+    setMostrarFinalizar(tarea.id);
     setEstadoFinal("");
   }}
   className="px-2 py-1 bg-blue-600 text-white rounded"
