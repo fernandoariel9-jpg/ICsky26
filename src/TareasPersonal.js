@@ -1010,9 +1010,15 @@ if (busqueda.trim()) {
             </p>
           )}
 
-          {t.estado && (
+          {t.servicio && (
             <p className="text-sm text-green-600 mt-1">
-             🔧 Estado: {t.estado}
+             🔧 Estado: {t.servicio}
+            </p>
+          )}
+
+          {t.subservicio && (
+            <p className="text-sm text-green-600 mt-1">
+             🔧 Estado: {t.subservicio}
             </p>
           )}
 
