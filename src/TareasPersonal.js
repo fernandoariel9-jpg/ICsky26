@@ -42,9 +42,6 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   const [destinoInterno, setDestinoInterno] = useState("");
   const [prioridadInterna, setPrioridadInterna] = useState("Media");
   const [mostrarPanelControl, setMostrarPanelControl] = useState(false);
-  const [estados, setEstados] = useState([]);
-  const [mostrarFinalizar, setMostrarFinalizar] = useState(null);
-  const [estadoFinal, setEstadoFinal] = useState("");
 
   const cargarEquipoDesdeTarea = (tarea) => {
   localStorage.setItem("tareaActiva", JSON.stringify(tarea));
@@ -372,20 +369,6 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
     .then(data => setAreas(data))
     .catch(err => console.error("Error cargando áreas:", err));
 }, []);
-
-  useEffect(() => {
-  cargarEstados();
-}, []);
-
-const cargarEstados = async () => {
-  try {
-    const res = await fetch(API_URL.estados);
-    const data = await res.json();
-    setEstados(data);
-  } catch (err) {
-    console.error(err);
-  }
-};
 
   useEffect(() => {
     if (!personal?.id) return;
@@ -1278,15 +1261,11 @@ if (busqueda.trim()) {
       t.usuario === personal.nombre &&
       !t.fin && (
         <button
-  onClick={() => {
-    setMostrarFinalizar(tarea.id);
-    setEstadoFinal("");
-  }}
-  className="px-2 py-1 bg-blue-600 text-white rounded"
->
-  ✅ Finalizar
-</button>
-      
+          onClick={() => finalizarTarea(t.id)}
+          className="px-3 py-1 bg-green-600 text-white rounded text-sm"
+        >
+          ✅ Finalizar
+        </button>
 )}
 </div>
     )}
@@ -1335,57 +1314,6 @@ if (busqueda.trim()) {
         </div>
       )}
 
-{mostrarFinalizar && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-4 rounded shadow w-80">
-      <h3 className="font-bold mb-3">
-        Estado final del equipo
-      </h3>
-
-      <select
-        value={estadoFinal}
-        onChange={(e) => setEstadoFinal(e.target.value)}
-        className="w-full border p-2 rounded mb-3"
-      >
-        <option value="">
-          Seleccionar estado
-        </option>
-
-        {estados.map((e) => (
-          <option
-            key={e.id}
-            value={e.estado}
-          >
-            {e.estado}
-          </option>
-        ))}
-      </select>
-
-      <div className="flex gap-2">
-        <button
-          onClick={() => {
-            finalizarTarea(
-              mostrarFinalizar.id,
-              estadoFinal
-            );
-          }}
-          disabled={!estadoFinal}
-          className="bg-green-600 text-white px-3 py-2 rounded flex-1"
-        >
-          Confirmar
-        </button>
-
-        <button
-          onClick={() => setMostrarFinalizar(null)}
-          className="bg-gray-500 text-white px-3 py-2 rounded flex-1"
-        >
-          Cancelar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
         {mostrarObservacion && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div className="bg-white p-4 rounded-lg w-full max-w-md">
@@ -1424,5 +1352,3 @@ if (busqueda.trim()) {
     </div>
   );
 }
-
-
