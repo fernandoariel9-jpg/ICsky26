@@ -319,7 +319,7 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   }
 };
 
-  const finalizarTarea = async (id) => {
+  const finalizarTarea = async (id, estadoEquipo) => {
   try {
     const res = await fetch(`${API_TAREAS}/finalizar/${id}`, {
       method: "PUT",
@@ -328,7 +328,7 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
         },
         body: JSON.stringify({
           fin: true,
-          estado_equipo: estados
+          estado_equipo: estadoEquipo
         })
       }
     );
