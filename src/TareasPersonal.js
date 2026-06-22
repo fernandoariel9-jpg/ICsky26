@@ -1010,18 +1010,6 @@ if (busqueda.trim()) {
             </p>
           )}
 
-          {t.servicio && (
-            <p className="text-sm text-green-600 mt-1">
-             🔧 Servicio: {t.servicio}
-            </p>
-          )}
-
-          {t.subservicio && (
-            <p className="text-sm text-green-600 mt-1">
-             🔧 Sub Servicio: {t.subservicio}
-            </p>
-          )}
-
           {t.reasignado_a && (
             <p className="text-sm text-purple-700 mt-1">
               🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
