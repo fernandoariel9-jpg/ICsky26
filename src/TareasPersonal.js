@@ -321,8 +321,11 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
 
   const finalizarTarea = async (id, estadoEquipo) => {
   try {
-    const res = await fetch(`${API_TAREAS}/finalizar/${id}`, {
-      method: "PUT",
+
+    const res = await fetch(
+      `${API_URL.Tareas}/${id}`,
+      {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
