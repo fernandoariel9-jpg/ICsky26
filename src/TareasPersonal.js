@@ -328,7 +328,7 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
         },
         body: JSON.stringify({
           fin: true,
-          estado_equipo: estadoEquipo
+          estado_equipo: estados
         })
       }
     );
