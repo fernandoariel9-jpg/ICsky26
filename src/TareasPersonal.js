@@ -393,7 +393,7 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
 
 const cargarEstados = async () => {
   try {
-    const res = await fetch(API_URL.Estados);
+    const res = await fetch(API_URL.estados);
     const data = await res.json();
     setEstados(data);
   } catch (err) {
