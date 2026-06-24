@@ -1283,7 +1283,7 @@ if (busqueda.trim()) {
       t.usuario === personal.nombre &&
       !t.fin && (
         <button
-          onClick={() => finalizarTarea(tarea.id, tarea.numero_serie)}
+          onClick={() => finalizarTarea(t.id, t.numero_serie)}
           className="px-3 py-1 bg-green-600 text-white rounded text-sm"
         >
           ✅ Finalizar
