@@ -42,6 +42,9 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   const [destinoInterno, setDestinoInterno] = useState("");
   const [prioridadInterna, setPrioridadInterna] = useState("Media");
   const [mostrarPanelControl, setMostrarPanelControl] = useState(false);
+  const [mostrarFinalizar, setMostrarFinalizar] = useState(false);
+  const [tareaSeleccionada, setTareaSeleccionada] = useState(null);
+  const [estadoFinal, setEstadoFinal] = useState("Activo");
 
   const cargarEquipoDesdeTarea = (tarea) => {
   localStorage.setItem("tareaActiva", JSON.stringify(tarea));
@@ -316,15 +319,34 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   }
 };
 
-  const finalizarTarea = async (id) => {
+  const abrirFinalizar = (tarea) => {
+  setTareaSeleccionada(tarea);
+  setEstadoFinal("Activo");
+  setMostrarFinalizar(true);
+};
+
+const finalizarTarea = async (id, numero_serie) => {
   try {
+    const estado = prompt(
+      "¿En qué estado queda el equipo?\nOpciones: Activo / Ingresado / Fuera de servicio / De baja"
+    );
+
+    if (!estado) return;
+
     const res = await fetch(`${API_TAREAS}/finalizar/${id}`, {
-      method: "PUT"
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        estado,
+        numero_serie
+      })
     });
 
-    if (!res.ok) throw new Error("Error");
+    if (!res.ok) throw new Error("Error al finalizar");
 
-    fetchTareas(); // recargar lista
+    fetchTareas();
   } catch (error) {
     console.error(error);
   }
@@ -1261,7 +1283,7 @@ if (busqueda.trim()) {
       t.usuario === personal.nombre &&
       !t.fin && (
         <button
-          onClick={() => finalizarTarea(t.id)}
+          onClick={() => finalizarTarea(tarea.id, tarea.numero_serie)}
           className="px-3 py-1 bg-green-600 text-white rounded text-sm"
         >
           ✅ Finalizar
@@ -1313,6 +1335,43 @@ if (busqueda.trim()) {
           </div>
         </div>
       )}
+
+{mostrarFinalizar && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-4 rounded-xl w-80">
+      <h3 className="font-bold mb-3">
+        Estado final del equipo
+      </h3>
+
+      <select
+        value={estadoFinal}
+        onChange={(e) => setEstadoFinal(e.target.value)}
+        className="w-full border rounded p-2 mb-3"
+      >
+        <option value="Activo">Activo</option>
+        <option value="Fuera de servicio">Fuera de servicio</option>
+        <option value="De baja">De baja</option>
+        <option value="Rep. en fábrica">Rep. en fábrica</option>
+      </select>
+
+      <div className="flex gap-2">
+        <button
+          onClick={finalizarTarea}
+          className="flex-1 bg-green-600 text-white p-2 rounded"
+        >
+          Confirmar
+        </button>
+
+        <button
+          onClick={() => setMostrarFinalizar(false)}
+          className="flex-1 bg-gray-400 text-white p-2 rounded"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
         {mostrarObservacion && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
