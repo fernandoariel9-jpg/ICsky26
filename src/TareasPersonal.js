@@ -1055,7 +1055,7 @@ if (busqueda.trim()) {
 
           {t.diagnostico && (
             <p className="text-medium text-red-600 mt-1">
-             🔧 N/S: {t.diagnostico}
+             🔧 Diagnóstico: {t.diagnostico}
             </p>
           )}
 
