@@ -45,6 +45,9 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   const [mostrarFinalizar, setMostrarFinalizar] = useState(false);
   const [tareaSeleccionada, setTareaSeleccionada] = useState(null);
   const [estadoFinal, setEstadoFinal] = useState("Activo");
+  const [estados, setEstados] = useState([]);
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState("");
+  const [tareaFinalizar, setTareaFinalizar] = useState(null);
 
   const cargarEquipoDesdeTarea = (tarea) => {
   localStorage.setItem("tareaActiva", JSON.stringify(tarea));
@@ -325,28 +328,30 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   setMostrarFinalizar(true);
 };
 
-const finalizarTarea = async (id, numero_serie) => {
+const finalizarTarea = async (id, estadoFinal) => {
   try {
-    const estado = prompt(
-      "¿En qué estado queda el equipo?\nOpciones: Activo / Ingresado / Fuera de servicio / De baja"
+    const res = await fetch(
+      `${API_TAREAS}/finalizar/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          estado: estadoFinal
+        })
+      }
     );
 
-    if (!estado) return;
+    if (!res.ok) {
+      throw new Error("Error");
+    }
 
-    const res = await fetch(`${API_TAREAS}/finalizar/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        estado,
-        numero_serie
-      })
-    });
-
-    if (!res.ok) throw new Error("Error al finalizar");
+    setMostrarFinalizar(false);
+    setTareaFinalizar(null);
 
     fetchTareas();
+
   } catch (error) {
     console.error(error);
   }
@@ -384,6 +389,22 @@ const finalizarTarea = async (id, numero_serie) => {
     const interval = setInterval(mantenerActivo, 8 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+  cargarEstados();
+}, []);
+
+const cargarEstados = async () => {
+  try {
+    const res = await fetch(`${API_URL.Estados}`);
+    const data = await res.json();
+
+    setEstados(data);
+
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   useEffect(() => {
   fetch("/api/areas")
@@ -1283,7 +1304,11 @@ if (busqueda.trim()) {
       t.usuario === personal.nombre &&
       !t.fin && (
         <button
-          onClick={() => finalizarTarea(t.id, t.numero_serie)}
+          onClick={() => {
+    setTareaFinalizar(tarea);
+    setEstadoSeleccionado("");
+    setMostrarFinalizar(true);
+  }}
           className="px-3 py-1 bg-green-600 text-white rounded text-sm"
         >
           ✅ Finalizar
@@ -1337,36 +1362,56 @@ if (busqueda.trim()) {
       )}
 
 {mostrarFinalizar && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div className="bg-white p-4 rounded-xl w-80">
-      <h3 className="font-bold mb-3">
+      <h2 className="font-bold text-lg mb-3">
+        Finalizar mantenimiento
+      </h2>
+
+      <label className="block mb-2">
         Estado final del equipo
-      </h3>
+      </label>
 
       <select
-        value={estadoFinal}
-        onChange={(e) => setEstadoFinal(e.target.value)}
-        className="w-full border rounded p-2 mb-3"
+        value={estadoSeleccionado}
+        onChange={(e) =>
+          setEstadoSeleccionado(e.target.value)
+        }
+        className="w-full border p-2 rounded mb-4"
       >
-        <option value="Activo">Activo</option>
-        <option value="Fuera de servicio">Fuera de servicio</option>
-        <option value="De baja">De baja</option>
-        <option value="Rep. en fábrica">Rep. en fábrica</option>
+        <option value="">
+          Seleccionar estado
+        </option>
+
+        {estados.map((est) => (
+          <option
+            key={est.id}
+            value={est.estado}
+          >
+            {est.estado}
+          </option>
+        ))}
       </select>
 
       <div className="flex gap-2">
-        <button
-          onClick={finalizarTarea}
-          className="flex-1 bg-green-600 text-white p-2 rounded"
-        >
-          Confirmar
-        </button>
-
         <button
           onClick={() => setMostrarFinalizar(false)}
           className="flex-1 bg-gray-400 text-white p-2 rounded"
         >
           Cancelar
+        </button>
+
+        <button
+          disabled={!estadoSeleccionado}
+          onClick={() =>
+            finalizarTarea(
+              tareaFinalizar.id,
+              estadoSeleccionado
+            )
+          }
+          className="flex-1 bg-green-600 text-white p-2 rounded"
+        >
+          Confirmar
         </button>
       </div>
     </div>
