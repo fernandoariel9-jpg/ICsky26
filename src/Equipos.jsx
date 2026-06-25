@@ -138,7 +138,7 @@ export default function Equipos({ setVista, personal }) {
             diagnostico: diagnosticoSeleccionado,
             descripcion: descripcion,
             solucion: observaciones,
-            fecha_comp: getFechaLocal
+            fecha_comp: getFechaLocal()
           })
         }
       );
@@ -156,7 +156,7 @@ export default function Equipos({ setVista, personal }) {
             ? tareaActiva.usuario
             : personal.nombre,
 
-          fecha: getFechaLocal,
+          fecha: getFechaLocal(),
 
           tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
 
