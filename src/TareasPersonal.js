@@ -1053,6 +1053,12 @@ if (busqueda.trim()) {
             </p>
           )}
 
+          {t.diagnostico && (
+            <p className="text-medium text-red-600 mt-1">
+             🔧 N/S: {t.diagnostico}
+            </p>
+          )}
+
           {t.reasignado_a && (
             <p className="text-sm text-purple-700 mt-1">
               🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
