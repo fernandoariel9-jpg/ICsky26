@@ -1305,7 +1305,7 @@ if (busqueda.trim()) {
       !t.fin && (
         <button
           onClick={() => {
-    setTareaFinalizar(tarea);
+    setTareaFinalizar(t);
     setEstadoSeleccionado("");
     setMostrarFinalizar(true);
   }}
