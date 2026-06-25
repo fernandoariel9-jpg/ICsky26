@@ -494,12 +494,12 @@ if (
   className="w-full border p-2 rounded-xl mb-2"
 />
 
-    <button
+    {/*<button
   onClick={() => setMostrarFinalizar(true)}
   className="bg-red-500 text-white px-4 py-2 rounded-xl w-full mt-2"
 >
   ✅ Finalizar mantenimiento
-</button>
+</button>*/}
 
     <button
       onClick={guardarMantenimiento}
