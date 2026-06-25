@@ -158,10 +158,10 @@ export default function Equipos({ setVista, personal }) {
 
           fecha: getFechaLocal(),
 
-          tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
+          tarea: `Mantenimiento Correctivo - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
 
           diagnostico: diagnosticoSeleccionado,
-          tipo_mantenimiento: tipoMantenimiento,
+          tipo_mantenimiento: "Correctivo",
 
           descripcion: equipo.descripcion,
           marca_modelo: equipo.marca_modelo,
