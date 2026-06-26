@@ -48,6 +48,8 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   const [estados, setEstados] = useState([]);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState("");
   const [tareaFinalizar, setTareaFinalizar] = useState(null);
+  const [soluciones, setSoluciones] = useState([]);
+  const [solucionSeleccionada, setSolucionSeleccionada] = useState("")
 
   const cargarEquipoDesdeTarea = (tarea) => {
   localStorage.setItem("tareaActiva", JSON.stringify(tarea));
@@ -179,6 +181,23 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
       toast.error("Error al cargar tareas ❌");
     }
   };
+
+  const cargarSoluciones = async (diagnostico) => {
+  if (!diagnostico) return;
+
+  try {
+    const res = await fetch(
+      `${API_URL.Soluciones}/${encodeURIComponent(diagnostico)}`
+    );
+
+    const data = await res.json();
+
+    setSoluciones(data);
+
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const guardarObservacion = async () => {
   try {
@@ -326,6 +345,9 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   setTareaSeleccionada(tarea);
   setEstadoFinal("Activo");
   setMostrarFinalizar(true);
+    if (tarea.diagnostico) {
+  cargarSoluciones(tarea.diagnostico);
+}
 };
 
 const finalizarTarea = async (id, estadoFinal) => {
@@ -338,7 +360,8 @@ const finalizarTarea = async (id, estadoFinal) => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          estado: estadoFinal
+          estado: estadoFinal,
+          solucion: solucionSeleccionada
         })
       }
     );
@@ -1309,6 +1332,36 @@ if (busqueda.trim()) {
     {t.solucion &&
       t.usuario === personal.nombre &&
       !t.fin && (
+
+{tareaSeleccionada?.diagnostico && (
+  <div className="mt-3">
+    <label className="block mb-1 font-semibold">
+      Solución aplicada
+    </label>
+
+    <select
+      value={solucionSeleccionada}
+      onChange={(e) =>
+        setSolucionSeleccionada(e.target.value)
+      }
+      className="w-full border rounded p-2"
+    >
+      <option value="">
+        Seleccionar solución
+      </option>
+
+      {soluciones.map((s, i) => (
+        <option
+          key={i}
+          value={s.solucion}
+        >
+          {s.solucion}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
+        
         <button
           onClick={() => {
     setTareaFinalizar(t);
