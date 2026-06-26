@@ -1084,9 +1084,13 @@ if (busqueda.trim()) {
             </p>
           )}
 
-         
+          {t.diagnostico && (
+            <p className="text-medium text-red-600 mt-1">
+             🔧 Diagnóstico: {t.diagnostico}
+            </p>
+          )}
 
-{t.diagnostico &&
+          {t.diagnostico &&
  t.diagnostico.trim() !== "" &&
  t.soluciones_posibles?.length > 0 && (
 
