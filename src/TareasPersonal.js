@@ -48,7 +48,6 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   const [estados, setEstados] = useState([]);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState("");
   const [tareaFinalizar, setTareaFinalizar] = useState(null);
-  const [soluciones, setSoluciones] = useState([]);
   const [solucionSeleccionada, setSolucionSeleccionada] = useState("")
 
   const cargarEquipoDesdeTarea = (tarea) => {
