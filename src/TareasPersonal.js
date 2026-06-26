@@ -180,6 +180,37 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
     }
   };
 
+const guardarSolucion = async (
+  id,
+  solucion
+) => {
+  try {
+
+    const res = await fetch(
+      `${API_URL.Ric01}/${id}/solucion`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          solucion
+        })
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error();
+    }
+
+    fetchTareas();
+
+  } catch (error) {
+    console.error(error);
+    alert("Error guardando solución");
+  }
+};
+  
   const guardarObservacion = async () => {
   try {
     const fecha = getFechaLocal();
@@ -1058,6 +1089,40 @@ if (busqueda.trim()) {
              🔧 Diagnóstico: {t.diagnostico}
             </p>
           )}
+
+{tarea.diagnostico &&
+ tarea.diagnostico.trim() !== "" &&
+ tarea.soluciones_posibles?.length > 0 && (
+
+  <div className="mt-2">
+
+    <label className="block text-sm font-semibold mb-1">
+      Solución
+    </label>
+
+    <select
+      value={tarea.solucion || ""}
+      onChange={(e) =>
+        guardarSolucion(
+          tarea.id,
+          e.target.value
+        )
+      }
+      className="w-full border rounded p-2"
+    >
+      <option value="">
+        Seleccionar solución
+      </option>
+
+      {tarea.soluciones_posibles.map((s, i) => (
+        <option key={i} value={s}>
+          {s}
+        </option>
+      ))}
+    </select>
+
+  </div>
+)}
 
           {t.reasignado_a && (
             <p className="text-sm text-purple-700 mt-1">
