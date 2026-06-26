@@ -1328,9 +1328,6 @@ if (busqueda.trim()) {
 >
   📝 Obs.
 </button>
-    {t.solucion &&
-      t.usuario === personal.nombre &&
-      !t.fin && (
 
 {tareaSeleccionada?.diagnostico && (
   <div className="mt-3">
@@ -1360,6 +1357,10 @@ if (busqueda.trim()) {
     </select>
   </div>
 )}
+
+    {t.solucion &&
+      t.usuario === personal.nombre &&
+      !t.fin && (
         
         <button
           onClick={() => {
