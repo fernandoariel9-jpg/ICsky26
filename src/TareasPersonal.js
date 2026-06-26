@@ -1090,9 +1090,9 @@ if (busqueda.trim()) {
             </p>
           )}
 
-{tarea.diagnostico &&
- tarea.diagnostico.trim() !== "" &&
- tarea.soluciones_posibles?.length > 0 && (
+{t.diagnostico &&
+ t.diagnostico.trim() !== "" &&
+ t.soluciones_posibles?.length > 0 && (
 
   <div className="mt-2">
 
@@ -1101,10 +1101,10 @@ if (busqueda.trim()) {
     </label>
 
     <select
-      value={tarea.solucion || ""}
+      value={t.solucion || ""}
       onChange={(e) =>
         guardarSolucion(
-          tarea.id,
+          t.id,
           e.target.value
         )
       }
@@ -1114,7 +1114,7 @@ if (busqueda.trim()) {
         Seleccionar solución
       </option>
 
-      {tarea.soluciones_posibles.map((s, i) => (
+      {t.soluciones_posibles.map((s, i) => (
         <option key={i} value={s}>
           {s}
         </option>
