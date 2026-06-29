@@ -1101,7 +1101,7 @@ if (busqueda.trim()) {
     </label>
 
     <select
-      value={t.soluciones_posibles || ""}
+      value={t.solucion || ""}
       onChange={(e) =>
         guardarSolucion(
           t.id,
