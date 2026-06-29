@@ -1195,7 +1195,7 @@ if (busqueda.trim()) {
     onClick={() => setModal(t)}
     className="px-3 py-1 bg-purple-500 text-white rounded text-sm"
   >
-    🔄 Reasignar
+    🔄 Reasignar área
   </button>
 
   {/* CARGAR EQUIPO */}
@@ -1212,8 +1212,8 @@ if (busqueda.trim()) {
     }`}
   >
     {t.numero_serie
-      ? "✅ Equipo asignado"
-      : "➕ Asignar equipo"}
+      ? "✅ Equipo identificado"
+      : "➕ Identificar equipo"}
   </button>
 
 </div>
