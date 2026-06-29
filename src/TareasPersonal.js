@@ -1016,7 +1016,7 @@ if (busqueda.trim()) {
   {tareasFiltradas.map((t) => {
   const tieneObservacion =
     t.observacion && t.observacion.trim() !== "";
-
+    console.log(t.id, t.diagnostico, t.soluciones_posibles);
   return (
     <li key={t.id} className="p-3 rounded-xl shadow bg-white">
       <div className="flex items-start space-x-3">
