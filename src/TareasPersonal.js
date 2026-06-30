@@ -173,9 +173,6 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
 );
       if (!res.ok) throw new Error("Error HTTP " + res.status);
       const data = await res.json();
-      console.log("OBJETO:", data[0]);
-console.log("CLAVES:", Object.keys(data[0]));
-console.log("SOLUCIONES:", data[0].soluciones_posibles);
       setTareas(data);
     } catch (err) {
       console.error("Error al cargar tareas:", err);
@@ -1017,10 +1014,8 @@ if (busqueda.trim()) {
   )}
 
   {tareasFiltradas.map((t) => {
-    console.log(t);
   const tieneObservacion =
     t.observacion && t.observacion.trim() !== "";
-    console.log(t.id, t.diagnostico, t.soluciones_posibles);
   return (
     <li key={t.id} className="p-3 rounded-xl shadow bg-white">
       <div className="flex items-start space-x-3">
