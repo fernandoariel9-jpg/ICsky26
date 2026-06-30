@@ -1095,7 +1095,7 @@ if (busqueda.trim()) {
   <select
     value={t.solucion || ""}
     onChange={(e) =>
-      guardarSolucion(
+      handleCompletar(
         t.id,
         e.target.value
       )
