@@ -173,6 +173,7 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
 );
       if (!res.ok) throw new Error("Error HTTP " + res.status);
       const data = await res.json();
+      console.log(data[0]);
       setTareas(data);
     } catch (err) {
       console.error("Error al cargar tareas:", err);
@@ -1014,6 +1015,7 @@ if (busqueda.trim()) {
   )}
 
   {tareasFiltradas.map((t) => {
+    console.log(t);
   const tieneObservacion =
     t.observacion && t.observacion.trim() !== "";
     console.log(t.id, t.diagnostico, t.soluciones_posibles);
