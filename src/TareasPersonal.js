@@ -180,34 +180,37 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
     }
   };
 
-const guardarSolucion = async (
-  id,
-  solucion
-) => {
+const guardarSolucion = async (id, textoSolucion) => {
   try {
+    const fecha_comp = getFechaLocal();
+
+    // Agregar fecha y hora al inicio del texto
+    const solucion = `[${fecha_comp}] ${textoSolucion}`;
 
     const res = await fetch(
       `${API_URL.Ric01}/${id}/solucion`,
       {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          solucion
-        })
+          solucion,
+          asignado: personal.nombre,
+          fecha_comp,
+        }),
       }
     );
 
     if (!res.ok) {
-      throw new Error();
+      throw new Error("Error HTTP " + res.status);
     }
 
     fetchTareas();
-
+    toast.success("✅ Solución guardada");
   } catch (error) {
     console.error(error);
-    alert("Error guardando solución");
+    toast.error("❌ Error guardando solución");
   }
 };
   
