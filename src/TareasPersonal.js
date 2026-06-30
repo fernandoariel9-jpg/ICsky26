@@ -173,7 +173,9 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
 );
       if (!res.ok) throw new Error("Error HTTP " + res.status);
       const data = await res.json();
-      console.log(data[0]);
+      console.log("OBJETO:", data[0]);
+console.log("CLAVES:", Object.keys(data[0]));
+console.log("SOLUCIONES:", data[0].soluciones_posibles);
       setTareas(data);
     } catch (err) {
       console.error("Error al cargar tareas:", err);
