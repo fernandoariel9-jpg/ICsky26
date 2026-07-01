@@ -322,7 +322,6 @@ setError("");
 // Si existe mantenimiento abierto
 if (
   data.estado &&
-  data.estado.toLowerCase() !== "activo" &&
   data.mantenimiento_id
 ) {
   setTipoMantenimiento(data.tipo_mantenimiento || "");
