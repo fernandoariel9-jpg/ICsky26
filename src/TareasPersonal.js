@@ -1092,22 +1092,17 @@ if (busqueda.trim()) {
             </p>
           )}
 
-         {t.diagnostico &&
+         {!t.fin &&
+ t.diagnostico &&
  t.diagnostico.trim() !== "" &&
- t.soluciones_posibles?.length > 0 && (
+ Array.isArray(t.soluciones_posibles) &&
+ t.soluciones_posibles.length > 0 && (
   <select
     value={t.solucion || ""}
-    onChange={(e) =>
-      guardarSolucion(
-        t.id,
-        e.target.value
-      )
-    }
+    onChange={(e) => guardarSolucion(t.id, e.target.value)}
     className="w-full border rounded p-2 mt-2"
   >
-    <option value="">
-      Seleccionar solución
-    </option>
+    <option value="">Seleccionar solución</option>
 
     {t.soluciones_posibles.map((s, i) => (
       <option key={i} value={s}>
