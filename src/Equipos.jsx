@@ -169,10 +169,10 @@ export default function Equipos({ setVista, personal }) {
 
           fecha: getFechaLocal(),
 
-          tarea: `Mantenimiento Correctivo - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
+          tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
 
           diagnostico: diagnosticoSeleccionado,
-          tipo_mantenimiento: "Correctivo",
+          tipo_mantenimiento: tipoMantenimiento,
 
           descripcion: equipo.descripcion,
           marca_modelo: equipo.marca_modelo,
@@ -322,6 +322,7 @@ setError("");
 // Si existe mantenimiento abierto
 if (
   data.estado &&
+  data.estado.toLowerCase() !== "activo" &&
   data.mantenimiento_id
 ) {
   setTipoMantenimiento(data.tipo_mantenimiento || "");
