@@ -155,43 +155,67 @@ export default function Equipos({ setVista, personal }) {
       );
     }
 
-    // 🆕 CREAR NUEVO MANTENIMIENTO
-    else {
-      res = await fetch(API_URL.Ric01, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          usuario: tareaActiva
-            ? tareaActiva.usuario
-            : personal.nombre,
+   // 🆕 INICIAR MANTENIMIENTO DESDE UNA TAREA EXISTENTE
+else if (tareaActiva) {
+  res = await fetch(
+    `${API_URL.Ric01}/${tareaActiva.id}/iniciar-mantenimiento`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        diagnostico: diagnosticoSeleccionado,
+        tipo_mantenimiento: tipoMantenimiento,
 
-          fecha: getFechaLocal(),
+        descripcion: equipo.descripcion,
+        marca_modelo: equipo.marca_modelo,
+        numero_serie: equipo.numero_serie,
 
-          tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
+        servicio: equipo.servicio,
+        subservicio: equipo.sub_servicio,
 
-          diagnostico: diagnosticoSeleccionado,
-          tipo_mantenimiento: tipoMantenimiento,
-
-          descripcion: equipo.descripcion,
-          marca_modelo: equipo.marca_modelo,
-          numero_serie: equipo.numero_serie,
-
-          area: personal.area,
-          servicio: equipo.servicio,
-          subservicio: equipo.sub_servicio,
-
-          asignado: personal.nombre,
-          solicitado_por: personal.nombre,
-
-          origen: "interno",
-          tarea_id: tareaActiva?.id || null,
-
-          solucion: observaciones
-        })
-      });
+        asignado: personal.nombre,
+        solucion: observaciones,
+      }),
     }
+  );
+}
+
+// 🆕 CREAR MANTENIMIENTO NUEVO (cuando NO viene de una tarea)
+else {
+  res = await fetch(API_URL.Ric01, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      usuario: personal.nombre,
+
+      fecha: getFechaLocal(),
+
+      tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
+
+      diagnostico: diagnosticoSeleccionado,
+      tipo_mantenimiento: tipoMantenimiento,
+
+      descripcion: equipo.descripcion,
+      marca_modelo: equipo.marca_modelo,
+      numero_serie: equipo.numero_serie,
+
+      area: personal.area,
+      servicio: equipo.servicio,
+      subservicio: equipo.sub_servicio,
+
+      asignado: personal.nombre,
+      solicitado_por: personal.nombre,
+
+      origen: "interno",
+
+      solucion: observaciones
+    })
+  });
+}
 
     const data = await res.json();
 
