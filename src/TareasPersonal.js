@@ -1086,6 +1086,15 @@ if (busqueda.trim()) {
             </p>
           )}
 
+{t.numero_serie && !t.fin && (
+  <button
+    onClick={() => cargarEquipoDesdeTarea(t)}
+    className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm"
+  >
+    🔧 Iniciar mantenimiento
+  </button>
+)}
+
           {t.diagnostico && (
             <p className="text-medium text-red-600 mt-1">
              🔧 Diagnóstico: {t.diagnostico}
