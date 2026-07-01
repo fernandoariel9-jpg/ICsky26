@@ -23,13 +23,24 @@ export default function Equipos({ setVista, personal }) {
   useEffect(() => {
   const tareaGuardada = localStorage.getItem("tareaActiva");
 
-  if (tareaGuardada) {
-    const tarea = JSON.parse(tareaGuardada);
+  if (!tareaGuardada) return;
 
-    // 👉 podés mostrar info de la tarea si querés
-    console.log("Tarea activa:", tarea);
+  const tarea = JSON.parse(tareaGuardada);
+
+  console.log("Tarea activa:", tarea);
+
+  if (tarea.numero_serie) {
+    setSerie(tarea.numero_serie);
   }
+
+  localStorage.removeItem("tareaActiva");
 }, []);
+
+  useEffect(() => {
+  if (serie) {
+    buscarEquipo();
+  }
+}, [serie]);
 
   const fetchEstados = async () => {
   try {
