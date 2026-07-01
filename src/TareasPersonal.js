@@ -185,8 +185,7 @@ const guardarSolucion = async (id, textoSolucion) => {
     const fecha_comp = getFechaLocal();
 
     // Agregar fecha y hora al inicio del texto
-    const solucion = `PRUEBA-12345 [${fecha_comp}] ${textoSolucion}`;
-console.log("SOLUCIÓN A ENVIAR:", solucion);
+    const solucion = `[${fecha_comp}] ${textoSolucion}`;
 
     const res = await fetch(
       `${API_URL.Ric01}/${id}/solucion`,
