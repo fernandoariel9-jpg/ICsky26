@@ -51,6 +51,10 @@ export default function Equipos({ setVista, personal }) {
   }
 };
 
+  const imprimirHistorial = () => {
+  alert("Próximamente: generar PDF del historial.");
+};
+
   const cambiarEstado = async (id, nuevoEstado) => {
   try {
     const res = await fetch(`${API_URL.Equipos}/${id}/estado`, {
