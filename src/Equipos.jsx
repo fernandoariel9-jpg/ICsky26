@@ -595,7 +595,29 @@ if (
         <h2 className="text-xl font-bold">
           📋 Historial del equipo
         </h2>
+<div className="flex flex-wrap gap-3 p-3 border-b text-sm">
 
+  <div className="flex items-center gap-2">
+    <div className="w-4 h-4 bg-red-50 border rounded"></div>
+    <span>Correctivo</span>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <div className="w-4 h-4 bg-green-50 border rounded"></div>
+    <span>Preventivo</span>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <div className="w-4 h-4 bg-yellow-50 border rounded"></div>
+    <span>Verificación</span>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <div className="w-4 h-4 bg-blue-50 border rounded"></div>
+    <span>Instalación</span>
+  </div>
+
+</div>
         <button
           onClick={() => setMostrarHistorial(false)}
           className="text-red-600 font-bold"
@@ -606,77 +628,123 @@ if (
       </div>
 
       <div className="overflow-auto max-h-[70vh]">
+       <div className="max-h-[70vh] overflow-y-auto p-4 space-y-4">
 
-        <table className="min-w-full text-sm">
+  {historial.map((h) => {
 
-          <thead className="bg-gray-100 sticky top-0">
+    let color = "border-gray-300";
+    let icono = "⚪";
 
-            <tr>
+    switch ((h.tipo_mantenimiento || "").toLowerCase()) {
 
-              <th className="p-2 border">Fecha</th>
+      case "correctivo":
+        color = "border-red-500";
+        icono = "🔴";
+        break;
 
-              <th className="p-2 border">Tipo</th>
+      case "preventivo":
+        color = "border-green-500";
+        icono = "🟢";
+        break;
 
-              <th className="p-2 border">Solicitado por</th>
+      case "calibración":
+      case "calibracion":
+        color = "border-yellow-500";
+        icono = "🟡";
+        break;
 
-              <th className="p-2 border">Asignado</th>
+      case "instalación":
+      case "instalacion":
+        color = "border-blue-500";
+        icono = "🔵";
+        break;
 
-              <th className="p-2 border">Diagnóstico</th>
+    }
 
-              <th className="p-2 border">Solución</th>
+    return (
 
-              <th className="p-2 border">Calificación</th>
+      <div
+        key={h.id}
+        className={`border-l-8 ${color} bg-white rounded-lg shadow p-4`}
+      >
 
-            </tr>
+        <div className="flex justify-between">
 
-          </thead>
+          <h3 className="font-bold text-lg">
+            {icono} {h.tipo_mantenimiento || "Sin tipo"}
+          </h3>
 
-          <tbody>
+          <span className="text-sm text-gray-500">
+            {formatTimestamp(h.fecha)}
+          </span>
 
-            {historial.map((h) => (
+        </div>
 
-              <tr key={h.id}>
+        <div className="mt-3 text-sm space-y-2">
 
-                <td className="border p-2">
-                  {formatTimestamp(h.fecha)}
-                </td>
+          <p>
+            👤 <strong>Solicitado por:</strong>{" "}
+            {h.solicitado_por || h.usuario}
+          </p>
 
-                <td className="border p-2">
-                  {h.tipo_mantenimiento || "-"}
-                </td>
+          <p>
+            👨‍🔧 <strong>Técnico:</strong>{" "}
+            {h.asignado || "-"}
+          </p>
 
-                <td className="border p-2">
-                  {h.solicitado_por || h.usuario}
-                </td>
+          {h.diagnostico && (
+            <div className="bg-red-50 rounded p-3">
 
-                <td className="border p-2">
-                  {h.asignado || "-"}
-                </td>
+              <strong>🩺 Diagnóstico</strong>
 
-                <td className="border p-2 whitespace-pre-wrap">
-                  {h.diagnostico || "-"}
-                </td>
+              <p className="mt-1 whitespace-pre-wrap">
+                {h.diagnostico}
+              </p>
 
-                <td className="border p-2 whitespace-pre-wrap">
-                  {h.solucion || "-"}
-                </td>
+            </div>
+          )}
 
-                <td className="border p-2 text-center">
-                  {h.calificacion ?? "-"}
-                </td>
+          {h.solucion && (
+            <div className="bg-green-50 rounded p-3">
 
-              </tr>
+              <strong>💡 Solución</strong>
 
-            ))}
+              <p className="mt-1 whitespace-pre-wrap">
+                {h.solucion}
+              </p>
 
-          </tbody>
+            </div>
+          )}
 
-        </table>
+          {h.observacion && (
+            <div className="bg-blue-50 rounded p-3">
+
+              <strong>📝 Observaciones</strong>
+
+              <p className="mt-1 whitespace-pre-wrap">
+                {h.observacion}
+              </p>
+
+            </div>
+          )}
+
+          {h.calificacion && (
+            <p>
+              ⭐ <strong>Calificación:</strong> {h.calificacion}
+            </p>
+          )}
+
+        </div>
 
       </div>
 
-    </div>
+    );
 
+  })}
+
+</div>
+      </div>
+    </div>
   </div>
 )}
 
