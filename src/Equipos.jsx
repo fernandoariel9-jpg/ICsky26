@@ -30,8 +30,6 @@ export default function Equipos({ setVista, personal }) {
 
   const tarea = JSON.parse(tareaGuardada);
 
-  console.log("Tarea activa:", tarea);
-
   if (tarea.numero_serie) {
     setSerie(tarea.numero_serie);
   }
@@ -130,7 +128,6 @@ export default function Equipos({ setVista, personal }) {
     const tareaActiva = JSON.parse(
       localStorage.getItem("tareaActiva")
     );
-    console.log("TAREA ACTIVA:", tareaActiva);
 
     const continuar =
       equipo?.estado?.toLowerCase() !== "activo" &&
@@ -159,7 +156,6 @@ export default function Equipos({ setVista, personal }) {
 
    // 🆕 INICIAR MANTENIMIENTO DESDE UNA TAREA EXISTENTE
 else if (tareaActiva) {
-  console.log("VOY A USAR EL ENDPOINT NUEVO");
     res = await fetch(
     `${API_URL.Ric01}/${tareaActiva.id}/iniciar-mantenimiento`,
     {
@@ -187,7 +183,6 @@ else if (tareaActiva) {
 
 // 🆕 CREAR MANTENIMIENTO NUEVO (cuando NO viene de una tarea)
 else {
-  console.log("VOY A CREAR UNA TAREA NUEVA");
   res = await fetch(API_URL.Ric01, {
     method: "POST",
     headers: {
@@ -455,7 +450,7 @@ if (
     ))}
   </select>
 </div>
-    <p><b>Último mantenimiento:</b> {equipo.ultimo_mant}</p>
+    <p><b>Último mantenimiento preventivo:</b> {equipo.ultimo_mant}</p>
 {equipo && (
   <div className="mt-5 bg-white rounded-xl shadow-md border p-4">
 
