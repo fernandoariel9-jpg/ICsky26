@@ -441,6 +441,21 @@ if (
     <p><b>Estado:</b> {equipo.estado}</p>
     <div className="mt-2">
   <p className="text-sm font-semibold mb-1">Cambiar estado:</p>
+      <select
+    value={equipo.estado || ""}
+    onChange={(e) => cambiarEstado(equipo.id, e.target.value)}
+    className="w-full border rounded px-2 py-1 text-sm"
+  >
+    <option value="">Seleccionar estado</option>
+
+    {estados.map((est) => (
+      <option key={est.id} value={est.estado}>
+        {est.estado}
+      </option>
+    ))}
+  </select>
+</div>
+    <p><b>Último mantenimiento:</b> {equipo.ultimo_mant}</p>
 {equipo && (
   <div className="mt-5 bg-white rounded-xl shadow-md border p-4">
 
@@ -553,21 +568,6 @@ if (
 
   </div>
 )}
-  <select
-    value={equipo.estado || ""}
-    onChange={(e) => cambiarEstado(equipo.id, e.target.value)}
-    className="w-full border rounded px-2 py-1 text-sm"
-  >
-    <option value="">Seleccionar estado</option>
-
-    {estados.map((est) => (
-      <option key={est.id} value={est.estado}>
-        {est.estado}
-      </option>
-    ))}
-  </select>
-</div>
-    <p><b>Último mantenimiento:</b> {equipo.ultimo_mant}</p>
 
     <button
   onClick={() => setMostrarForm(true)}
