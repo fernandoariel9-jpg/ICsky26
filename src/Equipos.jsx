@@ -160,8 +160,7 @@ console.log("tareaActiva:", tareaActiva);
 
    // 🆕 INICIAR MANTENIMIENTO DESDE UNA TAREA EXISTENTE
 else if (tareaActiva) {
-  console.log("VOY A USAR EL ENDPOINT NUEVO");
-  res = await fetch(
+    res = await fetch(
     `${API_URL.Ric01}/${tareaActiva.id}/iniciar-mantenimiento`,
     {
       method: "PUT",
