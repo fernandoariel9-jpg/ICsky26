@@ -129,6 +129,7 @@ export default function Equipos({ setVista, personal }) {
     const tareaActiva = JSON.parse(
       localStorage.getItem("tareaActiva")
     );
+    console.log("TAREA ACTIVA:", tareaActiva);
 
     const continuar =
       equipo?.estado?.toLowerCase() !== "activo" &&
