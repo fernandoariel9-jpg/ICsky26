@@ -483,16 +483,7 @@ if (
           {equipo.calibraciones}
         </div>
         <div className="text-xs">
-          Calibraciones
-        </div>
-      </div>
-
-      <div className="bg-indigo-50 rounded-lg p-3 text-center">
-        <div className="text-2xl font-bold text-indigo-700">
-          {equipo.instalaciones}
-        </div>
-        <div className="text-xs">
-          Instalaciones
+          Verificaciones
         </div>
       </div>
 
