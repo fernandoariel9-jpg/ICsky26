@@ -241,7 +241,7 @@ else {
     setDiagnosticoSeleccionado("");
     setObservaciones("");
     setDescripcion("");
-
+    localStorage.removeItem("tareaActiva");
     setEquipo(null);
     setSerie("");
 
