@@ -765,17 +765,30 @@ if (
         className={`border-l-8 ${color} bg-white rounded-lg shadow p-4`}
       >
 
-        <div className="flex justify-between">
+       <div className="flex justify-between items-center">
 
-          <h3 className="font-bold text-lg">
-            {icono} {h.tipo_mantenimiento || "Sin tipo"}
-          </h3>
+  <h3 className="font-bold text-lg flex items-center gap-2">
 
-          <span className="text-sm text-gray-500">
-            {formatTimestamp(h.fecha)}
-          </span>
+    {icono}
 
-        </div>
+    {h.tipo_mantenimiento || "Sin tipo"}
+
+    {h.fin && (
+      <span
+        className="text-green-600 text-xl"
+        title="Tarea finalizada"
+      >
+        ✅
+      </span>
+    )}
+
+  </h3>
+
+  <span className="text-sm text-gray-500">
+    {formatTimestamp(h.fecha)}
+  </span>
+
+</div>
 
         <div className="mt-3 text-sm space-y-2">
 
