@@ -441,7 +441,118 @@ if (
     <p><b>Estado:</b> {equipo.estado}</p>
     <div className="mt-2">
   <p className="text-sm font-semibold mb-1">Cambiar estado:</p>
+{equipo && (
+  <div className="mt-5 bg-white rounded-xl shadow-md border p-4">
 
+    <h2 className="text-lg font-bold mb-4">
+      📊 Resumen del equipo
+    </h2>
+
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
+
+      <div className="bg-blue-50 rounded-lg p-3 text-center">
+        <div className="text-2xl font-bold text-blue-700">
+          {equipo.total_intervenciones}
+        </div>
+        <div className="text-xs text-gray-600">
+          Intervenciones
+        </div>
+      </div>
+
+      <div className="bg-red-50 rounded-lg p-3 text-center">
+        <div className="text-2xl font-bold text-red-700">
+          {equipo.correctivos}
+        </div>
+        <div className="text-xs">
+          Correctivos
+        </div>
+      </div>
+
+      <div className="bg-green-50 rounded-lg p-3 text-center">
+        <div className="text-2xl font-bold text-green-700">
+          {equipo.preventivos}
+        </div>
+        <div className="text-xs">
+          Preventivos
+        </div>
+      </div>
+
+      <div className="bg-yellow-50 rounded-lg p-3 text-center">
+        <div className="text-2xl font-bold text-yellow-700">
+          {equipo.calibraciones}
+        </div>
+        <div className="text-xs">
+          Calibraciones
+        </div>
+      </div>
+
+      <div className="bg-indigo-50 rounded-lg p-3 text-center">
+        <div className="text-2xl font-bold text-indigo-700">
+          {equipo.instalaciones}
+        </div>
+        <div className="text-xs">
+          Instalaciones
+        </div>
+      </div>
+
+    </div>
+
+    <div className="space-y-3">
+
+      <div className="bg-gray-50 rounded-lg p-3">
+
+        <div className="font-semibold">
+          📅 Última intervención
+        </div>
+
+        <div>
+          {equipo.ultima_fecha
+            ? formatTimestamp(equipo.ultima_fecha)
+            : "-"}
+        </div>
+
+      </div>
+
+      <div className="bg-gray-50 rounded-lg p-3">
+
+        <div className="font-semibold">
+          👨‍🔧 Último técnico
+        </div>
+
+        <div>
+          {equipo.ultimo_tecnico || "-"}
+        </div>
+
+      </div>
+
+      <div className="bg-red-50 rounded-lg p-3">
+
+        <div className="font-semibold text-red-700">
+          🩺 Último diagnóstico
+        </div>
+
+        <div className="whitespace-pre-wrap">
+          {equipo.ultimo_diagnostico || "-"}
+        </div>
+
+      </div>
+
+      <div className="bg-green-50 rounded-lg p-3">
+
+        <div className="font-semibold text-green-700">
+          💡 Última solución
+        </div>
+
+        <div className="whitespace-pre-wrap">
+          {equipo.ultima_solucion || "-"}
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+)}
   <select
     value={equipo.estado || ""}
     onChange={(e) => cambiarEstado(equipo.id, e.target.value)}
