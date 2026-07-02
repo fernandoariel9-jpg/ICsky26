@@ -409,15 +409,6 @@ if (
         🔍 Buscar
       </button>
 
-      {equipo && (
-  <button
-    onClick={verHistorial}
-    className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl w-full"
-  >
-    📋 Historial del equipo
-  </button>
-)}
-
       {/* Resultado */}
 
 {localStorage.getItem("tareaActiva") && (
@@ -562,6 +553,15 @@ if (
     </div>
 
   </div>
+)}
+
+     {equipo && (
+  <button
+    onClick={verHistorial}
+    className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl w-full"
+  >
+    📋 Historial del equipo
+  </button>
 )}
 
     <button
