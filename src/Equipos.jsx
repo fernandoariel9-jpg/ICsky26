@@ -15,6 +15,9 @@ export default function Equipos({ setVista, personal }) {
   const [estados, setEstados] = useState([]);
   const [mostrarFinalizar, setMostrarFinalizar] = useState(false);
   const [estadoFinal, setEstadoFinal] = useState("");
+  const [historial, setHistorial] = useState([]);
+  const [mostrarHistorial, setMostrarHistorial] = useState(false);
+  const [cargandoHistorial, setCargandoHistorial] = useState(false);
 
   useEffect(() => {
   fetchEstados();
@@ -363,6 +366,33 @@ if (
     }
   };
 
+  const verHistorial = async () => {
+  if (!equipo?.numero_serie) return;
+
+  try {
+    setCargandoHistorial(true);
+
+    const res = await fetch(
+      `${API_URL.HistorialEquipo}/${equipo.numero_serie}/historial`
+    );
+
+    if (!res.ok) {
+      throw new Error("Error obteniendo historial");
+    }
+
+    const data = await res.json();
+
+    setHistorial(data);
+    setMostrarHistorial(true);
+
+  } catch (err) {
+    console.error(err);
+    alert("No se pudo obtener el historial.");
+  } finally {
+    setCargandoHistorial(false);
+  }
+};
+
   return (
     <div className="p-4 max-w-md mx-auto">
       <h1 className="text-xl font-bold mb-4">🔧 Búsqueda de Equipos</h1>
@@ -383,6 +413,15 @@ if (
       >
         🔍 Buscar
       </button>
+
+      {equipo && (
+  <button
+    onClick={verHistorial}
+    className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl w-full"
+  >
+    📋 Historial del equipo
+  </button>
+)}
 
       {/* Resultado */}
 
@@ -543,6 +582,101 @@ if (
     >
       💾 Guardar
     </button>
+  </div>
+)}
+
+      {mostrarHistorial && (
+  <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+
+    <div className="bg-white rounded-xl shadow-xl w-11/12 max-w-6xl max-h-[85vh] overflow-hidden">
+
+      <div className="flex justify-between items-center p-4 border-b">
+
+        <h2 className="text-xl font-bold">
+          📋 Historial del equipo
+        </h2>
+
+        <button
+          onClick={() => setMostrarHistorial(false)}
+          className="text-red-600 font-bold"
+        >
+          ✖
+        </button>
+
+      </div>
+
+      <div className="overflow-auto max-h-[70vh]">
+
+        <table className="min-w-full text-sm">
+
+          <thead className="bg-gray-100 sticky top-0">
+
+            <tr>
+
+              <th className="p-2 border">Fecha</th>
+
+              <th className="p-2 border">Tipo</th>
+
+              <th className="p-2 border">Solicitado por</th>
+
+              <th className="p-2 border">Asignado</th>
+
+              <th className="p-2 border">Diagnóstico</th>
+
+              <th className="p-2 border">Solución</th>
+
+              <th className="p-2 border">Calificación</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            {historial.map((h) => (
+
+              <tr key={h.id}>
+
+                <td className="border p-2">
+                  {formatTimestamp(h.fecha)}
+                </td>
+
+                <td className="border p-2">
+                  {h.tipo_mantenimiento || "-"}
+                </td>
+
+                <td className="border p-2">
+                  {h.solicitado_por || h.usuario}
+                </td>
+
+                <td className="border p-2">
+                  {h.asignado || "-"}
+                </td>
+
+                <td className="border p-2 whitespace-pre-wrap">
+                  {h.diagnostico || "-"}
+                </td>
+
+                <td className="border p-2 whitespace-pre-wrap">
+                  {h.solucion || "-"}
+                </td>
+
+                <td className="border p-2 text-center">
+                  {h.calificacion ?? "-"}
+                </td>
+
+              </tr>
+
+            ))}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
   </div>
 )}
 
