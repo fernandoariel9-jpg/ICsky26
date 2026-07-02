@@ -32,8 +32,6 @@ export default function Equipos({ setVista, personal }) {
   if (tarea.numero_serie) {
     setSerie(tarea.numero_serie);
   }
-
-  localStorage.removeItem("tareaActiva");
 }, []);
 
   useEffect(() => {
