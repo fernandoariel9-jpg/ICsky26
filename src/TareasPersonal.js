@@ -1086,7 +1086,9 @@ if (busqueda.trim()) {
             </p>
           )}
 
-{t.numero_serie && !t.fin && (
+{t.numero_serie &&
+ !t.fin &&
+ (!t.diagnostico || t.diagnostico.trim() === "") && (
   <button
     onClick={() => cargarEquipoDesdeTarea(t)}
     className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm"
