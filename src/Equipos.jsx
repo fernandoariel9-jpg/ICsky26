@@ -564,15 +564,15 @@ const imprimirHistorial = () => {
   >
     📋 Historial del equipo
   </button>
+)}
 
-  <button
+    <button
   onClick={imprimirHistorial}
   className="mt-3 w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl"
 >
   📄 Imprimir historial
 </button>
-)}
-
+    
     <button
   onClick={() => setMostrarForm(true)}
   className={`px-4 py-2 rounded-xl w-full mt-3 ${
