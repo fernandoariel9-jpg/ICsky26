@@ -392,6 +392,15 @@ if (
   }
 };
 
+  const imprimirHistorial = () => {
+  if (!equipo?.numero_serie) return;
+
+  window.open(
+    `${API_URL}/equipos/${equipo.numero_serie}/historial/pdf`,
+    "_blank"
+  );
+};
+
   return (
     <div className="p-4 max-w-md mx-auto">
       <h1 className="text-xl font-bold mb-4">🔧 Búsqueda de Equipos</h1>
@@ -557,6 +566,13 @@ if (
   >
     📋 Historial del equipo
   </button>
+
+  <button
+  onClick={imprimirHistorial}
+  className="mt-3 w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl"
+>
+  📄 Imprimir historial
+</button>
 )}
 
     <button
