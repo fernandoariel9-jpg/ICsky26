@@ -392,13 +392,15 @@ if (
   }
 };
 
-  const imprimirHistorial = () => {
+const imprimirHistorial = () => {
+
   if (!equipo?.numero_serie) return;
 
   window.open(
-    `${API_URL}/equipos/${equipo.numero_serie}/historial/pdf`,
+    `${API_URL.HistorialEquipo}/${equipo.numero_serie}/historial/pdf`,
     "_blank"
   );
+
 };
 
   return (
