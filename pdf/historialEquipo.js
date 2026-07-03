@@ -1,9 +1,9 @@
-const fs = require("fs");
-const path = require("path");
-const puppeteer = require("puppeteer");
-
-const pool = require("../db"); // <-- ajusta la ruta si tu pool está en otro archivo
-
+import fs from "fs";
+import path from "path";
+import puppeteer from "puppeteer";
+import pool from "../db.js"; // <-- ajusta la ruta si tu pool está en otro archivo
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 
 async function obtenerDatosEquipo(numeroSerie) {
@@ -235,7 +235,9 @@ async function generarHTML(datos) {
     // Reemplazos
     //------------------------------------
 
-    html = html.replace("{{LOGO}}", "file://" + path.join(__dirname,"../public/logo.png"));
+    const logoPath = path.resolve(__dirname, "../public/logo.png");
+
+    html = html.replace("{{LOGO}}",`file://${logoPath}`);
 
     html = html.replace("{{HOSPITAL}}","HOSPITAL XXXXX");
 
@@ -460,4 +462,4 @@ async function generarPDF(req, res) {
 
 }
 
-module.exports = generarPDF;
+export default generarPDF;
