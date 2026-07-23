@@ -271,11 +271,11 @@ async function generarHTML(datos) {
     // Reemplazos
     //------------------------------------
 
-    const logoPath = path.resolve(__dirname, "../public/logo.png");
+    const logoPath = path.resolve(__dirname, "../logo.png");
 
     html = html.replace("{{LOGO}}",`file://${logoPath}`);
 
-    html = html.replace("{{HOSPITAL}}","HOSPITAL XXXXX");
+    html = html.replace("{{HOSPITAL}}","Hospital D. Dr. Guillermo Rawson");
 
     html = html.replace("{{DESCRIPCION}}",datos.equipo.descripcion || "-");
 
