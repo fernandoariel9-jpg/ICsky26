@@ -271,7 +271,7 @@ async function generarHTML(datos) {
     // Reemplazos
     //------------------------------------
 
-    const logoPath = path.resolve(__dirname, "../logo.png");
+    const logoPath = path.resolve(__dirname, "../templates/logo.png");
 
     html = html.replace("{{LOGO}}",`file://${logoPath}`);
 
