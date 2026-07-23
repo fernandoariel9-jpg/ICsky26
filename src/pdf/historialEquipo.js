@@ -64,92 +64,128 @@ function generarHistorial(historial) {
 
     return historial.map(item => {
 
-        const clase = (item.tipo_mantenimiento || "")
+        const tipo = (item.tipo_mantenimiento || "Mantenimiento");
+
+        const clase = tipo
             .toLowerCase()
             .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "");
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/\s+/g, "");
+
+        const estado = item.fin
+            ? "✅ FINALIZADO"
+            : "🟡 EN CURSO";
 
         return `
 
 <div class="evento ${clase}">
 
-<h3>
+    <div class="eventoHeader">
 
-${item.fin ? "✅" : "🟡"}
+        <div class="eventoTitulo">
 
-${item.tipo_mantenimiento || "-"}
+            ${tipo}
 
-</h3>
+        </div>
 
-<p>
+        <div class="eventoFecha">
 
-<b>Fecha:</b>
+            ${formatearFecha(item.fecha)}
 
-${formatearFecha(item.fecha)}
+        </div>
 
-</p>
+    </div>
 
-<p>
+    <div class="eventoInfo">
 
-<b>Solicitado por:</b>
+        <div class="campo">
 
-${item.solicitado_por || "-"}
+            <strong>Estado</strong>
 
-</p>
+            ${estado}
 
-<p>
+        </div>
 
-<b>Técnico:</b>
+        <div class="campo">
 
-${item.asignado || "-"}
+            <strong>Técnico</strong>
 
-</p>
+            ${item.asignado || "-"}
 
-<p>
+        </div>
 
-<b>Diagnóstico</b>
+        <div class="campo">
 
-</p>
+            <strong>Solicitado por</strong>
 
-<p>
+            ${item.solicitado_por || "-"}
 
-${item.diagnostico || "-"}
+        </div>
 
-</p>
+        <div class="campo">
 
-<p>
+            <strong>Fecha de finalización</strong>
 
-<b>Solución</b>
+            ${formatearFecha(item.fecha_fin)}
 
-</p>
+        </div>
 
-<p>
+    </div>
 
-${item.solucion || "-"}
+    <div class="seccion">
 
-</p>
+        <div class="seccionTitulo">
 
-${
-item.observacion
-?
+            Diagnóstico
 
-`<p>
+        </div>
 
-<b>Observaciones</b>
+        <div class="seccionTexto">
 
-</p>
+            ${item.diagnostico || "Sin diagnóstico registrado."}
 
-<p>
+        </div>
 
-${item.observacion}
+    </div>
 
-</p>`
+    <div class="seccion">
 
-:
+        <div class="seccionTitulo">
 
-""
+            Solución
 
-}
+        </div>
+
+        <div class="seccionTexto">
+
+            ${item.solucion || "Sin solución registrada."}
+
+        </div>
+
+    </div>
+
+    ${
+        item.observacion
+        ?
+`
+    <div class="seccion">
+
+        <div class="seccionTitulo">
+
+            Observaciones
+
+        </div>
+
+        <div class="seccionTexto">
+
+            ${item.observacion}
+
+        </div>
+
+    </div>
+`
+        : ""
+    }
 
 </div>
 
