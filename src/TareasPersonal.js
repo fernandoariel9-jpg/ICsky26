@@ -391,13 +391,14 @@ const finalizarTarea = async (id, estadoFinal) => {
   }
 };
 
-  const imprimirHistorial = (numero_serie) => {
+const imprimirHistorial = (numeroSerie) => {
 
-  if (!numero_serie) return;
+  if (!numeroSerie) return;
 
   window.open(
-    `${API_URL}/equipos/${encodeURIComponent(numero_serie)}/historial/pdf`,
-    "_blank"
+    `${API_URL.HistorialEquipo}/${encodeURIComponent(numeroSerie)}/historial/pdf`,
+    "_blank",
+    "noopener,noreferrer"
   );
 
 };
