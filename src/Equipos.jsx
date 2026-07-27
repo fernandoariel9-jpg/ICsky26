@@ -597,8 +597,6 @@ const imprimirHistorial = () => {
       </select>
     </div>
 
-  </div>
-)}
     <p><b>Último mantenimiento preventivo:</b> {equipo.ultimo_mant}</p>
 {equipo && (
   <div className="mt-5 bg-white rounded-xl shadow-md border p-4">
