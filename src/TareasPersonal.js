@@ -390,6 +390,17 @@ const finalizarTarea = async (id, estadoFinal) => {
     console.error(error);
   }
 };
+
+  const imprimirHistorial = (numeroSerie) => {
+
+  if (!numeroSerie) return;
+
+  window.open(
+    `${API_URL}/equipos/${encodeURIComponent(numeroSerie)}/historial/pdf`,
+    "_blank"
+  );
+
+};
   
   const handleSeleccionUsuario = (u) => {
   setEditUsuario({
@@ -1094,6 +1105,16 @@ if (busqueda.trim()) {
     className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm"
   >
     🔧 Iniciar mantenimiento
+  </button>
+)}
+
+{t.numero_serie && (
+  <button
+    onClick={() => imprimirHistorial(t.numero_serie)}
+    className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded"
+    title="Imprimir historial del equipo"
+  >
+    🖨 Imprimir RIC02
   </button>
 )}
 
