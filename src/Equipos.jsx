@@ -76,15 +76,57 @@ export default function Equipos({ setVista, personal }) {
   }
 };
 
-  const subirImagen = async (e) => {
+  const subirImagen = (e) => {
 
   const archivo = e.target.files[0];
 
   if (!archivo || !equipo?.numero_serie) return;
 
+  const img = new Image();
+
   const reader = new FileReader();
 
-  reader.onload = async () => {
+  reader.onload = (ev) => {
+
+    img.src = ev.target.result;
+
+  };
+
+  img.onload = async () => {
+
+    // Tamaño máximo
+    const MAX_WIDTH = 600;
+    const MAX_HEIGHT = 600;
+
+    let width = img.width;
+    let height = img.height;
+
+    if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+
+      const escala = Math.min(
+        MAX_WIDTH / width,
+        MAX_HEIGHT / height
+      );
+
+      width = Math.round(width * escala);
+      height = Math.round(height * escala);
+
+    }
+
+    const canvas = document.createElement("canvas");
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(img, 0, 0, width, height);
+
+    // JPEG calidad 80%
+    const imagenComprimida = canvas.toDataURL(
+      "image/jpeg",
+      0.6
+    );
 
     try {
 
@@ -96,7 +138,7 @@ export default function Equipos({ setVista, personal }) {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            imagen: reader.result
+            imagen: imagenComprimida
           })
         }
       );
@@ -107,17 +149,16 @@ export default function Equipos({ setVista, personal }) {
         throw new Error(data.error || "Error al guardar la imagen");
       }
 
-      alert("Imagen guardada correctamente.");
-
-      // Actualiza la imagen en el estado para verla inmediatamente
       setEquipo({
         ...equipo,
-        imagen: reader.result
+        imagen: imagenComprimida
       });
+
+      alert("Imagen guardada correctamente.");
 
     } catch (err) {
 
-      console.error("Error al guardar imagen:", err);
+      console.error(err);
 
       alert("No se pudo guardar la imagen.");
 
@@ -128,7 +169,6 @@ export default function Equipos({ setVista, personal }) {
   reader.readAsDataURL(archivo);
 
 };
-
    function formatTimestamp(ts) {
   if (!ts) return "";
 
@@ -484,29 +524,64 @@ const imprimirHistorial = () => {
 )}
       
 {equipo && (
-  <div className="bg-white shadow rounded-xl p-3 mt-3">
-    <p><b>Equipo:</b> {equipo.descripcion}</p>
-    <p><b>Marca:</b> {equipo.marca_modelo}</p>
-    <p><b>Serie:</b> {equipo.numero_serie}</p>
-    <p><b>Servicio:</b> {equipo.servicio}</p>
-    <p><b>Área:</b> {equipo.area}</p>
-    <p><b>Estado:</b> {equipo.estado}</p>
-    <div className="mt-2">
-  <p className="text-sm font-semibold mb-1">Cambiar estado:</p>
+  <div className="bg-white shadow rounded-xl p-4 mt-3">
+    <div className="flex gap-6">
+      {/* Datos */}
+      <div className="flex-1">
+        <p><b>Equipo:</b> {equipo.descripcion}</p>
+        <p><b>Marca:</b> {equipo.marca_modelo}</p>
+        <p><b>Serie:</b> {equipo.numero_serie}</p>
+        <p><b>Servicio:</b> {equipo.servicio}</p>
+        <p><b>Área:</b> {equipo.area}</p>
+        <p><b>Estado:</b> {equipo.estado}</p>
+      </div>
+      {/* Fotografía */}
+      <div className="w-64">
+        {equipo.imagen ? (
+          <img
+            src={equipo.imagen}
+            alt="Equipo"
+            className="w-full h-48 object-cover rounded border shadow"
+          />
+        ) : (
+          <div
+            className="
+              w-full
+              h-48
+              border-2
+              border-dashed
+              rounded
+              flex
+              items-center
+              justify-center
+              text-gray-500
+              bg-gray-100
+            "
+          >
+            Sin fotografía
+          </div>
+        )}
+      </div>
+    </div>
+    <div className="mt-3">
+      <p className="text-sm font-semibold mb-1">
+        Cambiar estado:
+      </p>
       <select
-    value={equipo.estado || ""}
-    onChange={(e) => cambiarEstado(equipo.id, e.target.value)}
-    className="w-full border rounded px-2 py-1 text-sm"
-  >
-    <option value="">Seleccionar estado</option>
+        value={equipo.estado || ""}
+        onChange={(e) => cambiarEstado(equipo.id, e.target.value)}
+        className="w-full border rounded px-2 py-1 text-sm"
+      >
+        <option value="">Seleccionar estado</option>
 
-    {estados.map((est) => (
-      <option key={est.id} value={est.estado}>
-        {est.estado}
-      </option>
-    ))}
-  </select>
-</div>
+        {estados.map((est) => (
+          <option key={est.id} value={est.estado}>
+            {est.estado}
+          </option>
+        ))}
+      </select>
+
+    </div>
     <p><b>Último mantenimiento preventivo:</b> {equipo.ultimo_mant}</p>
 {equipo && (
   <div className="mt-5 bg-white rounded-xl shadow-md border p-4">
