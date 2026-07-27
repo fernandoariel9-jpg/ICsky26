@@ -945,12 +945,6 @@ const imprimirHistorial = () => {
         >
           Confirmar
         </button>
-        <button
-    onClick={() => inputImagenRef.current.click()}
-    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
->
-    📷 Imágen
-</button>
 
       </div>
 
@@ -965,6 +959,12 @@ const imprimirHistorial = () => {
       >
         ← Volver
       </button>
+      <button
+    onClick={() => inputImagenRef.current.click()}
+    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+>
+    📷 Imágen
+</button>
       <input
     ref={inputImagenRef}
     type="file"
