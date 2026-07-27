@@ -78,11 +78,54 @@ export default function Equipos({ setVista, personal }) {
 
   const subirImagen = async (e) => {
 
-    const archivo = e.target.files[0];
+  const archivo = e.target.files[0];
 
-    if (!archivo) return;
+  if (!archivo || !equipo?.numero_serie) return;
 
-    console.log("Imagen seleccionada:", archivo);
+  const reader = new FileReader();
+
+  reader.onload = async () => {
+
+    try {
+
+      const res = await fetch(
+        `${API_URL.Equipos}/${encodeURIComponent(equipo.numero_serie)}/imagen`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            imagen: reader.result
+          })
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Error al guardar la imagen");
+      }
+
+      alert("Imagen guardada correctamente.");
+
+      // Actualiza la imagen en el estado para verla inmediatamente
+      setEquipo({
+        ...equipo,
+        imagen: reader.result
+      });
+
+    } catch (err) {
+
+      console.error("Error al guardar imagen:", err);
+
+      alert("No se pudo guardar la imagen.");
+
+    }
+
+  };
+
+  reader.readAsDataURL(archivo);
 
 };
 
