@@ -18,6 +18,7 @@ export default function Equipos({ setVista, personal }) {
   const [historial, setHistorial] = useState([]);
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
+  const inputImagenRef = useRef(null);
 
   useEffect(() => {
   fetchEstados();
@@ -72,6 +73,16 @@ export default function Equipos({ setVista, personal }) {
     console.error(err);
     alert("❌ Error al actualizar estado");
   }
+};
+
+  const subirImagen = async (e) => {
+
+    const archivo = e.target.files[0];
+
+    if (!archivo) return;
+
+    console.log("Imagen seleccionada:", archivo);
+
 };
 
    function formatTimestamp(ts) {
@@ -933,6 +944,12 @@ const imprimirHistorial = () => {
         >
           Confirmar
         </button>
+        <button
+    onClick={() => inputImagenRef.current.click()}
+    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+>
+    📷 Imágen
+</button>
 
       </div>
 
@@ -947,6 +964,14 @@ const imprimirHistorial = () => {
       >
         ← Volver
       </button>
+      <input
+    ref={inputImagenRef}
+    type="file"
+    accept="image/*"
+    capture="environment"
+    style={{ display: "none" }}
+    onChange={subirImagen}
+/>
     </div>
   );
 }
