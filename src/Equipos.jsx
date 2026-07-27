@@ -574,12 +574,15 @@ const imprimirHistorial = () => {
         </div>
 
       )}
- <button
+      <div>
+        <button
     onClick={() => inputImagenRef.current.click()}
     className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full"
 >
     📷 Imágen
 </button>
+      </div>
+ 
     </div>
 
     <div className="mt-2">
