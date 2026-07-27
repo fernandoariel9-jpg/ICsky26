@@ -524,49 +524,64 @@ const imprimirHistorial = () => {
 )}
       
 {equipo && (
-  <div className="bg-white shadow rounded-xl p-4 mt-3">
-    <div className="flex gap-6">
-      {/* Datos */}
-      <div className="flex-1">
-        <p><b>Equipo:</b> {equipo.descripcion}</p>
-        <p><b>Marca:</b> {equipo.marca_modelo}</p>
-        <p><b>Serie:</b> {equipo.numero_serie}</p>
-        <p><b>Servicio:</b> {equipo.servicio}</p>
-        <p><b>Área:</b> {equipo.area}</p>
-        <p><b>Estado:</b> {equipo.estado}</p>
-      </div>
-      {/* Fotografía */}
-      <div className="w-64">
-        {equipo.imagen ? (
-          <img
-            src={equipo.imagen}
-            alt="Equipo"
-            className="w-full h-48 object-cover rounded border shadow"
-          />
-        ) : (
-          <div
-            className="
-              w-full
-              h-48
-              border-2
-              border-dashed
-              rounded
-              flex
-              items-center
-              justify-center
-              text-gray-500
-              bg-gray-100
-            "
-          >
-            Sin fotografía
-          </div>
-        )}
-      </div>
+  <div className="bg-white shadow rounded-xl p-3 mt-3">
+
+    <p><b>Equipo:</b> {equipo.descripcion}</p>
+    <p><b>Marca:</b> {equipo.marca_modelo}</p>
+    <p><b>Serie:</b> {equipo.numero_serie}</p>
+    <p><b>Servicio:</b> {equipo.servicio}</p>
+    <p><b>Área:</b> {equipo.area}</p>
+    <p><b>Estado:</b> {equipo.estado}</p>
+
+    {/* Fotografía */}
+    <div className="mt-4 flex justify-center">
+
+      {equipo.imagen ? (
+
+        <img
+          src={equipo.imagen}
+          alt="Equipo"
+          className="
+            max-w-full
+            w-96
+            max-h-72
+            object-contain
+            rounded-lg
+            border
+            shadow
+            cursor-pointer
+          "
+          onClick={() => window.open(equipo.imagen, "_blank")}
+        />
+
+      ) : (
+
+        <div
+          className="
+            w-96
+            h-60
+            border-2
+            border-dashed
+            rounded-lg
+            flex
+            items-center
+            justify-center
+            text-gray-500
+            bg-gray-100
+          "
+        >
+          Sin fotografía
+        </div>
+
+      )}
+
     </div>
-    <div className="mt-3">
+
+    <div className="mt-2">
       <p className="text-sm font-semibold mb-1">
         Cambiar estado:
       </p>
+
       <select
         value={equipo.estado || ""}
         onChange={(e) => cambiarEstado(equipo.id, e.target.value)}
@@ -580,8 +595,10 @@ const imprimirHistorial = () => {
           </option>
         ))}
       </select>
-
     </div>
+
+  </div>
+)}
     <p><b>Último mantenimiento preventivo:</b> {equipo.ultimo_mant}</p>
 {equipo && (
   <div className="mt-5 bg-white rounded-xl shadow-md border p-4">
