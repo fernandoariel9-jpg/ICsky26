@@ -505,8 +505,8 @@ const imprimirHistorial = () => {
 
   <input
     type="text"
-    value={busqueda}
-    onChange={(e) => setBusqueda(e.target.value)}
+    value={serie}
+    onChange={(e) => setSerie(e.target.value)}
     placeholder="Buscar equipo..."
     className="flex-1 border rounded px-3 py-2"
   />
