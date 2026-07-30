@@ -35,11 +35,16 @@ export default function LectorQR({
         </h2>
 
         <QrReader
-          delay={300}
-          onError={handleError}
-          onScan={handleScan}
-          style={{ width: "100%" }}
-        />
+  delay={300}
+  onError={handleError}
+  onScan={handleScan}
+  style={{ width: "100%" }}
+  constraints={{
+    video: {
+      facingMode: { ideal: "environment" }
+    }
+  }}
+/>
 
         <button
           onClick={onCerrar}
