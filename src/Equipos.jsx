@@ -1129,8 +1129,7 @@ const imprimirHistorial = () => {
     style={{ display: "none" }}
     onChange={subirImagen}
 />
-    </div>
-    <LectorQR
+      <LectorQR
   abierto={mostrarLector}
   onCerrar={() => setMostrarLector(false)}
   onDetectar={(codigo) => {
@@ -1141,5 +1140,6 @@ const imprimirHistorial = () => {
 
   }}
 />
+    </div>
   );
 }
