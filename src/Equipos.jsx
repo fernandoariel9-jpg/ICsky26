@@ -424,39 +424,45 @@ else {
   }
 };
 
-  const buscarEquipo = async () => {
-    if (!serie) return;
+const buscarEquipo = async (serieBuscar = serie) => {
 
-    try {
-      const res = await fetch(`${API_URL.BuscarEquipo}/${serie}`);
+  if (!serieBuscar) return;
 
-      if (!res.ok) {
-        throw new Error("No encontrado");
-      }
+  try {
 
-      const data = await res.json();
+    const res = await fetch(`${API_URL.BuscarEquipo}/${serieBuscar}`);
 
-setEquipo(data);
-setError("");
+    if (!res.ok) {
+      throw new Error("No encontrado");
+    }
 
-// Si existe mantenimiento abierto
-if (
-  data.estado &&
-  data.estado.toLowerCase() !== "activo" &&
-  data.mantenimiento_id
-) {
-  setTipoMantenimiento(data.tipo_mantenimiento || "");
-  setDiagnosticoSeleccionado(data.diagnostico || "");
+    const data = await res.json();
 
-  setMostrarForm(true);
+    setEquipo(data);
+    setError("");
+
+    // Actualizar el cuadro de búsqueda
+    setSerie(serieBuscar);
+
+    // Si existe mantenimiento abierto
+    if (
+      data.estado &&
+      data.estado.toLowerCase() !== "activo" &&
+      data.mantenimiento_id
+    ) {
+      setTipoMantenimiento(data.tipo_mantenimiento || "");
+      setDiagnosticoSeleccionado(data.diagnostico || "");
+      setMostrarForm(true);
+    }
+
+  } catch (err) {
+
+    setEquipo(null);
+    setError("Equipo no encontrado");
 
   }
 
-    } catch (err) {
-      setEquipo(null);
-      setError("Equipo no encontrado");
-    }
-  };
+};
 
   const verHistorial = async () => {
   if (!equipo?.numero_serie) return;
@@ -1124,5 +1130,16 @@ const imprimirHistorial = () => {
     onChange={subirImagen}
 />
     </div>
+    <LectorQR
+  abierto={mostrarLector}
+  onCerrar={() => setMostrarLector(false)}
+  onDetectar={(codigo) => {
+
+    console.log("Código leído:", codigo);
+
+    buscarEquipo(codigo);
+
+  }}
+/>
   );
 }
