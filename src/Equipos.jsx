@@ -2,6 +2,7 @@ import { useState } from "react";
 import { API_URL } from "./config";
 import { useEffect } from "react";
 import { useRef } from "react";
+import LectorQR from "./components/LectorQR";
 
 export default function Equipos({ setVista, personal }) {
   const [serie, setSerie] = useState("");
@@ -20,6 +21,7 @@ export default function Equipos({ setVista, personal }) {
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
   const inputImagenRef = useRef(null);
+  const [mostrarLector, setMostrarLector] = useState(false);
 
   useEffect(() => {
   fetchEstados();
@@ -499,13 +501,26 @@ const imprimirHistorial = () => {
       <h1 className="text-xl font-bold mb-4">🔧 Búsqueda de Equipos</h1>
 
       {/* Input */}
-      <input
-        type="text"
-        placeholder="Número de serie"
-        value={serie}
-        onChange={(e) => setSerie(e.target.value)}
-        className="w-full border p-2 rounded-xl mb-3"
-      />
+      <div className="flex items-center gap-2">
+
+  <input
+    type="text"
+    value={busqueda}
+    onChange={(e) => setBusqueda(e.target.value)}
+    placeholder="Buscar equipo..."
+    className="flex-1 border rounded px-3 py-2"
+  />
+
+  <button
+    type="button"
+    onClick={() => setMostrarLector(true)}
+    className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+    title="Escanear código QR o código de barras"
+  >
+    📷
+  </button>
+
+</div>
 
       {/* Botón buscar */}
       <button
