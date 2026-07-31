@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+{/*import React, { useEffect, useRef } from "react";
 import {
   BrowserMultiFormatReader,
   NotFoundException
@@ -127,3 +127,4 @@ export default function LectorQR({
   );
 
 }
+*/}
