@@ -1304,6 +1304,24 @@ if (busqueda.trim()) {
             {filtro === "enProceso" && !t.fin && (
   <>
 
+  {/* CARGAR EQUIPO */}
+  <button
+    onClick={() => {
+      localStorage.setItem("tareaActiva", JSON.stringify(t));
+      setVista("seleccionarEquipo");
+    }}
+    disabled={!!t.numero_serie}
+    className={`px-3 py-1 rounded text-sm text-white ${
+      t.numero_serie
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-blue-500"
+    }`}
+  >
+    {t.numero_serie
+      ? "✅ Equipo identificado"
+      : "➕ Identificar equipo"}
+  </button>
+              
     {/* EDICIÓN DE SOLUCIÓN */}
     {editando === t.id ? (
       <>
