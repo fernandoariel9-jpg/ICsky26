@@ -22,7 +22,7 @@ export default function Equipos({ setVista, personal }) {
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
   const inputImagenRef = useRef(null);
   const [mostrarLector, setMostrarLector] = useState(false);
-  //const [coincidencias, setCoincidencias] = useState([]);//
+  const [coincidencias, setCoincidencias] = useState([]);
 
   useEffect(() => {
   fetchEstados();
