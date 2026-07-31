@@ -2,7 +2,7 @@ import { useState } from "react";
 import { API_URL } from "./config";
 import { useEffect } from "react";
 import { useRef } from "react";
-import LectorQR from "./components/LectorQR";
+//import LectorQR from "./components/LectorQR";
 
 export default function Equipos({ setVista, personal }) {
   const [serie, setSerie] = useState("");
