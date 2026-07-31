@@ -22,6 +22,7 @@ export default function Equipos({ setVista, personal }) {
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
   const inputImagenRef = useRef(null);
   const [mostrarLector, setMostrarLector] = useState(false);
+  const [coincidencias, setCoincidencias] = useState([]);
 
   useEffect(() => {
   fetchEstados();
@@ -424,6 +425,36 @@ else {
   }
 };
 
+  const buscarCoincidencias = async (texto) => {
+
+  if (!texto.trim()) {
+    setCoincidencias([]);
+    return;
+  }
+
+  try {
+
+    const res = await fetch(
+      `${API_URL.Base}/buscar-equipos?q=${encodeURIComponent(texto)}`
+    );
+
+    if (!res.ok) {
+      throw new Error("Error buscando equipos");
+    }
+
+    const data = await res.json();
+
+    setCoincidencias(data);
+
+  } catch (err) {
+
+    console.error(err);
+    setCoincidencias([]);
+
+  }
+
+};
+
 const buscarEquipo = async (serieBuscar = serie) => {
 
   if (!serieBuscar) return;
@@ -512,10 +543,60 @@ const imprimirHistorial = () => {
   <input
     type="text"
     value={serie}
-    onChange={(e) => setSerie(e.target.value)}
+    onChange={(e) => {
+
+  const valor = e.target.value;
+
+  setSerie(valor);
+
+  buscarCoincidencias(valor);
+
+}}
     placeholder="Buscar equipo..."
     className="flex-1 border rounded px-3 py-2"
   />
+
+        {coincidencias.length > 0 && (
+  <div className="border rounded bg-white shadow max-h-64 overflow-y-auto mt-1">
+
+    {coincidencias.map((item) => (
+
+      <div
+        key={item.id}
+        onClick={() => {
+
+          setSerie(item.numero_serie);
+
+          setCoincidencias([]);
+
+          buscarEquipo(item.numero_serie);
+
+        }}
+        className="p-2 border-b cursor-pointer hover:bg-blue-100"
+      >
+
+        <div className="font-semibold">
+          {item.descripcion}
+        </div>
+
+        <div className="text-sm text-gray-600">
+          {item.marca_modelo}
+        </div>
+
+        <div className="text-sm">
+          Serie: <b>{item.numero_serie}</b>
+        </div>
+
+        <div className="text-xs text-gray-500">
+          {item.servicio}
+        </div>
+
+      </div>
+
+    ))}
+
+  </div>
+)}
 
   <button
     type="button"
