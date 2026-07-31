@@ -556,47 +556,6 @@ const imprimirHistorial = () => {
     className="flex-1 border rounded px-3 py-2"
   />
 
-        {coincidencias.length > 0 && (
-  <div className="border rounded bg-white shadow max-h-64 overflow-y-auto mt-1">
-
-    {coincidencias.map((item) => (
-
-      <div
-        key={item.id}
-        onClick={() => {
-
-          setSerie(item.numero_serie);
-
-          setCoincidencias([]);
-
-          buscarEquipo(item.numero_serie);
-
-        }}
-        className="p-2 border-b cursor-pointer hover:bg-blue-100"
-      >
-
-        <div className="font-semibold">
-          {item.descripcion}
-        </div>
-
-        <div className="text-sm text-gray-600">
-          {item.marca_modelo}
-        </div>
-
-        <div className="text-sm">
-          Serie: <b>{item.numero_serie}</b>
-        </div>
-
-        <div className="text-xs text-gray-500">
-          {item.servicio}
-        </div>
-
-      </div>
-
-    ))}
-
-  </div>
-)}
 
  {/*<button
     type="button"
