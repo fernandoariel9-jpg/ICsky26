@@ -22,7 +22,7 @@ export default function Equipos({ setVista, personal }) {
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
   const inputImagenRef = useRef(null);
   const [mostrarLector, setMostrarLector] = useState(false);
-  const [coincidencias, setCoincidencias] = useState([]);
+  //const [coincidencias, setCoincidencias] = useState([]);//
 
   useEffect(() => {
   fetchEstados();
@@ -598,14 +598,14 @@ const imprimirHistorial = () => {
   </div>
 )}
 
-  <button
+ {/*<button
     type="button"
     onClick={() => setMostrarLector(true)}
     className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
     title="Escanear código QR o código de barras"
   >
     📷
-  </button>
+  </button>*/}
 
 </div>
 
