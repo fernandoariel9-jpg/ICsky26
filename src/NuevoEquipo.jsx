@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { API_URL } from "./config";
 
 export default function NuevoEquipo({ setVista }) {
 
@@ -15,6 +16,11 @@ const [encargado, setEncargado] = useState("");
 const [imagen, setImagen] = useState(null);
 
 const inputImagenRef = useRef(null);
+
+const [descripcion, setDescripcion] = useState("");
+const [marcaModelo, setMarcaModelo] = useState("");
+const [numeroSerie, setNumeroSerie] = useState("");
+const [estado, setEstado] = useState("Activo");
 
   useEffect(() => {
   cargarDatos();
