@@ -34,7 +34,9 @@ export default function NuevoEquipo({ setVista }) {
   const [guardando, setGuardando] = useState(false);
 
   const inputImagenRef = useRef(null);
-
+  const inputCamaraRef = useRef(null);
+  const inputGaleriaRef = useRef(null);
+  
   //====================================================
   // CARGAR DATOS
   //====================================================
@@ -384,21 +386,35 @@ export default function NuevoEquipo({ setVista }) {
       {/* Imagen */}
 
        <button
-        type="button"
-        onClick={() =>
-          inputImagenRef.current.click()
-        }
-        className="w-full bg-blue-600 text-white rounded p-2"
-      >
-        📷 Agregar fotografía
-      </button>
+  onClick={() => inputCamaraRef.current.click()}
+  className="w-full bg-blue-600 text-white rounded p-2"
+>
+📷 Tomar fotografía
+</button>
 
-      {/* Cámara */}
+<button
+  onClick={() => inputGaleriaRef.current.click()}
+  className="w-full bg-gray-600 text-white rounded p-2 mt-2"
+>
+🖼 Elegir desde galería
+</button>
+
+     {/* Cámara */}
 <input
-  ref={inputImagenRef}
+  ref={inputCamaraRef}
   type="file"
   accept="image/*"
-  style={{ display: "none" }}
+  capture="environment"
+  hidden
+  onChange={subirImagen}
+/>
+
+{/* Galería */}
+<input
+  ref={inputGaleriaRef}
+  type="file"
+  accept="image/*"
+  hidden
   onChange={subirImagen}
 />
 
