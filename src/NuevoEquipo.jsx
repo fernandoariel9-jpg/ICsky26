@@ -390,29 +390,12 @@ export default function NuevoEquipo({ setVista }) {
 📷 Tomar fotografía
 </button>
 
-<button
-  onClick={() => inputGaleriaRef.current.click()}
-  className="w-full bg-gray-600 text-white rounded p-2 mt-2"
->
-🖼 Elegir desde galería
-</button>
-
       {/* Cámara */}
 <input
-  ref={inputCamaraRef}
+  ref={inputImagenRef}
   type="file"
   accept="image/*"
-  capture="environment"
-  hidden
-  onChange={subirImagen}
-/>
-
-{/* Galería */}
-<input
-  ref={inputGaleriaRef}
-  type="file"
-  accept="image/*"
-  hidden
+  style={{ display: "none" }}
   onChange={subirImagen}
 />
 
