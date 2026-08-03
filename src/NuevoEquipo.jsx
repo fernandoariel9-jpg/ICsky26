@@ -385,6 +385,7 @@ export default function NuevoEquipo({ setVista }) {
 
       {/* Imagen */}
 
+       <div className="flex gap-2">
        <button
   onClick={() => inputCamaraRef.current.click()}
   className="w-full bg-blue-600 text-white rounded p-2"
@@ -398,6 +399,7 @@ export default function NuevoEquipo({ setVista }) {
 >
 🖼 Elegir desde galería
 </button>
+       </div>
 
      {/* Cámara */}
 <input
