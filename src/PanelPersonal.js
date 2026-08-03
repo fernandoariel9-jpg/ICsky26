@@ -2,6 +2,7 @@ import { useState } from "react";
 import TareasPersonal from "./TareasPersonal";
 import Equipos from "./Equipos";
 import SeleccionEquipo from "./SeleccionEquipo";
+import NuevoEquipo from "./NuevoEquipo";
 
 export default function PanelPersonal({ personal, onLogout }) {
   const [vista, setVista] = useState("tareas");
@@ -24,6 +25,12 @@ export default function PanelPersonal({ personal, onLogout }) {
 )}
       {vista === "seleccionarEquipo" && (
   <SeleccionEquipo setVista={setVista} />
+)}
+
+      {vista === "nuevoEquipo" && (
+  <NuevoEquipo
+    setVista={setVista}
+  />
 )}
     </>
   );
