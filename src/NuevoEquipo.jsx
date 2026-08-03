@@ -289,7 +289,7 @@ const inputImagenRef = useRef(null);
     ))}
 
 </select>
-          <div>
+         
   <label className="block font-semibold mb-1">
     Encargado
   </label>
