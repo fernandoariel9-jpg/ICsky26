@@ -384,23 +384,37 @@ export default function NuevoEquipo({ setVista }) {
       {/* Imagen */}
 
       <button
-        type="button"
-        onClick={() =>
-          inputImagenRef.current.click()
-        }
-        className="w-full bg-blue-600 text-white rounded p-2"
-      >
-        📷 Agregar fotografía
-      </button>
+  onClick={() => inputCamaraRef.current.click()}
+  className="w-full bg-blue-600 text-white rounded p-2"
+>
+📷 Tomar fotografía
+</button>
 
-      <input
-        ref={inputImagenRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        style={{ display: "none" }}
-        onChange={subirImagen}
-      />
+<button
+  onClick={() => inputGaleriaRef.current.click()}
+  className="w-full bg-gray-600 text-white rounded p-2 mt-2"
+>
+🖼 Elegir desde galería
+</button>
+
+      {/* Cámara */}
+<input
+  ref={inputCamaraRef}
+  type="file"
+  accept="image/*"
+  capture="environment"
+  hidden
+  onChange={subirImagen}
+/>
+
+{/* Galería */}
+<input
+  ref={inputGaleriaRef}
+  type="file"
+  accept="image/*"
+  hidden
+  onChange={subirImagen}
+/>
 
       {imagen && (
         <img
