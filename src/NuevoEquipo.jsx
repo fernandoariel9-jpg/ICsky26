@@ -383,12 +383,15 @@ export default function NuevoEquipo({ setVista }) {
 
       {/* Imagen */}
 
-      <button
-  onClick={() => inputCamaraRef.current.click()}
-  className="w-full bg-blue-600 text-white rounded p-2"
->
-📷 Tomar fotografía
-</button>
+       <button
+        type="button"
+        onClick={() =>
+          inputImagenRef.current.click()
+        }
+        className="w-full bg-blue-600 text-white rounded p-2"
+      >
+        📷 Agregar fotografía
+      </button>
 
       {/* Cámara */}
 <input
