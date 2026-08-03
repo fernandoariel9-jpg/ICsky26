@@ -12,6 +12,8 @@ const [subServicio, setSubServicio] = useState("");
 
 const [encargado, setEncargado] = useState("");
 
+const [imagen, setImagen] = useState(null);
+
 const inputImagenRef = useRef(null);
 
   useEffect(() => {
@@ -75,7 +77,8 @@ const inputImagenRef = useRef(null);
         periodo: null,
         ultimo_mant: null,
         fecha_baja: null,
-        estado
+        estado,
+        imagen
 
       })
 
@@ -96,6 +99,59 @@ const inputImagenRef = useRef(null);
     alert(err.message);
 
   }
+
+};
+
+  const subirImagen = async (e) => {
+
+  const file = e.target.files[0];
+
+  if (!file) return;
+
+  const img = new Image();
+
+  img.src = URL.createObjectURL(file);
+
+  img.onload = () => {
+
+    const canvas = document.createElement("canvas");
+
+    const MAX = 800;
+
+    let { width, height } = img;
+
+    if (width > height) {
+
+      if (width > MAX) {
+
+        height *= MAX / width;
+        width = MAX;
+
+      }
+
+    } else {
+
+      if (height > MAX) {
+
+        width *= MAX / height;
+        height = MAX;
+
+      }
+
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(img, 0, 0, width, height);
+
+    const base64 = canvas.toDataURL("image/jpeg", 0.7);
+
+    setImagen(base64);
+
+  };
 
 };
 
@@ -304,13 +360,28 @@ const inputImagenRef = useRef(null);
           📷 Agregar fotografía
         </button>
 
+          {imagen && (
+
+  <div className="mt-3">
+
+    <img
+      src={imagen}
+      alt="Equipo"
+      className="w-full rounded-lg border shadow"
+    />
+
+  </div>
+
+)}
+
         <input
-          ref={inputImagenRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          style={{ display: "none" }}
-        />
+  ref={inputImagenRef}
+  type="file"
+  accept="image/*"
+  capture="environment"
+  style={{ display: "none" }}
+  onChange={subirImagen}
+/>
 
       </div>
 
