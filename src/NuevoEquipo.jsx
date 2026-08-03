@@ -160,3 +160,279 @@ export default function NuevoEquipo({ setVista }) {
       );
     };
   };
+
+  return (
+  <div className="max-w-xl mx-auto bg-white shadow rounded-xl p-6">
+
+    <h1 className="text-2xl font-bold text-center mb-6">
+      ➕ Nuevo Equipo
+    </h1>
+
+    <div className="space-y-4">
+
+      {/* Descripción */}
+
+      <div>
+        <label className="block font-semibold mb-1">
+          Descripción *
+        </label>
+
+        <input
+          type="text"
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          className="w-full border rounded p-2"
+        />
+      </div>
+
+      {/* Marca */}
+
+      <div>
+        <label className="block font-semibold mb-1">
+          Marca / Modelo
+        </label>
+
+        <input
+          type="text"
+          value={marcaModelo}
+          onChange={(e) => setMarcaModelo(e.target.value)}
+          className="w-full border rounded p-2"
+        />
+      </div>
+
+      {/* Serie */}
+
+      <div>
+        <label className="block font-semibold mb-1">
+          Número de serie *
+        </label>
+
+        <input
+          type="text"
+          value={numeroSerie}
+          onChange={(e) =>
+            setNumeroSerie(
+              e.target.value.toUpperCase()
+            )
+          }
+          className="w-full border rounded p-2"
+        />
+      </div>
+
+      {/* Área */}
+
+      <div>
+
+        <label className="block font-semibold mb-1">
+          Área
+        </label>
+
+        <select
+          value={area}
+          onChange={(e) => {
+            setArea(e.target.value);
+            setServicio("");
+            setSubServicio("");
+            setEncargado("");
+          }}
+          className="w-full border rounded p-2"
+        >
+
+          <option value="">
+            Seleccione un área
+          </option>
+
+          {areas.map((a) => (
+
+            <option
+              key={a.id}
+              value={a.area}
+            >
+              {a.area}
+            </option>
+
+          ))}
+        </select>
+      </div>
+
+      {/* Servicio */}
+
+      <div>
+
+        <label className="block font-semibold mb-1">
+          Servicio
+        </label>
+
+        <select
+          value={servicio}
+          onChange={(e) => {
+            setServicio(e.target.value);
+            setSubServicio("");
+            setEncargado("");
+          }}
+          className="w-full border rounded p-2"
+        >
+
+          <option value="">
+            Seleccione un servicio
+          </option>
+
+          {[
+            ...new Map(
+              servicios
+                .filter(s => s.area === area)
+                .map(s => [s.servicio, s])
+            ).values()
+          ].map((s) => (
+
+            <option
+              key={s.servicio}
+              value={s.servicio}
+            >
+              {s.servicio}
+            </option>
+
+          ))}
+        </select>
+      </div>
+
+      {/* Subservicio */}
+
+      <div>
+
+        <label className="block font-semibold mb-1">
+          Subservicio
+        </label>
+
+        <select
+          value={subServicio}
+          onChange={(e) => {
+
+            const valor = e.target.value;
+
+            setSubServicio(valor);
+
+            const fila = servicios.find(
+              s =>
+                s.area === area &&
+                s.servicio === servicio &&
+                s.subservicio === valor
+            );
+            setEncargado(
+              fila?.encargado || ""
+            );
+          }}
+          className="w-full border rounded p-2"
+        >
+
+          <option value="">
+            Seleccione un subservicio
+          </option>
+          
+          {servicios
+            .filter(
+              s =>
+                s.area === area &&
+                s.servicio === servicio
+            )
+            .map((s) => (
+              <option
+                key={s.subservicio}
+                value={s.subservicio}
+              >
+                {s.subservicio}
+              </option>
+            ))}
+        </select>
+      </div>
+
+      {/* Encargado */}
+
+      <div>
+        <label className="block font-semibold mb-1">
+          Encargado
+        </label>
+
+        <input
+          value={encargado}
+          readOnly
+          className="w-full border rounded p-2 bg-gray-100"
+        />
+      </div>
+
+      {/* Estado */}
+
+      <div>
+        <label className="block font-semibold mb-1">
+          Estado
+        </label>
+
+        <select
+          value={estado}
+          onChange={(e) => setEstado(e.target.value)}
+          className="w-full border rounded p-2"
+        >
+          <option>Activo</option>
+          <option>Ingresado</option>
+          <option>Fuera de servicio</option>
+          <option>Reparación en fábrica</option>
+          <option>Obsoleto</option>
+          <option>De baja</option>
+        </select>
+      </div>
+
+      {/* Imagen */}
+
+      <button
+        type="button"
+        onClick={() =>
+          inputImagenRef.current.click()
+        }
+        className="w-full bg-blue-600 text-white rounded p-2"
+      >
+        📷 Agregar fotografía
+      </button>
+
+      <input
+        ref={inputImagenRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style={{ display: "none" }}
+        onChange={subirImagen}
+      />
+
+      {imagen && (
+        <img
+          src={imagen}
+          alt="Equipo"
+          className="rounded-lg border shadow w-full"
+        />
+      )}
+    </div>
+
+    {/* Botones */}
+
+    <div className="flex gap-3 mt-6">
+
+      <button
+        onClick={guardarEquipo}
+        disabled={guardando}
+        className="flex-1 bg-green-600 text-white rounded p-3"
+      >
+        {guardando
+          ? "Guardando..."
+          : "💾 Guardar"}
+      </button>
+
+      <button
+        onClick={() => setVista("equipos")}
+        className="flex-1 bg-gray-500 text-white rounded p-3"
+      >
+        Cancelar
+      </button>
+      
+    </div>
+  </div>
+);
+}
