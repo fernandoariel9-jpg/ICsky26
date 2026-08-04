@@ -19,6 +19,7 @@ export const API_URL = {
   TiemposAnalitica: `${API_BASE_URL}/api/tiempos_analitica`,
   Equipos: `${API_BASE_URL}/api/equipos`,
   BuscarEquipo: `${API_BASE_URL}/buscar-equipo`,
+  BuscarEquipos: `${API_BASE_URL}/buscar-equipos`,
   Ric01: `${API_BASE_URL}/ric01`,
   DiagnosticosRIC02: `${API_BASE_URL}/diagnosticos/ric02`,
   Guardias: `${API_BASE_URL}/api/guardias`,
