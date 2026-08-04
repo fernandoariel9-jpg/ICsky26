@@ -5,6 +5,8 @@ export default function SeleccionEquipo({ setVista }) {
   const [serie, setSerie] = useState("");
   const [equipo, setEquipo] = useState(null);
   const [error, setError] = useState("");
+  const [coincidencias, setCoincidencias] = useState([]);
+  const [buscando, setBuscando] = useState(false);
 
   useEffect(() => {
     const tareaGuardada = localStorage.getItem("tareaActiva");
@@ -15,23 +17,32 @@ export default function SeleccionEquipo({ setVista }) {
     }
   }, []);
 
-  const buscarEquipo = async () => {
-    if (!serie) return;
+ const buscarEquipo = async (serieBuscar = serie) => {
 
-    try {
-      const res = await fetch(`${API_URL.BuscarEquipo}/${serie}`);
+  if (!serieBuscar) return;
 
-      if (!res.ok) throw new Error();
+  try {
 
-      const data = await res.json();
-      setEquipo(data);
-      setError("");
-    } catch {
-      setEquipo(null);
-      setError("Equipo no encontrado");
-    }
-  };
+    const res = await fetch(
+      `${API_URL.BuscarEquipo}/${encodeURIComponent(serieBuscar)}`
+    );
 
+    if (!res.ok) throw new Error();
+
+    const data = await res.json();
+
+    setEquipo(data);
+    setError("");
+    setCoincidencias([]);
+
+  } catch {
+
+    setEquipo(null);
+    setError("Equipo no encontrado");
+
+  }
+
+};
   const seleccionarEquipo = async () => {
     try {
       const tareaActiva = JSON.parse(localStorage.getItem("tareaActiva"));
@@ -68,12 +79,98 @@ export default function SeleccionEquipo({ setVista }) {
 
       {/* Input */}
       <input
-        type="text"
-        placeholder="Número de serie"
-        value={serie}
-        onChange={(e) => setSerie(e.target.value)}
-        className="w-full border p-2 rounded-xl mb-3"
-      />
+  type="text"
+  placeholder="Número de serie"
+  value={serie}
+  onChange={async (e) => {
+
+    const valor = e.target.value;
+
+    setSerie(valor);
+
+    if (valor.trim().length < 2) {
+
+      setCoincidencias([]);
+      return;
+
+    }
+
+    try {
+
+      setBuscando(true);
+
+      const res = await fetch(
+        `${API_URL.BuscarEquipos}?q=${encodeURIComponent(valor)}`
+      );
+
+      const data = await res.json();
+
+      setCoincidencias(data);
+
+    } catch (err) {
+
+      console.error(err);
+
+    } finally {
+
+      setBuscando(false);
+
+    }
+
+  }}
+  className="w-full border p-2 rounded-xl"
+/>
+      {buscando && (
+
+  <p className="text-sm text-gray-500 mt-1">
+    Buscando...
+  </p>
+
+)}
+
+      {coincidencias.length > 0 && (
+
+  <div className="border rounded-xl bg-white shadow max-h-60 overflow-y-auto mb-3">
+
+    {coincidencias.map((item) => (
+
+      <div
+        key={item.id}
+        className="p-2 border-b hover:bg-blue-100 cursor-pointer"
+        onClick={() => {
+
+          setSerie(item.numero_serie);
+
+          buscarEquipo(item.numero_serie);
+
+        }}
+      >
+
+        <div className="font-semibold">
+
+          {item.numero_serie}
+
+        </div>
+
+        <div className="text-sm">
+
+          {item.descripcion}
+
+        </div>
+
+        <div className="text-xs text-gray-500">
+
+          {item.marca_modelo}
+
+        </div>
+
+      </div>
+
+    ))}
+
+  </div>
+
+)}
 
       {/* Botón buscar */}
       <button
