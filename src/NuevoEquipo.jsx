@@ -84,26 +84,30 @@ useEffect(() => {
     subServicio: equipo.sub_servicio
   });
 
-  console.log("Servicios cargados:", servicios);
+  // Normalizar texto para comparar
+  const normalizar = (valor) =>
+    String(valor || "")
+      .trim()
+      .toLowerCase();
 
-  console.log(
-    "Servicios del área:",
-    servicios.filter(
-      s => s.area === equipo.area
-    )
-  );
-
-  setArea(equipo.area || "");
-  setServicio(equipo.servicio || "");
-  setSubServicio(equipo.sub_servicio || "");
-
+  // Buscar el registro correspondiente en servicios
   const fila = servicios.find(
     s =>
-      s.area === equipo.area &&
-      s.servicio === equipo.servicio &&
-      s.subservicio === equipo.sub_servicio
+      normalizar(s.area) === normalizar(equipo.area) &&
+      normalizar(s.servicio) === normalizar(equipo.servicio) &&
+      normalizar(s.subservicio) === normalizar(equipo.sub_servicio)
   );
 
+  console.log("Fila encontrada:", fila);
+
+  // Cargar valores del equipo
+  setArea(equipo.area || "");
+
+  setServicio(equipo.servicio || "");
+
+  setSubServicio(equipo.sub_servicio || "");
+
+  // El encargado lo obtenemos de servicios
   setEncargado(
     equipo.encargado ||
     fila?.encargado ||
