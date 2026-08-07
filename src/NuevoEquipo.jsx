@@ -161,62 +161,104 @@ useEffect(() => {
 
   const guardarEquipo = async () => {
 
-    if (!descripcion.trim()) {
-      alert("Ingrese la descripción.");
-      return;
-    }
-    if (!numeroSerie.trim()) {
-      alert("Ingrese el número de serie.");
-      return;
-    }
-    if (!area) {
-      alert("Seleccione un área.");
-      return;
-    }
-    if (!servicio) {
-      alert("Seleccione un servicio.");
-      return;
-    }
-    if (!subServicio) {
-      alert("Seleccione un subservicio.");
-      return;
-    }
-    try {
+  if (!descripcion.trim()) {
+    alert("Debe ingresar una descripción.");
+    return;
+  }
 
-      setGuardando(true);
-      const res = await fetch(API_URL.Equipos, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          numero_serie: numeroSerie.toUpperCase().trim(),
-          descripcion,
-          marca_modelo: marcaModelo,
-          servicio,
-          sub_servicio: subServicio,
-          encargado,
-          area,
-          periodo: null,
-          ultimo_mant: null,
-          fecha_baja: null,
-          estado,
-          imagen
-        })
-      });
+  if (!numeroSerie.trim()) {
+    alert("Debe ingresar el número de serie.");
+    return;
+  }
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error);
-      }
-      alert("Equipo creado correctamente.");
-      setVista("equipos");
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setGuardando(false);
+  try {
+
+    const datos = {
+      numero_serie: numeroSerie,
+      descripcion,
+      marca_modelo: marcaModelo,
+      servicio,
+      sub_servicio: subServicio,
+      encargado,
+      area,
+      periodo: equipoEditar?.periodo || null,
+      ultimo_mant: equipoEditar?.ultimo_mant || null,
+      fecha_alta: equipoEditar?.fecha_alta || null,
+      fecha_baja: equipoEditar?.fecha_baja || null,
+      estado,
+      imagen
+    };
+
+    let res;
+
+    // ==========================================
+    // EDITAR EQUIPO
+    // ==========================================
+
+    if (modoEdicion && equipoEditar) {
+
+      res = await fetch(
+        `${API_URL.Equipos}/${equipoEditar.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(datos)
+        }
+      );
+
+    } else {
+
+      // ==========================================
+      // CREAR EQUIPO NUEVO
+      // ==========================================
+
+      res = await fetch(
+        API_URL.Equipos,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(datos)
+        }
+      );
+
     }
-  };
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        data.error || "Error guardando equipo"
+      );
+    }
+
+    // Eliminar información temporal de edición
+    localStorage.removeItem("equipoEditar");
+
+    if (modoEdicion) {
+
+      alert("Equipo actualizado correctamente ✅");
+
+    } else {
+
+      alert("Equipo creado correctamente ✅");
+
+    }
+
+    setVista("equipos");
+
+  } catch (err) {
+
+    console.error("Error guardando equipo:", err);
+
+    alert(err.message);
+
+  }
+
+};
 
   //====================================================
   // TOMAR FOTO
