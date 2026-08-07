@@ -70,51 +70,74 @@ useEffect(() => {
   }
 }, []);
 
- useEffect(() => {
-
-  if (!modoEdicion || !equipoEditar || servicios.length === 0) {
+useEffect(() => {
+  if (!modoEdicion || !equipoEditar || servicios.length === 0 || areas.length === 0) {
     return;
   }
 
   const equipo = equipoEditar;
 
-  console.log("Cargando datos de ubicación:", {
-    area: equipo.area,
-    servicio: equipo.servicio,
-    subServicio: equipo.sub_servicio
-  });
-
-  // Normalizar texto para comparar
   const normalizar = (valor) =>
     String(valor || "")
       .trim()
       .toLowerCase();
 
-  // Buscar el registro correspondiente en servicios
-  const fila = servicios.find(
+  // Buscar el área real existente en la tabla de áreas
+  const areaEncontrada = areas.find(
+    a => normalizar(a.area) === normalizar(equipo.area)
+  );
+
+  const areaReal = areaEncontrada?.area || "";
+
+  console.log("Área del equipo:", equipo.area);
+  console.log("Área encontrada:", areaReal);
+
+  setArea(areaReal);
+
+  // Buscar el servicio real
+  const servicioEncontrado = servicios.find(
     s =>
-      normalizar(s.area) === normalizar(equipo.area) &&
-      normalizar(s.servicio) === normalizar(equipo.servicio) &&
+      normalizar(s.area) === normalizar(areaReal) &&
+      normalizar(s.servicio) === normalizar(equipo.servicio)
+  );
+
+  const servicioReal = servicioEncontrado?.servicio || "";
+
+  console.log("Servicio encontrado:", servicioReal);
+
+  setServicio(servicioReal);
+
+  // Buscar el subservicio real
+  const subservicioEncontrado = servicios.find(
+    s =>
+      normalizar(s.area) === normalizar(areaReal) &&
+      normalizar(s.servicio) === normalizar(servicioReal) &&
       normalizar(s.subservicio) === normalizar(equipo.sub_servicio)
   );
 
-  console.log("Fila encontrada:", fila);
+  const subservicioReal =
+    subservicioEncontrado?.subservicio || "";
 
-  // Cargar valores del equipo
-  setArea(equipo.area || "");
+  console.log(
+    "Subservicio encontrado:",
+    subservicioReal
+  );
 
-  setServicio(equipo.servicio || "");
+  setSubServicio(subservicioReal);
 
-  setSubServicio(equipo.sub_servicio || "");
-
-  // El encargado lo obtenemos de servicios
+  // Encargado
   setEncargado(
     equipo.encargado ||
-    fila?.encargado ||
+    subservicioEncontrado?.encargado ||
     ""
   );
 
-}, [modoEdicion, equipoEditar, servicios]);
+}, [
+  modoEdicion,
+  equipoEditar,
+  servicios,
+  areas
+]);
 
   const cargarDatos = async () => {
     try {
@@ -315,16 +338,14 @@ useEffect(() => {
             Seleccione un área
           </option>
 
-          {areas.map((a) => (
-
-            <option
-              key={a.id}
-              value={a.area}
-            >
-              {a.area}
-            </option>
-
-          ))}
+         {areas.map((a, index) => (
+  <option
+    key={a.id || a.area || index}
+    value={a.area}
+  >
+    {a.area}
+  </option>
+))}
         </select>
       </div>
 
