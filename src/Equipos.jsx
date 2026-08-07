@@ -41,10 +41,28 @@ export default function Equipos({ setVista, personal }) {
   }
 }, []);
 
-  useEffect(() => {
+useEffect(() => {
+
+  // Equipo que acaba de ser editado
+  const equipoActualizado =
+    localStorage.getItem("equipoActualizado");
+
+  if (equipoActualizado) {
+
+    // Limpiamos el dato temporal
+    localStorage.removeItem("equipoActualizado");
+
+    // Volvemos a buscar el equipo actualizado
+    buscarEquipo(equipoActualizado);
+
+    return;
+  }
+
+  // Comportamiento normal
   if (serie) {
     buscarEquipo();
   }
+
 }, [serie]);
 
   const fetchEstados = async () => {
