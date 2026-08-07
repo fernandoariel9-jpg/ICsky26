@@ -45,15 +45,12 @@ export default function NuevoEquipo({ setVista }) {
   //====================================================
 
 useEffect(() => {
-
   cargarDatos();
 
   const guardado = localStorage.getItem("equipoEditar");
 
   if (guardado) {
-
     try {
-
       const equipo = JSON.parse(guardado);
 
       console.log("Equipo a editar:", equipo);
@@ -64,28 +61,48 @@ useEffect(() => {
       setNumeroSerie(equipo.numero_serie || "");
       setDescripcion(equipo.descripcion || "");
       setMarcaModelo(equipo.marca_modelo || "");
-
-      setArea(equipo.area || "");
-      setServicio(equipo.servicio || "");
-      setSubServicio(equipo.sub_servicio || "");
-      setEncargado(equipo.encargado || "");
-
       setEstado(equipo.estado || "Activo");
-
       setImagen(equipo.imagen || null);
 
     } catch (error) {
-
-      console.error(
-        "Error leyendo equipo a editar:",
-        error
-      );
-
+      console.error("Error leyendo equipo a editar:", error);
     }
+  }
+}, []);
 
+  useEffect(() => {
+
+  if (!modoEdicion || !equipoEditar || servicios.length === 0) {
+    return;
   }
 
-}, []);
+  const equipo = equipoEditar;
+
+  console.log("Cargando datos de ubicación:", {
+    area: equipo.area,
+    servicio: equipo.servicio,
+    subServicio: equipo.sub_servicio
+  });
+
+  setArea(equipo.area || "");
+  setServicio(equipo.servicio || "");
+  setSubServicio(equipo.sub_servicio || "");
+
+  // Buscar el encargado correspondiente
+  const fila = servicios.find(
+    s =>
+      s.area === equipo.area &&
+      s.servicio === equipo.servicio &&
+      s.subservicio === equipo.sub_servicio
+  );
+
+  setEncargado(
+    equipo.encargado ||
+    fila?.encargado ||
+    ""
+  );
+
+}, [modoEdicion, equipoEditar, servicios]);
 
   const cargarDatos = async () => {
     try {
