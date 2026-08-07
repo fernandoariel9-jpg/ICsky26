@@ -351,12 +351,16 @@ useEffect(() => {
           </option>
 
           {[
-            ...new Map(
-              servicios
-                .filter(s => s.area === area)
-                .map(s => [s.servicio, s])
-            ).values()
-          ].map((s) => (
+  ...new Map(
+    servicios
+      .filter(
+        s =>
+          String(s.area || "").trim().toLowerCase() ===
+          String(area || "").trim().toLowerCase()
+      )
+      .map(s => [s.servicio, s])
+  ).values()
+].map((s) => (
 
             <option
               key={s.servicio}
@@ -403,12 +407,14 @@ useEffect(() => {
           </option>
           
           {servicios
-            .filter(
-              s =>
-                s.area === area &&
-                s.servicio === servicio
-            )
-            .map((s) => (
+  .filter(
+    s =>
+      String(s.area || "").trim().toLowerCase() ===
+        String(area || "").trim().toLowerCase() &&
+      String(s.servicio || "").trim().toLowerCase() ===
+        String(servicio || "").trim().toLowerCase()
+  )
+  .map((s) => (
               <option
                 key={s.subservicio}
                 value={s.subservicio}
