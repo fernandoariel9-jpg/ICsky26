@@ -15,6 +15,9 @@ export default function NuevoEquipo({ setVista }) {
 
   const [imagen, setImagen] = useState(null);
 
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [equipoEditar, setEquipoEditar] = useState(null);
+
   //====================================================
   // UBICACIÓN
   //====================================================
@@ -41,9 +44,48 @@ export default function NuevoEquipo({ setVista }) {
   // CARGAR DATOS
   //====================================================
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
+useEffect(() => {
+
+  cargarDatos();
+
+  const guardado = localStorage.getItem("equipoEditar");
+
+  if (guardado) {
+
+    try {
+
+      const equipo = JSON.parse(guardado);
+
+      console.log("Equipo a editar:", equipo);
+
+      setEquipoEditar(equipo);
+      setModoEdicion(true);
+
+      setNumeroSerie(equipo.numero_serie || "");
+      setDescripcion(equipo.descripcion || "");
+      setMarcaModelo(equipo.marca_modelo || "");
+
+      setArea(equipo.area || "");
+      setServicio(equipo.servicio || "");
+      setSubServicio(equipo.sub_servicio || "");
+      setEncargado(equipo.encargado || "");
+
+      setEstado(equipo.estado || "Activo");
+
+      setImagen(equipo.imagen || null);
+
+    } catch (error) {
+
+      console.error(
+        "Error leyendo equipo a editar:",
+        error
+      );
+
+    }
+
+  }
+
+}, []);
 
   const cargarDatos = async () => {
     try {
@@ -166,9 +208,9 @@ export default function NuevoEquipo({ setVista }) {
   return (
   <div className="max-w-xl mx-auto bg-white shadow rounded-xl p-6">
 
-    <h1 className="text-2xl font-bold text-center mb-6">
-      ➕ Nuevo Equipo
-    </h1>
+    <h1 className="text-2xl font-bold mb-6 text-center">
+  {modoEdicion ? "Editar Equipo" : "Nuevo Equipo"}
+</h1>
 
     <div className="space-y-4">
 
@@ -434,14 +476,11 @@ export default function NuevoEquipo({ setVista }) {
     <div className="flex gap-3 mt-6">
 
       <button
-        onClick={guardarEquipo}
-        disabled={guardando}
-        className="flex-1 bg-green-600 text-white rounded p-3"
-      >
-        {guardando
-          ? "Guardando..."
-          : "💾 Guardar"}
-      </button>
+  onClick={guardarEquipo}
+  className="flex-1 bg-green-600 text-white rounded p-3"
+>
+  {modoEdicion ? "💾 Guardar cambios" : "💾 Guardar equipo"}
+</button>
 
       <button
         onClick={() => setVista("equipos")}
