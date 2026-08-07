@@ -236,19 +236,26 @@ useEffect(() => {
     }
 
     // Eliminar información temporal de edición
-    localStorage.removeItem("equipoEditar");
+if (modoEdicion && equipoEditar) {
 
-    if (modoEdicion) {
+  // Guardamos la serie para que Equipos
+  // vuelva a cargar automáticamente el equipo
+  localStorage.setItem(
+    "equipoActualizado",
+    equipoEditar.numero_serie
+  );
 
-      alert("Equipo actualizado correctamente ✅");
+  localStorage.removeItem("equipoEditar");
 
-    } else {
+  alert("Equipo actualizado correctamente ✅");
 
-      alert("Equipo creado correctamente ✅");
+} else {
 
-    }
+  alert("Equipo creado correctamente ✅");
 
-    setVista("equipos");
+}
+
+setVista("equipos");
 
   } catch (err) {
 
