@@ -70,7 +70,7 @@ useEffect(() => {
   }
 }, []);
 
-  useEffect(() => {
+ useEffect(() => {
 
   if (!modoEdicion || !equipoEditar || servicios.length === 0) {
     return;
@@ -84,11 +84,19 @@ useEffect(() => {
     subServicio: equipo.sub_servicio
   });
 
+  console.log("Servicios cargados:", servicios);
+
+  console.log(
+    "Servicios del área:",
+    servicios.filter(
+      s => s.area === equipo.area
+    )
+  );
+
   setArea(equipo.area || "");
   setServicio(equipo.servicio || "");
   setSubServicio(equipo.sub_servicio || "");
 
-  // Buscar el encargado correspondiente
   const fila = servicios.find(
     s =>
       s.area === equipo.area &&
