@@ -699,6 +699,21 @@ const imprimirHistorial = () => {
 >
     📷 Imágen
 </button>
+
+        <button
+  onClick={() => {
+    localStorage.setItem(
+      "equipoEditar",
+      JSON.stringify(equipo)
+    );
+
+    setVista("nuevoEquipo");
+  }}
+  className="bg-orange-500 text-white px-4 py-2 rounded-xl w-full mt-2"
+>
+  ✏️ Editar equipo
+</button>
+        
       </div>
       <p className="text-sm font-semibold mb-1">
         Cambiar estado:
