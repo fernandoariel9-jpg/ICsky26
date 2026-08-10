@@ -398,9 +398,7 @@ const [observacionesGenerales, setObservacionesGenerales] =
             <b>Técnico:</b>{" "}
             {datos.tecnico || "-"}
           </p>
-
         </div>
-
       </div>
 
       {/* -------------------------------- */}
@@ -410,198 +408,8 @@ const [observacionesGenerales, setObservacionesGenerales] =
       <div className="bg-white border rounded-xl p-4">
 
         <h2 className="font-bold text-lg mb-3">
-          🔧 Protocolo RIC 29
+          🔧 Protocolo RIC 29 - MP Cardiodesfibriladores
         </h2>
-
-        {/* -------------------------------- */}
-        {/* BATERÍA */}
-        {/* -------------------------------- */}
-
-<div className="bg-white border rounded-xl p-4 mt-4">
-
-  <h2 className="font-bold text-lg mb-4">
-    🔋 Estado de la batería
-  </h2>
-
-  {medicionesBateria.map((medicion, index) => (
-
-    <div
-      key={index}
-      className="border rounded-xl p-4 mb-4 bg-gray-50"
-    >
-
-      <div className="flex justify-between items-center mb-3">
-
-        <h3 className="font-semibold">
-          Medición {medicion.numero_medicion}
-        </h3>
-
-        {medicionesBateria.length > 1 && (
-          <button
-            type="button"
-            onClick={() =>
-              eliminarMedicionBateria(index)
-            }
-            className="bg-red-500 text-white px-3 py-1 rounded-lg"
-          >
-            🗑️
-          </button>
-        )}
-
-      </div>
-
-
-      {/* Resultado */}
-
-      <div className="mb-3">
-
-        <label className="block font-semibold mb-1">
-          Resultado de medición
-        </label>
-
-        <input
-          type="number"
-          step="any"
-          value={medicion.resultado_medicion}
-          onChange={(e) =>
-            actualizarMedicionBateria(
-              index,
-              "resultado_medicion",
-              e.target.value
-            )
-          }
-          className="w-full border rounded-lg p-2"
-        />
-
-      </div>
-
-
-      {/* Incertidumbre */}
-
-      <div className="mb-3">
-
-        <label className="block font-semibold mb-1">
-          Incertidumbre
-        </label>
-
-        <input
-          type="number"
-          step="any"
-          value={medicion.incertidumbre}
-          onChange={(e) =>
-            actualizarMedicionBateria(
-              index,
-              "incertidumbre",
-              e.target.value
-            )
-          }
-          className="w-full border rounded-lg p-2"
-        />
-
-      </div>
-
-
-      {/* Rango máximo */}
-
-      <div className="mb-3">
-
-        <label className="block font-semibold mb-1">
-          Rango máximo
-        </label>
-
-        <input
-          type="number"
-          step="any"
-          value={medicion.rango_max}
-          onChange={(e) =>
-            actualizarMedicionBateria(
-              index,
-              "rango_max",
-              e.target.value
-            )
-          }
-          className="w-full border rounded-lg p-2"
-        />
-
-      </div>
-
-
-      {/* Conforme */}
-
-      <div className="mb-3">
-
-        <label className="block font-semibold mb-1">
-          Resultado
-        </label>
-
-        <select
-          value={
-            medicion.conforme
-              ? "true"
-              : "false"
-          }
-          onChange={(e) =>
-            actualizarMedicionBateria(
-              index,
-              "conforme",
-              e.target.value === "true"
-            )
-          }
-          className="w-full border rounded-lg p-2"
-        >
-
-          <option value="true">
-            Conforme
-          </option>
-
-          <option value="false">
-            No conforme
-          </option>
-
-        </select>
-
-      </div>
-
-
-      {/* Observaciones */}
-
-      <div>
-
-        <label className="block font-semibold mb-1">
-          Observaciones
-        </label>
-
-        <textarea
-          value={medicion.observaciones}
-          onChange={(e) =>
-            actualizarMedicionBateria(
-              index,
-              "observaciones",
-              e.target.value
-            )
-          }
-          className="w-full border rounded-lg p-2"
-          rows="2"
-        />
-
-      </div>
-
-    </div>
-
-  ))}
-
-
-  {/* Agregar medición */}
-
-  <button
-    type="button"
-    onClick={agregarMedicionBateria}
-    className="w-full bg-blue-600 text-white rounded-xl p-3"
-  >
-    ➕ Agregar medición
-  </button>
-
-</div>
 
         {/* -------------------------------- */}
         {/* ENTREGA DE ENERGÍA */}
@@ -921,14 +729,187 @@ const [observacionesGenerales, setObservacionesGenerales] =
       ]);
 
     }}
-    className="bg-blue-600 text-white rounded-lg px-4 py-2"
+    className="w-full bg-blue-600 text-white rounded-xl p-3"
   >
     ➕ Agregar medición
   </button>
 
 </div>
       </div>
+   {/* -------------------------------- */}
+        {/* BATERÍA */}
+        {/* -------------------------------- */}
 
+<div className="bg-white border rounded-xl p-4 mt-4">
+
+  <h2 className="font-bold text-lg mb-4">
+    🔋 Estado de la batería
+  </h2>
+
+  {medicionesBateria.map((medicion, index) => (
+
+    <div
+      key={index}
+      className="border rounded-xl p-4 mb-4 bg-gray-50"
+    >
+
+      <div className="flex justify-between items-center mb-3">
+
+        <h3 className="font-semibold">
+          Medición {medicion.numero_medicion}
+        </h3>
+
+        {medicionesBateria.length > 1 && (
+          <button
+            type="button"
+            onClick={() =>
+              eliminarMedicionBateria(index)
+            }
+            className="bg-red-500 text-white px-3 py-1 rounded-lg"
+          >
+            🗑️
+          </button>
+        )}
+      </div>
+
+      {/* Resultado */}
+
+      <div className="mb-3">
+
+        <label className="block font-semibold mb-1">
+          Resultado de medición
+        </label>
+
+        <input
+          type="number"
+          step="any"
+          value={medicion.resultado_medicion}
+          onChange={(e) =>
+            actualizarMedicionBateria(
+              index,
+              "resultado_medicion",
+              e.target.value
+            )
+          }
+          className="w-full border rounded-lg p-2"
+        />
+      </div>
+
+      {/* Incertidumbre */}
+
+      <div className="mb-3">
+
+        <label className="block font-semibold mb-1">
+          Incertidumbre
+        </label>
+
+        <input
+          type="number"
+          step="any"
+          value={medicion.incertidumbre}
+          onChange={(e) =>
+            actualizarMedicionBateria(
+              index,
+              "incertidumbre",
+              e.target.value
+            )
+          }
+          className="w-full border rounded-lg p-2"
+        />
+      </div>
+
+      {/* Rango máximo */}
+
+      <div className="mb-3">
+
+        <label className="block font-semibold mb-1">
+          Rango máximo
+        </label>
+
+        <input
+          type="number"
+          step="any"
+          value={medicion.rango_max}
+          onChange={(e) =>
+            actualizarMedicionBateria(
+              index,
+              "rango_max",
+              e.target.value
+            )
+          }
+          className="w-full border rounded-lg p-2"
+        />
+      </div>
+
+      {/* Conforme */}
+
+      <div className="mb-3">
+
+        <label className="block font-semibold mb-1">
+          Resultado
+        </label>
+
+        <select
+          value={
+            medicion.conforme
+              ? "true"
+              : "false"
+          }
+          onChange={(e) =>
+            actualizarMedicionBateria(
+              index,
+              "conforme",
+              e.target.value === "true"
+            )
+          }
+          className="w-full border rounded-lg p-2"
+        >
+
+          <option value="true">
+            Conforme
+          </option>
+
+          <option value="false">
+            No conforme
+          </option>
+        </select>
+      </div>
+
+      {/* Observaciones */}
+
+      <div>
+
+        <label className="block font-semibold mb-1">
+          Observaciones
+        </label>
+
+        <textarea
+          value={medicion.observaciones}
+          onChange={(e) =>
+            actualizarMedicionBateria(
+              index,
+              "observaciones",
+              e.target.value
+            )
+          }
+          className="w-full border rounded-lg p-2"
+          rows="2"
+        />
+      </div>
+    </div>
+  ))}
+
+  {/* Agregar medición */}
+
+  <button
+    type="button"
+    onClick={agregarMedicionBateria}
+    className="w-full bg-blue-600 text-white rounded-xl p-3"
+  >
+    ➕ Agregar medición
+  </button>
+
+</div>
 
       <button
         onClick={() => setVista("equipos")}
