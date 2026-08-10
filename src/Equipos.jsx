@@ -311,21 +311,18 @@ const obtenerProtocoloMantenimiento = (
       equipo?.mantenimiento_id;
 
     // =====================================================
-    // DETERMINAR SI ES UN RIC29
+    // DETERMINAR PROTOCOLO ESPECÍFICO
     // =====================================================
 
-   const protocolo = obtenerProtocoloMantenimiento(
-  tipoMantenimiento,
-  equipo?.descripcion
-);
+    const protocolo = obtenerProtocoloMantenimiento(
+      tipoMantenimiento,
+      equipo?.descripcion
+    );
 
-console.log("Protocolo detectado:", protocolo);
-
-    console.log("Tipo mantenimiento:", tipoMantenimiento);
-    console.log("Descripción equipo:", equipo?.descripcion);
-    console.log("¿Es preventivo?:", esPreventivo);
-    console.log("¿Es cardiodesfibrilador?:", esCardiodesfibrilador);
-    console.log("¿Debe abrir RIC29?:", esRIC29);
+    console.log(
+      "🔎 Protocolo detectado:",
+      protocolo
+    );
 
     let res;
 
@@ -339,14 +336,23 @@ console.log("Protocolo detectado:", protocolo);
         `${API_URL.Ric01}/${equipo.mantenimiento_id}`,
         {
           method: "PUT",
+
           headers: {
             "Content-Type": "application/json"
           },
+
           body: JSON.stringify({
-            diagnostico: diagnosticoSeleccionado,
-            descripcion: descripcion,
-            solucion: observaciones,
-            fecha_comp: getFechaLocal()
+            diagnostico:
+              diagnosticoSeleccionado,
+
+            descripcion:
+              descripcion,
+
+            solucion:
+              observaciones,
+
+            fecha_comp:
+              getFechaLocal()
           })
         }
       );
@@ -362,25 +368,37 @@ console.log("Protocolo detectado:", protocolo);
         `${API_URL.Ric01}/${tareaActiva.id}/iniciar-mantenimiento`,
         {
           method: "PUT",
+
           headers: {
             "Content-Type": "application/json"
           },
+
           body: JSON.stringify({
-            diagnostico: diagnosticoSeleccionado,
+
+            diagnostico:
+              diagnosticoSeleccionado,
+
             tipo_mantenimiento:
               tipoMantenimiento,
+
             descripcion:
               equipo.descripcion,
+
             marca_modelo:
               equipo.marca_modelo,
+
             numero_serie:
               equipo.numero_serie,
+
             servicio:
               equipo.servicio,
+
             subservicio:
               equipo.sub_servicio,
+
             asignado:
               personal.nombre,
+
             solucion:
               observaciones
           })
@@ -398,40 +416,55 @@ console.log("Protocolo detectado:", protocolo);
         API_URL.Ric01,
         {
           method: "POST",
+
           headers: {
             "Content-Type": "application/json"
           },
 
           body: JSON.stringify({
+
             usuario:
               personal.nombre,
+
             fecha:
               getFechaLocal(),
 
             tarea:
               `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
+
             diagnostico:
               diagnosticoSeleccionado,
+
             tipo_mantenimiento:
               tipoMantenimiento,
+
             descripcion:
               equipo.descripcion,
+
             marca_modelo:
               equipo.marca_modelo,
+
             numero_serie:
               equipo.numero_serie,
+
             area:
               personal.area,
+
             servicio:
               equipo.servicio,
+
             subservicio:
               equipo.sub_servicio,
+
             asignado:
               personal.nombre,
+
             solicitado_por:
               personal.nombre,
+
             origen:
               "interno",
+
             solucion:
               observaciones
           })
@@ -446,6 +479,7 @@ console.log("Protocolo detectado:", protocolo);
     const data = await res.json();
 
     if (!res.ok) {
+
       throw new Error(
         data.error ||
         "Error desconocido"
@@ -453,90 +487,124 @@ console.log("Protocolo detectado:", protocolo);
     }
 
     // =====================================================
-    // SI ES RIC29
+    // PROTOCOLO ESPECÍFICO
     // =====================================================
 
-   if (protocolo) {
+    if (protocolo) {
+
       /*
-       * MUY IMPORTANTE:
+       * IMPORTANTE:
        *
-       * NO eliminamos tareaActiva.
-       *
-       * RIC29.jsx necesita leerla.
+       * No eliminamos tareaActiva todavía.
+       * El componente del protocolo la necesita.
        */
+
       if (tareaActiva) {
+
         localStorage.setItem(
           "tareaActiva",
+
           JSON.stringify({
+
             ...tareaActiva,
 
-            // Datos actualizados del mantenimiento
+            id:
+              data.id ||
+              tareaActiva.id,
+
             tipo_mantenimiento:
               tipoMantenimiento,
+
             descripcion:
               equipo.descripcion,
+
             marca_modelo:
               equipo.marca_modelo,
+
             numero_serie:
               equipo.numero_serie,
+
             servicio:
               equipo.servicio,
+
             subservicio:
               equipo.sub_servicio,
+
             asignado:
               personal.nombre,
+
             diagnostico:
               diagnosticoSeleccionado
           })
         );
 
       } else {
+
         /*
-         * Si no había tarea activa porque el mantenimiento
-         * se creó directamente, usamos la respuesta del POST.
+         * Mantenimiento creado directamente,
+         * sin tarea previa.
          */
+
         localStorage.setItem(
           "tareaActiva",
+
           JSON.stringify({
+
             ...data,
+
             tipo_mantenimiento:
               tipoMantenimiento,
+
             descripcion:
               equipo.descripcion,
+
             marca_modelo:
               equipo.marca_modelo,
+
             numero_serie:
               equipo.numero_serie,
+
             servicio:
               equipo.servicio,
+
             subservicio:
               equipo.sub_servicio,
+
             asignado:
-              personal.nombre
+              personal.nombre,
+
+            diagnostico:
+              diagnosticoSeleccionado
           })
         );
       }
 
       console.log(
-        "🚑 Abriendo protocolo RIC29"
+        "📋 Abriendo protocolo:",
+        protocolo.protocolo
       );
 
       setMostrarForm(false);
+
       setTipoMantenimiento("");
+
       setDiagnosticoSeleccionado("");
+
       setObservaciones("");
+
       setDescripcion("");
-      /*
-       * NO hacer:
-       *
-       * localStorage.removeItem("tareaActiva")
-       *
-       * porque RIC29 todavía necesita esos datos.
-       */
-      if (protocolo === "RIC29") {
-  setVista("ric29");
-  return;
-}
+
+      // =================================================
+      // SELECCIONAR COMPONENTE DEL PROTOCOLO
+      // =================================================
+
+      if (protocolo.vista === "ric29") {
+
+        setVista("ric29");
+
+        return;
+      }
+
       return;
     }
 
@@ -551,9 +619,13 @@ console.log("Protocolo detectado:", protocolo);
     );
 
     setMostrarForm(false);
+
     setTipoMantenimiento("");
+
     setDiagnosticoSeleccionado("");
+
     setObservaciones("");
+
     setDescripcion("");
 
     localStorage.removeItem(
@@ -561,9 +633,11 @@ console.log("Protocolo detectado:", protocolo);
     );
 
     setEquipo(null);
+
     setSerie("");
 
   } catch (error) {
+
     console.error(
       "ERROR COMPLETO:",
       error
