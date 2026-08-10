@@ -239,6 +239,100 @@ useEffect(() => {
     return `${año}-${mes}-${dia} ${hora}:${min}`;
   }
 
+  const obtenerProtocoloMantenimiento = (
+  tipoMantenimiento,
+  descripcionEquipo
+) => {
+  const tipo = tipoMantenimiento
+    ?.trim()
+    .toLowerCase();
+  const descripcion = descripcionEquipo
+    ?.trim()
+    .toLowerCase();
+  // ==========================================
+  // RIC29 - CARDIODESFIBRILADORES
+  // ==========================================
+  if (
+    tipo === "preventivo" &&
+    descripcion.includes("cardiodesfibrilador")
+  ) {
+    return "RIC29";
+  }
+
+  // ==========================================
+  // FUTUROS PROTOCOLOS
+  // ==========================================
+
+  // Ejemplo:
+  //
+  // if (
+  //   tipo === "preventivo" &&
+  //   descripcion.includes("electrobisturi")
+  // ) {
+  //   return "RIC30";
+  // }
+  return null;
+};
+
+  // =====================================================
+// PROTOCOLOS DE MANTENIMIENTO ESPECÍFICOS
+// =====================================================
+
+const protocolosMantenimiento = [
+  {
+    protocolo: "RIC29",
+    tipo: "preventivo",
+    descripcion: "cardiodesfibrilador",
+    vista: "ric29"
+  }
+
+  // Próximamente podemos agregar:
+  //
+  // {
+  //   protocolo: "RIC30",
+  //   tipo: "preventivo",
+  //   descripcion: "electrobisturi",
+  //   vista: "ric30"
+  // },
+  //
+  // {
+  //   protocolo: "RIC31",
+  //   tipo: "preventivo",
+  //   descripcion: "respirador",
+  //   vista: "ric31"
+  // }
+];
+
+
+// =====================================================
+// BUSCAR PROTOCOLO CORRESPONDIENTE
+// =====================================================
+
+const obtenerProtocoloMantenimiento = (
+  tipoMantenimiento,
+  descripcionEquipo
+) => {
+
+  const tipo =
+    tipoMantenimiento
+      ?.trim()
+      .toLowerCase();
+
+  const descripcion =
+    descripcionEquipo
+      ?.trim()
+      .toLowerCase();
+
+  const protocoloEncontrado =
+    protocolosMantenimiento.find(
+      (p) =>
+        p.tipo === tipo &&
+        descripcion.includes(p.descripcion)
+    );
+
+  return protocoloEncontrado || null;
+};
+
  const guardarMantenimiento = async () => {
   try {
 
@@ -254,17 +348,12 @@ useEffect(() => {
     // DETERMINAR SI ES UN RIC29
     // =====================================================
 
-    const esPreventivo =
-      tipoMantenimiento?.trim().toLowerCase() === "preventivo";
+   const protocolo = obtenerProtocoloMantenimiento(
+  tipoMantenimiento,
+  equipo?.descripcion
+);
 
-    const esCardiodesfibrilador =
-      equipo?.descripcion
-        ?.trim()
-        .toLowerCase()
-        .includes("cardiodesfibrilador");
-
-    const esRIC29 =
-      esPreventivo && esCardiodesfibrilador;
+console.log("Protocolo detectado:", protocolo);
 
     console.log("Tipo mantenimiento:", tipoMantenimiento);
     console.log("Descripción equipo:", equipo?.descripcion);
@@ -401,7 +490,7 @@ useEffect(() => {
     // SI ES RIC29
     // =====================================================
 
-    if (esRIC29) {
+   if (protocolo) {
       /*
        * MUY IMPORTANTE:
        *
@@ -478,7 +567,10 @@ useEffect(() => {
        *
        * porque RIC29 todavía necesita esos datos.
        */
-      setVista("ric29");
+      if (protocolo === "RIC29") {
+  setVista("ric29");
+  return;
+}
       return;
     }
 
