@@ -3,6 +3,7 @@ import TareasPersonal from "./TareasPersonal";
 import Equipos from "./Equipos";
 import SeleccionEquipo from "./SeleccionEquipo";
 import NuevoEquipo from "./NuevoEquipo";
+import RIC29 from "./RIC29";
 
 export default function PanelPersonal({ personal, onLogout }) {
   const [vista, setVista] = useState("tareas");
@@ -33,6 +34,13 @@ export default function PanelPersonal({ personal, onLogout }) {
       {vista === "nuevoEquipo" && (
         <NuevoEquipo
           setVista={setVista}
+        />
+      )}
+
+        {vista === "ric29" && (
+          <RIC29
+            setVista={setVista}
+            personal={personal}
         />
       )}
     </>
