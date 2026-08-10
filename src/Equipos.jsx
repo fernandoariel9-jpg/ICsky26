@@ -239,40 +239,6 @@ useEffect(() => {
     return `${año}-${mes}-${dia} ${hora}:${min}`;
   }
 
-  const obtenerProtocoloMantenimiento = (
-  tipoMantenimiento,
-  descripcionEquipo
-) => {
-  const tipo = tipoMantenimiento
-    ?.trim()
-    .toLowerCase();
-  const descripcion = descripcionEquipo
-    ?.trim()
-    .toLowerCase();
-  // ==========================================
-  // RIC29 - CARDIODESFIBRILADORES
-  // ==========================================
-  if (
-    tipo === "preventivo" &&
-    descripcion.includes("cardiodesfibrilador")
-  ) {
-    return "RIC29";
-  }
-
-  // ==========================================
-  // FUTUROS PROTOCOLOS
-  // ==========================================
-
-  // Ejemplo:
-  //
-  // if (
-  //   tipo === "preventivo" &&
-  //   descripcion.includes("electrobisturi")
-  // ) {
-  //   return "RIC30";
-  // }
-  return null;
-};
 
   // =====================================================
 // PROTOCOLOS DE MANTENIMIENTO ESPECÍFICOS
