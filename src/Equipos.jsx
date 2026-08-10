@@ -239,7 +239,7 @@ useEffect(() => {
     return `${año}-${mes}-${dia} ${hora}:${min}`;
   }
 
-  const guardarMantenimiento = async () => {
+ const guardarMantenimiento = async () => {
   try {
 
     const tareaActiva = JSON.parse(
@@ -250,10 +250,36 @@ useEffect(() => {
       equipo?.estado?.toLowerCase() !== "activo" &&
       equipo?.mantenimiento_id;
 
+    // =====================================================
+    // DETERMINAR SI ES UN RIC29
+    // =====================================================
+
+    const esPreventivo =
+      tipoMantenimiento?.trim().toLowerCase() === "preventivo";
+
+    const esCardiodesfibrilador =
+      equipo?.descripcion
+        ?.trim()
+        .toLowerCase()
+        .includes("cardiodesfibrilador");
+
+    const esRIC29 =
+      esPreventivo && esCardiodesfibrilador;
+
+    console.log("Tipo mantenimiento:", tipoMantenimiento);
+    console.log("Descripción equipo:", equipo?.descripcion);
+    console.log("¿Es preventivo?:", esPreventivo);
+    console.log("¿Es cardiodesfibrilador?:", esCardiodesfibrilador);
+    console.log("¿Debe abrir RIC29?:", esRIC29);
+
     let res;
 
+    // =====================================================
     // 🔧 CONTINUAR MANTENIMIENTO EXISTENTE
+    // =====================================================
+
     if (continuar) {
+
       res = await fetch(
         `${API_URL.Ric01}/${equipo.mantenimiento_id}`,
         {
@@ -271,75 +297,194 @@ useEffect(() => {
       );
     }
 
-   // 🆕 INICIAR MANTENIMIENTO DESDE UNA TAREA EXISTENTE
-else if (tareaActiva) {
-    res = await fetch(
-    `${API_URL.Ric01}/${tareaActiva.id}/iniciar-mantenimiento`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        diagnostico: diagnosticoSeleccionado,
-        tipo_mantenimiento: tipoMantenimiento,
+    // =====================================================
+    // 🆕 INICIAR MANTENIMIENTO DESDE TAREA EXISTENTE
+    // =====================================================
 
-        descripcion: equipo.descripcion,
-        marca_modelo: equipo.marca_modelo,
-        numero_serie: equipo.numero_serie,
+    else if (tareaActiva) {
 
-        servicio: equipo.servicio,
-        subservicio: equipo.sub_servicio,
-
-        asignado: personal.nombre,
-        solucion: observaciones,
-      }),
+      res = await fetch(
+        `${API_URL.Ric01}/${tareaActiva.id}/iniciar-mantenimiento`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            diagnostico: diagnosticoSeleccionado,
+            tipo_mantenimiento:
+              tipoMantenimiento,
+            descripcion:
+              equipo.descripcion,
+            marca_modelo:
+              equipo.marca_modelo,
+            numero_serie:
+              equipo.numero_serie,
+            servicio:
+              equipo.servicio,
+            subservicio:
+              equipo.sub_servicio,
+            asignado:
+              personal.nombre,
+            solucion:
+              observaciones
+          })
+        }
+      );
     }
-  );
-}
 
-// 🆕 CREAR MANTENIMIENTO NUEVO (cuando NO viene de una tarea)
-else {
-  res = await fetch(API_URL.Ric01, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      usuario: personal.nombre,
+    // =====================================================
+    // 🆕 CREAR MANTENIMIENTO NUEVO
+    // =====================================================
 
-      fecha: getFechaLocal(),
+    else {
 
-      tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
+      res = await fetch(
+        API_URL.Ric01,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
 
-      diagnostico: diagnosticoSeleccionado,
-      tipo_mantenimiento: tipoMantenimiento,
+          body: JSON.stringify({
+            usuario:
+              personal.nombre,
+            fecha:
+              getFechaLocal(),
 
-      descripcion: equipo.descripcion,
-      marca_modelo: equipo.marca_modelo,
-      numero_serie: equipo.numero_serie,
+            tarea:
+              `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
+            diagnostico:
+              diagnosticoSeleccionado,
+            tipo_mantenimiento:
+              tipoMantenimiento,
+            descripcion:
+              equipo.descripcion,
+            marca_modelo:
+              equipo.marca_modelo,
+            numero_serie:
+              equipo.numero_serie,
+            area:
+              personal.area,
+            servicio:
+              equipo.servicio,
+            subservicio:
+              equipo.sub_servicio,
+            asignado:
+              personal.nombre,
+            solicitado_por:
+              personal.nombre,
+            origen:
+              "interno",
+            solucion:
+              observaciones
+          })
+        }
+      );
+    }
 
-      area: personal.area,
-      servicio: equipo.servicio,
-      subservicio: equipo.sub_servicio,
-
-      asignado: personal.nombre,
-      solicitado_por: personal.nombre,
-
-      origen: "interno",
-
-      solucion: observaciones
-    })
-  });
-}
+    // =====================================================
+    // COMPROBAR RESPUESTA
+    // =====================================================
 
     const data = await res.json();
 
     if (!res.ok) {
       throw new Error(
-        data.error || "Error desconocido"
+        data.error ||
+        "Error desconocido"
       );
     }
+
+    // =====================================================
+    // SI ES RIC29
+    // =====================================================
+
+    if (esRIC29) {
+      /*
+       * MUY IMPORTANTE:
+       *
+       * NO eliminamos tareaActiva.
+       *
+       * RIC29.jsx necesita leerla.
+       */
+      if (tareaActiva) {
+        localStorage.setItem(
+          "tareaActiva",
+          JSON.stringify({
+            ...tareaActiva,
+
+            // Datos actualizados del mantenimiento
+            tipo_mantenimiento:
+              tipoMantenimiento,
+            descripcion:
+              equipo.descripcion,
+            marca_modelo:
+              equipo.marca_modelo,
+            numero_serie:
+              equipo.numero_serie,
+            servicio:
+              equipo.servicio,
+            subservicio:
+              equipo.sub_servicio,
+            asignado:
+              personal.nombre,
+            diagnostico:
+              diagnosticoSeleccionado
+          })
+        );
+
+      } else {
+        /*
+         * Si no había tarea activa porque el mantenimiento
+         * se creó directamente, usamos la respuesta del POST.
+         */
+        localStorage.setItem(
+          "tareaActiva",
+          JSON.stringify({
+            ...data,
+            tipo_mantenimiento:
+              tipoMantenimiento,
+            descripcion:
+              equipo.descripcion,
+            marca_modelo:
+              equipo.marca_modelo,
+            numero_serie:
+              equipo.numero_serie,
+            servicio:
+              equipo.servicio,
+            subservicio:
+              equipo.sub_servicio,
+            asignado:
+              personal.nombre
+          })
+        );
+      }
+
+      console.log(
+        "🚑 Abriendo protocolo RIC29"
+      );
+
+      setMostrarForm(false);
+      setTipoMantenimiento("");
+      setDiagnosticoSeleccionado("");
+      setObservaciones("");
+      setDescripcion("");
+      /*
+       * NO hacer:
+       *
+       * localStorage.removeItem("tareaActiva")
+       *
+       * porque RIC29 todavía necesita esos datos.
+       */
+      setVista("ric29");
+      return;
+    }
+
+    // =====================================================
+    // MANTENIMIENTO NORMAL
+    // =====================================================
 
     alert(
       continuar
@@ -348,18 +493,27 @@ else {
     );
 
     setMostrarForm(false);
-
     setTipoMantenimiento("");
     setDiagnosticoSeleccionado("");
     setObservaciones("");
     setDescripcion("");
-    localStorage.removeItem("tareaActiva");
+
+    localStorage.removeItem(
+      "tareaActiva"
+    );
+
     setEquipo(null);
     setSerie("");
 
   } catch (error) {
-    console.error("ERROR COMPLETO:", error);
-    alert(error.message);
+    console.error(
+      "ERROR COMPLETO:",
+      error
+    );
+
+    alert(
+      error.message
+    );
   }
 };
 
