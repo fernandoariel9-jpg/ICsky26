@@ -402,9 +402,20 @@ const [observacionesGenerales, setObservacionesGenerales] =
         </div>
 
       </div>
-{/* -------------------------------- */}
-{/* BATERÍA */}
-{/* -------------------------------- */}
+
+      {/* -------------------------------- */}
+      {/* PROTOCOLO */}
+      {/* -------------------------------- */}
+
+      <div className="bg-white border rounded-xl p-4">
+
+        <h2 className="font-bold text-lg mb-3">
+          🔧 Protocolo RIC 29
+        </h2>
+
+        {/* -------------------------------- */}
+        {/* BATERÍA */}
+        {/* -------------------------------- */}
 
 <div className="bg-white border rounded-xl p-4 mt-4">
 
@@ -592,19 +603,9 @@ const [observacionesGenerales, setObservacionesGenerales] =
 
 </div>
 
-      {/* -------------------------------- */}
-      {/* PROTOCOLO */}
-      {/* -------------------------------- */}
-
-      <div className="bg-white border rounded-xl p-4">
-
-        <h2 className="font-bold text-lg mb-3">
-          🔧 Protocolo RIC 29
-        </h2>
-
         {/* -------------------------------- */}
-{/* ENTREGA DE ENERGÍA */}
-{/* -------------------------------- */}
+        {/* ENTREGA DE ENERGÍA */}
+        {/* -------------------------------- */}
 
 <div className="bg-white border rounded-xl p-4 mb-4">
 
