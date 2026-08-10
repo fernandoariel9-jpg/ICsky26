@@ -314,163 +314,228 @@ const obtenerProtocoloMantenimiento = (
     // DETERMINAR PROTOCOLO ESPECÍFICO
     // =====================================================
 
-    const protocolo = obtenerProtocoloMantenimiento(
-      tipoMantenimiento,
-      equipo?.descripcion
-    );
+const esPreventivo =
+  tipoMantenimiento?.trim().toLowerCase() === "preventivo";
 
-    console.log(
-      "🔎 Protocolo detectado:",
-      protocolo
-    );
+const protocolo = obtenerProtocoloMantenimiento(
+  tipoMantenimiento,
+  equipo?.descripcion
+);
+
+console.log("Protocolo detectado:", protocolo);
+console.log("Es preventivo:", esPreventivo);
+console.log("Tarea activa:", tareaActiva);
 
     let res;
 
-    // =====================================================
-    // 🔧 CONTINUAR MANTENIMIENTO EXISTENTE
-    // =====================================================
+// =====================================================
+// 1. CONTINUAR MANTENIMIENTO EXISTENTE
+// =====================================================
 
-    if (continuar) {
+if (continuar) {
 
-      res = await fetch(
-        `${API_URL.Ric01}/${equipo.mantenimiento_id}`,
-        {
-          method: "PUT",
-
-          headers: {
-            "Content-Type": "application/json"
-          },
-
-          body: JSON.stringify({
-            diagnostico:
-              diagnosticoSeleccionado,
-
-            descripcion:
-              descripcion,
-
-            solucion:
-              observaciones,
-
-            fecha_comp:
-              getFechaLocal()
-          })
-        }
-      );
+  res = await fetch(
+    `${API_URL.Ric01}/${equipo.mantenimiento_id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        diagnostico: diagnosticoSeleccionado,
+        descripcion: descripcion,
+        solucion: observaciones,
+        fecha_comp: getFechaLocal()
+      })
     }
+  );
+}
 
-    // =====================================================
-    // 🆕 INICIAR MANTENIMIENTO DESDE TAREA EXISTENTE
-    // =====================================================
+// =====================================================
+// 2. CREAR NUEVO MANTENIMIENTO PREVENTIVO
+// =====================================================
 
-    else if (tareaActiva) {
+else if (esPreventivo) {
 
-      res = await fetch(
-        `${API_URL.Ric01}/${tareaActiva.id}/iniciar-mantenimiento`,
-        {
-          method: "PUT",
+  console.log(
+    "🆕 CREANDO NUEVO MANTENIMIENTO PREVENTIVO"
+  );
 
-          headers: {
-            "Content-Type": "application/json"
-          },
+  res = await fetch(
+    API_URL.Ric01,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
 
-          body: JSON.stringify({
+        usuario: personal.nombre,
 
-            diagnostico:
-              diagnosticoSeleccionado,
+        fecha: getFechaLocal(),
 
-            tipo_mantenimiento:
-              tipoMantenimiento,
+        tarea:
+          `Mantenimiento ${tipoMantenimiento} - ` +
+          `${equipo.descripcion} ` +
+          `${equipo.marca_modelo} - ` +
+          `Serie: ${equipo.numero_serie}`,
 
-            descripcion:
-              equipo.descripcion,
+        diagnostico:
+          diagnosticoSeleccionado,
 
-            marca_modelo:
-              equipo.marca_modelo,
+        tipo_mantenimiento:
+          tipoMantenimiento,
 
-            numero_serie:
-              equipo.numero_serie,
+        descripcion:
+          equipo.descripcion,
 
-            servicio:
-              equipo.servicio,
+        marca_modelo:
+          equipo.marca_modelo,
 
-            subservicio:
-              equipo.sub_servicio,
+        numero_serie:
+          equipo.numero_serie,
 
-            asignado:
-              personal.nombre,
+        area:
+          equipo.area || personal.area,
 
-            solucion:
-              observaciones
-          })
-        }
-      );
+        servicio:
+          equipo.servicio,
+
+        subservicio:
+          equipo.sub_servicio,
+
+        asignado:
+          personal.nombre,
+
+        solicitado_por:
+          personal.nombre,
+
+        origen:
+          "interno",
+
+        solucion:
+          observaciones
+      })
     }
+  );
+}
 
-    // =====================================================
-    // 🆕 CREAR MANTENIMIENTO NUEVO
-    // =====================================================
+// =====================================================
+// 3. MANTENIMIENTO DESDE TAREA EXISTENTE
+// =====================================================
 
-    else {
+else if (tareaActiva) {
 
-      res = await fetch(
-        API_URL.Ric01,
-        {
-          method: "POST",
+  console.log(
+    "🔧 INICIANDO MANTENIMIENTO DESDE TAREA EXISTENTE"
+  );
 
-          headers: {
-            "Content-Type": "application/json"
-          },
+  res = await fetch(
+    `${API_URL.Ric01}/${tareaActiva.id}/iniciar-mantenimiento`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
 
-          body: JSON.stringify({
+        diagnostico:
+          diagnosticoSeleccionado,
 
-            usuario:
-              personal.nombre,
+        tipo_mantenimiento:
+          tipoMantenimiento,
 
-            fecha:
-              getFechaLocal(),
+        descripcion:
+          equipo.descripcion,
 
-            tarea:
-              `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
+        marca_modelo:
+          equipo.marca_modelo,
 
-            diagnostico:
-              diagnosticoSeleccionado,
+        numero_serie:
+          equipo.numero_serie,
 
-            tipo_mantenimiento:
-              tipoMantenimiento,
+        servicio:
+          equipo.servicio,
 
-            descripcion:
-              equipo.descripcion,
+        subservicio:
+          equipo.sub_servicio,
 
-            marca_modelo:
-              equipo.marca_modelo,
+        asignado:
+          personal.nombre,
 
-            numero_serie:
-              equipo.numero_serie,
-
-            area:
-              personal.area,
-
-            servicio:
-              equipo.servicio,
-
-            subservicio:
-              equipo.sub_servicio,
-
-            asignado:
-              personal.nombre,
-
-            solicitado_por:
-              personal.nombre,
-
-            origen:
-              "interno",
-
-            solucion:
-              observaciones
-          })
-        }
-      );
+        solucion:
+          observaciones
+      })
     }
+  );
+}
+
+// =====================================================
+// 4. SIN TAREA NI PREVENTIVO
+// =====================================================
+
+else {
+
+  res = await fetch(
+    API_URL.Ric01,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+
+        usuario:
+          personal.nombre,
+
+        fecha:
+          getFechaLocal(),
+
+        tarea:
+          `Mantenimiento ${tipoMantenimiento} - ` +
+          `${equipo.descripcion} ` +
+          `${equipo.marca_modelo} - ` +
+          `Serie: ${equipo.numero_serie}`,
+
+        diagnostico:
+          diagnosticoSeleccionado,
+
+        tipo_mantenimiento:
+          tipoMantenimiento,
+
+        descripcion:
+          equipo.descripcion,
+
+        marca_modelo:
+          equipo.marca_modelo,
+
+        numero_serie:
+          equipo.numero_serie,
+
+        area:
+          personal.area,
+
+        servicio:
+          equipo.servicio,
+
+        subservicio:
+          equipo.sub_servicio,
+
+        asignado:
+          personal.nombre,
+
+        solicitado_por:
+          personal.nombre,
+
+        origen:
+          "interno",
+
+        solucion:
+          observaciones
+      })
+    }
+  );
+}
 
     // =====================================================
     // COMPROBAR RESPUESTA
@@ -490,120 +555,65 @@ const obtenerProtocoloMantenimiento = (
     // PROTOCOLO ESPECÍFICO
     // =====================================================
 
-    if (protocolo) {
+if (protocolo) {
 
-      /*
-       * IMPORTANTE:
-       *
-       * No eliminamos tareaActiva todavía.
-       * El componente del protocolo la necesita.
-       */
+  const nuevaTarea = {
+    ...data,
 
-      if (tareaActiva) {
+    tipo_mantenimiento:
+      tipoMantenimiento,
 
-        localStorage.setItem(
-          "tareaActiva",
+    descripcion:
+      equipo.descripcion,
 
-          JSON.stringify({
+    marca_modelo:
+      equipo.marca_modelo,
 
-            ...tareaActiva,
+    numero_serie:
+      equipo.numero_serie,
 
-            id:
-              data.id ||
-              tareaActiva.id,
+    servicio:
+      equipo.servicio,
 
-            tipo_mantenimiento:
-              tipoMantenimiento,
+    subservicio:
+      equipo.sub_servicio,
 
-            descripcion:
-              equipo.descripcion,
+    area:
+      equipo.area,
 
-            marca_modelo:
-              equipo.marca_modelo,
+    asignado:
+      personal.nombre,
 
-            numero_serie:
-              equipo.numero_serie,
+    diagnostico:
+      diagnosticoSeleccionado
+  };
 
-            servicio:
-              equipo.servicio,
+  localStorage.setItem(
+    "tareaActiva",
+    JSON.stringify(nuevaTarea)
+  );
 
-            subservicio:
-              equipo.sub_servicio,
+  console.log(
+    "🚑 Nuevo RIC01 creado:",
+    nuevaTarea.id
+  );
 
-            asignado:
-              personal.nombre,
+  console.log(
+    "🚑 Abriendo protocolo:",
+    protocolo.vista
+  );
 
-            diagnostico:
-              diagnosticoSeleccionado
-          })
-        );
+  setMostrarForm(false);
 
-      } else {
+  setTipoMantenimiento("");
+  setDiagnosticoSeleccionado("");
+  setObservaciones("");
+  setDescripcion("");
 
-        /*
-         * Mantenimiento creado directamente,
-         * sin tarea previa.
-         */
+  setVista(protocolo.vista);
 
-        localStorage.setItem(
-          "tareaActiva",
-
-          JSON.stringify({
-
-            ...data,
-
-            tipo_mantenimiento:
-              tipoMantenimiento,
-
-            descripcion:
-              equipo.descripcion,
-
-            marca_modelo:
-              equipo.marca_modelo,
-
-            numero_serie:
-              equipo.numero_serie,
-
-            servicio:
-              equipo.servicio,
-
-            subservicio:
-              equipo.sub_servicio,
-
-            asignado:
-              personal.nombre,
-
-            diagnostico:
-              diagnosticoSeleccionado
-          })
-        );
-      }
-
-      console.log(
-        "📋 Abriendo protocolo:",
-        protocolo.protocolo
-      );
-
-      setMostrarForm(false);
-
-      setTipoMantenimiento("");
-
-      setDiagnosticoSeleccionado("");
-
-      setObservaciones("");
-
-      setDescripcion("");
-
-      // =================================================
-      // SELECCIONAR COMPONENTE DEL PROTOCOLO
-      // =================================================
-
-      if (protocolo.vista === "ric29") {
-
-        setVista("ric29");
-
-        return;
-      }
+  return;
+}
 
       return;
     }
