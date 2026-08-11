@@ -22,6 +22,8 @@ export default function RIC29({ setVista, personal }) {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
+  const [medicionEnergia, setMedicionEnergia] = useState(1);
+  const [medicionBateria, setMedicionBateria] = useState(1);
 
   // =====================================================
   // DATOS DEL EQUIPO
@@ -1784,11 +1786,17 @@ export default function RIC29({ setVista, personal }) {
             <div className="flex gap-2 mt-6">
 
               <button
-                onClick={volver}
-                className="flex-1 bg-gray-500 text-white rounded-xl p-3"
-              >
-                ← Volver
-              </button>
+  onClick={() => {
+    if (medicionEnergia > 1) {
+      setMedicionEnergia(prev => prev - 1);
+    } else {
+      setEtapa(prev => prev - 1);
+    }
+  }}
+  className="..."
+>
+  ← Volver
+</button>
 
               <button
                 onClick={cancelar}
@@ -2009,11 +2017,17 @@ export default function RIC29({ setVista, personal }) {
             <div className="flex gap-2 mt-6">
 
               <button
-                onClick={volver}
-                className="flex-1 bg-gray-500 text-white rounded-xl p-3"
-              >
-                ← Volver
-              </button>
+  onClick={() => {
+    if (medicionBateria > 1) {
+      setMedicionBateria(prev => prev - 1);
+    } else {
+      setEtapa(prev => prev - 1);
+    }
+  }}
+  className="..."
+>
+  ← Volver
+</button>
 
               <button
                 onClick={cancelar}
