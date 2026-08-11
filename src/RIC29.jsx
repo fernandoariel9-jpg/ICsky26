@@ -1390,6 +1390,7 @@ export default function RIC29({ setVista, personal }) {
         <div className="max-w-xl mx-auto p-3">
 
           <div className="flex justify-between text-xs text-gray-500 mb-1">
+ <p className="font-bold">RIC29 - MP Cardiodesfibiladores</p>
 
             <span>
               {etapas[etapa]}
