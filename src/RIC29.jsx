@@ -4,11 +4,27 @@ import { API_URL } from "./config";
 export default function RIC29({ setVista, personal }) {
 
   // =====================================================
-  // ESTADOS GENERALES
+  // ETAPAS
   // =====================================================
+
+  const etapas = [
+    "Inspecciones",
+    "Entrega de energía",
+    "Tiempo de carga",
+    "Estado de batería",
+    "Sincronismo",
+    "Monitorización",
+    "Resumen"
+  ];
+
+  const [etapa, setEtapa] = useState(0);
 
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+
+  // =====================================================
+  // DATOS DEL EQUIPO
+  // =====================================================
 
   const [datos, setDatos] = useState({
     ric01_id: "",
@@ -23,9 +39,6 @@ export default function RIC29({ setVista, personal }) {
     tecnico: personal?.nombre || ""
   });
 
-  // Etapa actual
-  const [etapa, setEtapa] = useState(1);
-
   // =====================================================
   // 1 - INSPECCIONES
   // =====================================================
@@ -33,139 +46,110 @@ export default function RIC29({ setVista, personal }) {
   const [inspecciones, setInspecciones] = useState({
     limpieza_exterior: "",
     papel_registro: "",
-    estado_cables: "",
-    observaciones: ""
+    estado_cables: ""
   });
 
   // =====================================================
   // 2 - ENTREGA DE ENERGÍA
   // =====================================================
 
-  const [energia, setEnergia] = useState([
+  const medicionesEnergiaIniciales = [
     {
+      numero_medicion: 1,
       energia_nominal: 50,
-      resultado_medicion: "",
       incertidumbre: 1.29,
       rango_min: 42.5,
       rango_max: 57.5,
-      conforme: null
+      resultado_medicion: ""
     },
     {
+      numero_medicion: 2,
       energia_nominal: 100,
-      resultado_medicion: "",
       incertidumbre: 2.25,
       rango_min: 85,
       rango_max: 115,
-      conforme: null
+      resultado_medicion: ""
     },
     {
+      numero_medicion: 3,
       energia_nominal: 150,
-      resultado_medicion: "",
       incertidumbre: 3.30,
       rango_min: 127.5,
       rango_max: 172.5,
-      conforme: null
+      resultado_medicion: ""
     },
     {
+      numero_medicion: 4,
       energia_nominal: 200,
-      resultado_medicion: "",
       incertidumbre: 4.40,
       rango_min: 170,
       rango_max: 230,
-      conforme: null
+      resultado_medicion: ""
     },
     {
+      numero_medicion: 5,
       energia_nominal: 270,
-      resultado_medicion: "",
       incertidumbre: 5.36,
       rango_min: 229.5,
       rango_max: 310.5,
-      conforme: null
-    },
-    {
-      energia_nominal: "MAX",
-      energia_fabricante: "",
-      resultado_medicion: "",
-      incertidumbre: null,
-      rango_min: null,
-      rango_max: null,
-      conforme: null
+      resultado_medicion: ""
     }
-  ]);
+  ];
 
-  const [medicionEnergiaActual, setMedicionEnergiaActual] = useState(0);
+  const [medicionesEnergia, setMedicionesEnergia] = useState(
+    medicionesEnergiaIniciales
+  );
 
-  const [observacionesEnergia, setObservacionesEnergia] =
-    useState("");
+  const [maxEnergia, setMaxEnergia] = useState({
+    valorFabricante: "",
+    resultado_medicion: ""
+  });
+
+  const [energiaActual, setEnergiaActual] = useState(0);
 
   // =====================================================
   // 3 - TIEMPO DE CARGA
   // =====================================================
 
   const [carga, setCarga] = useState({
-    resultado_medicion: "",
-    incertidumbre: 0.05,
-    rango_max: 15,
-    conforme: null,
-    observaciones: ""
+    resultado_medicion: ""
   });
 
   // =====================================================
   // 4 - BATERÍA
   // =====================================================
 
-  const [baterias, setBaterias] = useState([
+  const [medicionesBateria, setMedicionesBateria] = useState([
     {
       numero_medicion: 1,
-      resultado_medicion: "",
-      incertidumbre: 0.05,
-      rango_max: 15,
-      conforme: null
+      resultado_medicion: ""
     }
   ]);
-
-  const [observacionesBateria, setObservacionesBateria] =
-    useState("");
 
   // =====================================================
   // 5 - SINCRONISMO
   // =====================================================
 
   const [sincronismo, setSincronismo] = useState({
-    resultado_medicion: "",
-    incertidumbre: 6.42,
-    rango_max: 60,
-    conforme: null,
-    observaciones: ""
+    resultado_medicion: ""
   });
 
   // =====================================================
   // 6 - MONITORIZACIÓN
   // =====================================================
 
-  const [monitorizacion, setMonitorizacion] = useState([
-    {
-      frecuencia_nominal: 60,
-      resultado_medicion: "",
-      incertidumbre: null,
-      conforme: null
-    },
-    {
-      frecuencia_nominal: 120,
-      resultado_medicion: "",
-      incertidumbre: null,
-      conforme: null
-    }
-  ]);
-
-  const [observacionesMonitorizacion, setObservacionesMonitorizacion] =
-    useState("");
+  const [monitorizacion, setMonitorizacion] = useState({
+    resultado_60: "",
+    resultado_120: ""
+  });
 
   // =====================================================
-  // RESUMEN
+  // OBSERVACIONES GENERALES
   // =====================================================
 
-  const [mostrarResumen, setMostrarResumen] = useState(false);
+  const [observaciones, setObservaciones] = useState("");
+
+  const [guardando, setGuardando] = useState(false);
 
   // =====================================================
   // CARGAR DATOS DEL EQUIPO
@@ -185,6 +169,7 @@ export default function RIC29({ setVista, personal }) {
       if (!tareaGuardada) {
 
         setError("No hay una tarea activa.");
+
         setCargando(false);
 
         return;
@@ -219,10 +204,12 @@ export default function RIC29({ setVista, personal }) {
       setDatos({
 
         ric01_id:
-          tarea.id || "",
+          tarea.id ||
+          "",
 
         equipo_id:
-          equipo?.id || "",
+          equipo?.id ||
+          "",
 
         numero_serie:
           equipo?.numero_serie ||
@@ -274,7 +261,7 @@ export default function RIC29({ setVista, personal }) {
 
       setError(
         err.message ||
-        "No se pudieron cargar los datos del equipo."
+        "No se pudieron cargar los datos."
       );
 
     } finally {
@@ -285,10 +272,14 @@ export default function RIC29({ setVista, personal }) {
   };
 
   // =====================================================
-  // FUNCIONES AUXILIARES
+  // CONFORMIDAD
   // =====================================================
 
-  const numero = (valor) => {
+  const conformeDentroDeRango = (
+    valor,
+    minimo,
+    maximo
+  ) => {
 
     if (
       valor === "" ||
@@ -298,638 +289,757 @@ export default function RIC29({ setVista, personal }) {
       return null;
     }
 
-    const n = Number(valor);
+    const numero = Number(valor);
 
-    return Number.isNaN(n) ? null : n;
-  };
-
-  // =====================================================
-  // CONFORMIDAD ENERGÍA
-  // =====================================================
-
-  const calcularConformidadEnergia = (
-    index,
-    valor
-  ) => {
-
-    const medicion = energia[index];
-
-    const resultado = numero(valor);
-
-    if (resultado === null) {
+    if (Number.isNaN(numero)) {
       return null;
     }
 
-    // Máxima energía
-    if (
-      medicion.energia_nominal === "MAX"
-    ) {
-
-      const fabricante =
-        numero(
-          medicion.energia_fabricante
-        );
-
-      if (fabricante === null) {
-        return null;
-      }
-
-      const rangoMin =
-        fabricante * 0.85;
-
-      const rangoMax =
-        fabricante * 1.15;
-
-      return (
-        resultado >= rangoMin &&
-        resultado <= rangoMax
-      );
-    }
-
     return (
-      resultado >= medicion.rango_min &&
-      resultado <= medicion.rango_max
+      numero >= minimo &&
+      numero <= maximo
     );
   };
 
-  const actualizarEnergia = (
-    index,
-    campo,
-    valor
-  ) => {
+  // =====================================================
+  // CONFORMIDAD MÁXIMA ENERGÍA
+  // =====================================================
 
-    setEnergia(prev => {
+  const conformeMaxEnergia = () => {
 
-      const copia = [...prev];
+    const fabricante =
+      Number(maxEnergia.valorFabricante);
 
-      copia[index] = {
-        ...copia[index],
-        [campo]: valor
-      };
+    const resultado =
+      Number(maxEnergia.resultado_medicion);
 
-      if (
-        campo === "resultado_medicion" ||
-        campo === "energia_fabricante"
-      ) {
+    if (
+      !maxEnergia.valorFabricante ||
+      !maxEnergia.resultado_medicion
+    ) {
+      return null;
+    }
 
-        copia[index].conforme =
-          calcularConformidadEnergia(
-            index,
-            campo === "resultado_medicion"
-              ? valor
-              : copia[index].resultado_medicion
-          );
-      }
+    const minimo =
+      fabricante * 0.85;
 
-      return copia;
-    });
+    const maximo =
+      fabricante * 1.15;
+
+    return (
+      resultado >= minimo &&
+      resultado <= maximo
+    );
   };
 
   // =====================================================
-  // CONFORMIDAD CARGA
+  // CONFORMIDAD TIEMPO DE CARGA
   // =====================================================
 
-  const actualizarCarga = (valor) => {
+  const conformeCarga = () => {
 
-    const resultado = numero(valor);
+    if (carga.resultado_medicion === "") {
+      return null;
+    }
 
-    const conforme =
-      resultado !== null &&
-      resultado < 15;
-
-    setCarga(prev => ({
-      ...prev,
-      resultado_medicion: valor,
-      conforme
-    }));
+    return Number(
+      carga.resultado_medicion
+    ) < 15;
   };
 
   // =====================================================
   // CONFORMIDAD BATERÍA
   // =====================================================
 
-  const actualizarBateria = (
-    index,
-    valor
-  ) => {
+  const conformeBateria = (valor) => {
 
-    setBaterias(prev => {
+    if (valor === "") {
+      return null;
+    }
 
-      const copia = [...prev];
-
-      const resultado =
-        numero(valor);
-
-      copia[index] = {
-        ...copia[index],
-        resultado_medicion: valor,
-        conforme:
-          resultado !== null &&
-          resultado < 15
-      };
-
-      return copia;
-    });
-  };
-
-  const agregarMedicionBateria = () => {
-
-    setBaterias(prev => [
-      ...prev,
-      {
-        numero_medicion:
-          prev.length + 1,
-        resultado_medicion: "",
-        incertidumbre: 0.05,
-        rango_max: 15,
-        conforme: null
-      }
-    ]);
+    return Number(valor) < 15;
   };
 
   // =====================================================
   // CONFORMIDAD SINCRONISMO
   // =====================================================
 
-  const actualizarSincronismo = (
-    valor
-  ) => {
-
-    const resultado =
-      numero(valor);
-
-    setSincronismo(prev => ({
-      ...prev,
-      resultado_medicion: valor,
-      conforme:
-        resultado !== null &&
-        resultado < 60
-    }));
-  };
-
-  // =====================================================
-  // CONFORMIDAD MONITORIZACIÓN
-  // =====================================================
-
-  const actualizarMonitorizacion = (
-    index,
-    valor
-  ) => {
-
-    setMonitorizacion(prev => {
-
-      const copia = [...prev];
-
-      const resultado =
-        numero(valor);
-
-      const nominal =
-        copia[index].frecuencia_nominal;
-
-      const conforme =
-        resultado !== null &&
-        resultado >= nominal - 3 &&
-        resultado <= nominal + 3;
-
-      copia[index] = {
-        ...copia[index],
-        resultado_medicion: valor,
-        conforme
-      };
-
-      return copia;
-    });
-  };
-
-  // =====================================================
-  // COMPLETAR INSPECCIONES
-  // =====================================================
-
-  const completarInspecciones = () => {
-
-    if (
-      !inspecciones.limpieza_exterior ||
-      !inspecciones.papel_registro ||
-      !inspecciones.estado_cables
-    ) {
-
-      alert(
-        "Complete todos los campos de inspección."
-      );
-
-      return;
-    }
-
-    const hayNoConforme =
-      inspecciones.limpieza_exterior ===
-        "No Conforme" ||
-      inspecciones.papel_registro ===
-        "No Conforme" ||
-      inspecciones.estado_cables ===
-        "No Conforme";
-
-    if (
-      hayNoConforme &&
-      !inspecciones.observaciones.trim()
-    ) {
-
-      alert(
-        "Debe ingresar una observación para la no conformidad."
-      );
-
-      return;
-    }
-
-    setEtapa(2);
-  };
-
-  // =====================================================
-  // COMPLETAR ENTREGA DE ENERGÍA
-  // =====================================================
-
-  const completarEnergia = () => {
-
-    const medicionesCompletas =
-      energia.every(m => {
-
-        if (
-          m.resultado_medicion === ""
-        ) {
-          return false;
-        }
-
-        if (
-          m.energia_nominal === "MAX" &&
-          m.energia_fabricante === ""
-        ) {
-          return false;
-        }
-
-        return true;
-      });
-
-    if (!medicionesCompletas) {
-
-      alert(
-        "Complete todas las mediciones de entrega de energía."
-      );
-
-      return;
-    }
-
-    const hayNoConforme =
-      energia.some(
-        m => m.conforme === false
-      );
-
-    if (
-      hayNoConforme &&
-      !observacionesEnergia.trim()
-    ) {
-
-      alert(
-        "Debe ingresar observaciones para las mediciones no conformes."
-      );
-
-      return;
-    }
-
-    setEtapa(3);
-  };
-
-  // =====================================================
-  // COMPLETAR CARGA
-  // =====================================================
-
-  const completarCarga = () => {
-
-    if (
-      carga.resultado_medicion === ""
-    ) {
-
-      alert(
-        "Ingrese el resultado de la medición."
-      );
-
-      return;
-    }
-
-    if (
-      carga.conforme === false &&
-      !carga.observaciones.trim()
-    ) {
-
-      alert(
-        "Debe ingresar una observación."
-      );
-
-      return;
-    }
-
-    setEtapa(4);
-  };
-
-  // =====================================================
-  // COMPLETAR BATERÍA
-  // =====================================================
-
-  const completarBateria = () => {
-
-    const incompleta =
-      baterias.some(
-        m => m.resultado_medicion === ""
-      );
-
-    if (incompleta) {
-
-      alert(
-        "Complete todas las mediciones de batería."
-      );
-
-      return;
-    }
-
-    const hayNoConforme =
-      baterias.some(
-        m => m.conforme === false
-      );
-
-    if (
-      hayNoConforme &&
-      !observacionesBateria.trim()
-    ) {
-
-      alert(
-        "Debe ingresar observaciones."
-      );
-
-      return;
-    }
-
-    setEtapa(5);
-  };
-
-  // =====================================================
-  // COMPLETAR SINCRONISMO
-  // =====================================================
-
-  const completarSincronismo = () => {
+  const conformeSincronismo = () => {
 
     if (
       sincronismo.resultado_medicion === ""
     ) {
-
-      alert(
-        "Ingrese el resultado de sincronismo."
-      );
-
-      return;
+      return null;
     }
 
-    if (
-      sincronismo.conforme === false &&
-      !sincronismo.observaciones.trim()
-    ) {
-
-      alert(
-        "Debe ingresar una observación."
-      );
-
-      return;
-    }
-
-    setEtapa(6);
+    return Number(
+      sincronismo.resultado_medicion
+    ) < 60;
   };
 
   // =====================================================
-  // COMPLETAR MONITORIZACIÓN
+  // CONFORMIDAD ALARMAS
   // =====================================================
 
-  const completarMonitorizacion = () => {
-
-    const incompleta =
-      monitorizacion.some(
-        m => m.resultado_medicion === ""
-      );
-
-    if (incompleta) {
-
-      alert(
-        "Complete las mediciones de monitorización."
-      );
-
-      return;
-    }
-
-    const hayNoConforme =
-      monitorizacion.some(
-        m => m.conforme === false
-      );
+  const conformeAlarma60 = () => {
 
     if (
-      hayNoConforme &&
-      !observacionesMonitorizacion.trim()
+      monitorizacion.resultado_60 === ""
     ) {
-
-      alert(
-        "Debe ingresar observaciones."
-      );
-
-      return;
+      return null;
     }
 
-    setMostrarResumen(true);
+    return (
+      Math.abs(
+        Number(
+          monitorizacion.resultado_60
+        ) - 60
+      ) <= 3
+    );
+  };
+
+  const conformeAlarma120 = () => {
+
+    if (
+      monitorizacion.resultado_120 === ""
+    ) {
+      return null;
+    }
+
+    return (
+      Math.abs(
+        Number(
+          monitorizacion.resultado_120
+        ) - 120
+      ) <= 3
+    );
   };
 
   // =====================================================
-  // OBTENER NO CONFORMIDADES
+  // COLOR SEGÚN CONFORMIDAD
+  // =====================================================
+
+  const claseResultado = (conforme) => {
+
+    if (conforme === null) {
+      return "bg-gray-100 border-gray-300";
+    }
+
+    if (conforme) {
+      return "bg-green-100 border-green-500";
+    }
+
+    return "bg-red-100 border-red-500";
+  };
+
+  // =====================================================
+  // RESUMEN DE NO CONFORMIDADES
   // =====================================================
 
   const obtenerNoConformidades = () => {
 
-    const errores = [];
+    const lista = [];
 
-    // Inspecciones
+    // -----------------------------
+    // INSPECCIONES
+    // -----------------------------
 
     if (
       inspecciones.limpieza_exterior ===
       "No Conforme"
     ) {
-
-      errores.push({
+      lista.push({
         etapa: "Inspecciones",
-        item: "Limpieza exterior",
+        medicion: "Limpieza exterior",
         resultado: "No Conforme"
       });
-
     }
 
     if (
       inspecciones.papel_registro ===
       "No Conforme"
     ) {
-
-      errores.push({
+      lista.push({
         etapa: "Inspecciones",
-        item: "Papel de registro",
+        medicion: "Papel de registro",
         resultado: "No Conforme"
       });
-
     }
 
     if (
       inspecciones.estado_cables ===
       "No Conforme"
     ) {
-
-      errores.push({
+      lista.push({
         etapa: "Inspecciones",
-        item: "Estado de cables",
+        medicion: "Estado de cables",
         resultado: "No Conforme"
       });
-
     }
 
-    // Energía
+    // -----------------------------
+    // ENERGÍA
+    // -----------------------------
 
-    energia.forEach((m, index) => {
+    medicionesEnergia.forEach(
+      (medicion) => {
 
-      if (m.conforme === false) {
+        const conforme =
+          conformeDentroDeRango(
+            medicion.resultado_medicion,
+            medicion.rango_min,
+            medicion.rango_max
+          );
 
-        let rango = "";
+        if (conforme === false) {
 
-        if (
-          m.energia_nominal === "MAX"
-        ) {
+          lista.push({
+            etapa:
+              "Entrega de energía",
 
-          const fabricante =
-            Number(
-              m.energia_fabricante
-            );
+            medicion:
+              `${medicion.energia_nominal} J`,
 
-          rango =
-            `${(
-              fabricante * 0.85
-            ).toFixed(2)} - ${(
-              fabricante * 1.15
-            ).toFixed(2)} J`;
+            resultado:
+              `${medicion.resultado_medicion} J`,
 
-        } else {
+            rango:
+              `${medicion.rango_min} - ${medicion.rango_max} J`
+          });
 
-          rango =
-            `${m.rango_min} - ${m.rango_max} J`;
         }
 
-        errores.push({
-          etapa: "Entrega de energía",
-          item:
-            m.energia_nominal === "MAX"
-              ? "Máx. energía"
-              : `${m.energia_nominal} J`,
-          resultado:
-            `${m.resultado_medicion} J`,
-          rango
-        });
-
       }
+    );
 
-    });
+    const conformeMax =
+      conformeMaxEnergia();
 
-    // Carga
+    if (conformeMax === false) {
 
-    if (
-      carga.conforme === false
-    ) {
+      const fabricante =
+        Number(
+          maxEnergia.valorFabricante
+        );
 
-      errores.push({
-        etapa: "Tiempo de carga",
-        item: "Carga a máxima energía",
+      lista.push({
+
+        etapa:
+          "Entrega de energía",
+
+        medicion:
+          "Máx. energía",
+
+        resultado:
+          `${maxEnergia.resultado_medicion} J`,
+
+        rango:
+          `${(
+            fabricante * 0.85
+          ).toFixed(2)} - ${(
+            fabricante * 1.15
+          ).toFixed(2)} J`
+
+      });
+    }
+
+    // -----------------------------
+    // CARGA
+    // -----------------------------
+
+    if (conformeCarga() === false) {
+
+      lista.push({
+
+        etapa:
+          "Tiempo de carga",
+
+        medicion:
+          "Carga a máxima energía",
+
         resultado:
           `${carga.resultado_medicion}`,
-        rango: "< 15"
-      });
 
+        rango:
+          "< 15"
+
+      });
     }
 
-    // Batería
+    // -----------------------------
+    // BATERÍA
+    // -----------------------------
 
-    baterias.forEach(m => {
+    medicionesBateria.forEach(
+      (medicion) => {
 
-      if (m.conforme === false) {
+        if (
+          conformeBateria(
+            medicion.resultado_medicion
+          ) === false
+        ) {
 
-        errores.push({
-          etapa: "Estado de batería",
-          item:
-            `Medición ${m.numero_medicion}`,
-          resultado:
-            `${m.resultado_medicion}`,
-          rango: "< 15"
-        });
+          lista.push({
+
+            etapa:
+              "Estado de batería",
+
+            medicion:
+              `Medición ${medicion.numero_medicion}`,
+
+            resultado:
+              `${medicion.resultado_medicion}`,
+
+            rango:
+              "< 15"
+
+          });
+        }
 
       }
+    );
 
-    });
-
-    // Sincronismo
+    // -----------------------------
+    // SINCRONISMO
+    // -----------------------------
 
     if (
-      sincronismo.conforme === false
+      conformeSincronismo() === false
     ) {
 
-      errores.push({
-        etapa: "Sincronismo",
-        item:
+      lista.push({
+
+        etapa:
+          "Sincronismo",
+
+        medicion:
           "Tiempo entre onda R y descarga",
+
         resultado:
           `${sincronismo.resultado_medicion}`,
-        rango: "< 60"
-      });
 
+        rango:
+          "< 60"
+
+      });
     }
 
-    // Monitorización
+    // -----------------------------
+    // ALARMAS
+    // -----------------------------
 
-    monitorizacion.forEach(m => {
+    if (
+      conformeAlarma60() === false
+    ) {
 
-      if (m.conforme === false) {
+      lista.push({
 
-        errores.push({
-          etapa:
-            "Monitorización de alarmas",
-          item:
-            `${m.frecuencia_nominal} BPM`,
-          resultado:
-            `${m.resultado_medicion} BPM`,
-          rango:
-            `${m.frecuencia_nominal - 3} - ${
-              m.frecuencia_nominal + 3
-            } BPM`
-        });
+        etapa:
+          "Monitorización de alarmas",
 
-      }
+        medicion:
+          "60 BPM",
 
-    });
+        resultado:
+          `${monitorizacion.resultado_60} BPM`,
 
-    return errores;
+        rango:
+          "57 - 63 BPM"
+
+      });
+    }
+
+    if (
+      conformeAlarma120() === false
+    ) {
+
+      lista.push({
+
+        etapa:
+          "Monitorización de alarmas",
+
+        medicion:
+          "120 BPM",
+
+        resultado:
+          `${monitorizacion.resultado_120} BPM`,
+
+        rango:
+          "117 - 123 BPM"
+
+      });
+    }
+
+    return lista;
   };
 
   // =====================================================
-  // PROGRESO
+  // RESULTADO GENERAL
   // =====================================================
 
-  const porcentaje =
-    mostrarResumen
-      ? 100
-      : ((etapa - 1) / 6) * 100;
+  const noConformidades =
+    obtenerNoConformidades();
 
-  const nombresEtapas = [
-    "Inspecciones",
-    "Entrega de energía",
-    "Tiempo de carga",
-    "Estado de batería",
-    "Sincronismo",
-    "Monitorización"
-  ];
+  const resultadoGeneral =
+    noConformidades.length === 0
+      ? "Conforme"
+      : "No Conforme";
+
+  // =====================================================
+  // VALIDAR ETAPA ACTUAL
+  // =====================================================
+
+  const validarEtapa = () => {
+
+    // INSPECCIONES
+    if (etapa === 0) {
+
+      return (
+        inspecciones.limpieza_exterior !== "" &&
+        inspecciones.papel_registro !== "" &&
+        inspecciones.estado_cables !== ""
+      );
+    }
+
+    // ENERGÍA
+    if (etapa === 1) {
+
+      const medicionesCompletas =
+        medicionesEnergia.every(
+          (m) =>
+            m.resultado_medicion !== ""
+        );
+
+      const maxCompleto =
+        maxEnergia.valorFabricante !== "" &&
+        maxEnergia.resultado_medicion !== "";
+
+      return (
+        medicionesCompletas &&
+        maxCompleto
+      );
+    }
+
+    // CARGA
+    if (etapa === 2) {
+
+      return (
+        carga.resultado_medicion !== ""
+      );
+    }
+
+    // BATERÍA
+    if (etapa === 3) {
+
+      return medicionesBateria.every(
+        (m) =>
+          m.resultado_medicion !== ""
+      );
+    }
+
+    // SINCRONISMO
+    if (etapa === 4) {
+
+      return (
+        sincronismo.resultado_medicion !== ""
+      );
+    }
+
+    // MONITORIZACIÓN
+    if (etapa === 5) {
+
+      return (
+        monitorizacion.resultado_60 !== "" &&
+        monitorizacion.resultado_120 !== ""
+      );
+    }
+
+    return true;
+  };
+
+  // =====================================================
+  // SIGUIENTE ETAPA
+  // =====================================================
+
+  const siguienteEtapa = () => {
+
+    if (!validarEtapa()) {
+
+      alert(
+        "Complete todos los campos de esta etapa antes de continuar."
+      );
+
+      return;
+    }
+
+    setEtapa(
+      (actual) =>
+        Math.min(
+          actual + 1,
+          etapas.length - 1
+        )
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  };
+
+  // =====================================================
+  // VOLVER
+  // =====================================================
+
+  const volverEtapa = () => {
+
+    if (etapa === 0) {
+
+      return;
+    }
+
+    setEtapa(
+      (actual) =>
+        Math.max(actual - 1, 0)
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  };
+
+  // =====================================================
+  // CANCELAR
+  // =====================================================
+
+  const cancelar = () => {
+
+    const confirmar =
+      window.confirm(
+        "¿Está seguro de cancelar el mantenimiento preventivo?\n\nSe perderán los datos cargados en este formulario."
+      );
+
+    if (!confirmar) {
+      return;
+    }
+
+    setVista("equipos");
+  };
+
+  // =====================================================
+  // AGREGAR MEDICIÓN DE BATERÍA
+  // =====================================================
+
+  const agregarMedicionBateria = () => {
+
+    setMedicionesBateria(
+      (actuales) => [
+
+        ...actuales,
+
+        {
+          numero_medicion:
+            actuales.length + 1,
+
+          resultado_medicion:
+            ""
+        }
+
+      ]
+    );
+  };
+
+  // =====================================================
+  // MODIFICAR MEDICIÓN DE ENERGÍA
+  // =====================================================
+
+  const actualizarEnergia = (
+    indice,
+    valor
+  ) => {
+
+    setMedicionesEnergia(
+      (actuales) =>
+        actuales.map(
+          (medicion, i) =>
+
+            i === indice
+              ? {
+                  ...medicion,
+                  resultado_medicion:
+                    valor
+                }
+              : medicion
+        )
+    );
+  };
+
+  // =====================================================
+  // GUARDAR RIC29
+  // =====================================================
+
+  const guardarPreventivo = async () => {
+
+    if (!validarEtapa()) {
+
+      alert(
+        "Complete todos los campos antes de guardar."
+      );
+
+      return;
+    }
+
+    setGuardando(true);
+
+    try {
+
+      const body = {
+
+        // -------------------------
+        // CABECERA
+        // -------------------------
+
+        ric01_id:
+          datos.ric01_id,
+
+        equipo_id:
+          datos.equipo_id,
+
+        numero_serie:
+          datos.numero_serie,
+
+        marca_modelo:
+          datos.marca_modelo,
+
+        area:
+          datos.area,
+
+        servicio:
+          datos.servicio,
+
+        sub_servicio:
+          datos.sub_servicio,
+
+        encargado:
+          datos.encargado,
+
+        tecnico:
+          datos.tecnico,
+
+        resultado_general:
+          resultadoGeneral,
+
+        observaciones:
+          observaciones,
+
+        // -------------------------
+        // INSPECCIONES
+        // -------------------------
+
+        inspecciones,
+
+        // -------------------------
+        // ENERGÍA
+        // -------------------------
+
+        energia: {
+
+          mediciones:
+            medicionesEnergia,
+
+          max_energia:
+            maxEnergia
+
+        },
+
+        // -------------------------
+        // CARGA
+        // -------------------------
+
+        carga,
+
+        // -------------------------
+        // BATERÍA
+        // -------------------------
+
+        bateria:
+          medicionesBateria,
+
+        // -------------------------
+        // SINCRONISMO
+        // -------------------------
+
+        sincronismo,
+
+        // -------------------------
+        // MONITORIZACIÓN
+        // -------------------------
+
+        monitorizacion
+
+      };
+
+      console.log(
+        "DATOS RIC29 A GUARDAR:",
+        body
+      );
+
+      const res = await fetch(
+        `${API_URL.Base}/ric29`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify(body)
+        }
+      );
+
+      const data =
+        await res.json();
+
+      if (!res.ok) {
+
+        throw new Error(
+          data.error ||
+          "No se pudo guardar el RIC29."
+        );
+      }
+
+      alert(
+        resultadoGeneral === "Conforme"
+          ? "Mantenimiento preventivo guardado correctamente ✅"
+          : "Mantenimiento guardado como NO CONFORME ⚠️"
+      );
+
+      localStorage.removeItem(
+        "tareaActiva"
+      );
+
+      setVista("equipos");
+
+    } catch (err) {
+
+      console.error(
+        "ERROR GUARDANDO RIC29:",
+        err
+      );
+
+      alert(
+        err.message ||
+        "Error al guardar el mantenimiento."
+      );
+
+    } finally {
+
+      setGuardando(false);
+
+    }
+  };
 
   // =====================================================
   // CARGANDO
@@ -964,7 +1074,9 @@ export default function RIC29({ setVista, personal }) {
         </div>
 
         <button
-          onClick={() => setVista("equipos")}
+          onClick={() =>
+            setVista("equipos")
+          }
           className="w-full bg-gray-500 text-white rounded-xl p-3 mt-4"
         >
           ← Volver
@@ -980,455 +1092,479 @@ export default function RIC29({ setVista, personal }) {
 
   return (
 
-    <div className="p-4 max-w-xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
 
       {/* ================================================= */}
-      {/* CABECERA */}
+      {/* BARRA DE PROGRESO STICKY */}
       {/* ================================================= */}
 
-      <h1 className="text-2xl font-bold text-center mb-4">
-        📋 RIC 29
-      </h1>
+      <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
 
-      {/* ================================================= */}
-      {/* BARRA DE PROGRESO */}
-      {/* ================================================= */}
+        <div className="max-w-xl mx-auto px-3 py-2">
 
-      <div className="mb-6">
+          <div className="flex justify-between text-xs text-gray-500 mb-1">
 
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <span>
+              Paso {etapa + 1} de {etapas.length}
+            </span>
 
-          <span>
-            {mostrarResumen
-              ? "Finalizado"
-              : `${etapa}/6`}
-          </span>
+            <span className="font-semibold">
+              {etapas[etapa]}
+            </span>
 
-          <span>
-            {mostrarResumen
-              ? "100%"
-              : `${Math.round(porcentaje)}%`}
-          </span>
+          </div>
 
-        </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
 
-        <div className="w-full bg-gray-200 rounded-full h-3">
-
-          <div
-            className="bg-blue-600 h-3 rounded-full transition-all duration-500"
-            style={{
-              width: `${porcentaje}%`
-            }}
-          />
-
-        </div>
-
-        {!mostrarResumen && (
-          <p className="text-center text-sm font-semibold mt-2">
-            {nombresEtapas[etapa - 1]}
-          </p>
-        )}
-
-      </div>
-
-      {/* ================================================= */}
-      {/* DATOS DEL EQUIPO */}
-      {/* ================================================= */}
-
-      <div className="bg-gray-100 rounded-xl p-4 mb-5">
-
-        <h2 className="font-bold text-lg mb-3">
-          🏥 Datos del equipo
-        </h2>
-
-        <div className="space-y-1 text-sm">
-
-          <p>
-            <b>Descripción:</b>{" "}
-            {datos.descripcion || "-"}
-          </p>
-
-          <p>
-            <b>Marca / Modelo:</b>{" "}
-            {datos.marca_modelo || "-"}
-          </p>
-
-          <p>
-            <b>Número de serie:</b>{" "}
-            {datos.numero_serie || "-"}
-          </p>
-
-          <p>
-            <b>Área:</b>{" "}
-            {datos.area || "-"}
-          </p>
-
-          <p>
-            <b>Servicio:</b>{" "}
-            {datos.servicio || "-"}
-          </p>
-
-          <p>
-            <b>Subservicio:</b>{" "}
-            {datos.sub_servicio || "-"}
-          </p>
-
-          <p>
-            <b>Encargado:</b>{" "}
-            {datos.encargado || "-"}
-          </p>
-
-          <p>
-            <b>Técnico:</b>{" "}
-            {datos.tecnico || "-"}
-          </p>
-
-        </div>
-
-      </div>
-
-      {/* ================================================= */}
-      {/* ETAPA 1 - INSPECCIONES */}
-      {/* ================================================= */}
-
-      {etapa === 1 && !mostrarResumen && (
-
-        <div className="bg-white border rounded-xl p-4">
-
-          <h2 className="font-bold text-lg mb-2">
-            1. Inspecciones
-          </h2>
-
-          <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
-            💡 Acá va explicación
-          </p>
-
-          {/* LIMPIEZA */}
-
-          <label className="font-semibold block mb-1">
-            1-a. Limpieza exterior
-          </label>
-
-          <select
-            value={
-              inspecciones.limpieza_exterior
-            }
-            onChange={(e) =>
-              setInspecciones(prev => ({
-                ...prev,
-                limpieza_exterior:
-                  e.target.value
-              }))
-            }
-            className="w-full border rounded-xl p-3 mb-4"
-          >
-
-            <option value="">
-              Seleccionar
-            </option>
-
-            <option value="Conforme">
-              Conforme
-            </option>
-
-            <option value="No Conforme">
-              No Conforme
-            </option>
-
-          </select>
-
-          {/* PAPEL */}
-
-          <label className="font-semibold block mb-1">
-            1-b. Papel de registro
-          </label>
-
-          <select
-            value={
-              inspecciones.papel_registro
-            }
-            onChange={(e) =>
-              setInspecciones(prev => ({
-                ...prev,
-                papel_registro:
-                  e.target.value
-              }))
-            }
-            className="w-full border rounded-xl p-3 mb-4"
-          >
-
-            <option value="">
-              Seleccionar
-            </option>
-
-            <option value="Conforme">
-              Conforme
-            </option>
-
-            <option value="No Conforme">
-              No Conforme
-            </option>
-
-          </select>
-
-          {/* CABLES */}
-
-          <label className="font-semibold block mb-1">
-            1-c. Estado de cables
-          </label>
-
-          <select
-            value={
-              inspecciones.estado_cables
-            }
-            onChange={(e) =>
-              setInspecciones(prev => ({
-                ...prev,
-                estado_cables:
-                  e.target.value
-              }))
-            }
-            className="w-full border rounded-xl p-3 mb-4"
-          >
-
-            <option value="">
-              Seleccionar
-            </option>
-
-            <option value="Conforme">
-              Conforme
-            </option>
-
-            <option value="No Conforme">
-              No Conforme
-            </option>
-
-          </select>
-
-          {/* OBSERVACIONES */}
-
-          {(
-            inspecciones.limpieza_exterior ===
-              "No Conforme" ||
-            inspecciones.papel_registro ===
-              "No Conforme" ||
-            inspecciones.estado_cables ===
-              "No Conforme"
-          ) && (
-
-            <textarea
-              value={
-                inspecciones.observaciones
-              }
-              onChange={(e) =>
-                setInspecciones(prev => ({
-                  ...prev,
-                  observaciones:
-                    e.target.value
-                }))
-              }
-              placeholder="Observaciones"
-              className="w-full border rounded-xl p-3 mb-4"
-              rows={3}
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{
+                width:
+                  `${(
+                    (etapa + 1) /
+                    etapas.length
+                  ) * 100}%`
+              }}
             />
 
-          )}
-
-          <button
-            onClick={
-              completarInspecciones
-            }
-            className="w-full bg-blue-600 text-white rounded-xl p-3"
-          >
-            Aceptar inspecciones →
-          </button>
+          </div>
 
         </div>
 
-      )}
+      </div>
 
-      {/* ================================================= */}
-      {/* ETAPA 2 - ENERGÍA */}
-      {/* ================================================= */}
+      <div className="p-3 max-w-xl mx-auto">
 
-      {etapa === 2 && !mostrarResumen && (
+        {/* ================================================= */}
+        {/* DATOS DEL EQUIPO COMPACTOS */}
+        {/* ================================================= */}
 
-        <div className="bg-white border rounded-xl p-4">
+        <div className="bg-white border rounded-xl shadow-sm p-3 mb-3">
 
-          <h2 className="font-bold text-lg mb-2">
-            2. Entrega de energía
-          </h2>
+          <div className="font-bold text-sm">
 
-          <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
-            💡 Acá va explicación
-          </p>
+            {datos.descripcion || "-"}
+            {" "}
+            <span className="font-normal text-gray-600">
+              {datos.marca_modelo || ""}
+            </span>
 
-          {energia.map((m, index) => {
+          </div>
 
-            if (
-              index !==
-              medicionEnergiaActual
-            ) {
-              return null;
-            }
+          <div className="text-xs text-gray-600 mt-1">
 
-            const esMax =
-              m.energia_nominal === "MAX";
+            <b>Serie:</b>{" "}
+            {datos.numero_serie || "-"}
 
-            return (
+            {" · "}
 
-              <div key={index}>
+            <b>Área:</b>{" "}
+            {datos.area || "-"}
 
-                <h3 className="font-bold text-lg mb-4">
+          </div>
 
-                  {esMax
-                    ? "Medición 6 - Máx. energía"
-                    : `Medición ${
-                        index + 1
-                      } - ${
-                        m.energia_nominal
-                      } J`}
+          <div className="text-xs text-gray-600">
 
-                </h3>
+            <b>Servicio:</b>{" "}
+            {datos.servicio || "-"}
 
-                {/* VALOR FABRICANTE */}
+            {" · "}
 
-                {esMax && (
+            <b>Sub:</b>{" "}
+            {datos.sub_servicio || "-"}
 
-                  <div className="mb-4">
+          </div>
 
-                    <label className="font-semibold block mb-1">
-                      Energía indicada por fabricante (J)
-                    </label>
+          <div className="text-xs text-gray-600">
+
+            <b>Encargado:</b>{" "}
+            {datos.encargado || "-"}
+
+            {" · "}
+
+            <b>Técnico:</b>{" "}
+            {datos.tecnico || "-"}
+
+          </div>
+
+        </div>
+
+        {/* ================================================= */}
+        {/* ETAPA 1 - INSPECCIONES */}
+        {/* ================================================= */}
+
+        {etapa === 0 && (
+
+          <div className="bg-white border rounded-xl p-4">
+
+            <h2 className="text-xl font-bold mb-2">
+              1. Inspecciones
+            </h2>
+
+            <p className="text-sm text-gray-500 mb-4">
+              Acá va explicación.
+            </p>
+
+            <div className="space-y-4">
+
+              <div>
+
+                <label className="font-semibold block mb-1">
+                  Limpieza exterior
+                </label>
+
+                <select
+                  value={
+                    inspecciones.limpieza_exterior
+                  }
+                  onChange={(e) =>
+                    setInspecciones({
+                      ...inspecciones,
+                      limpieza_exterior:
+                        e.target.value
+                    })
+                  }
+                  className="w-full border rounded-xl p-3"
+                >
+
+                  <option value="">
+                    Seleccionar
+                  </option>
+
+                  <option>
+                    Conforme
+                  </option>
+
+                  <option>
+                    No Conforme
+                  </option>
+
+                </select>
+
+              </div>
+
+              <div>
+
+                <label className="font-semibold block mb-1">
+                  Papel de registro
+                </label>
+
+                <select
+                  value={
+                    inspecciones.papel_registro
+                  }
+                  onChange={(e) =>
+                    setInspecciones({
+                      ...inspecciones,
+                      papel_registro:
+                        e.target.value
+                    })
+                  }
+                  className="w-full border rounded-xl p-3"
+                >
+
+                  <option value="">
+                    Seleccionar
+                  </option>
+
+                  <option>
+                    Conforme
+                  </option>
+
+                  <option>
+                    No Conforme
+                  </option>
+
+                </select>
+
+              </div>
+
+              <div>
+
+                <label className="font-semibold block mb-1">
+                  Estado de cables
+                </label>
+
+                <select
+                  value={
+                    inspecciones.estado_cables
+                  }
+                  onChange={(e) =>
+                    setInspecciones({
+                      ...inspecciones,
+                      estado_cables:
+                        e.target.value
+                    })
+                  }
+                  className="w-full border rounded-xl p-3"
+                >
+
+                  <option value="">
+                    Seleccionar
+                  </option>
+
+                  <option>
+                    Conforme
+                  </option>
+
+                  <option>
+                    No Conforme
+                  </option>
+
+                </select>
+
+              </div>
+
+            </div>
+
+            <div className="flex gap-2 mt-6">
+
+              <button
+                onClick={cancelar}
+                className="flex-1 bg-gray-500 text-white p-3 rounded-xl"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={siguienteEtapa}
+                className="flex-1 bg-blue-600 text-white p-3 rounded-xl"
+              >
+                Continuar →
+              </button>
+
+            </div>
+
+          </div>
+
+        )}
+
+        {/* ================================================= */}
+        {/* ETAPA 2 - ENERGÍA */}
+        {/* ================================================= */}
+
+        {etapa === 1 && (
+
+          <div className="bg-white border rounded-xl p-4">
+
+            <h2 className="text-xl font-bold mb-2">
+              2. Entrega de energía
+            </h2>
+
+            <p className="text-sm text-gray-500 mb-4">
+              Acá va explicación.
+            </p>
+
+            {/* ----------------------------- */}
+            {/* MEDICIONES 50 - 270 */}
+            {/* ----------------------------- */}
+
+            {medicionesEnergia.map(
+              (medicion, indice) => {
+
+                if (
+                  indice >
+                  energiaActual
+                ) {
+                  return null;
+                }
+
+                const conforme =
+                  conformeDentroDeRango(
+                    medicion.resultado_medicion,
+                    medicion.rango_min,
+                    medicion.rango_max
+                  );
+
+                return (
+
+                  <div
+                    key={
+                      medicion.numero_medicion
+                    }
+                    className={`border-2 rounded-xl p-4 mb-4 ${claseResultado(conforme)}`}
+                  >
+
+                    <h3 className="font-bold text-lg mb-3">
+
+                      Medición{" "}
+                      {medicion.numero_medicion}
+                      {" - "}
+                      {medicion.energia_nominal} J
+
+                    </h3>
+
+                    <p className="text-sm mb-2">
+
+                      Rango:
+                      {" "}
+                      {medicion.rango_min}
+                      {" - "}
+                      {medicion.rango_max}
+                      {" J"}
+
+                      {" | "}
+
+                      Incertidumbre:
+                      {" ±"}
+                      {medicion.incertidumbre}
+
+                    </p>
 
                     <input
                       type="number"
                       step="0.01"
+                      placeholder="Resultado de medición"
                       value={
-                        m.energia_fabricante
+                        medicion.resultado_medicion
                       }
                       onChange={(e) =>
                         actualizarEnergia(
-                          index,
-                          "energia_fabricante",
+                          indice,
                           e.target.value
                         )
                       }
                       className="w-full border rounded-xl p-3"
-                      placeholder="Ej.: 360"
                     />
+
+                    {conforme !== null && (
+
+                      <div className="font-bold mt-3">
+
+                        {conforme
+                          ? "✅ CONFORME"
+                          : "❌ NO CONFORME"}
+
+                      </div>
+
+                    )}
+
+                    {indice ===
+                      energiaActual && (
+
+                      <button
+                        disabled={
+                          medicion.resultado_medicion === ""
+                        }
+                        onClick={() => {
+
+                          if (
+                            energiaActual <
+                            medicionesEnergia.length - 1
+                          ) {
+
+                            setEnergiaActual(
+                              energiaActual + 1
+                            );
+
+                          }
+
+                        }}
+                        className="w-full bg-blue-600 disabled:bg-gray-300 text-white p-3 rounded-xl mt-3"
+                      >
+                        Aceptar medición
+                      </button>
+
+                    )}
 
                   </div>
 
-                )}
+                );
 
-                {/* RESULTADO */}
+              }
+            )}
 
-                <label className="font-semibold block mb-1">
-                  Resultado de medición (J)
+            {/* ----------------------------- */}
+            {/* MÁXIMA ENERGÍA */}
+            {/* ----------------------------- */}
+
+            {energiaActual ===
+              medicionesEnergia.length - 1 && (
+
+              <div
+                className={`border-2 rounded-xl p-4 mb-4 ${claseResultado(
+                  conformeMaxEnergia()
+                )}`}
+              >
+
+                <h3 className="font-bold text-lg mb-3">
+                  Medición 6 - Máx. energía
+                </h3>
+
+                <label className="text-sm font-semibold">
+                  Valor indicado por el fabricante
                 </label>
 
                 <input
                   type="number"
                   step="0.01"
+                  placeholder="Ej: 360"
                   value={
-                    m.resultado_medicion
+                    maxEnergia.valorFabricante
                   }
                   onChange={(e) =>
-                    actualizarEnergia(
-                      index,
-                      "resultado_medicion",
-                      e.target.value
-                    )
+                    setMaxEnergia({
+                      ...maxEnergia,
+                      valorFabricante:
+                        e.target.value
+                    })
                   }
-                  className={`w-full border rounded-xl p-3 mb-4 ${
-                    m.conforme === true
-                      ? "bg-green-100 border-green-500"
-                      : m.conforme === false
-                      ? "bg-red-100 border-red-500"
-                      : ""
-                  }`}
-                  placeholder="Ingrese medición"
+                  className="w-full border rounded-xl p-3 mt-1 mb-3"
                 />
 
-                {/* RANGO */}
+                {maxEnergia.valorFabricante && (
 
-                {esMax && (
-                  <div className="bg-gray-50 rounded-xl p-3 mb-4 text-sm">
+                  <p className="text-sm mb-3">
 
-                    {m.energia_fabricante !== "" ? (
+                    Rango de aceptación:
+                    {" "}
+                    {(
+                      Number(
+                        maxEnergia.valorFabricante
+                      ) * 0.85
+                    ).toFixed(2)}
 
-                      <>
-                        <p>
-                          <b>Valor fabricante:</b>{" "}
-                          {m.energia_fabricante} J
-                        </p>
+                    {" - "}
 
-                        <p>
-                          <b>Incertidumbre:</b>{" "}
-                          ±15%
-                        </p>
+                    {(
+                      Number(
+                        maxEnergia.valorFabricante
+                      ) * 1.15
+                    ).toFixed(2)}
+                    {" J"}
 
-                        <p>
-                          <b>Rango aceptación:</b>{" "}
-                          {(
-                            Number(
-                              m.energia_fabricante
-                            ) * 0.85
-                          ).toFixed(2)}
-                          {" - "}
-                          {(
-                            Number(
-                              m.energia_fabricante
-                            ) * 1.15
-                          ).toFixed(2)}
-                          {" J"}
-                        </p>
-                      </>
+                    {" (±15%)"}
 
-                    ) : (
-
-                      <p>
-                        Ingrese primero el valor indicado por el fabricante.
-                      </p>
-
-                    )}
-
-                  </div>
-                )}
-
-                {!esMax && (
-
-                  <div className="bg-gray-50 rounded-xl p-3 mb-4 text-sm">
-
-                    <p>
-                      <b>Incertidumbre:</b>{" "}
-                      ±{m.incertidumbre} J
-                    </p>
-
-                    <p>
-                      <b>Rango aceptación:</b>{" "}
-                      {m.rango_min} -{" "}
-                      {m.rango_max} J
-                    </p>
-
-                  </div>
+                  </p>
 
                 )}
 
-                {/* RESULTADO CONFORMIDAD */}
+                <label className="text-sm font-semibold">
+                  Resultado de medición
+                </label>
 
-                {m.conforme !== null && (
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="Resultado de medición"
+                  value={
+                    maxEnergia.resultado_medicion
+                  }
+                  onChange={(e) =>
+                    setMaxEnergia({
+                      ...maxEnergia,
+                      resultado_medicion:
+                        e.target.value
+                    })
+                  }
+                  className="w-full border rounded-xl p-3 mt-1"
+                />
 
-                  <div
-                    className={`rounded-xl p-3 text-center font-bold mb-4 ${
-                      m.conforme
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
+                {conformeMaxEnergia() !== null && (
 
-                    {m.conforme
+                  <div className="font-bold mt-3">
+
+                    {conformeMaxEnergia()
                       ? "✅ CONFORME"
                       : "❌ NO CONFORME"}
 
@@ -1436,272 +1572,91 @@ export default function RIC29({ setVista, personal }) {
 
                 )}
 
-                {/* SIGUIENTE */}
-
-                <button
-                  onClick={() => {
-
-                    if (
-                      m.resultado_medicion === ""
-                    ) {
-
-                      alert(
-                        "Ingrese el resultado de la medición."
-                      );
-
-                      return;
-                    }
-
-                    if (
-                      esMax &&
-                      m.energia_fabricante === ""
-                    ) {
-
-                      alert(
-                        "Ingrese el valor de energía indicado por el fabricante."
-                      );
-
-                      return;
-                    }
-
-                    if (
-                      m.conforme === null
-                    ) {
-
-                      alert(
-                        "Ingrese un resultado válido."
-                      );
-
-                      return;
-                    }
-
-                    if (
-                      index <
-                      energia.length - 1
-                    ) {
-
-                      setMedicionEnergiaActual(
-                        index + 1
-                      );
-
-                    } else {
-
-                      completarEnergia();
-
-                    }
-
-                  }}
-                  className="w-full bg-blue-600 text-white rounded-xl p-3"
-                >
-
-                  {index <
-                  energia.length - 1
-                    ? "Aceptar medición →"
-                    : "Aceptar mediciones →"}
-
-                </button>
-
-                {m.conforme === false && (
-                  <textarea
-                    value={
-                      observacionesEnergia
-                    }
-                    onChange={(e) =>
-                      setObservacionesEnergia(
-                        e.target.value
-                      )
-                    }
-                    placeholder="Observaciones de las no conformidades"
-                    className="w-full border rounded-xl p-3 mt-4"
-                    rows={3}
-                  />
-                )}
-
               </div>
 
-            );
+            )}
 
-          })}
+            <div className="flex gap-2 mt-6">
 
-        </div>
+              <button
+                onClick={volverEtapa}
+                className="flex-1 bg-gray-500 text-white p-3 rounded-xl"
+              >
+                ← Volver
+              </button>
 
-      )}
+              <button
+                onClick={cancelar}
+                className="flex-1 bg-gray-400 text-white p-3 rounded-xl"
+              >
+                Cancelar
+              </button>
 
-      {/* ================================================= */}
-      {/* ETAPA 3 - CARGA */}
-      {/* ================================================= */}
-
-      {etapa === 3 && !mostrarResumen && (
-
-        <div className="bg-white border rounded-xl p-4">
-
-          <h2 className="font-bold text-lg mb-2">
-            3. Tiempo de carga
-          </h2>
-
-          <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
-            💡 Acá va explicación
-          </p>
-
-          <label className="font-semibold block mb-1">
-            Carga a máxima energía
-          </label>
-
-          <input
-            type="number"
-            step="0.01"
-            value={
-              carga.resultado_medicion
-            }
-            onChange={(e) =>
-              actualizarCarga(
-                e.target.value
-              )
-            }
-            className={`w-full border rounded-xl p-3 mb-4 ${
-              carga.conforme === true
-                ? "bg-green-100 border-green-500"
-                : carga.conforme === false
-                ? "bg-red-100 border-red-500"
-                : ""
-            }`}
-            placeholder="Ingrese tiempo de carga"
-          />
-
-          <div className="bg-gray-50 rounded-xl p-3 mb-4 text-sm">
-
-            <p>
-              <b>Incertidumbre:</b> ±0.05
-            </p>
-
-            <p>
-              <b>Rango de aceptación:</b> &lt; 15
-            </p>
-
-          </div>
-
-          {carga.conforme !== null && (
-
-            <div
-              className={`rounded-xl p-3 text-center font-bold mb-4 ${
-                carga.conforme
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-
-              {carga.conforme
-                ? "✅ CONFORME"
-                : "❌ NO CONFORME"}
+              <button
+                onClick={siguienteEtapa}
+                className="flex-1 bg-blue-600 text-white p-3 rounded-xl"
+              >
+                Continuar →
+              </button>
 
             </div>
 
-          )}
+          </div>
 
-          {carga.conforme === false && (
+        )}
 
-            <textarea
-              value={
-                carga.observaciones
-              }
-              onChange={(e) =>
-                setCarga(prev => ({
-                  ...prev,
-                  observaciones:
-                    e.target.value
-                }))
-              }
-              placeholder="Observaciones"
-              className="w-full border rounded-xl p-3 mb-4"
-              rows={3}
-            />
+        {/* ================================================= */}
+        {/* ETAPA 3 - TIEMPO DE CARGA */}
+        {/* ================================================= */}
 
-          )}
+        {etapa === 2 && (
 
-          <button
-            onClick={
-              completarCarga
-            }
-            className="w-full bg-blue-600 text-white rounded-xl p-3"
-          >
-            Aceptar medición →
-          </button>
+          <div className="bg-white border rounded-xl p-4">
 
-        </div>
+            <h2 className="text-xl font-bold mb-2">
+              3. Tiempo de carga
+            </h2>
 
-      )}
-
-      {/* ================================================= */}
-      {/* ETAPA 4 - BATERÍA */}
-      {/* ================================================= */}
-
-      {etapa === 4 && !mostrarResumen && (
-
-        <div className="bg-white border rounded-xl p-4">
-
-          <h2 className="font-bold text-lg mb-2">
-            4. Estado de batería
-          </h2>
-
-          <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
-            💡 Acá va explicación
-          </p>
-
-          {baterias.map((m, index) => (
+            <p className="text-sm text-gray-500 mb-4">
+              Acá va explicación.
+            </p>
 
             <div
-              key={index}
-              className="border rounded-xl p-3 mb-4"
+              className={`border-2 rounded-xl p-4 ${claseResultado(
+                conformeCarga()
+              )}`}
             >
 
-              <h3 className="font-bold mb-3">
-                Medición {m.numero_medicion}
+              <h3 className="font-bold mb-2">
+                Carga a máxima energía
               </h3>
 
-              <label className="font-semibold block mb-1">
-                Resultado de medición
-              </label>
+              <p className="text-sm mb-3">
+                Rango de aceptación:{" "}
+                <b>&lt; 15</b>
+              </p>
 
               <input
                 type="number"
                 step="0.01"
+                placeholder="Resultado de medición"
                 value={
-                  m.resultado_medicion
+                  carga.resultado_medicion
                 }
                 onChange={(e) =>
-                  actualizarBateria(
-                    index,
-                    e.target.value
-                  )
+                  setCarga({
+                    resultado_medicion:
+                      e.target.value
+                  })
                 }
-                className={`w-full border rounded-xl p-3 mb-3 ${
-                  m.conforme === true
-                    ? "bg-green-100 border-green-500"
-                    : m.conforme === false
-                    ? "bg-red-100 border-red-500"
-                    : ""
-                }`}
+                className="w-full border rounded-xl p-3"
               />
 
-              <p className="text-sm text-gray-500">
-                Incertidumbre: ±0.05
-              </p>
+              {conformeCarga() !== null && (
 
-              <p className="text-sm text-gray-500 mb-3">
-                Rango de aceptación: &lt; 15
-              </p>
+                <div className="font-bold mt-3">
 
-              {m.conforme !== null && (
-
-                <div
-                  className={`rounded-xl p-2 text-center font-bold ${
-                    m.conforme
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-
-                  {m.conforme
+                  {conformeCarga()
                     ? "✅ CONFORME"
                     : "❌ NO CONFORME"}
 
@@ -1711,418 +1666,573 @@ export default function RIC29({ setVista, personal }) {
 
             </div>
 
-          ))}
+            <div className="flex gap-2 mt-6">
 
-          {baterias.some(
-            m => m.conforme === false
-          ) && (
+              <button
+                onClick={volverEtapa}
+                className="flex-1 bg-gray-500 text-white p-3 rounded-xl"
+              >
+                ← Volver
+              </button>
 
-            <textarea
-              value={
-                observacionesBateria
-              }
-              onChange={(e) =>
-                setObservacionesBateria(
-                  e.target.value
-                )
-              }
-              placeholder="Observaciones"
-              className="w-full border rounded-xl p-3 mb-4"
-              rows={3}
-            />
+              <button
+                onClick={cancelar}
+                className="flex-1 bg-gray-400 text-white p-3 rounded-xl"
+              >
+                Cancelar
+              </button>
 
-          )}
+              <button
+                onClick={siguienteEtapa}
+                className="flex-1 bg-blue-600 text-white p-3 rounded-xl"
+              >
+                Continuar →
+              </button>
 
-          <button
-            onClick={
-              agregarMedicionBateria
-            }
-            className="w-full bg-gray-500 text-white rounded-xl p-3 mb-3"
-          >
-            ➕ Agregar medición
-          </button>
-
-          <button
-            onClick={
-              completarBateria
-            }
-            className="w-full bg-blue-600 text-white rounded-xl p-3"
-          >
-            Aceptar batería →
-          </button>
-
-        </div>
-
-      )}
-
-      {/* ================================================= */}
-      {/* ETAPA 5 - SINCRONISMO */}
-      {/* ================================================= */}
-
-      {etapa === 5 && !mostrarResumen && (
-
-        <div className="bg-white border rounded-xl p-4">
-
-          <h2 className="font-bold text-lg mb-2">
-            5. Sincronismo
-          </h2>
-
-          <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
-            💡 Acá va explicación
-          </p>
-
-          <label className="font-semibold block mb-1">
-            Tiempo entre onda R y descarga
-          </label>
-
-          <input
-            type="number"
-            step="0.01"
-            value={
-              sincronismo.resultado_medicion
-            }
-            onChange={(e) =>
-              actualizarSincronismo(
-                e.target.value
-              )
-            }
-            className={`w-full border rounded-xl p-3 mb-4 ${
-              sincronismo.conforme === true
-                ? "bg-green-100 border-green-500"
-                : sincronismo.conforme === false
-                ? "bg-red-100 border-red-500"
-                : ""
-            }`}
-          />
-
-          <div className="bg-gray-50 rounded-xl p-3 mb-4 text-sm">
-
-            <p>
-              <b>Incertidumbre:</b> ±6.42
-            </p>
-
-            <p>
-              <b>Rango de aceptación:</b> &lt; 60
-            </p>
+            </div>
 
           </div>
 
-          {sincronismo.conforme !== null && (
+        )}
+
+        {/* ================================================= */}
+        {/* ETAPA 4 - BATERÍA */}
+        {/* ================================================= */}
+
+        {etapa === 3 && (
+
+          <div className="bg-white border rounded-xl p-4">
+
+            <h2 className="text-xl font-bold mb-2">
+              4. Estado de batería
+            </h2>
+
+            <p className="text-sm text-gray-500 mb-4">
+              Acá va explicación.
+            </p>
+
+            {medicionesBateria.map(
+              (medicion, indice) => {
+
+                const conforme =
+                  conformeBateria(
+                    medicion.resultado_medicion
+                  );
+
+                return (
+
+                  <div
+                    key={indice}
+                    className={`border-2 rounded-xl p-4 mb-3 ${claseResultado(conforme)}`}
+                  >
+
+                    <h3 className="font-bold mb-2">
+
+                      Medición{" "}
+                      {medicion.numero_medicion}
+
+                    </h3>
+
+                    <p className="text-sm mb-3">
+                      Rango de aceptación:{" "}
+                      <b>&lt; 15</b>
+                    </p>
+
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="Resultado de medición"
+                      value={
+                        medicion.resultado_medicion
+                      }
+                      onChange={(e) => {
+
+                        const nuevas =
+                          [
+                            ...medicionesBateria
+                          ];
+
+                        nuevas[indice] = {
+
+                          ...nuevas[indice],
+
+                          resultado_medicion:
+                            e.target.value
+
+                        };
+
+                        setMedicionesBateria(
+                          nuevas
+                        );
+
+                      }}
+                      className="w-full border rounded-xl p-3"
+                    />
+
+                    {conforme !== null && (
+
+                      <div className="font-bold mt-3">
+
+                        {conforme
+                          ? "✅ CONFORME"
+                          : "❌ NO CONFORME"}
+
+                      </div>
+
+                    )}
+
+                  </div>
+
+                );
+
+              }
+            )}
+
+            <button
+              onClick={agregarMedicionBateria}
+              className="w-full bg-green-600 text-white p-3 rounded-xl"
+            >
+              + Agregar medición
+            </button>
+
+            <div className="flex gap-2 mt-6">
+
+              <button
+                onClick={volverEtapa}
+                className="flex-1 bg-gray-500 text-white p-3 rounded-xl"
+              >
+                ← Volver
+              </button>
+
+              <button
+                onClick={cancelar}
+                className="flex-1 bg-gray-400 text-white p-3 rounded-xl"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={siguienteEtapa}
+                className="flex-1 bg-blue-600 text-white p-3 rounded-xl"
+              >
+                Continuar →
+              </button>
+
+            </div>
+
+          </div>
+
+        )}
+
+        {/* ================================================= */}
+        {/* ETAPA 5 - SINCRONISMO */}
+        {/* ================================================= */}
+
+        {etapa === 4 && (
+
+          <div className="bg-white border rounded-xl p-4">
+
+            <h2 className="text-xl font-bold mb-2">
+              5. Sincronismo
+            </h2>
+
+            <p className="text-sm text-gray-500 mb-4">
+              Acá va explicación.
+            </p>
 
             <div
-              className={`rounded-xl p-3 text-center font-bold mb-4 ${
-                sincronismo.conforme
+              className={`border-2 rounded-xl p-4 ${claseResultado(
+                conformeSincronismo()
+              )}`}
+            >
+
+              <h3 className="font-bold mb-2">
+                Tiempo entre onda R y descarga
+              </h3>
+
+              <p className="text-sm mb-3">
+                Rango de aceptación:{" "}
+                <b>&lt; 60</b>
+              </p>
+
+              <input
+                type="number"
+                step="0.01"
+                placeholder="Resultado de medición"
+                value={
+                  sincronismo.resultado_medicion
+                }
+                onChange={(e) =>
+                  setSincronismo({
+                    resultado_medicion:
+                      e.target.value
+                  })
+                }
+                className="w-full border rounded-xl p-3"
+              />
+
+              {conformeSincronismo() !== null && (
+
+                <div className="font-bold mt-3">
+
+                  {conformeSincronismo()
+                    ? "✅ CONFORME"
+                    : "❌ NO CONFORME"}
+
+                </div>
+
+              )}
+
+            </div>
+
+            <div className="flex gap-2 mt-6">
+
+              <button
+                onClick={volverEtapa}
+                className="flex-1 bg-gray-500 text-white p-3 rounded-xl"
+              >
+                ← Volver
+              </button>
+
+              <button
+                onClick={cancelar}
+                className="flex-1 bg-gray-400 text-white p-3 rounded-xl"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={siguienteEtapa}
+                className="flex-1 bg-blue-600 text-white p-3 rounded-xl"
+              >
+                Continuar →
+              </button>
+
+            </div>
+
+          </div>
+
+        )}
+
+        {/* ================================================= */}
+        {/* ETAPA 6 - MONITORIZACIÓN */}
+        {/* ================================================= */}
+
+        {etapa === 5 && (
+
+          <div className="bg-white border rounded-xl p-4">
+
+            <h2 className="text-xl font-bold mb-2">
+              6. Monitorización de alarmas
+            </h2>
+
+            <p className="text-sm text-gray-500 mb-4">
+              Acá va explicación.
+            </p>
+
+            {/* 60 BPM */}
+
+            <div
+              className={`border-2 rounded-xl p-4 mb-4 ${claseResultado(
+                conformeAlarma60()
+              )}`}
+            >
+
+              <h3 className="font-bold">
+                60 BPM
+              </h3>
+
+              <p className="text-sm mb-3">
+                Rango de aceptación:
+                {" "}
+                <b>57 - 63 BPM</b>
+              </p>
+
+              <input
+                type="number"
+                step="0.01"
+                placeholder="Resultado de medición"
+                value={
+                  monitorizacion.resultado_60
+                }
+                onChange={(e) =>
+                  setMonitorizacion({
+                    ...monitorizacion,
+                    resultado_60:
+                      e.target.value
+                  })
+                }
+                className="w-full border rounded-xl p-3"
+              />
+
+              {conformeAlarma60() !== null && (
+
+                <div className="font-bold mt-3">
+
+                  {conformeAlarma60()
+                    ? "✅ CONFORME"
+                    : "❌ NO CONFORME"}
+
+                </div>
+
+              )}
+
+            </div>
+
+            {/* 120 BPM */}
+
+            <div
+              className={`border-2 rounded-xl p-4 ${claseResultado(
+                conformeAlarma120()
+              )}`}
+            >
+
+              <h3 className="font-bold">
+                120 BPM
+              </h3>
+
+              <p className="text-sm mb-3">
+                Rango de aceptación:
+                {" "}
+                <b>117 - 123 BPM</b>
+              </p>
+
+              <input
+                type="number"
+                step="0.01"
+                placeholder="Resultado de medición"
+                value={
+                  monitorizacion.resultado_120
+                }
+                onChange={(e) =>
+                  setMonitorizacion({
+                    ...monitorizacion,
+                    resultado_120:
+                      e.target.value
+                  })
+                }
+                className="w-full border rounded-xl p-3"
+              />
+
+              {conformeAlarma120() !== null && (
+
+                <div className="font-bold mt-3">
+
+                  {conformeAlarma120()
+                    ? "✅ CONFORME"
+                    : "❌ NO CONFORME"}
+
+                </div>
+
+              )}
+
+            </div>
+
+            <div className="flex gap-2 mt-6">
+
+              <button
+                onClick={volverEtapa}
+                className="flex-1 bg-gray-500 text-white p-3 rounded-xl"
+              >
+                ← Volver
+              </button>
+
+              <button
+                onClick={cancelar}
+                className="flex-1 bg-gray-400 text-white p-3 rounded-xl"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={siguienteEtapa}
+                className="flex-1 bg-blue-600 text-white p-3 rounded-xl"
+              >
+                Ver resumen →
+              </button>
+
+            </div>
+
+          </div>
+
+        )}
+
+        {/* ================================================= */}
+        {/* ETAPA 7 - RESUMEN */}
+        {/* ================================================= */}
+
+        {etapa === 6 && (
+
+          <div className="bg-white border rounded-xl p-4">
+
+            <h2 className="text-xl font-bold mb-2">
+              7. Resumen del mantenimiento
+            </h2>
+
+            <div
+              className={`rounded-xl p-4 mb-4 text-center ${
+                resultadoGeneral ===
+                "Conforme"
                   ? "bg-green-100 text-green-700"
                   : "bg-red-100 text-red-700"
               }`}
             >
 
-              {sincronismo.conforme
-                ? "✅ CONFORME"
-                : "❌ NO CONFORME"}
+              <div className="text-2xl font-bold">
 
-            </div>
-
-          )}
-
-          {sincronismo.conforme === false && (
-
-            <textarea
-              value={
-                sincronismo.observaciones
-              }
-              onChange={(e) =>
-                setSincronismo(prev => ({
-                  ...prev,
-                  observaciones:
-                    e.target.value
-                }))
-              }
-              placeholder="Observaciones"
-              className="w-full border rounded-xl p-3 mb-4"
-              rows={3}
-            />
-
-          )}
-
-          <button
-            onClick={
-              completarSincronismo
-            }
-            className="w-full bg-blue-600 text-white rounded-xl p-3"
-          >
-            Aceptar medición →
-          </button>
-
-        </div>
-
-      )}
-
-      {/* ================================================= */}
-      {/* ETAPA 6 - MONITORIZACIÓN */}
-      {/* ================================================= */}
-
-      {etapa === 6 && !mostrarResumen && (
-
-        <div className="bg-white border rounded-xl p-4">
-
-          <h2 className="font-bold text-lg mb-2">
-            6. Monitorización de alarmas
-          </h2>
-
-          <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
-            💡 Acá va explicación
-          </p>
-
-          {monitorizacion.map(
-            (m, index) => (
-
-              <div
-                key={index}
-                className="border rounded-xl p-3 mb-4"
-              >
-
-                <h3 className="font-bold mb-3">
-                  {m.frecuencia_nominal} BPM
-                </h3>
-
-                <label className="font-semibold block mb-1">
-                  Resultado de medición
-                </label>
-
-                <input
-                  type="number"
-                  step="0.01"
-                  value={
-                    m.resultado_medicion
-                  }
-                  onChange={(e) =>
-                    actualizarMonitorizacion(
-                      index,
-                      e.target.value
-                    )
-                  }
-                  className={`w-full border rounded-xl p-3 ${
-                    m.conforme === true
-                      ? "bg-green-100 border-green-500"
-                      : m.conforme === false
-                      ? "bg-red-100 border-red-500"
-                      : ""
-                  }`}
-                />
-
-                <p className="text-sm text-gray-500 mt-2">
-                  Rango de aceptación:{" "}
-                  {m.frecuencia_nominal - 3}
-                  {" - "}
-                  {m.frecuencia_nominal + 3}
-                  {" BPM"}
-                </p>
-
-                {m.conforme !== null && (
-
-                  <div
-                    className={`rounded-xl p-2 text-center font-bold mt-3 ${
-                      m.conforme
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-
-                    {m.conforme
-                      ? "✅ CONFORME"
-                      : "❌ NO CONFORME"}
-
-                  </div>
-
-                )}
+                {resultadoGeneral ===
+                "Conforme"
+                  ? "✅ CONFORME"
+                  : "❌ NO CONFORME"}
 
               </div>
 
-            )
-          )}
+            </div>
 
-          {monitorizacion.some(
-            m => m.conforme === false
-          ) && (
+            {/* -------------------------------- */}
+            {/* NO CONFORMIDADES */}
+            {/* -------------------------------- */}
 
-            <textarea
-              value={
-                observacionesMonitorizacion
-              }
-              onChange={(e) =>
-                setObservacionesMonitorizacion(
-                  e.target.value
-                )
-              }
-              placeholder="Observaciones"
-              className="w-full border rounded-xl p-3 mb-4"
-              rows={3}
-            />
+            {noConformidades.length >
+              0 && (
 
-          )}
+              <div className="border border-red-300 bg-red-50 rounded-xl p-4 mb-4">
 
-          <button
-            onClick={
-              completarMonitorizacion
-            }
-            className="w-full bg-green-600 text-white rounded-xl p-3"
-          >
-            Ver resumen →
-          </button>
+                <h3 className="font-bold text-red-700 mb-3">
 
-        </div>
+                  ⚠️ Mediciones no conformes
 
-      )}
+                </h3>
 
-      {/* ================================================= */}
-      {/* RESUMEN FINAL */}
-      {/* ================================================= */}
+                <div className="space-y-3">
 
-      {mostrarResumen && (
+                  {noConformidades.map(
+                    (item, index) => (
 
-        <div className="bg-white border rounded-xl p-4">
+                      <div
+                        key={index}
+                        className="bg-white rounded-lg p-3 border"
+                      >
 
-          <h2 className="font-bold text-xl mb-4 text-center">
-            📊 Resumen del mantenimiento
-          </h2>
+                        <p className="font-bold">
+                          {item.etapa}
+                        </p>
 
-          {(() => {
+                        <p>
+                          <b>Medición:</b>{" "}
+                          {item.medicion}
+                        </p>
 
-            const errores =
-              obtenerNoConformidades();
+                        <p>
+                          <b>Resultado:</b>{" "}
+                          {item.resultado}
+                        </p>
 
-            return (
+                        {item.rango && (
 
-              <>
+                          <p className="text-sm text-gray-600">
 
-                {errores.length === 0 ? (
+                            <b>Rango:</b>{" "}
+                            {item.rango}
 
-                  <div className="bg-green-100 text-green-700 rounded-xl p-5 text-center font-bold mb-5">
+                          </p>
 
-                    <div className="text-3xl mb-2">
-                      ✅
-                    </div>
+                        )}
 
-                    MANTENIMIENTO CONFORME
+                      </div>
 
-                    <p className="font-normal text-sm mt-2">
-                      Todas las mediciones e inspecciones
-                      cumplen con los criterios de aceptación.
-                    </p>
-
-                  </div>
-
-                ) : (
-
-                  <div>
-
-                    <div className="bg-red-100 text-red-700 rounded-xl p-4 mb-4">
-
-                      <p className="font-bold text-lg">
-                        ❌ Se encontraron{" "}
-                        {errores.length}{" "}
-                        no conformidad(es)
-                      </p>
-
-                    </div>
-
-                    <div className="space-y-3">
-
-                      {errores.map(
-                        (error, index) => (
-
-                          <div
-                            key={index}
-                            className="border border-red-300 rounded-xl p-3 bg-red-50"
-                          >
-
-                            <p className="font-bold text-red-700">
-                              {error.etapa}
-                            </p>
-
-                            <p>
-                              <b>Ítem:</b>{" "}
-                              {error.item}
-                            </p>
-
-                            <p>
-                              <b>Resultado:</b>{" "}
-                              {error.resultado}
-                            </p>
-
-                            {error.rango && (
-
-                              <p>
-                                <b>Rango aceptación:</b>{" "}
-                                {error.rango}
-                              </p>
-
-                            )}
-
-                          </div>
-
-                        )
-                      )}
-
-                    </div>
-
-                  </div>
-
-                )}
-
-                <div className="bg-gray-50 rounded-xl p-4 mt-5">
-
-                  <h3 className="font-bold mb-2">
-                    Datos del técnico
-                  </h3>
-
-                  <p>
-                    <b>Técnico:</b>{" "}
-                    {datos.tecnico}
-                  </p>
-
-                  <p>
-                    <b>Equipo:</b>{" "}
-                    {datos.descripcion}
-                  </p>
-
-                  <p>
-                    <b>Serie:</b>{" "}
-                    {datos.numero_serie}
-                  </p>
+                    )
+                  )}
 
                 </div>
 
-                <button
-                  onClick={() => {
-                    alert(
-                      "Formulario listo para guardar. El guardado en PostgreSQL lo implementaremos en el siguiente paso."
-                    );
-                  }}
-                  className="w-full bg-green-600 text-white rounded-xl p-3 mt-5"
-                >
-                  💾 Guardar preventivo
-                </button>
+              </div>
 
-                <button
-                  onClick={() =>
-                    setVista("equipos")
-                  }
-                  className="w-full bg-gray-500 text-white rounded-xl p-3 mt-3"
-                >
-                  ← Volver a equipos
-                </button>
+            )}
 
-              </>
+            {noConformidades.length ===
+              0 && (
 
-            );
+              <div className="bg-green-50 border border-green-300 rounded-xl p-4 mb-4">
 
-          })()}
+                <p className="text-green-700 font-semibold text-center">
 
-        </div>
+                  Todas las mediciones se encuentran
+                  dentro de los rangos de aceptación.
 
-      )}
+                </p>
+
+              </div>
+
+            )}
+
+            {/* -------------------------------- */}
+            {/* OBSERVACIONES GENERALES */}
+            {/* -------------------------------- */}
+
+            <div className="mb-4">
+
+              <label className="font-bold block mb-2">
+
+                Observaciones generales
+
+              </label>
+
+              <textarea
+                value={observaciones}
+                onChange={(e) =>
+                  setObservaciones(
+                    e.target.value
+                  )
+                }
+                rows={5}
+                placeholder="Ingrese aquí las observaciones generales del mantenimiento..."
+                className="w-full border rounded-xl p-3"
+              />
+
+            </div>
+
+            {/* -------------------------------- */}
+            {/* BOTONES */}
+            {/* -------------------------------- */}
+
+            <div className="flex gap-2">
+
+              <button
+                onClick={volverEtapa}
+                disabled={guardando}
+                className="flex-1 bg-gray-500 text-white p-3 rounded-xl disabled:opacity-50"
+              >
+                ← Volver
+              </button>
+
+              <button
+                onClick={cancelar}
+                disabled={guardando}
+                className="flex-1 bg-gray-400 text-white p-3 rounded-xl disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+
+            </div>
+
+            <button
+              onClick={guardarPreventivo}
+              disabled={guardando}
+              className="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-xl mt-3 disabled:bg-gray-400"
+            >
+
+              {guardando
+                ? "⏳ Guardando..."
+                : "💾 Guardar preventivo"}
+
+            </button>
+
+          </div>
+
+        )}
+
+      </div>
 
     </div>
   );
