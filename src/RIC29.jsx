@@ -21,9 +21,6 @@ export default function RIC29({ setVista, personal }) {
 
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
-  const [error, setError] = useState("");
-  const [medicionEnergia, setMedicionEnergia] = useState(1);
-  const [medicionBateria, setMedicionBateria] = useState(1);
 
   // =====================================================
   // DATOS DEL EQUIPO
@@ -57,6 +54,9 @@ export default function RIC29({ setVista, personal }) {
     papel_registro: "",
     estado_cables: ""
   });
+
+  const [observacionesInspecciones, setObservacionesInspecciones] =
+  useState("");
 
   // =====================================================
   // 2 - ENTREGA DE ENERGÍA
@@ -740,62 +740,103 @@ export default function RIC29({ setVista, personal }) {
     setVista("equipos");
   };
 
-  // =====================================================
-  // VOLVER
-  // =====================================================
+ // =====================================================
+// VOLVER
+// =====================================================
 
-  const volver = () => {
+const volver = () => {
 
-    if (etapa === 0) {
+  // -----------------------------------------------
+  // INSPECCIONES
+  // -----------------------------------------------
 
-      setVista("equipos");
+  if (etapa === 0) {
+    setVista("equipos");
+    return;
+  }
+
+  // -----------------------------------------------
+  // ENTREGA DE ENERGÍA
+  // Volver medición por medición
+  // -----------------------------------------------
+
+  if (etapa === 1) {
+
+    if (energiaActual > 0) {
+
+      setEnergiaActual(
+        prev => prev - 1
+      );
+
       return;
-
     }
 
-    if (etapa === 2) {
+    // Si estamos en la primera medición,
+    // volvemos a Inspecciones.
 
-      setEnergiaActual(5);
-      setEtapa(1);
+    setEtapa(0);
+    return;
+  }
+
+  // -----------------------------------------------
+  // TIEMPO DE CARGA
+  // -----------------------------------------------
+
+  if (etapa === 2) {
+    setEtapa(1);
+    return;
+  }
+
+  // -----------------------------------------------
+  // ESTADO DE BATERÍA
+  // Volver medición por medición
+  // -----------------------------------------------
+
+  if (etapa === 3) {
+
+    if (bateriaActual > 0) {
+
+      setBateriaActual(
+        prev => prev - 1
+      );
 
       return;
-
     }
 
-    if (etapa === 3) {
+    // Si estamos en la primera medición,
+    // volvemos a Tiempo de carga.
 
-      setBateriaActual(3);
-      setEtapa(2);
+    setEtapa(2);
+    return;
+  }
 
-      return;
+  // -----------------------------------------------
+  // SINCRONISMO
+  // -----------------------------------------------
 
-    }
+  if (etapa === 4) {
+    setEtapa(3);
+    return;
+  }
 
-    if (etapa === 4) {
+  // -----------------------------------------------
+  // MONITORIZACIÓN
+  // -----------------------------------------------
 
-      setEtapa(3);
-      return;
+  if (etapa === 5) {
+    setEtapa(4);
+    return;
+  }
 
-    }
+  // -----------------------------------------------
+  // RESUMEN
+  // -----------------------------------------------
 
-    if (etapa === 5) {
-
-      setEtapa(4);
-      return;
-
-    }
-
-    if (etapa === 6) {
-
-      setEtapa(5);
-      return;
-
-    }
-
-    setEtapa(
-      etapa - 1
-    );
-  };
+  if (etapa === 6) {
+    setEtapa(5);
+    return;
+  }
+};
 
   // =====================================================
   // RESULTADOS NO CONFORMES
@@ -1530,7 +1571,28 @@ export default function RIC29({ setVista, personal }) {
               )}
 
             </div>
+{/* -----------------------------------------
+    OBSERVACIONES DE INSPECCIONES
+----------------------------------------- */}
 
+<div className="mt-5">
+
+  <label className="font-semibold block mb-2">
+    Observaciones
+  </label>
+
+  <textarea
+    value={observacionesInspecciones}
+    onChange={(e) =>
+      setObservacionesInspecciones(e.target.value)
+    }
+    rows={4}
+    placeholder="Ingrese observaciones de la inspección..."
+    className="w-full border rounded-xl p-3"
+  />
+
+</div>
+)}
             <div className="flex gap-2 mt-6">
 
               <button
