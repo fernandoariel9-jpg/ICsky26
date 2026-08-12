@@ -1571,6 +1571,10 @@ const volver = () => {
                 <b>Área:</b>{" "}
                 {datos.area}
               </p>
+              <p>
+                <b>Servicio:</b>{" "}
+                {datos.servicio}
+              </p>
 
             </div>
 
@@ -1591,7 +1595,7 @@ const volver = () => {
             </h2>
 
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
-              Comprobar estado y entorno del equipo. Si se encuentra desenchufado o con elementos encima aclararlo en el campo Observaciones.
+              Comprobar estado y entorno del equipo. Si se encuentra desconectado de la red o con elementos encima aclararlo en el campo Observaciones.
             </p>
 
             <div className="space-y-4">
@@ -1710,7 +1714,8 @@ const volver = () => {
             </h2>
 
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 my-4">
-              Acá va explicación
+              Con el equipo conectado a la red eléctrica setear los valores de energía requeridos. En el caso de que el valor requerido no este disponible usar la casilla de verificación de "No aplica".
+              Para la medición de Máx. energía se debe ingresar primero el valor máximo permitido por el equipo
             </p>
 
             <div className="bg-gray-100 rounded-xl p-3 mb-4 text-center">
@@ -1810,7 +1815,7 @@ const volver = () => {
               <>
 
                 <label className="font-semibold block mb-2">
-                  Valor máximo indicado por fabricante (J)
+                  Valor máximo permitido por el equipo (J)
                 </label>
 
                 <input
@@ -1973,7 +1978,7 @@ const volver = () => {
             </h2>
 
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 my-4">
-              Acá va explicación
+              Con el equipo conectado a la red eléctrica setear el valor máximo de energía permitido por el equipo.
             </p>
 
             <p className="font-semibold mb-2">
@@ -2074,7 +2079,7 @@ const volver = () => {
             </h2>
 
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 my-4">
-              Acá va explicación
+              Con el equipo desconectado de la red eléctrica setear el valor máximo de energía permitido por el equipo.
             </p>
 
             <div className="bg-gray-100 rounded-xl p-3 mb-4 text-center">
@@ -2206,7 +2211,7 @@ const volver = () => {
             </h2>
 
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 my-4">
-              Acá va explicación
+              Reconectar el equipo a la red eléctrica y activar la función de sincronismo. En el caso de no estar disponible usar la casilla de verificación de "No aplica".
             </p>
 
             <p className="font-semibold mb-2">
@@ -2311,7 +2316,7 @@ const volver = () => {
             </h2>
 
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 my-4">
-              Acá va explicación
+              Con el equipo conectado a la red eléctrica verificar la correspondencia de los valores seteados en el simulador.
             </p>
 
             {["60", "120"].map(
