@@ -2228,7 +2228,7 @@ const volver = () => {
           <div className="bg-white rounded-xl shadow p-4">
 
             <h2 className="text-xl font-bold">
-              6. Monitorización de alarmas
+              6. Monitorización
             </h2>
 
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 my-4">
