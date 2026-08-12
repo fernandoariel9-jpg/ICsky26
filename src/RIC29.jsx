@@ -1507,11 +1507,11 @@ const volver = () => {
           <div className="bg-white rounded-xl shadow p-4">
 
             <h2 className="text-xl font-bold mb-2">
-              1. Inspecciones
+              1. Inspeccion visual
             </h2>
 
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
-              Acá va explicación
+              Comprobar estado y entorno del equipo. Si se encuentra desenchufado o con elementos encima aclararlo en el campo Observaciones.
             </p>
 
             <div className="space-y-4">
