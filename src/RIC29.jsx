@@ -1593,7 +1593,6 @@ const volver = () => {
   />
 
 </div>
-)}
             <div className="flex gap-2 mt-6">
 
               <button
