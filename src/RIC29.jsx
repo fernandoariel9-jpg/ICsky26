@@ -1177,17 +1177,18 @@ const volver = () => {
         // -----------------------------------------
 
         inspecciones: {
+  limpieza_exterior:
+    inspecciones.limpieza_exterior,
 
-          limpieza_exterior:
-            inspecciones.limpieza_exterior,
+  papel_registro:
+    inspecciones.papel_registro,
 
-          papel_registro:
-            inspecciones.papel_registro,
+  estado_cables:
+    inspecciones.estado_cables,
 
-          estado_cables:
-            inspecciones.estado_cables
-
-        },
+  observaciones:
+    observacionesInspecciones || null
+},
 
         // -----------------------------------------
         // ENERGÍA
