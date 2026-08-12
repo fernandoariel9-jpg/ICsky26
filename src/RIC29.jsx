@@ -21,6 +21,7 @@ export default function RIC29({ setVista, personal }) {
 
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState("");
 
   // =====================================================
   // DATOS DEL EQUIPO
@@ -740,7 +741,7 @@ export default function RIC29({ setVista, personal }) {
     setVista("equipos");
   };
 
- // =====================================================
+// =====================================================
 // VOLVER
 // =====================================================
 
