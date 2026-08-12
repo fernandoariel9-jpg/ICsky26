@@ -724,23 +724,101 @@ export default function RIC29({ setVista, personal }) {
   // CANCELAR
   // =====================================================
 
-  const cancelar = () => {
+  const cancelar = async () => {
 
-    const confirmar =
-      window.confirm(
-        "¿Desea cancelar el mantenimiento? Se perderán todos los datos ingresados."
+  const confirmar = window.confirm(
+    "¿Desea cancelar el mantenimiento? Se eliminará la tarea creada y se perderán todos los datos ingresados."
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  try {
+
+    // ==========================================
+    // OBTENER LA TAREA RIC01 CREADA
+    // ==========================================
+
+    const tareaGuardada =
+      localStorage.getItem("tareaActiva");
+
+    if (!tareaGuardada) {
+
+      console.log(
+        "No existe tareaActiva para eliminar."
       );
 
-    if (!confirmar)
+      setVista("equipos");
+
       return;
+    }
+
+    const tarea =
+      JSON.parse(tareaGuardada);
+
+    console.log(
+      "Tarea RIC01 a eliminar:",
+      tarea
+    );
+
+    // ==========================================
+    // ELIMINAR LA TAREA RIC01
+    // ==========================================
+
+    if (tarea.id) {
+
+      const res = await fetch(
+        `${API_URL.Ric01}/${tarea.id}/cancelar-preventivo`,
+        {
+          method: "DELETE"
+        }
+      );
+
+      const data =
+        await res.json();
+
+      if (!res.ok) {
+
+        throw new Error(
+          data.error ||
+          "No se pudo eliminar la tarea."
+        );
+      }
+
+      console.log(
+        "Tarea RIC01 eliminada correctamente:",
+        data
+      );
+    }
+
+    // ==========================================
+    // LIMPIAR LOCALSTORAGE
+    // ==========================================
 
     localStorage.removeItem(
       "tareaActiva"
     );
 
-    setVista("equipos");
-  };
+    // ==========================================
+    // VOLVER A EQUIPOS
+    // ==========================================
 
+    setVista("equipos");
+
+  } catch (error) {
+
+    console.error(
+      "Error cancelando preventivo:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "No se pudo cancelar el mantenimiento."
+    );
+  }
+};
 // =====================================================
 // VOLVER
 // =====================================================
