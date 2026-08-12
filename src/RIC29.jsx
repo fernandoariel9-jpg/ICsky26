@@ -1849,15 +1849,15 @@ const volver = () => {
 
             <div className="flex gap-2 mt-6">
 
-              <button
+             <button
   onClick={() => {
-    if (medicionEnergia > 1) {
-      setMedicionEnergia(prev => prev - 1);
+    if (energiaActual > 0) {
+      setEnergiaActual(prev => prev - 1);
     } else {
       setEtapa(prev => prev - 1);
     }
   }}
-  className="..."
+  className="flex-1 bg-gray-500 text-white rounded-xl p-3"
 >
   ← Volver
 </button>
@@ -2080,15 +2080,15 @@ const volver = () => {
 
             <div className="flex gap-2 mt-6">
 
-              <button
+<button
   onClick={() => {
-    if (medicionBateria > 1) {
-      setMedicionBateria(prev => prev - 1);
+    if (bateriaActual > 0) {
+      setBateriaActual(prev => prev - 1);
     } else {
       setEtapa(prev => prev - 1);
     }
   }}
-  className="..."
+  className="flex-1 bg-gray-500 text-white rounded-xl p-3"
 >
   ← Volver
 </button>
