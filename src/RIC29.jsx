@@ -2431,6 +2431,24 @@ const volver = () => {
             )}
 
             {/* -----------------------------------------
+    OBSERVACIONES DE INSPECCIONES
+----------------------------------------- */}
+
+{observacionesInspecciones?.trim() && (
+  <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-4 mt-4">
+
+    <h3 className="font-bold text-yellow-800 mb-2">
+      📝 Observaciones de inspecciones
+    </h3>
+
+    <p className="text-gray-700 whitespace-pre-wrap">
+      {observacionesInspecciones}
+    </p>
+
+  </div>
+)}
+
+            {/* -----------------------------------------
                 OBSERVACIONES GENERALES
             ----------------------------------------- */}
 
