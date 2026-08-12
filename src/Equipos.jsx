@@ -1446,12 +1446,12 @@ const imprimirHistorial = () => {
     ))}
   </select>
 )}
-    <textarea
+    {/*<textarea
   placeholder="Observaciones"
   value={observaciones}
   onChange={(e) => setObservaciones(e.target.value)}
   className="w-full border p-2 rounded-xl mb-2"
-/>
+/>*/}
 
     {/*<button
   onClick={() => setMostrarFinalizar(true)}
