@@ -1,6 +1,61 @@
 import { useState, useEffect } from "react";
 import { API_URL } from "./config";
 
+// =====================================================
+// INDICADOR DE CONEXIÓN ELÉCTRICA
+// =====================================================
+
+const IndicadorRed = ({ conectado }) => {
+
+  return (
+    <div
+      className={`flex items-center gap-3 p-3 rounded-xl mb-4 ${
+        conectado
+          ? "bg-green-50 border border-green-300"
+          : "bg-red-50 border border-red-300"
+      }`}
+    >
+
+      <img
+        src={
+          conectado
+            ? "/imagenes/conectado.png"
+            : "/imagenes/desconectado.png"
+        }
+        alt={
+          conectado
+            ? "Equipo conectado a la red eléctrica"
+            : "Equipo desconectado de la red eléctrica"
+        }
+        className="w-12 h-12 object-contain"
+      />
+
+      <div>
+
+        <p
+          className={`font-bold ${
+            conectado
+              ? "text-green-700"
+              : "text-red-700"
+          }`}
+        >
+          {conectado
+            ? "Equipo conectado a la red eléctrica"
+            : "Equipo desconectado de la red eléctrica"}
+        </p>
+
+        <p className="text-sm text-gray-600">
+          {conectado
+            ? "Mantener conectado durante esta etapa."
+            : "Desconectar de la red eléctrica durante esta etapa."}
+        </p>
+
+      </div>
+
+    </div>
+  );
+};
+
 export default function RIC29({ setVista, personal }) {
 
   // =====================================================
@@ -1743,7 +1798,7 @@ const volver = () => {
             <h2 className="text-xl font-bold">
               2. Entrega de energía
             </h2>
-
+            <IndicadorRed conectado={true} />
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 my-4">
               Con el equipo conectado a la red eléctrica setear los valores de energía requeridos. En el caso de que el valor requerido no este disponible usar la casilla de verificación de "No aplica".
               Para la medición de Máx. energía se debe ingresar primero el valor máximo permitido por el equipo
@@ -2007,7 +2062,7 @@ const volver = () => {
             <h2 className="text-xl font-bold">
               3. Tiempo de carga
             </h2>
-
+            <IndicadorRed conectado={true} />
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 my-4">
               Con el equipo conectado a la red eléctrica setear el valor máximo de energía permitido por el equipo.
             </p>
@@ -2108,7 +2163,7 @@ const volver = () => {
             <h2 className="text-xl font-bold">
               4. Estado de batería
             </h2>
-
+            <IndicadorRed conectado={false} />
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 my-4">
               Con el equipo desconectado de la red eléctrica setear el valor máximo de energía permitido por el equipo.
             </p>
@@ -2244,7 +2299,7 @@ const volver = () => {
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 my-4">
               Reconectar el equipo a la red eléctrica y activar la función de sincronismo. En el caso de no estar disponible usar la casilla de verificación de "No aplica".
             </p>
-
+            <IndicadorRed conectado={true} />
             <p className="font-semibold mb-2">
               Tiempo entre onda R y descarga
             </p>
@@ -2349,7 +2404,7 @@ const volver = () => {
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 my-4">
               Con el equipo conectado a la red eléctrica verificar la correspondencia de los valores seteados en el simulador.
             </p>
-
+            <IndicadorRed conectado={true} />
             {["60", "120"].map(
               (frecuencia) => (
 
