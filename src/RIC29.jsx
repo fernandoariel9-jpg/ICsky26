@@ -1236,15 +1236,12 @@ const volver = () => {
         // ENERGÍA
         // -----------------------------------------
 
-        energia: energia.map((e, index) => ({
+       energia: energia.map((e, index) => ({
   energia_nominal:
-    index === 5
-      ? (
-          e.nominal ??
-          Number(e.resultado) ||
-          null
-        )
-      : e.nominal,
+    e.nominal !== null &&
+    e.nominal !== ""
+      ? Number(e.nominal)
+      : null,
 
   resultado_medicion:
     e.resultado === ""
@@ -1265,7 +1262,6 @@ const volver = () => {
       ? null
       : e.conforme
 })),
-
         // -----------------------------------------
         // CARGA
         // -----------------------------------------
