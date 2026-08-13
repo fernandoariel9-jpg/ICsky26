@@ -365,64 +365,106 @@ export default function RIC29({ setVista, personal }) {
   // MÁXIMA ENERGÍA
   // =====================================================
 
-  const calcularMaxEnergia = (
-    valorFabricante,
-    resultadoMedicion
-  ) => {
+ const calcularMaxEnergia = (
+  valorFabricante,
+  resultadoMedicion
+) => {
 
-    const copia = [...energia];
+  const copia = [...energia];
 
-    const fabricante =
-      Number(valorFabricante);
+  const fabricante =
+    Number(valorFabricante);
 
-    const resultado =
-      Number(resultadoMedicion);
+  const resultado =
+    Number(resultadoMedicion);
 
-    if (
-      !fabricante ||
-      !resultadoMedicion
-    ) {
+  // -----------------------------------------------
+  // VALORES INCOMPLETOS
+  // -----------------------------------------------
 
-      copia[5].resultado =
-        resultadoMedicion || "";
-
-      copia[5].fabricante =
-        valorFabricante || "";
-
-      copia[5].conforme = null;
-
-      setEnergia(copia);
-
-      return;
-    }
-
-    const min =
-      fabricante * 0.85;
-
-    const max =
-      fabricante * 1.15;
+  if (
+    !fabricante ||
+    !resultadoMedicion
+  ) {
 
     copia[5] = {
       ...copia[5],
 
-      fabricante,
+      // Guardamos también el valor del fabricante
+      nominal:
+        valorFabricante || "",
 
-      resultado,
+      fabricante:
+        valorFabricante || "",
 
-      min,
-
-      max,
-
-      conforme:
-        resultado >= min &&
-        resultado <= max,
+      resultado:
+        resultadoMedicion || "",
 
       incertidumbre:
-        fabricante * 0.15
+        null,
+
+      min:
+        null,
+
+      max:
+        null,
+
+      conforme:
+        null
     };
 
     setEnergia(copia);
+
+    return;
+  }
+
+  // -----------------------------------------------
+  // RANGO DE ACEPTACIÓN ±15 %
+  // -----------------------------------------------
+
+  const min =
+    fabricante * 0.85;
+
+  const max =
+    fabricante * 1.15;
+
+  const incertidumbre =
+    fabricante * 0.15;
+
+  // -----------------------------------------------
+  // GUARDAR MEDICIÓN
+  // -----------------------------------------------
+
+  copia[5] = {
+    ...copia[5],
+
+    // IMPORTANTE:
+    // Este es el valor que irá a
+    // ric29_energia.energia_nominal
+    nominal:
+      fabricante,
+
+    // Lo conservamos también como fabricante
+    fabricante,
+
+    // Resultado medido por el técnico
+    resultado,
+
+    // Incertidumbre = 15 %
+    incertidumbre,
+
+    // Rango de aceptación
+    min,
+    max,
+
+    // Resultado de la comparación
+    conforme:
+      resultado >= min &&
+      resultado <= max
   };
+
+  setEnergia(copia);
+};
 
   // =====================================================
   // CAMBIAR INSPECCIÓN
@@ -1194,42 +1236,35 @@ const volver = () => {
         // ENERGÍA
         // -----------------------------------------
 
-        energia:
+        energia: energia.map((e, index) => ({
+  energia_nominal:
+    index === 5
+      ? (
+          e.nominal ??
+          Number(e.resultado) ||
+          null
+        )
+      : e.nominal,
 
-          energia.map(
-            (m) => ({
+  resultado_medicion:
+    e.resultado === ""
+      ? null
+      : Number(e.resultado),
 
-              numero_medicion:
-                m.numero,
+  incertidumbre:
+    e.incertidumbre,
 
-              energia_nominal:
-                m.nominal,
+  rango_min:
+    e.min,
 
-              resultado_medicion:
-                m.resultado,
+  rango_max:
+    e.max,
 
-              incertidumbre:
-                m.incertidumbre,
-
-              rango_min:
-                m.min,
-
-              rango_max:
-                m.max,
-
-              fabricante:
-                m.fabricante || null,
-
-              conforme:
-                m.noAplica
-                  ? null
-                  : m.conforme,
-
-              no_aplica:
-                m.noAplica
-
-            })
-          ),
+  conforme:
+    e.noAplica
+      ? null
+      : e.conforme
+})),
 
         // -----------------------------------------
         // CARGA
