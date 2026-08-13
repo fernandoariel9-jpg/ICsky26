@@ -1759,7 +1759,7 @@ const volver = () => {
                 {energiaActual + 1} / 6
               </p>
 
-              <p className="font-semibold">
+              <p className="text-2xl font-bold">
                 {
                   energia[
                     energiaActual
