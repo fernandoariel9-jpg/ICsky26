@@ -1098,7 +1098,7 @@ if (busqueda.trim()) {
             </p>
           )}
 
-{t.numero_serie &&
+{/*{t.numero_serie &&
  !t.fin &&
  (!t.diagnostico || t.diagnostico.trim() === "") && (
   <button
@@ -1107,7 +1107,7 @@ if (busqueda.trim()) {
   >
     🔧 Iniciar mantenimiento
   </button>
-)}
+)}*/}
 
 {t.numero_serie && (
   <button
