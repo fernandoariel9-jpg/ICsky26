@@ -1513,14 +1513,12 @@ console.log(
   data.ric29_id
 );
       alert(
-        "Mantenimiento preventivo guardado correctamente ✅"
-      );
+  "Mantenimiento preventivo guardado correctamente ✅"
+);
 
-      localStorage.removeItem(
-        "tareaActiva"
-      );
-
-      setVista("equipos");
+localStorage.removeItem(
+  "tareaActiva"
+);
 
     } catch (err) {
 
