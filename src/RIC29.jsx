@@ -77,6 +77,7 @@ export default function RIC29({ setVista, personal }) {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
+  const [ric29Id, setRic29Id] = useState(null);
 
   // =====================================================
   // DATOS DEL EQUIPO
@@ -519,6 +520,19 @@ export default function RIC29({ setVista, personal }) {
   };
 
   setEnergia(copia);
+};
+
+  const abrirPDF = () => {
+
+  if (!ric29Id) {
+    alert("Primero debe guardar el mantenimiento.");
+    return;
+  }
+
+  window.open(
+    `${API_URL.Ric29}/${ric29Id}/pdf`,
+    "_blank"
+  );
 };
 
   // =====================================================
@@ -1464,33 +1478,40 @@ const volver = () => {
         payload
       );
 
-      const res = await fetch(
-        API_URL.Ric29,
-        {
-          method: "POST",
+     const res = await fetch(
+  API_URL.Ric29,
+  {
+    method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
+    headers: {
+      "Content-Type":
+        "application/json"
+    },
 
-          body:
-            JSON.stringify(payload)
-        }
-      );
+    body:
+      JSON.stringify(payload)
+  }
+);
 
-      const data =
-        await res.json();
+const data =
+  await res.json();
 
-      if (!res.ok) {
+if (!res.ok) {
 
-        throw new Error(
-          data.error ||
-          "Error al guardar RIC29"
-        );
+  throw new Error(
+    data.error ||
+    "Error al guardar RIC29"
+  );
 
-      }
+}
 
+// Guardar el ID del RIC29 recién creado
+setRic29Id(data.id);
+
+console.log(
+  "RIC29 creado con ID:",
+  data.id
+);
       alert(
         "Mantenimiento preventivo guardado correctamente ✅"
       );
@@ -2667,6 +2688,17 @@ const volver = () => {
                 : "💾 Guardar preventivo"}
 
             </button>
+
+            {ric29Id && (
+
+  <button
+    onClick={abrirPDF}
+    className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-3 mt-3 font-bold"
+  >
+    📄 Ver / Descargar PDF
+  </button>
+
+)}
 
           </div>
 
