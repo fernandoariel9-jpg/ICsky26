@@ -1506,11 +1506,11 @@ if (!res.ok) {
 }
 
 // Guardar el ID del RIC29 recién creado
-setRic29Id(data.id);
+setRic29Id(data.ric29_id);
 
 console.log(
   "RIC29 creado con ID:",
-  data.id
+  data.ric29_id
 );
       alert(
         "Mantenimiento preventivo guardado correctamente ✅"
