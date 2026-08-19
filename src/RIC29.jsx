@@ -2689,12 +2689,23 @@ localStorage.removeItem(
 
             {ric29Id && (
 
-  <button
-    onClick={abrirPDF}
-    className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-3 mt-3 font-bold"
-  >
-    📄 Ver / Descargar PDF
-  </button>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+
+    <button
+      onClick={abrirPDF}
+      className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-3 font-bold"
+    >
+      📄 Ver / Descargar PDF
+    </button>
+
+    <button
+      onClick={() => setVista("equipos")}
+      className="bg-gray-600 hover:bg-gray-700 text-white rounded-xl p-3 font-bold"
+    >
+      🚪 Salir
+    </button>
+
+  </div>
 
 )}
 
