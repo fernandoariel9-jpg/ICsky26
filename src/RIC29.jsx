@@ -78,6 +78,7 @@ export default function RIC29({ setVista, personal }) {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   const [ric29Id, setRic29Id] = useState(null);
+  const [enviandoDrive, setEnviandoDrive] = useState(false);
 
   // =====================================================
   // DATOS DEL EQUIPO
@@ -1539,6 +1540,65 @@ localStorage.removeItem(
     }
   };
 
+  const enviarRIC29Drive = async () => {
+
+  if (!ric29Id) {
+
+    alert(
+      "Primero debe guardar el mantenimiento."
+    );
+
+    return;
+
+  }
+
+  try {
+
+    setEnviandoDrive(true);
+
+    const res =
+      await fetch(
+        `${API_URL.Ric29}/${ric29Id}/drive`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          }
+        }
+      );
+
+    const data =
+      await res.json();
+    if (!res.ok) {
+      throw new Error(
+        data.error ||
+        "Error enviando el PDF a Google Drive"
+      );
+    }
+    console.log(
+      "RIC29 enviado a Drive:",
+      data
+    );
+    alert(
+      `✅ PDF enviado a Google Drive\n\n` +
+      `Carpeta: ${data.carpeta.nombre}`
+    );
+  } catch (error) {
+    console.error(
+      "ERROR GOOGLE DRIVE:",
+      error
+    );
+    alert(
+      error.message ||
+      "Error enviando el PDF a Google Drive"
+    );
+  } finally {
+    setEnviandoDrive(false);
+  }
+};
+
   // =====================================================
   // BARRA DE PROGRESO
   // =====================================================
@@ -2704,6 +2764,28 @@ localStorage.removeItem(
     >
       🚪 Salir
     </button>
+
+      <button
+    onClick={enviarRIC29Drive}
+    disabled={enviandoDrive}
+    className="
+      w-full
+      bg-blue-600
+      hover:bg-blue-700
+      disabled:bg-gray-400
+      text-white
+      rounded-xl
+      p-3
+      mt-3
+      font-bold
+    "
+  >
+
+    {enviandoDrive
+      ? "☁️ Enviando a Google Drive..."
+      : "☁️ Enviar a Google Drive"}
+
+  </button>
 
   </div>
 
