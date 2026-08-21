@@ -632,79 +632,69 @@ export default function RIC37({ setVista, personal }) {
           Clasificación del equipo
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div className="grid grid-cols-2 gap-4">
 
-          <div>
+  <div>
+    <label className="block font-semibold mb-1">
+      CLASE
+    </label>
 
-            <label className="block font-semibold mb-1">
-              CLASE
-            </label>
+    <select
+      value={clase}
+      onChange={(e) =>
+        setClase(e.target.value)
+      }
+      className="w-full border rounded-lg p-2"
+    >
+      <option value="">
+        Seleccionar
+      </option>
 
-            <select
-              value={clase}
-              onChange={(e) =>
-                setClase(e.target.value)
-              }
-              className="w-full border rounded-lg p-2"
-            >
+      <option value="CLASE I">
+        CLASE I
+      </option>
 
-              <option value="">
-                Seleccionar
-              </option>
+      <option value="CLASE II">
+        CLASE II
+      </option>
 
-              <option value="CLASE I">
-                CLASE I
-              </option>
+      <option value="CLASE III">
+        CLASE III
+      </option>
+    </select>
+  </div>
 
-              <option value="CLASE II">
-                CLASE II
-              </option>
+  <div>
+    <label className="block font-semibold mb-1">
+      TIPO DE PROTECCIÓN
+    </label>
 
-              <option value="CLASE III">
-                CLASE III
-              </option>
+    <select
+      value={tipoProteccion}
+      onChange={(e) =>
+        setTipoProteccion(e.target.value)
+      }
+      className="w-full border rounded-lg p-2"
+    >
+      <option value="">
+        Seleccionar
+      </option>
 
-            </select>
+      <option value="TIPO B">
+        TIPO B
+      </option>
 
-          </div>
+      <option value="TIPO BF">
+        TIPO BF
+      </option>
 
-          <div>
+      <option value="TIPO CF">
+        TIPO CF
+      </option>
+    </select>
+  </div>
 
-            <label className="block font-semibold mb-1">
-              TIPO DE PROTECCIÓN
-            </label>
-
-            <select
-              value={tipoProteccion}
-              onChange={(e) =>
-                setTipoProteccion(
-                  e.target.value
-                )
-              }
-              className="w-full border rounded-lg p-2"
-            >
-
-              <option value="">
-                Seleccionar
-              </option>
-
-              <option value="TIPO B">
-                TIPO B
-              </option>
-
-              <option value="TIPO BF">
-                TIPO BF
-              </option>
-
-              <option value="TIPO CF">
-                TIPO CF
-              </option>
-
-            </select>
-
-          </div>
-
-        </div>
+</div>
 
       </div>
 
@@ -716,47 +706,39 @@ export default function RIC37({ setVista, personal }) {
           Mediciones
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
 
-          <div>
+  <div>
+    <label className="block font-semibold mb-1">
+      MEDICIÓN DE TENSIÓN
+    </label>
 
-            <label className="block font-semibold mb-1">
-              MEDICIÓN DE TENSIÓN
-            </label>
+    <input
+      type="text"
+      value={medicionTension}
+      onChange={(e) =>
+        setMedicionTension(e.target.value)
+      }
+      className="w-full border rounded-lg p-2"
+    />
+  </div>
 
-            <input
-              type="text"
-              value={medicionTension}
-              onChange={(e) =>
-                setMedicionTension(
-                  e.target.value
-                )
-              }
-              className="w-full border rounded-lg p-2"
-            />
+  <div>
+    <label className="block font-semibold mb-1">
+      MEDICIÓN DE CORRIENTE
+    </label>
 
-          </div>
+    <input
+      type="text"
+      value={medicionCorriente}
+      onChange={(e) =>
+        setMedicionCorriente(e.target.value)
+      }
+      className="w-full border rounded-lg p-2"
+    />
+  </div>
 
-          <div>
-
-            <label className="block font-semibold mb-1">
-              MEDICIÓN DE CORRIENTE
-            </label>
-
-            <input
-              type="text"
-              value={medicionCorriente}
-              onChange={(e) =>
-                setMedicionCorriente(
-                  e.target.value
-                )
-              }
-              className="w-full border rounded-lg p-2"
-            />
-
-          </div>
-
-        </div>
+</div>
 
       </div>
 
