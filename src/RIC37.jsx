@@ -4,15 +4,25 @@ import { API_URL } from "./config";
 export default function RIC37({ setVista, personal }) {
 
   // =====================================================
-  // ESTADO GENERAL
+  // ETAPAS
   // =====================================================
 
+  const etapas = [
+    "Clasificación",
+    "Mediciones",
+    "Determinaciones",
+    "Partes aplicables",
+    "Resumen"
+  ];
+
+  const [etapa, setEtapa] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
+  const [ric37Id, setRic37Id] = useState(null);
 
   // =====================================================
-  // DATOS DEL MANTENIMIENTO / EQUIPO
+  // DATOS DEL EQUIPO / MANTENIMIENTO
   // =====================================================
 
   const [datos, setDatos] = useState({
@@ -24,27 +34,25 @@ export default function RIC37({ setVista, personal }) {
     area: "",
     servicio: "",
     sub_servicio: "",
+    encargado: "",
     tecnico: personal?.nombre || ""
   });
 
   // =====================================================
-  // DATOS DEL ENSAYO
+  // DATOS GENERALES DEL ENSAYO
   // =====================================================
 
   const [clase, setClase] = useState("");
   const [tipoProteccion, setTipoProteccion] = useState("");
-
   const [medicionTension, setMedicionTension] = useState("");
   const [medicionCorriente, setMedicionCorriente] = useState("");
-
-  // =====================================================
-  // INDICACIONES
-  // =====================================================
-
   const [indicaciones, setIndicaciones] = useState("");
+  const [observaciones, setObservaciones] = useState("");
+  const [firmaTecnico, setFirmaTecnico] = useState("");
+  const [firmaResponsable, setFirmaResponsable] = useState("");
 
   // =====================================================
-  // DETERMINACIONES
+  // DETERMINACIONES 1, 2 Y 3
   // =====================================================
 
   const [determinaciones, setDeterminaciones] = useState([
@@ -90,20 +98,7 @@ export default function RIC37({ setVista, personal }) {
     ]);
 
   // =====================================================
-  // OBSERVACIONES GENERALES
-  // =====================================================
-
-  const [observaciones, setObservaciones] = useState("");
-
-  // =====================================================
-  // FIRMAS
-  // =====================================================
-
-  const [firmaTecnico, setFirmaTecnico] = useState("");
-  const [firmaResponsable, setFirmaResponsable] = useState("");
-
-  // =====================================================
-  // CARGAR TAREA ACTIVA
+  // CARGAR DATOS
   // =====================================================
 
   useEffect(() => {
@@ -116,62 +111,50 @@ export default function RIC37({ setVista, personal }) {
           localStorage.getItem("tareaActiva");
 
         if (!tareaGuardada) {
-          throw new Error(
-            "No existe un mantenimiento activo."
-          );
+          throw new Error("No existe un mantenimiento activo.");
         }
 
-        const tarea =
-          JSON.parse(tareaGuardada);
+        const tarea = JSON.parse(tareaGuardada);
+        let equipo = null;
 
-        console.log(
-          "RIC37 - TAREA ACTIVA:",
-          tarea
-        );
+        if (tarea.numero_serie) {
 
-        if (!tarea.id && !tarea.ric01_id) {
-          throw new Error(
-            "El mantenimiento no tiene ID."
+          const res = await fetch(
+            `${API_URL.BuscarEquipo}/${encodeURIComponent(
+              tarea.numero_serie
+            )}`
           );
+
+          if (res.ok) {
+            equipo = await res.json();
+          }
         }
 
         setDatos({
           ric01_id:
-            tarea.ric01_id ||
-            tarea.id ||
-            "",
-
+            tarea.ric01_id || tarea.id || "",
           equipo_id:
-            tarea.equipo_id ||
-            "",
-
+            equipo?.id || tarea.equipo_id || "",
           numero_serie:
-            tarea.numero_serie ||
-            "",
-
+            equipo?.numero_serie || tarea.numero_serie || "",
           descripcion:
-            tarea.descripcion ||
-            "",
-
+            equipo?.descripcion || tarea.descripcion || "",
           marca_modelo:
-            tarea.marca_modelo ||
-            "",
-
+            equipo?.marca_modelo || tarea.marca_modelo || "",
           area:
-            tarea.area ||
-            "",
-
+            equipo?.area || tarea.area || "",
           servicio:
-            tarea.servicio ||
-            "",
-
+            equipo?.servicio || tarea.servicio || "",
           sub_servicio:
+            equipo?.sub_servicio ||
             tarea.sub_servicio ||
             tarea.subservicio ||
             "",
-
+          encargado:
+            equipo?.encargado || tarea.encargado || "",
           tecnico:
             personal?.nombre ||
+            tarea.usuario ||
             tarea.asignado ||
             tarea.tecnico ||
             ""
@@ -179,22 +162,16 @@ export default function RIC37({ setVista, personal }) {
 
       } catch (err) {
 
-        console.error(
-          "ERROR CARGANDO RIC37:",
-          err
-        );
+        console.error("Error cargando datos RIC37:", err);
 
         setError(
           err.message ||
-          "No se pudieron cargar los datos."
+          "No se pudieron cargar los datos del equipo."
         );
 
       } finally {
-
         setCargando(false);
-
       }
-
     };
 
     cargarDatos();
@@ -202,146 +179,197 @@ export default function RIC37({ setVista, personal }) {
   }, [personal]);
 
   // =====================================================
-  // CAMBIAR DETERMINACIÓN
+  // CONFORMIDAD
   // =====================================================
 
-  const cambiarDeterminacion = (
-    index,
-    campo,
-    valor
-  ) => {
+  const calcularConformidad = (medicion, rango) => {
 
-    setDeterminaciones(
-      (actuales) =>
-        actuales.map((item, i) =>
-          i === index
-            ? {
-                ...item,
-                [campo]: valor
-              }
-            : item
-        )
-    );
-
-  };
-
-  // =====================================================
-  // CALCULAR RESULTADO
-  // =====================================================
-
-  const calcularConformidad = (
-    medicion,
-    rango
-  ) => {
-
-    if (
-      medicion === "" ||
-      medicion === null ||
-      medicion === undefined
-    ) {
+    if (medicion === "" || medicion === null || medicion === undefined) {
       return null;
     }
 
-    const valor =
-      Number(
-        String(medicion).replace(",", ".")
-      );
+    const valor = Number(
+      String(medicion).replace(",", ".")
+    );
 
     if (Number.isNaN(valor)) {
       return null;
     }
 
     return valor <= rango;
-
   };
 
   // =====================================================
-  // CAMBIAR MEDICIÓN 4
+  // CAMBIAR DETERMINACIÓN
   // =====================================================
 
-  const cambiarMedicionPartes = (
-    id,
-    campo,
-    valor
-  ) => {
+  const cambiarDeterminacion = (index, campo, valor) => {
 
-    setMedicionesPartesAplicables(
-      (actuales) =>
-        actuales.map((item) => {
-
-          if (item.id !== id) {
-            return item;
-          }
-
-          const actualizado = {
-            ...item,
-            [campo]: valor
-          };
-
-          if (
-            campo === "medicion" &&
-            valor !== ""
-          ) {
-
-            actualizado.conforme =
-              calcularConformidad(
-                valor,
-                0.3
-              );
-
-          }
-
-          return actualizado;
-
-        })
+    setDeterminaciones((actuales) =>
+      actuales.map((item, i) =>
+        i === index
+          ? { ...item, [campo]: valor }
+          : item
+      )
     );
+  };
 
+  const cambiarMedicionDeterminacion = (index, valor) => {
+
+    setDeterminaciones((actuales) =>
+      actuales.map((item, i) => {
+
+        if (i !== index) {
+          return item;
+        }
+
+        return {
+          ...item,
+          medicion: valor,
+          conforme: calcularConformidad(valor, item.rango)
+        };
+      })
+    );
   };
 
   // =====================================================
-  // AGREGAR MEDICIÓN 4
+  // DETERMINACIÓN 4
   // =====================================================
+
+  const cambiarMedicionPartes = (id, campo, valor) => {
+
+    setMedicionesPartesAplicables((actuales) =>
+      actuales.map((item) => {
+
+        if (item.id !== id) {
+          return item;
+        }
+
+        const actualizado = {
+          ...item,
+          [campo]: valor
+        };
+
+        if (campo === "medicion") {
+          actualizado.conforme = calcularConformidad(valor, 0.3);
+        }
+
+        return actualizado;
+      })
+    );
+  };
 
   const agregarMedicionPartes = () => {
 
-    setMedicionesPartesAplicables(
-      (actuales) => [
-        ...actuales,
-        {
-          id: Date.now(),
-          medicion: "",
-          observaciones: "",
-          conforme: null,
-          noAplica: false
-        }
-      ]
-    );
-
+    setMedicionesPartesAplicables((actuales) => [
+      ...actuales,
+      {
+        id: Date.now(),
+        medicion: "",
+        observaciones: "",
+        conforme: null,
+        noAplica: false
+      }
+    ]);
   };
-
-  // =====================================================
-  // ELIMINAR MEDICIÓN 4
-  // =====================================================
 
   const eliminarMedicionPartes = (id) => {
 
-    if (
-      medicionesPartesAplicables.length === 1
-    ) {
+    if (medicionesPartesAplicables.length === 1) {
       return;
     }
 
-    setMedicionesPartesAplicables(
-      (actuales) =>
-        actuales.filter(
-          (item) => item.id !== id
-        )
+    setMedicionesPartesAplicables((actuales) =>
+      actuales.filter((item) => item.id !== id)
     );
-
   };
 
   // =====================================================
-  // VALIDACIÓN
+  // RESULTADOS NO CONFORMES
+  // =====================================================
+
+  const obtenerNoConformes = () => {
+
+    const resultados = [];
+
+    determinaciones.forEach((item) => {
+
+      if (item.conforme === false && !item.noAplica) {
+        resultados.push({
+          etapa: "Determinaciones",
+          medicion: `${item.numero} - ${item.nombre}`,
+          resultado: item.medicion,
+          rango: `≤ ${item.rango}`
+        });
+      }
+    });
+
+    medicionesPartesAplicables.forEach((item, index) => {
+
+      if (item.conforme === false && !item.noAplica) {
+        resultados.push({
+          etapa: "Partes aplicables",
+          medicion: `Medición ${index + 1}`,
+          resultado: item.medicion,
+          rango: "≤ 0.3"
+        });
+      }
+    });
+
+    return resultados;
+  };
+
+  // =====================================================
+  // VALIDAR ETAPA
+  // =====================================================
+
+  const validarDeterminaciones = () => {
+
+    return determinaciones.every((item) =>
+      item.noAplica ||
+      (item.medicion !== "" && item.conforme !== null)
+    );
+  };
+
+  const validarPartesAplicables = () => {
+
+    return medicionesPartesAplicables.every((item) =>
+      item.noAplica ||
+      (item.medicion !== "" && item.conforme !== null)
+    );
+  };
+
+  // =====================================================
+  // NAVEGACIÓN
+  // =====================================================
+
+  const volver = () => {
+
+    if (etapa === 0) {
+      setVista("equipos");
+      return;
+    }
+
+    setEtapa((prev) => prev - 1);
+  };
+
+  const continuar = () => {
+
+    if (etapa === 2 && !validarDeterminaciones()) {
+      alert("Complete todas las determinaciones antes de continuar.");
+      return;
+    }
+
+    if (etapa === 3 && !validarPartesAplicables()) {
+      alert("Complete todas las mediciones antes de continuar.");
+      return;
+    }
+
+    setEtapa((prev) => prev + 1);
+  };
+
+  // =====================================================
+  // GUARDAR
   // =====================================================
 
   const validarFormulario = () => {
@@ -358,18 +386,20 @@ export default function RIC37({ setVista, personal }) {
       return "Seleccione el tipo de protección.";
     }
 
+    if (!validarDeterminaciones()) {
+      return "Complete las determinaciones antes de guardar.";
+    }
+
+    if (!validarPartesAplicables()) {
+      return "Complete las mediciones de partes aplicables antes de guardar.";
+    }
+
     return null;
-
   };
-
-  // =====================================================
-  // GUARDAR
-  // =====================================================
 
   const guardar = async () => {
 
-    const mensaje =
-      validarFormulario();
+    const mensaje = validarFormulario();
 
     if (mensaje) {
       alert(mensaje);
@@ -381,110 +411,62 @@ export default function RIC37({ setVista, personal }) {
       setGuardando(true);
       setError("");
 
+      const noConformes = obtenerNoConformes();
+
       const payload = {
-
-        ric01_id:
-          datos.ric01_id,
-
-        equipo_id:
-          datos.equipo_id,
-
-        numero_serie:
-          datos.numero_serie,
-
-        descripcion:
-          datos.descripcion,
-
-        marca_modelo:
-          datos.marca_modelo,
-
-        area:
-          datos.area,
-
-        servicio:
-          datos.servicio,
-
-        sub_servicio:
-          datos.sub_servicio,
-
-        tecnico:
-          datos.tecnico,
-
+        ric01_id: datos.ric01_id,
+        equipo_id: datos.equipo_id,
+        numero_serie: datos.numero_serie,
+        descripcion: datos.descripcion,
+        marca_modelo: datos.marca_modelo,
+        area: datos.area,
+        servicio: datos.servicio,
+        sub_servicio: datos.sub_servicio,
+        tecnico: datos.tecnico,
         clase,
-
-        tipo_proteccion:
-          tipoProteccion,
-
-        medicion_tension:
-          medicionTension,
-
-        medicion_corriente:
-          medicionCorriente,
-
+        tipo_proteccion: tipoProteccion,
+        medicion_tension: medicionTension,
+        medicion_corriente: medicionCorriente,
         indicaciones,
-
         determinaciones,
-
-        mediciones_partes_aplicables:
-          medicionesPartesAplicables,
-
+        mediciones_partes_aplicables: medicionesPartesAplicables,
+        resultado_general:
+          noConformes.length === 0
+            ? "CONFORME"
+            : "NO CONFORME",
         observaciones,
-
-        firma_tecnico:
-          firmaTecnico,
-
-        firma_responsable:
-          firmaResponsable
+        firma_tecnico: firmaTecnico,
+        firma_responsable: firmaResponsable
       };
 
-      console.log(
-        "RIC37 - DATOS A GUARDAR:",
-        payload
+      const respuesta = await fetch(
+        `${API_URL.Base}/api/ric37`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        }
       );
 
-      const respuesta =
-        await fetch(
-          `${API_URL.Base}/api/ric37`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-            body:
-              JSON.stringify(payload)
-          }
-        );
-
-      const data =
-        await respuesta.json();
+      const data = await respuesta.json();
 
       if (!respuesta.ok) {
-
         throw new Error(
-          data.error ||
-          "Error guardando RIC37"
+          data.error || "Error guardando RIC37"
         );
-
       }
 
-      console.log(
-        "RIC37 GUARDADO:",
-        data
+      setRic37Id(
+        data.ric37_id || data.id || null
       );
 
-      alert(
-        "RIC37 guardado correctamente ✅"
-      );
-
-      setVista("equipos");
+      alert("RIC37 guardado correctamente ✅");
 
     } catch (err) {
 
-      console.error(
-        "ERROR GUARDANDO RIC37:",
-        err
-      );
+      console.error("ERROR GUARDANDO RIC37:", err);
 
       setError(
         err.message ||
@@ -497,11 +479,8 @@ export default function RIC37({ setVista, personal }) {
       );
 
     } finally {
-
       setGuardando(false);
-
     }
-
   };
 
   // =====================================================
@@ -509,23 +488,29 @@ export default function RIC37({ setVista, personal }) {
   // =====================================================
 
   const salir = () => {
-
     setVista("equipos");
-
   };
 
   // =====================================================
-  // CARGANDO
+  // PROGRESO
+  // =====================================================
+
+  const progreso =
+    ((etapa + 1) / etapas.length) * 100;
+
+  // =====================================================
+  // LOADING
   // =====================================================
 
   if (cargando) {
 
     return (
       <div className="p-6 text-center">
-        Cargando RIC37...
+        <p className="text-lg">
+          ⏳ Cargando datos del equipo...
+        </p>
       </div>
     );
-
   }
 
   // =====================================================
@@ -535,611 +520,780 @@ export default function RIC37({ setVista, personal }) {
   if (error && !datos.ric01_id) {
 
     return (
-      <div className="p-6">
+      <div className="p-6 max-w-xl mx-auto">
 
-        <div className="bg-red-50 border border-red-300 text-red-700 p-4 rounded-xl">
-          {error}
+        <div className="bg-red-100 text-red-700 p-4 rounded-xl">
+          ⚠️ {error}
         </div>
 
         <button
           onClick={salir}
-          className="mt-4 w-full bg-gray-600 text-white py-2 rounded-xl"
+          className="w-full bg-gray-500 text-white rounded-xl p-3 mt-4"
         >
-          Salir
+          ← Volver
         </button>
 
       </div>
     );
-
   }
 
   // =====================================================
-  // FORMULARIO
+  // RENDER
   // =====================================================
 
   return (
 
-    <div className="p-4 max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
 
-      {/* ENCABEZADO */}
+      {/* =================================================
+          BARRA DE PROGRESO FIJA
+      ================================================= */}
 
-      <div className="bg-white rounded-xl shadow p-4 mb-4">
+      <div className="sticky top-0 z-50 bg-white shadow">
 
-        <h1 className="text-xl font-bold text-center">
-          RIC 37 - ENSAYO DE SEGURIDAD ELÉCTRICA
-        </h1>
+        <div className="max-w-xl mx-auto p-3">
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4 text-sm">
+          <div className="flex justify-between text-xs text-gray-500 mb-1">
 
-          <p>
-            <b>Equipo:</b>{" "}
-            {datos.descripcion || "-"}
-          </p>
+            <p className="font-bold">
+              RIC37 - Seguridad eléctrica
+            </p>
 
-          <p>
-            <b>Marca / Modelo:</b>{" "}
-            {datos.marca_modelo || "-"}
-          </p>
+            <span>
+              {etapas[etapa]}
+            </span>
 
-          <p>
-            <b>N° de serie:</b>{" "}
-            {datos.numero_serie || "-"}
-          </p>
+            <span>
+              {etapa + 1} / {etapas.length}
+            </span>
 
-          <p>
-            <b>Servicio:</b>{" "}
-            {datos.servicio || "-"}
-          </p>
+          </div>
 
-          <p>
-            <b>Subservicio:</b>{" "}
-            {datos.sub_servicio || "-"}
-          </p>
+          <div className="w-full bg-gray-200 rounded-full h-2">
 
-          <p>
-            <b>Técnico:</b>{" "}
-            {datos.tecnico || "-"}
-          </p>
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progreso}%` }}
+            />
+
+          </div>
 
         </div>
 
       </div>
 
-      {/* INDICACIONES */}
+      <div className="p-4 max-w-xl mx-auto pb-10">
 
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+        {/* =================================================
+            DATOS DEL EQUIPO COMPACTOS
+        ================================================= */}
 
-        <h2 className="font-bold mb-2">
-          Indicaciones
-        </h2>
+        <div className="bg-gray-100 rounded-xl p-3 mb-4">
 
-        <textarea
-          value={indicaciones}
-          onChange={(e) =>
-            setIndicaciones(e.target.value)
-          }
-          placeholder="Indicaciones para el ensayo..."
-          className="w-full border rounded-lg p-2 min-h-[80px]"
-        />
+          <div className="flex justify-between items-center">
 
-      </div>
-
-      {/* CLASE / PROTECCIÓN */}
-
-      <div className="bg-white rounded-xl shadow p-4 mb-4">
-
-        <h2 className="font-bold mb-3">
-          Clasificación del equipo
-        </h2>
-
-       <div className="grid grid-cols-2 gap-4">
-
-  <div>
-    <label className="block font-semibold mb-1">
-      CLASE
-    </label>
-
-    <select
-      value={clase}
-      onChange={(e) =>
-        setClase(e.target.value)
-      }
-      className="w-full border rounded-lg p-2"
-    >
-      <option value="">
-        Seleccionar
-      </option>
-
-      <option value="CLASE I">
-        CLASE I
-      </option>
-
-      <option value="CLASE II">
-        CLASE II
-      </option>
-
-      <option value="CLASE III">
-        CLASE III
-      </option>
-    </select>
-  </div>
-
-  <div>
-    <label className="block font-semibold mb-1">
-      TIPO DE PROTECCIÓN
-    </label>
-
-    <select
-      value={tipoProteccion}
-      onChange={(e) =>
-        setTipoProteccion(e.target.value)
-      }
-      className="w-full border rounded-lg p-2"
-    >
-      <option value="">
-        Seleccionar
-      </option>
-
-      <option value="TIPO B">
-        TIPO B
-      </option>
-
-      <option value="TIPO BF">
-        TIPO BF
-      </option>
-
-      <option value="TIPO CF">
-        TIPO CF
-      </option>
-    </select>
-  </div>
-
-</div>
-
-      </div>
-
-      {/* MEDICIONES GENERALES */}
-
-      <div className="bg-white rounded-xl shadow p-4 mb-4">
-
-        <h2 className="font-bold mb-3">
-          Mediciones
-        </h2>
-
-        <div className="grid grid-cols-2 gap-4">
-
-  <div>
-    <label className="block font-semibold mb-1">
-      MEDICIÓN DE TENSIÓN
-    </label>
-
-    <input
-      type="text"
-      value={medicionTension}
-      onChange={(e) =>
-        setMedicionTension(e.target.value)
-      }
-      className="w-full border rounded-lg p-2"
-    />
-  </div>
-
-  <div>
-    <label className="block font-semibold mb-1">
-      MEDICIÓN DE CORRIENTE
-    </label>
-
-    <input
-      type="text"
-      value={medicionCorriente}
-      onChange={(e) =>
-        setMedicionCorriente(e.target.value)
-      }
-      className="w-full border rounded-lg p-2"
-    />
-  </div>
-
-</div>
-
-      </div>
-
-      {/* DETERMINACIONES */}
-
-      <div className="bg-white rounded-xl shadow p-4 mb-4">
-
-        <h2 className="text-lg font-bold mb-4">
-          Determinaciones
-        </h2>
-
-        {determinaciones.map(
-          (item, index) => (
-
-            <div
-              key={item.numero}
-              className="border rounded-xl p-4 mb-4"
-            >
-
-              <h3 className="font-bold mb-3">
-                {item.numero} -{" "}
-                {item.nombre}
-              </h3>
-
-              <label className="block font-semibold mb-1">
-                Medición
-              </label>
-
-              <input
-                type="text"
-                value={item.medicion}
-                disabled={item.noAplica}
-                onChange={(e) => {
-
-                  const valor =
-                    e.target.value;
-
-                  cambiarDeterminacion(
-                    index,
-                    "medicion",
-                    valor
-                  );
-
-                  cambiarDeterminacion(
-                    index,
-                    "conforme",
-                    calcularConformidad(
-                      valor,
-                      item.rango
-                    )
-                  );
-
-                }}
-                className="w-full border rounded-lg p-2 mb-2"
-              />
-
-              <p className="text-sm text-gray-600 mb-2">
-                Rango de aceptación:{" "}
-                <b>{item.rango}</b>
+            <div>
+              <p className="font-bold">
+                {datos.descripcion}
               </p>
 
-              <div className="flex gap-2 flex-wrap mb-2">
+              <p className="text-sm text-gray-600">
+                {datos.marca_modelo}
+              </p>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    cambiarDeterminacion(
-                      index,
-                      "conforme",
-                      true
-                    )
-                  }
-                  disabled={item.noAplica}
-                  className={`px-4 py-2 rounded-lg ${
-                    item.conforme === true
-                      ? "bg-green-600 text-white"
-                      : "bg-gray-200"
-                  }`}
-                >
-                  Conforme
-                </button>
+            <div className="text-right text-xs">
+              <p>
+                <b>Serie:</b> {datos.numero_serie}
+              </p>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    cambiarDeterminacion(
-                      index,
-                      "conforme",
-                      false
-                    )
-                  }
-                  disabled={item.noAplica}
-                  className={`px-4 py-2 rounded-lg ${
-                    item.conforme === false
-                      ? "bg-red-600 text-white"
-                      : "bg-gray-200"
-                  }`}
-                >
-                  No conforme
-                </button>
+              <p>
+                <b>Área:</b> {datos.area}
+              </p>
 
-                <label className="flex items-center gap-2 px-3">
+              <p>
+                <b>Servicio:</b> {datos.servicio}
+              </p>
 
-                  <input
-                    type="checkbox"
-                    checked={item.noAplica}
-                    onChange={(e) => {
+            </div>
 
-                      const marcado =
-                        e.target.checked;
+          </div>
 
-                      cambiarDeterminacion(
-                        index,
-                        "noAplica",
-                        marcado
-                      );
+        </div>
 
-                      if (marcado) {
+        {/* =================================================
+            ETAPA 1 - CLASIFICACIÓN
+        ================================================= */
 
-                        cambiarDeterminacion(
-                          index,
-                          "conforme",
-                          null
-                        );
+        {etapa === 0 && (
 
-                      }
+          <div className="bg-white rounded-xl shadow p-4">
 
-                    }}
-                  />
+            <h2 className="text-xl font-bold mb-2">
+              1. Clasificación del equipo
+            </h2>
 
-                  No aplica
+            <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
+              Seleccionar la clase y el tipo de protección correspondiente al equipo bajo ensayo.
+            </p>
 
+            <div className="grid grid-cols-2 gap-4">
+
+              <div>
+                <label className="font-semibold block mb-1">
+                  CLASE
                 </label>
 
+                <select
+                  value={clase}
+                  onChange={(e) => setClase(e.target.value)}
+                  className="w-full border rounded-xl p-3"
+                >
+                  <option value="">Seleccionar</option>
+                  <option value="CLASE I">CLASE I</option>
+                  <option value="CLASE II">CLASE II</option>
+                  <option value="CLASE III">CLASE III</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-semibold block mb-1">
+                  TIPO DE PROTECCIÓN
+                </label>
+
+                <select
+                  value={tipoProteccion}
+                  onChange={(e) => setTipoProteccion(e.target.value)}
+                  className="w-full border rounded-xl p-3"
+                >
+                  <option value="">Seleccionar</option>
+                  <option value="TIPO B">TIPO B</option>
+                  <option value="TIPO BF">TIPO BF</option>
+                  <option value="TIPO CF">TIPO CF</option>
+                </select>
               </div>
 
             </div>
 
-          )
+            <div className="flex gap-2 mt-6">
+
+              <button
+                onClick={salir}
+                className="flex-1 bg-gray-500 text-white rounded-xl p-3"
+              >
+                ← Volver
+              </button>
+
+              <button
+                onClick={continuar}
+                disabled={!clase || !tipoProteccion}
+                className="flex-1 bg-blue-600 disabled:bg-gray-300 text-white rounded-xl p-3"
+              >
+                Continuar →
+              </button>
+
+            </div>
+
+          </div>
+
         )}
 
         {/* =================================================
-            DETERMINACIÓN 4
-        ================================================= */}
+            ETAPA 2 - MEDICIONES
+        ================================================= */
 
-        <div className="border rounded-xl p-4">
+        {etapa === 1 && (
 
-          <h3 className="font-bold mb-4">
-            4 - Corriente de fuga de partes aplicables
-          </h3>
+          <div className="bg-white rounded-xl shadow p-4">
 
-          {medicionesPartesAplicables.map(
-            (item, index) => (
+            <h2 className="text-xl font-bold mb-2">
+              2. Mediciones
+            </h2>
 
-              <div
-                key={item.id}
-                className="border rounded-lg p-3 mb-3 bg-gray-50"
-              >
+            <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
+              Registrar las mediciones generales realizadas durante el ensayo de seguridad eléctrica.
+            </p>
 
-                <div className="flex justify-between items-center mb-2">
+            <div className="grid grid-cols-2 gap-4">
 
-                  <span className="font-semibold">
-                    Medición {index + 1}
-                  </span>
-
-                  {medicionesPartesAplicables.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        eliminarMedicionPartes(
-                          item.id
-                        )
-                      }
-                      className="text-red-600 text-sm"
-                    >
-                      Eliminar
-                    </button>
-                  )}
-
-                </div>
-
-                <label className="block font-semibold mb-1">
-                  Medición
+              <div>
+                <label className="font-semibold block mb-2">
+                  MEDICIÓN DE TENSIÓN
                 </label>
 
                 <input
                   type="text"
-                  value={item.medicion}
-                  disabled={item.noAplica}
-                  onChange={(e) =>
-                    cambiarMedicionPartes(
-                      item.id,
-                      "medicion",
-                      e.target.value
-                    )
-                  }
-                  className="w-full border rounded-lg p-2 mb-2"
+                  value={medicionTension}
+                  onChange={(e) => setMedicionTension(e.target.value)}
+                  className="w-full border rounded-xl p-3 text-lg"
                 />
+              </div>
 
-                <p className="text-sm text-gray-600 mb-2">
-                  Rango de aceptación:{" "}
-                  <b>0.3</b>
-                </p>
-
-                <label className="block font-semibold mb-1">
-                  Observaciones
+              <div>
+                <label className="font-semibold block mb-2">
+                  MEDICIÓN DE CORRIENTE
                 </label>
 
-                <textarea
-                  value={item.observaciones}
-                  onChange={(e) =>
-                    cambiarMedicionPartes(
-                      item.id,
-                      "observaciones",
-                      e.target.value
-                    )
-                  }
-                  className="w-full border rounded-lg p-2 mb-2"
-                  placeholder="Observaciones de esta medición..."
+                <input
+                  type="text"
+                  value={medicionCorriente}
+                  onChange={(e) => setMedicionCorriente(e.target.value)}
+                  className="w-full border rounded-xl p-3 text-lg"
                 />
+              </div>
 
-                <div className="flex gap-2 flex-wrap">
+            </div>
 
-                  <button
-                    type="button"
+            <div className="flex gap-2 mt-6">
+
+              <button
+                onClick={volver}
+                className="flex-1 bg-gray-500 text-white rounded-xl p-3"
+              >
+                ← Volver
+              </button>
+
+              <button
+                onClick={continuar}
+                className="flex-1 bg-blue-600 text-white rounded-xl p-3"
+              >
+                Continuar →
+              </button>
+
+            </div>
+
+          </div>
+
+        )}
+
+        {/* =================================================
+            ETAPA 3 - DETERMINACIONES
+        ================================================= */
+
+        {etapa === 2 && (
+
+          <div className="bg-white rounded-xl shadow p-4">
+
+            <h2 className="text-xl font-bold mb-2">
+              3. Determinaciones
+            </h2>
+
+            <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
+              Registrar cada medición y verificar su rango de aceptación. Cuando corresponda, utilizar la casilla No aplica.
+            </p>
+
+            <div className="space-y-4">
+
+              {determinaciones.map((item, index) => (
+
+                <div
+                  key={item.numero}
+                  className="border rounded-xl p-4"
+                >
+
+                  <h3 className="font-bold mb-3">
+                    {item.numero}. {item.nombre}
+                  </h3>
+
+                  <label className="font-semibold block mb-2">
+                    Medición
+                  </label>
+
+                  <input
+                    type="text"
+                    value={item.medicion}
                     disabled={item.noAplica}
-                    onClick={() =>
-                      cambiarMedicionPartes(
-                        item.id,
-                        "conforme",
-                        true
+                    onChange={(e) =>
+                      cambiarMedicionDeterminacion(
+                        index,
+                        e.target.value
                       )
                     }
-                    className={`px-4 py-2 rounded-lg ${
+                    className={`w-full border rounded-xl p-3 text-lg ${
                       item.conforme === true
-                        ? "bg-green-600 text-white"
-                        : "bg-gray-200"
+                        ? "bg-green-100 border-green-500"
+                        : item.conforme === false
+                        ? "bg-red-100 border-red-500"
+                        : ""
                     }`}
-                  >
-                    Conforme
-                  </button>
+                  />
 
-                  <button
-                    type="button"
+                  <p className="text-sm mt-2">
+                    Rango de aceptación: <b>≤ {item.rango}</b>
+                  </p>
+
+                  <div className="flex items-center justify-between mt-4 gap-3">
+
+                    <div className="flex gap-2">
+
+                      <button
+                        type="button"
+                        disabled={item.noAplica}
+                        onClick={() =>
+                          cambiarDeterminacion(
+                            index,
+                            "conforme",
+                            true
+                          )
+                        }
+                        className={`px-3 py-2 rounded-xl ${
+                          item.conforme === true
+                            ? "bg-green-600 text-white"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        Conforme
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={item.noAplica}
+                        onClick={() =>
+                          cambiarDeterminacion(
+                            index,
+                            "conforme",
+                            false
+                          )
+                        }
+                        className={`px-3 py-2 rounded-xl ${
+                          item.conforme === false
+                            ? "bg-red-600 text-white"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        No conforme
+                      </button>
+
+                    </div>
+
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={item.noAplica}
+                        onChange={(e) => {
+                          const marcado = e.target.checked;
+                          cambiarDeterminacion(
+                            index,
+                            "noAplica",
+                            marcado
+                          );
+                          cambiarDeterminacion(
+                            index,
+                            "conforme",
+                            null
+                          );
+                        }}
+                      />
+                      No aplica
+                    </label>
+
+                  </div>
+
+                </div>
+
+              ))}
+
+            </div>
+
+            <div className="flex gap-2 mt-6">
+
+              <button
+                onClick={volver}
+                className="flex-1 bg-gray-500 text-white rounded-xl p-3"
+              >
+                ← Volver
+              </button>
+
+              <button
+                onClick={continuar}
+                className="flex-1 bg-blue-600 text-white rounded-xl p-3"
+              >
+                Continuar →
+              </button>
+
+            </div>
+
+          </div>
+
+        )}
+
+        {/* =================================================
+            ETAPA 4 - PARTES APLICABLES
+        ================================================= */
+
+        {etapa === 3 && (
+
+          <div className="bg-white rounded-xl shadow p-4">
+
+            <h2 className="text-xl font-bold mb-2">
+              4. Corriente de fuga de partes aplicables
+            </h2>
+
+            <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
+              Registrar las mediciones correspondientes a las partes aplicables. Cada medición puede incluir observaciones.
+            </p>
+
+            <div className="space-y-4">
+
+              {medicionesPartesAplicables.map((item, index) => (
+
+                <div
+                  key={item.id}
+                  className="border rounded-xl p-4"
+                >
+
+                  <div className="flex justify-between items-center mb-3">
+
+                    <h3 className="font-bold">
+                      Medición {index + 1}
+                    </h3>
+
+                    {medicionesPartesAplicables.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => eliminarMedicionPartes(item.id)}
+                        className="text-red-600 text-sm font-semibold"
+                      >
+                        Eliminar
+                      </button>
+                    )}
+
+                  </div>
+
+                  <label className="font-semibold block mb-2">
+                    Medición
+                  </label>
+
+                  <input
+                    type="text"
+                    value={item.medicion}
                     disabled={item.noAplica}
-                    onClick={() =>
+                    onChange={(e) =>
                       cambiarMedicionPartes(
                         item.id,
-                        "conforme",
-                        false
+                        "medicion",
+                        e.target.value
                       )
                     }
-                    className={`px-4 py-2 rounded-lg ${
-                      item.conforme === false
-                        ? "bg-red-600 text-white"
-                        : "bg-gray-200"
+                    className={`w-full border rounded-xl p-3 text-lg ${
+                      item.conforme === true
+                        ? "bg-green-100 border-green-500"
+                        : item.conforme === false
+                        ? "bg-red-100 border-red-500"
+                        : ""
                     }`}
-                  >
-                    No conforme
-                  </button>
+                  />
 
-                  <label className="flex items-center gap-2 px-3">
+                  <p className="text-sm mt-2">
+                    Rango de aceptación: <b>≤ 0.3</b>
+                  </p>
 
-                    <input
-                      type="checkbox"
-                      checked={item.noAplica}
-                      onChange={(e) => {
+                  <label className="font-semibold block mt-4 mb-2">
+                    Observaciones
+                  </label>
 
-                        const marcado =
-                          e.target.checked;
+                  <textarea
+                    value={item.observaciones}
+                    onChange={(e) =>
+                      cambiarMedicionPartes(
+                        item.id,
+                        "observaciones",
+                        e.target.value
+                      )
+                    }
+                    className="w-full border rounded-xl p-3"
+                    rows={3}
+                    placeholder="Observaciones de esta medición..."
+                  />
 
-                        cambiarMedicionPartes(
-                          item.id,
-                          "noAplica",
-                          marcado
-                        );
+                  <div className="flex items-center justify-between mt-4 gap-3">
 
-                        if (marcado) {
+                    <div className="flex gap-2">
 
+                      <button
+                        type="button"
+                        disabled={item.noAplica}
+                        onClick={() =>
+                          cambiarMedicionPartes(
+                            item.id,
+                            "conforme",
+                            true
+                          )
+                        }
+                        className={`px-3 py-2 rounded-xl ${
+                          item.conforme === true
+                            ? "bg-green-600 text-white"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        Conforme
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={item.noAplica}
+                        onClick={() =>
+                          cambiarMedicionPartes(
+                            item.id,
+                            "conforme",
+                            false
+                          )
+                        }
+                        className={`px-3 py-2 rounded-xl ${
+                          item.conforme === false
+                            ? "bg-red-600 text-white"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        No conforme
+                      </button>
+
+                    </div>
+
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={item.noAplica}
+                        onChange={(e) => {
+                          const marcado = e.target.checked;
+                          cambiarMedicionPartes(
+                            item.id,
+                            "noAplica",
+                            marcado
+                          );
                           cambiarMedicionPartes(
                             item.id,
                             "conforme",
                             null
                           );
+                        }}
+                      />
+                      No aplica
+                    </label>
 
-                        }
+                  </div>
 
-                      }}
-                    />
+                </div>
 
-                    No aplica
+              ))}
 
-                  </label>
+            </div>
+
+            <button
+              type="button"
+              onClick={agregarMedicionPartes}
+              className="w-full bg-blue-600 text-white rounded-xl p-3 mt-4"
+            >
+              ➕ Agregar medición
+            </button>
+
+            <div className="flex gap-2 mt-6">
+
+              <button
+                onClick={volver}
+                className="flex-1 bg-gray-500 text-white rounded-xl p-3"
+              >
+                ← Volver
+              </button>
+
+              <button
+                onClick={continuar}
+                className="flex-1 bg-blue-600 text-white rounded-xl p-3"
+              >
+                Ver resumen →
+              </button>
+
+            </div>
+
+          </div>
+
+        )}
+
+        {/* =================================================
+            ETAPA 5 - RESUMEN
+        ================================================= */
+
+        {etapa === 4 && (
+
+          <div className="bg-white rounded-xl shadow p-4">
+
+            <h2 className="text-xl font-bold mb-4">
+              5. Resumen del ensayo
+            </h2>
+
+            {obtenerNoConformes().length === 0 ? (
+
+              <div className="bg-green-100 text-green-800 rounded-xl p-4 mb-5">
+
+                <p className="font-bold text-lg">
+                  ✅ ENSAYO CONFORME
+                </p>
+
+                <p className="text-sm mt-1">
+                  Todas las determinaciones realizadas se encuentran dentro de los rangos de aceptación.
+                </p>
+
+              </div>
+
+            ) : (
+
+              <div className="bg-red-100 text-red-800 rounded-xl p-4 mb-5">
+
+                <p className="font-bold text-lg mb-3">
+                  ❌ ENSAYO NO CONFORME
+                </p>
+
+                <div className="space-y-3">
+
+                  {obtenerNoConformes().map((item, index) => (
+
+                    <div
+                      key={index}
+                      className="bg-white rounded-lg p-3"
+                    >
+
+                      <p className="font-bold">
+                        {item.etapa}
+                      </p>
+
+                      <p>
+                        <b>Medición:</b> {item.medicion}
+                      </p>
+
+                      <p>
+                        <b>Resultado:</b> {item.resultado}
+                      </p>
+
+                      <p>
+                        <b>Rango:</b> {item.rango}
+                      </p>
+
+                    </div>
+
+                  ))}
 
                 </div>
 
               </div>
 
-            )
-          )}
+            )}
 
-          <button
-            type="button"
-            onClick={agregarMedicionPartes}
-            className="w-full bg-blue-600 text-white py-2 rounded-xl"
-          >
-            ➕ Agregar medición
-          </button>
+            <div className="bg-gray-50 rounded-xl p-4 mb-4">
 
-        </div>
+              <p className="font-bold mb-2">
+                Clasificación del equipo
+              </p>
 
-      </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <p>
+                  <b>Clase:</b> {clase || "-"}
+                </p>
+                <p>
+                  <b>Protección:</b> {tipoProteccion || "-"}
+                </p>
+                <p>
+                  <b>Tensión:</b> {medicionTension || "-"}
+                </p>
+                <p>
+                  <b>Corriente:</b> {medicionCorriente || "-"}
+                </p>
+              </div>
 
-      {/* OBSERVACIONES */}
+            </div>
 
-      <div className="bg-white rounded-xl shadow p-4 mb-4">
+            {indicaciones.trim() && (
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                <h3 className="font-bold mb-2">
+                  Indicaciones
+                </h3>
+                <p className="text-gray-700 whitespace-pre-wrap">
+                  {indicaciones}
+                </p>
+              </div>
+            )}
 
-        <label className="block font-bold mb-2">
-          Observaciones generales
-        </label>
+            <label className="font-semibold block mb-2">
+              Observaciones generales
+            </label>
 
-        <textarea
-          value={observaciones}
-          onChange={(e) =>
-            setObservaciones(e.target.value)
-          }
-          className="w-full border rounded-lg p-2 min-h-[100px]"
-        />
+            <textarea
+              value={observaciones}
+              onChange={(e) => setObservaciones(e.target.value)}
+              rows={5}
+              placeholder="Ingrese aquí las observaciones del ensayo..."
+              className="w-full border rounded-xl p-3"
+            />
 
-      </div>
+            <div className="bg-gray-50 rounded-xl p-4 mt-4">
 
-      {/* FIRMAS */}
+              <h3 className="font-bold mb-3">
+                Firmas
+              </h3>
 
-      <div className="bg-white rounded-xl shadow p-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
-        <h2 className="font-bold mb-3">
-          Firmas
-        </h2>
+                <input
+                  type="text"
+                  value={firmaTecnico}
+                  onChange={(e) => setFirmaTecnico(e.target.value)}
+                  placeholder="Firma / Técnico responsable"
+                  className="w-full border rounded-xl p-3"
+                />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  value={firmaResponsable}
+                  onChange={(e) => setFirmaResponsable(e.target.value)}
+                  placeholder="Firma / Responsable"
+                  className="w-full border rounded-xl p-3"
+                />
 
-          <input
-            type="text"
-            value={firmaTecnico}
-            onChange={(e) =>
-              setFirmaTecnico(e.target.value)
-            }
-            placeholder="Firma / Técnico responsable"
-            className="w-full border rounded-lg p-2"
-          />
+              </div>
 
-          <input
-            type="text"
-            value={firmaResponsable}
-            onChange={(e) =>
-              setFirmaResponsable(e.target.value)
-            }
-            placeholder="Firma / Responsable"
-            className="w-full border rounded-lg p-2"
-          />
+            </div>
 
-        </div>
+            {error && (
+              <div className="bg-red-100 text-red-700 p-3 rounded-xl mt-4">
+                ⚠️ {error}
+              </div>
+            )}
 
-      </div>
+            <div className="flex gap-2 mt-6">
 
-      {/* ERROR */}
+              <button
+                onClick={volver}
+                className="flex-1 bg-gray-500 text-white rounded-xl p-3"
+              >
+                ← Volver
+              </button>
 
-      {error && (
-        <div className="bg-red-50 border border-red-300 text-red-700 p-3 rounded-xl mb-4">
-          {error}
-        </div>
-      )}
+              <button
+                onClick={salir}
+                className="flex-1 bg-gray-600 text-white rounded-xl p-3"
+              >
+                🚪 Salir
+              </button>
 
-      {/* BOTONES */}
+            </div>
 
-      <div className="flex gap-2">
+            <button
+              disabled={guardando || !!ric37Id}
+              onClick={guardar}
+              className="w-full bg-green-600 disabled:bg-gray-400 text-white rounded-xl p-3 mt-3 font-bold"
+            >
+              {guardando
+                ? "Guardando..."
+                : ric37Id
+                ? "✅ RIC37 guardado"
+                : "💾 Guardar RIC37"}
+            </button>
 
-        <button
-          type="button"
-          onClick={salir}
-          disabled={guardando}
-          className="flex-1 bg-gray-600 text-white py-3 rounded-xl"
-        >
-          Salir
-        </button>
+          </div>
 
-        <button
-          type="button"
-          onClick={guardar}
-          disabled={guardando}
-          className="flex-1 bg-green-600 text-white py-3 rounded-xl"
-        >
-          {guardando
-            ? "Guardando..."
-            : "Guardar RIC37"}
-        </button>
+        )}
 
       </div>
 
     </div>
-
   );
-
 }
