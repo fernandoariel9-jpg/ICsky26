@@ -17,6 +17,7 @@ import Equipos from "./Equipos";
 import PanelPersonal from "./PanelPersonal";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ResumenEstados from "./ResumenEstados";
+import RIC37 from "./RIC37";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
