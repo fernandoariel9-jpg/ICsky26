@@ -299,6 +299,39 @@ const obtenerProtocoloMantenimiento = (
   return protocoloEncontrado || null;
 };
 
+ const abrirRIC37 = () => {
+
+  if (!equipo) {
+    alert("Primero seleccione un equipo.");
+    return;
+  }
+
+  if (!equipo.mantenimiento_id) {
+    alert(
+      "Primero debe iniciar el mantenimiento para poder realizar el RIC37."
+    );
+    return;
+  }
+
+  localStorage.setItem(
+    "tareaActiva",
+    JSON.stringify({
+      id: equipo.mantenimiento_id,
+      ric01_id: equipo.mantenimiento_id,
+      equipo_id: equipo.id,
+      numero_serie: equipo.numero_serie,
+      descripcion: equipo.descripcion,
+      marca_modelo: equipo.marca_modelo,
+      area: equipo.area,
+      servicio: equipo.servicio,
+      sub_servicio: equipo.sub_servicio,
+      tipo_mantenimiento: equipo.tipo_mantenimiento
+    })
+  );
+
+  setVista("ric37");
+};
+
  const guardarMantenimiento = async () => {
   try {
 
@@ -1353,6 +1386,13 @@ const imprimirHistorial = () => {
   {equipo.estado?.toLowerCase() !== "activo"
     ? "🔧 Continuar mantenimiento"
     : "🛠️ Iniciar mantenimiento"}
+</button>
+    <button
+  onClick={abrirRIC37}
+  disabled={!equipo.mantenimiento_id}
+  className="px-4 py-2 rounded-xl w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
+>
+  ⚡ RIC37 - Seguridad eléctrica
 </button>
 {equipo.estado?.toLowerCase() !== "activo" &&
   equipo.mantenimiento_id && (
