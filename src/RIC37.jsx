@@ -1224,34 +1224,6 @@ export default function RIC37({ setVista, personal }) {
               className="w-full border rounded-xl p-3"
             />
 
-            <div className="bg-gray-50 rounded-xl p-4 mt-4">
-
-              <h3 className="font-bold mb-3">
-                Firmas
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-
-                <input
-                  type="text"
-                  value={firmaTecnico}
-                  onChange={(e) => setFirmaTecnico(e.target.value)}
-                  placeholder="Firma / Técnico responsable"
-                  className="w-full border rounded-xl p-3"
-                />
-
-                <input
-                  type="text"
-                  value={firmaResponsable}
-                  onChange={(e) => setFirmaResponsable(e.target.value)}
-                  placeholder="Firma / Responsable"
-                  className="w-full border rounded-xl p-3"
-                />
-
-              </div>
-
-            </div>
-
             {error && (
               <div className="bg-red-100 text-red-700 p-3 rounded-xl mt-4">
                 ⚠️ {error}
