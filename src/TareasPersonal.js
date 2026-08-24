@@ -1107,7 +1107,7 @@ if (busqueda.trim()) {
   >
     🔧 Iniciar mantenimiento
   </button>
-
+)}
 {t.numero_serie && (
   <button
     onClick={() => imprimirHistorial(t.numero_serie)}
