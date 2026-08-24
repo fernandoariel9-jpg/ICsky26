@@ -342,9 +342,17 @@ const obtenerProtocoloMantenimiento = (
     const tareaGuardada =
       localStorage.getItem("tareaActiva");
 
-    const tareaActiva = tareaGuardada
-      ? JSON.parse(tareaGuardada)
-      : null;
+    const tareaGuardada = localStorage.getItem("tareaActiva");
+
+const tareaGuardadaObj = tareaGuardada
+  ? JSON.parse(tareaGuardada)
+  : null;
+
+const tareaActiva =
+  tareaGuardadaObj &&
+  tareaGuardadaObj.numero_serie === equipo?.numero_serie
+    ? tareaGuardadaObj
+    : null;
 
 
     // =====================================================
@@ -990,7 +998,17 @@ const buscarEquipo = async (serieBuscar = serie) => {
 
     const data = await res.json();
 
-    setEquipo(data);
+const tareaGuardada = localStorage.getItem("tareaActiva");
+
+if (tareaGuardada) {
+  const tarea = JSON.parse(tareaGuardada);
+
+  if (tarea.numero_serie !== data.numero_serie) {
+    localStorage.removeItem("tareaActiva");
+  }
+}
+
+setEquipo(data);
     setError("");
 
     // Actualizar el cuadro de búsqueda
