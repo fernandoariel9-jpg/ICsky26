@@ -339,9 +339,6 @@ const obtenerProtocoloMantenimiento = (
     // TAREA ACTIVA
     // =====================================================
 
-    const tareaGuardada =
-      localStorage.getItem("tareaActiva");
-
     const tareaGuardada = localStorage.getItem("tareaActiva");
 
 const tareaGuardadaObj = tareaGuardada
