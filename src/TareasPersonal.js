@@ -1116,7 +1116,6 @@ if (busqueda.trim()) {
   >
     🖨 Imprimir RIC02
   </button>
-)}
 
           {t.diagnostico && (
             <p className="text-medium text-red-600 mt-1">
