@@ -1105,18 +1105,7 @@ if (busqueda.trim()) {
     onClick={() => cargarEquipoDesdeTarea(t)}
     className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
   >
-    🔧 Iniciar mantenimiento
-  </button>
-)}
-
-{t.numero_serie &&
- !t.fin &&
- !t.diagnostico && (
-  <button
-    onClick={() => cargarEquipoDesdeTarea(t)}
-    className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
-  >
-    🔧 Continuar mantenimiento
+    🔧 Iniciar / Continuar mantenimiento
   </button>
 )}
 
