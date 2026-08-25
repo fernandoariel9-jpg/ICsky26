@@ -366,7 +366,8 @@ const tareaActiva =
 
     const continuar =
       equipo?.estado?.toLowerCase() !== "activo" &&
-      equipo?.mantenimiento_id;
+      equipo?.mantenimiento_id &&
+      equipo?.tipo_mantenimiento?.trim().toLowerCase() === "correctivo";
 
 
     // =====================================================
