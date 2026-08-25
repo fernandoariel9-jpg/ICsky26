@@ -1112,7 +1112,7 @@ if (busqueda.trim()) {
 {t.numero_serie && (
   <button
     onClick={() => imprimirHistorial(t.numero_serie)}
-    className="mt-2 bg-blue-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-sm"
+    className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-sm"
     title="Imprimir historial del equipo"
   >
     🖨 Imprimir RIC02
