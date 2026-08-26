@@ -24,6 +24,9 @@ export default function Equipos({ setVista, personal }) {
   const inputImagenRef = useRef(null);
   const [mostrarLector, setMostrarLector] = useState(false);
   const [coincidencias, setCoincidencias] = useState([]);
+  const [equiposVencidos, setEquiposVencidos] = useState([]);
+  const [mostrarVencidos, setMostrarVencidos] = useState(false);
+  const [cargandoVencidos, setCargandoVencidos] = useState(false);
 
   useEffect(() => {
   fetchEstados();
@@ -75,6 +78,31 @@ useEffect(() => {
   }
 };
 
+  const cargarEquiposVencidos = async () => {
+  try {
+    setCargandoVencidos(true);
+
+    const res = await fetch(
+      API_URL.EquiposMantenimientoVencido
+    );
+
+    if (!res.ok) {
+      throw new Error("Error al obtener equipos vencidos");
+    }
+
+    const data = await res.json();
+
+    setEquiposVencidos(data);
+    setMostrarVencidos(true);
+
+  } catch (error) {
+    console.error("Error equipos vencidos:", error);
+    alert("No se pudieron obtener los equipos con mantenimiento vencido");
+  } finally {
+    setCargandoVencidos(false);
+  }
+};
+  
   const cambiarEstado = async (id, nuevoEstado) => {
   try {
     const res = await fetch(`${API_URL.Equipos}/${id}/estado`, {
@@ -1072,6 +1100,13 @@ const imprimirHistorial = () => {
 
   return (
     <div className="p-4 max-w-md mx-auto">
+      <button
+    onClick={cargarEquiposVencidos}
+    className="flex-1 bg-green-600 text-white px-4 py-2 rounded-xl"
+  >
+    🔍 Vencidos
+  </button>
+
       <h1 className="text-xl font-bold mb-4">🔧 Búsqueda de Equipos</h1>
 
       {/* Input */}
