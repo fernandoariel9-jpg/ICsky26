@@ -1555,7 +1555,7 @@ const imprimirHistorial = () => {
   {equipo.estado?.toLowerCase() !== "activo"
     ? "🔧 Continuar mantenimiento"
     : "🛠️ Iniciar mantenimiento"}
-
+</button>
 {equipo.estado?.toLowerCase() !== "activo" &&
   equipo.mantenimiento_id && (
     <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2 text-sm">
@@ -1577,7 +1577,6 @@ const imprimirHistorial = () => {
     </div>
 )}
     </div>
-    </button>
     <button
   onClick={abrirRIC37}
   disabled={!equipo.mantenimiento_id}
