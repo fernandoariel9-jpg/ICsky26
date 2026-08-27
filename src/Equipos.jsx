@@ -1106,7 +1106,7 @@ const imprimirHistorial = () => {
 >
   {cargandoVencidos
     ? "Consultando..."
-    : "⚠️ Mantenimientos vencidos"}
+    : "⚠️ Ver mantenimientos vencidos"}
 </button>
 
       <h1 className="text-xl font-bold mb-4">🔧 Búsqueda de Equipos</h1>
