@@ -1206,12 +1206,10 @@ const imprimirHistorial = () => {
               </div>
 
               <button
-                onClick={() => {
-                  setNumeroSerie(equipo.numero_serie);
-                  setEquipo(null);
-                  setMostrarVencidos(false);
-                  buscarEquipo(equipo.numero_serie);
-                }}
+               onClick={() => {
+  setMostrarVencidos(false);
+  buscarEquipo(equipo.numero_serie);
+}}
                 className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl"
               >
                 Ver equipo
