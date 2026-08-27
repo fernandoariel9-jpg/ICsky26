@@ -1100,12 +1100,14 @@ const imprimirHistorial = () => {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      {/*<button
-    onClick={cargarEquiposVencidos}
-    className="flex-1 bg-green-600 text-white px-4 py-2 rounded-xl"
-  >
-    🔍 Vencidos
-  </button>*/}
+      <button
+  onClick={cargarEquiposVencidos}
+  className="w-full mb-4 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow"
+>
+  {cargandoVencidos
+    ? "Consultando..."
+    : "⚠️ Mantenimientos vencidos"}
+</button>
 
       <h1 className="text-xl font-bold mb-4">🔧 Búsqueda de Equipos</h1>
 
