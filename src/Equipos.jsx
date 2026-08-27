@@ -1555,14 +1555,7 @@ const imprimirHistorial = () => {
   {equipo.estado?.toLowerCase() !== "activo"
     ? "🔧 Continuar mantenimiento"
     : "🛠️ Iniciar mantenimiento"}
-</button>
-    <button
-  onClick={abrirRIC37}
-  disabled={!equipo.mantenimiento_id}
-  className="px-4 py-2 rounded-xl w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
->
-  ⚡ RIC37 - Seguridad eléctrica
-</button>
+
 {equipo.estado?.toLowerCase() !== "activo" &&
   equipo.mantenimiento_id && (
     <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2 text-sm">
@@ -1675,6 +1668,14 @@ const imprimirHistorial = () => {
       💾 Guardar
     </button>
   </div>
+  </button>
+    <button
+  onClick={abrirRIC37}
+  disabled={!equipo.mantenimiento_id}
+  className="px-4 py-2 rounded-xl w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
+>
+  ⚡ RIC37 - Seguridad eléctrica
+</button>
 )}
 
       {mostrarHistorial && (
