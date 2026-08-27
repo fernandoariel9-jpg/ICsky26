@@ -1108,6 +1108,124 @@ const imprimirHistorial = () => {
     ? "Consultando..."
     : "⚠️ Ver mantenimientos vencidos"}
 </button>
+      {mostrarVencidos && (
+  <div className="bg-white rounded-2xl shadow-md p-4 mb-6">
+
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="text-xl font-bold text-gray-800">
+        Equipos con mantenimiento vencido
+      </h2>
+
+      <button
+        onClick={() => setMostrarVencidos(false)}
+        className="text-gray-500 hover:text-gray-800 font-bold"
+      >
+        ✕
+      </button>
+    </div>
+
+    {equiposVencidos.length === 0 ? (
+      <p className="text-green-600 font-semibold">
+        ✓ No hay equipos con mantenimiento vencido.
+      </p>
+    ) : (
+      <div className="space-y-3">
+
+        {equiposVencidos.map((equipo) => {
+
+          const proximo = new Date(equipo.proximo_mant);
+          const hoy = new Date();
+
+          const diasVencido = Math.floor(
+            (hoy - proximo) / (1000 * 60 * 60 * 24)
+          );
+
+          return (
+            <div
+              key={equipo.id}
+              className="border rounded-xl p-4 hover:bg-gray-50"
+            >
+
+              <div className="flex justify-between items-start">
+
+                <div>
+
+                  <p className="font-bold text-gray-800">
+                    {equipo.descripcion}
+                  </p>
+
+                  <p className="text-sm text-gray-600">
+                    {equipo.marca_modelo || "Sin marca/modelo"}
+                  </p>
+
+                  <p className="text-sm">
+                    <strong>Nº serie:</strong>{" "}
+                    {equipo.numero_serie}
+                  </p>
+
+                  <p className="text-sm">
+                    <strong>Servicio:</strong>{" "}
+                    {equipo.servicio || "Sin asignar"}
+                  </p>
+
+                  <p className="text-sm">
+                    <strong>Área:</strong>{" "}
+                    {equipo.area || "Sin asignar"}
+                  </p>
+
+                </div>
+
+                <div className="text-right">
+
+                  <p className="text-sm text-gray-600">
+                    Último mantenimiento
+                  </p>
+
+                  <p className="font-semibold">
+                    {equipo.ultimo_mant
+                      ? new Date(
+                          equipo.ultimo_mant
+                        ).toLocaleDateString("es-AR")
+                      : "-"}
+                  </p>
+
+                  <p className="text-sm text-gray-600 mt-2">
+                    Próximo mantenimiento
+                  </p>
+
+                  <p className="font-bold text-red-600">
+                    {proximo.toLocaleDateString("es-AR")}
+                  </p>
+
+                  <p className="text-sm font-semibold text-red-600">
+                    Vencido hace {diasVencido} días
+                  </p>
+
+                </div>
+
+              </div>
+
+              <button
+                onClick={() => {
+                  setNumeroSerie(equipo.numero_serie);
+                  setEquipo(null);
+                  setMostrarVencidos(false);
+                  buscarEquipo(equipo.numero_serie);
+                }}
+                className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl"
+              >
+                Ver equipo
+              </button>
+
+            </div>
+          );
+        })}
+
+      </div>
+    )}
+
+  </div>
+)}
 
       <h1 className="text-xl font-bold mb-4">🔧 Búsqueda de Equipos</h1>
 
