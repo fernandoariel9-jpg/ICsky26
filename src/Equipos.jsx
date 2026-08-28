@@ -27,6 +27,7 @@ export default function Equipos({ setVista, personal }) {
   const [equiposVencidos, setEquiposVencidos] = useState([]);
   const [mostrarVencidos, setMostrarVencidos] = useState(false);
   const [cargandoVencidos, setCargandoVencidos] = useState(false);
+  const [cantidadVencidos, setCantidadVencidos] = useState(0);
 
   useEffect(() => {
   fetchEstados();
@@ -78,15 +79,15 @@ useEffect(() => {
   }
 };
 
-  const cargarEquiposVencidos = async () => {
+ const cargarEquiposVencidos = async () => {
   try {
     setCargandoVencidos(true);
 
     const res = await fetch(
-  `${API_URL.EquiposMantenimientoVencido}?area=${encodeURIComponent(
-    personal?.area || ""
-  )}`
-);
+      `${API_URL.EquiposMantenimientoVencido}?area=${encodeURIComponent(
+        personal?.area || ""
+      )}`
+    );
 
     if (!res.ok) {
       throw new Error("Error al obtener equipos vencidos");
@@ -94,7 +95,9 @@ useEffect(() => {
 
     const data = await res.json();
 
-    setEquiposVencidos(data);
+    setEquiposVencidos(data.equipos);
+    setCantidadVencidos(data.total);
+
     setMostrarVencidos(true);
 
   } catch (error) {
@@ -1117,7 +1120,9 @@ const imprimirHistorial = () => {
       <h2 className="text-xl font-bold text-gray-800">
         Equipos con mantenimiento vencido
       </h2>
-
+      <span className="ml-2 font-bold text-red-600">
+  ({cantidadVencidos})
+</span>
       <button
         onClick={() => setMostrarVencidos(false)}
         className="text-gray-500 hover:text-gray-800 font-bold"
