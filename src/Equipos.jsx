@@ -83,8 +83,10 @@ useEffect(() => {
     setCargandoVencidos(true);
 
     const res = await fetch(
-      API_URL.EquiposMantenimientoVencido
-    );
+  `${API_URL.EquiposMantenimientoVencido}?area=${encodeURIComponent(
+    personal?.area || ""
+  )}`
+);
 
     if (!res.ok) {
       throw new Error("Error al obtener equipos vencidos");
