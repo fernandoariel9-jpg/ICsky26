@@ -1345,6 +1345,7 @@ const imprimirHistorial = () => {
     <p><b>Marca:</b> {equipo.marca_modelo}</p>
     <p><b>Serie:</b> {equipo.numero_serie}</p>
     <p><b>Servicio:</b> {equipo.servicio}</p>
+    <p><b>Sub Servicio:</b> {equipo.sub_servicio}</p>
     <p><b>Área:</b> {equipo.area}</p>
     <p><b>Estado:</b> {equipo.estado}</p>
 
