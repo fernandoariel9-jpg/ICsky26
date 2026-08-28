@@ -1176,6 +1176,11 @@ const imprimirHistorial = () => {
                   </p>
 
                   <p className="text-sm">
+                    <strong>Servicio:</strong>{" "}
+                    {equipo.sub_servicio || "Sin asignar"}
+                  </p>
+
+                  <p className="text-sm">
                     <strong>Área:</strong>{" "}
                     {equipo.area || "Sin asignar"}
                   </p>
