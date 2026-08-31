@@ -1451,7 +1451,7 @@ return (
   className="w-full mb-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow"
 >
   📋 Ver equipos por servicio
-</button
+</button>
 {mostrarPorServicio && (
   <EquiposPorServicio
     personal={personal}
