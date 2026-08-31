@@ -1444,8 +1444,6 @@ return (
     </div>
   )}
 
-</div>
-
 <h1 className="text-xl font-bold mb-4">🔧 Búsqueda de Equipos</h1>
 
 {/* Input */}
