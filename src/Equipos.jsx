@@ -28,6 +28,10 @@ export default function Equipos({ setVista, personal }) {
   const [mostrarVencidos, setMostrarVencidos] = useState(false);
   const [cargandoVencidos, setCargandoVencidos] = useState(false);
   const [cantidadVencidos, setCantidadVencidos] = useState(0);
+  const [equiposProximos, setEquiposProximos] = useState([]);
+  const [cantidadProximos, setCantidadProximos] = useState(0);
+  const [mostrarProximos, setMostrarProximos] = useState(false);
+  const [cargandoProximos, setCargandoProximos] = useState(false);
 
   useEffect(() => {
   fetchEstados();
@@ -76,6 +80,34 @@ useEffect(() => {
     setEstados(data);
   } catch (err) {
     console.error("Error cargando estados:", err);
+  }
+};
+
+  const cargarEquiposProximos = async () => {
+  try {
+    setCargandoProximos(true);
+
+    const res = await fetch(
+      `${API_URL.EquiposMantenimientoProximo}?area=${encodeURIComponent(
+        personal?.area || ""
+      )}`
+    );
+
+    if (!res.ok) {
+      throw new Error("Error al obtener equipos próximos");
+    }
+
+    const data = await res.json();
+
+    setEquiposProximos(data.equipos);
+    setCantidadProximos(data.total);
+    setMostrarProximos(true);
+
+  } catch (error) {
+    console.error("Error equipos próximos:", error);
+    alert("No se pudieron obtener los equipos con mantenimiento próximo");
+  } finally {
+    setCargandoProximos(false);
   }
 };
 
@@ -1105,6 +1137,15 @@ const imprimirHistorial = () => {
 
   return (
     <div className="p-4 max-w-md mx-auto">
+      <button
+  onClick={cargarEquiposProximos}
+  className="bg-orange-500 text-white px-4 py-2 rounded-xl"
+>
+  Preventivos próximos a vencer
+  <span className="ml-2 font-bold">
+    ({cantidadProximos})
+  </span>
+</button>
       <button
   onClick={cargarEquiposVencidos}
   className="w-full mb-4 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow"
