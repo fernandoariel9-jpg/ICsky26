@@ -88,6 +88,14 @@ export default function EquiposPorServicio({ personal, buscarEquipo, onCerrar })
     }));
   };
 
+  const seleccionarEquipo = (numeroSerie) => {
+    if (onCerrar) onCerrar();
+
+    if (buscarEquipo && numeroSerie) {
+      buscarEquipo(numeroSerie);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-md p-4 mb-6">
       <div className="flex justify-between items-center mb-4">
@@ -218,7 +226,7 @@ export default function EquiposPorServicio({ personal, buscarEquipo, onCerrar })
 
                                         {buscarEquipo && equipo.numero_serie && (
                                           <button
-                                            onClick={() => buscarEquipo(equipo.numero_serie)}
+                                            onClick={() => seleccionarEquipo(equipo.numero_serie)}
                                             className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl"
                                           >
                                             Ver equipo
