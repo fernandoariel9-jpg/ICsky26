@@ -2,6 +2,7 @@ import { useState } from "react";
 import { API_URL } from "./config";
 import { useEffect } from "react";
 import { useRef } from "react";
+import EquiposPorServicio from "./EquiposPorServicio";
 
 //import LectorQR from "./components/LectorQR";
 
@@ -32,6 +33,7 @@ const [equiposProximos, setEquiposProximos] = useState([]);
 const [cantidadProximos, setCantidadProximos] = useState(0);
 const [mostrarProximos, setMostrarProximos] = useState(false);
 const [cargandoProximos, setCargandoProximos] = useState(false);
+const [mostrarPorServicio, setMostrarPorServicio] = useState(false);
 
 useEffect(() => {
 fetchEstados();
@@ -1444,6 +1446,20 @@ return (
     </div>
   )}
 
+  <button
+  onClick={() => setMostrarPorServicio(true)}
+  className="w-full mb-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow"
+>
+  📋 Ver equipos por servicio
+</button
+{mostrarPorServicio && (
+  <EquiposPorServicio
+    personal={personal}
+    buscarEquipo={buscarEquipo}
+    onCerrar={() => setMostrarPorServicio(false)}
+  />
+)}
+  
 <h1 className="text-xl font-bold mb-4">🔧 Búsqueda de Equipos</h1>
 
 {/* Input */}
