@@ -18,10 +18,7 @@ export default function EquiposPorServicio({ personal, buscarEquipo, onCerrar })
       setError("");
 
       const res = await fetch(API_URL.Equipos);
-
-      if (!res.ok) {
-        throw new Error("No se pudieron obtener los equipos");
-      }
+      if (!res.ok) throw new Error("No se pudieron obtener los equipos");
 
       const data = await res.json();
       const lista = Array.isArray(data) ? data : data.equipos || [];
@@ -58,14 +55,8 @@ export default function EquiposPorServicio({ personal, buscarEquipo, onCerrar })
         "Sin subservicio"
       );
 
-      if (!resultado[servicio]) {
-        resultado[servicio] = {};
-      }
-
-      if (!resultado[servicio][subservicio]) {
-        resultado[servicio][subservicio] = [];
-      }
-
+      if (!resultado[servicio]) resultado[servicio] = {};
+      if (!resultado[servicio][subservicio]) resultado[servicio][subservicio] = [];
       resultado[servicio][subservicio].push(equipo);
     });
 
@@ -75,24 +66,46 @@ export default function EquiposPorServicio({ personal, buscarEquipo, onCerrar })
   const totalServicios = Object.keys(agrupados).length;
 
   const toggleServicio = (servicio) => {
-    setServiciosAbiertos((prev) => ({
-      ...prev,
-      [servicio]: !prev[servicio],
-    }));
+    setServiciosAbiertos((prev) => ({ ...prev, [servicio]: !prev[servicio] }));
   };
 
   const toggleSubservicio = (clave) => {
-    setSubserviciosAbiertos((prev) => ({
-      ...prev,
-      [clave]: !prev[clave],
-    }));
+    setSubserviciosAbiertos((prev) => ({ ...prev, [clave]: !prev[clave] }));
   };
 
   const seleccionarEquipo = (numeroSerie) => {
     if (onCerrar) onCerrar();
+    if (buscarEquipo && numeroSerie) buscarEquipo(numeroSerie);
+  };
 
-    if (buscarEquipo && numeroSerie) {
-      buscarEquipo(numeroSerie);
+  const abrirRIC44 = (equipo) => {
+    if (!equipo?.numero_serie) {
+      alert("El equipo no tiene número de serie.");
+      return;
+    }
+
+    localStorage.setItem(
+      "tareaActiva",
+      JSON.stringify({
+        id: equipo.mantenimiento_id || null,
+        ric01_id: equipo.mantenimiento_id || null,
+        equipo_id: equipo.id,
+        numero_serie: equipo.numero_serie,
+        descripcion: equipo.descripcion,
+        marca_modelo: equipo.marca_modelo,
+        area: equipo.area,
+        servicio: equipo.servicio,
+        sub_servicio: equipo.sub_servicio ?? equipo.subservicio,
+        tipo_mantenimiento: equipo.tipo_mantenimiento || ""
+      })
+    );
+
+    if (onCerrar) onCerrar();
+
+    if (typeof window.setVistaGlobal === "function") {
+      window.setVistaGlobal("ric44");
+    } else {
+      alert("No se pudo abrir RIC44.");
     }
   };
 
@@ -100,9 +113,7 @@ export default function EquiposPorServicio({ personal, buscarEquipo, onCerrar })
     <div className="bg-white rounded-2xl shadow-md p-4 mb-6">
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">
-            Equipos por servicio
-          </h2>
+          <h2 className="text-xl font-bold text-gray-800">Equipos por servicio</h2>
           <p className="text-sm text-gray-500">
             Área: {personal?.area || "Sin área"} · {equipos.length} equipos · {totalServicios} servicios
           </p>
@@ -118,11 +129,7 @@ export default function EquiposPorServicio({ personal, buscarEquipo, onCerrar })
         )}
       </div>
 
-      {cargando && (
-        <p className="text-gray-500 font-semibold">
-          Consultando equipos...
-        </p>
-      )}
+      {cargando && <p className="text-gray-500 font-semibold">Consultando equipos...</p>}
 
       {!cargando && error && (
         <div className="text-red-600 font-semibold">
@@ -137,9 +144,7 @@ export default function EquiposPorServicio({ personal, buscarEquipo, onCerrar })
       )}
 
       {!cargando && !error && equipos.length === 0 && (
-        <p className="text-green-600 font-semibold">
-          ✓ No hay equipos registrados para esta área.
-        </p>
+        <p className="text-green-600 font-semibold">✓ No hay equipos registrados para esta área.</p>
       )}
 
       {!cargando && !error && equipos.length > 0 && (
@@ -159,9 +164,7 @@ export default function EquiposPorServicio({ personal, buscarEquipo, onCerrar })
                     onClick={() => toggleServicio(servicio)}
                     className="w-full bg-gray-100 hover:bg-gray-200 px-4 py-3 flex justify-between items-center text-left"
                   >
-                    <span className="font-bold text-gray-800">
-                      {servicio}
-                    </span>
+                    <span className="font-bold text-gray-800">{servicio}</span>
                     <span className="font-bold text-gray-600">
                       {cantidadServicio} {servicioAbierto ? "▲" : "▼"}
                     </span>
@@ -181,9 +184,7 @@ export default function EquiposPorServicio({ personal, buscarEquipo, onCerrar })
                                 onClick={() => toggleSubservicio(clave)}
                                 className="w-full px-3 py-2 flex justify-between items-center text-left bg-white hover:bg-gray-50"
                               >
-                                <span className="font-semibold text-gray-700">
-                                  {subservicio}
-                                </span>
+                                <span className="font-semibold text-gray-700">{subservicio}</span>
                                 <span className="text-sm font-bold text-gray-500">
                                   {lista.length} {abierto ? "▲" : "▼"}
                                 </span>
@@ -201,10 +202,7 @@ export default function EquiposPorServicio({ personal, buscarEquipo, onCerrar })
                                       )
                                     )
                                     .map((equipo) => (
-                                      <div
-                                        key={equipo.id}
-                                        className="border rounded-xl p-3 bg-white"
-                                      >
+                                      <div key={equipo.id} className="border rounded-xl p-3 bg-white">
                                         <div className="flex justify-between items-start gap-3">
                                           <div>
                                             <p className="font-bold text-gray-800">
@@ -214,23 +212,31 @@ export default function EquiposPorServicio({ personal, buscarEquipo, onCerrar })
                                               {equipo.marca_modelo || "Sin marca/modelo"}
                                             </p>
                                             <p className="text-sm text-gray-700">
-                                              <strong>Nº serie:</strong>{" "}
-                                              {equipo.numero_serie || "-"}
+                                              <strong>Nº serie:</strong> {equipo.numero_serie || "-"}
                                             </p>
                                           </div>
-
                                           <span className="text-xs font-semibold text-gray-500 whitespace-nowrap">
                                             #{equipo.id}
                                           </span>
                                         </div>
 
-                                        {buscarEquipo && equipo.numero_serie && (
-                                          <button
-                                            onClick={() => seleccionarEquipo(equipo.numero_serie)}
-                                            className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl"
-                                          >
-                                            Ver equipo
-                                          </button>
+                                        {equipo.numero_serie && (
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                                            {buscarEquipo && (
+                                              <button
+                                                onClick={() => seleccionarEquipo(equipo.numero_serie)}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl"
+                                              >
+                                                Ver equipo
+                                              </button>
+                                            )}
+                                            <button
+                                              onClick={() => abrirRIC44(equipo)}
+                                              className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 rounded-xl"
+                                            >
+                                              RIC44 - Obsolescencia
+                                            </button>
+                                          </div>
                                         )}
                                       </div>
                                     ))}
