@@ -64,59 +64,35 @@ export default function RIC44({ setVista, personal }) {
     }
   };
 
+  // Las estadísticas se obtienen del backend para no descargar toda la tabla
+  // de tareas/equipos al navegador. Esto también mantiene un único criterio
+  // de cálculo para RIC44.
   const cargarEstadisticas = async (datosEquipo) => {
     try {
-      const [resTareas, resEquipos] = await Promise.all([
-        fetch(API_URL.Tareas),
-        fetch(API_URL.Equipos)
-      ]);
+      const serie = datosEquipo?.numero_serie;
+      if (!serie) return;
 
-      const tareasData = resTareas.ok ? await resTareas.json() : [];
-      const equiposData = resEquipos.ok ? await resEquipos.json() : [];
-      const tareas = Array.isArray(tareasData) ? tareasData : tareasData.tareas || [];
-      const equipos = Array.isArray(equiposData) ? equiposData : equiposData.equipos || [];
+      const res = await fetch(
+        `${API_URL.Ric44}/estadisticas/${encodeURIComponent(serie)}`
+      );
 
-      const serie = normalizar(datosEquipo.numero_serie);
-      const descripcion = normalizar(datosEquipo.descripcion);
-      const servicio = normalizar(datosEquipo.servicio);
-      const subservicio = normalizar(datosEquipo.sub_servicio ?? datosEquipo.subservicio);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "No se pudieron obtener las estadísticas del equipo");
+      }
 
-      const tareasEquipo = tareas.filter((t) => {
-        return serie && normalizar(t.numero_serie) === serie;
-      });
-
-      const correctivos = tareasEquipo.filter((t) => {
-        const tipo = normalizar(t.tipo_mantenimiento);
-        return tipo.includes("correct");
-      }).length;
-
-      const preventivos = tareasEquipo.filter((t) => {
-        const tipo = normalizar(t.tipo_mantenimiento);
-        return tipo.includes("prevent");
-      }).length;
-
-      const diasFueraServicio = tareasEquipo.reduce((total, t) => {
-        const inicio = parseFecha(t.fecha);
-        const fin = parseFecha(t.fecha_fin || t.fin || t.fecha_comp);
-        if (!inicio || !fin || fin < inicio) return total;
-        return total + Math.ceil((fin - inicio) / 86400000);
-      }, 0);
-
-      const equiposSimilares = equipos.filter((e) => {
-        return normalizar(e.descripcion) === descripcion &&
-          normalizar(e.servicio) === servicio &&
-          normalizar(e.sub_servicio ?? e.subservicio) === subservicio &&
-          normalizar(e.numero_serie) !== serie;
-      }).length;
+      const data = await res.json();
+      const stats = data.estadisticas || {};
 
       setEstadisticas({
-        correctivos,
-        preventivos,
-        dias_fuera_servicio: diasFueraServicio,
-        equipos_similares: equiposSimilares
+        correctivos: Number(stats.correctivos) || 0,
+        preventivos: Number(stats.preventivos) || 0,
+        dias_fuera_servicio: Number(stats.dias_fuera_servicio) || 0,
+        equipos_similares: Number(stats.equipos_similares) || 0
       });
     } catch (err) {
-      console.error("Error calculando estadísticas RIC44:", err);
+      console.error("Error cargando estadísticas RIC44:", err);
+      setError(err.message || "No se pudieron cargar las estadísticas.");
     }
   };
 
@@ -231,32 +207,18 @@ export default function RIC44({ setVista, personal }) {
         <section className="bg-white rounded-2xl shadow-md p-4">
           <h2 className="text-lg font-bold text-gray-800 mb-3">Criterio de obsolescencia</h2>
           <label className="block text-sm font-semibold mb-1">Seleccionar criterio</label>
-          <select
-            value={criterio}
-            onChange={(e) => setCriterio(e.target.value)}
-            className="w-full border rounded-xl p-3"
-          >
+          <select value={criterio} onChange={(e) => setCriterio(e.target.value)} className="w-full border rounded-xl p-3">
             <option value="">Seleccione...</option>
             {CRITERIOS.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
 
           <label className="block text-sm font-semibold mt-4 mb-1">Ampliar selección</label>
-          <textarea
-            value={ampliarSeleccion}
-            onChange={(e) => setAmpliarSeleccion(e.target.value)}
-            className="w-full border rounded-xl p-3 min-h-24"
-            placeholder="Detalle o ampliación del criterio seleccionado"
-          />
+          <textarea value={ampliarSeleccion} onChange={(e) => setAmpliarSeleccion(e.target.value)} className="w-full border rounded-xl p-3 min-h-24" placeholder="Detalle o ampliación del criterio seleccionado" />
         </section>
 
         <section className="bg-white rounded-2xl shadow-md p-4">
           <h2 className="text-lg font-bold text-gray-800 mb-3">Disposición final</h2>
-          <textarea
-            value={disposicionFinal}
-            onChange={(e) => setDisposicionFinal(e.target.value)}
-            className="w-full border rounded-xl p-3 min-h-24"
-            placeholder="Indique la disposición final del equipo"
-          />
+          <textarea value={disposicionFinal} onChange={(e) => setDisposicionFinal(e.target.value)} className="w-full border rounded-xl p-3 min-h-24" placeholder="Indique la disposición final del equipo" />
         </section>
 
         <section className="bg-white rounded-2xl shadow-md p-4">
@@ -266,12 +228,8 @@ export default function RIC44({ setVista, personal }) {
           ) : (
             <p className="text-sm text-gray-500 mb-3">El equipo no tiene una imagen registrada.</p>
           )}
-
           <input ref={inputFoto} type="file" accept="image/*" capture="environment" onChange={seleccionarFoto} className="hidden" />
-          <button
-            onClick={() => inputFoto.current?.click()}
-            className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl"
-          >
+          <button onClick={() => inputFoto.current?.click()} className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl">
             📷 {imagen ? "Tomar / cambiar imagen" : "Tomar imagen del equipo"}
           </button>
         </section>
@@ -279,18 +237,9 @@ export default function RIC44({ setVista, personal }) {
         <section className="bg-white rounded-2xl shadow-md p-4">
           <h2 className="text-lg font-bold text-gray-800 mb-3">Estadísticas del equipo</h2>
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="border rounded-xl p-3">
-              <p className="text-2xl font-bold text-red-600">{estadisticas.correctivos}</p>
-              <p className="text-xs text-gray-600">Correctivos</p>
-            </div>
-            <div className="border rounded-xl p-3">
-              <p className="text-2xl font-bold text-blue-600">{estadisticas.preventivos}</p>
-              <p className="text-xs text-gray-600">Preventivos</p>
-            </div>
-            <div className="border rounded-xl p-3">
-              <p className="text-2xl font-bold text-orange-600">{estadisticas.dias_fuera_servicio}</p>
-              <p className="text-xs text-gray-600">Días fuera de servicio</p>
-            </div>
+            <div className="border rounded-xl p-3"><p className="text-2xl font-bold text-red-600">{estadisticas.correctivos}</p><p className="text-xs text-gray-600">Correctivos</p></div>
+            <div className="border rounded-xl p-3"><p className="text-2xl font-bold text-blue-600">{estadisticas.preventivos}</p><p className="text-xs text-gray-600">Preventivos</p></div>
+            <div className="border rounded-xl p-3"><p className="text-2xl font-bold text-orange-600">{estadisticas.dias_fuera_servicio}</p><p className="text-xs text-gray-600">Días fuera de servicio</p></div>
           </div>
         </section>
 
@@ -306,41 +255,19 @@ export default function RIC44({ setVista, personal }) {
 
         <section className="bg-white rounded-2xl shadow-md p-4">
           <h2 className="text-lg font-bold text-gray-800 mb-3">Observaciones</h2>
-          <textarea
-            value={observaciones}
-            onChange={(e) => setObservaciones(e.target.value)}
-            className="w-full border rounded-xl p-3 min-h-28"
-            placeholder="Observaciones generales"
-          />
+          <textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} className="w-full border rounded-xl p-3 min-h-28" placeholder="Observaciones generales" />
         </section>
 
         {error && <div className="bg-red-100 text-red-700 p-3 rounded-xl">⚠️ {error}</div>}
 
-        <button
-          onClick={guardar}
-          disabled={guardando}
-          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 rounded-xl shadow"
-        >
+        <button onClick={guardar} disabled={guardando} className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 rounded-xl shadow">
           {guardando ? "Guardando RIC44..." : "💾 Guardar RIC44"}
         </button>
 
-        <button
-          onClick={() => setVista("equipos")}
-          className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 rounded-xl"
-        >
+        <button onClick={() => setVista("equipos")} className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 rounded-xl">
           ← Volver a equipos
         </button>
       </div>
     </div>
   );
-}
-
-function normalizar(valor) {
-  return String(valor || "").trim().toLowerCase();
-}
-
-function parseFecha(valor) {
-  if (!valor) return null;
-  const fecha = new Date(valor);
-  return Number.isNaN(fecha.getTime()) ? null : fecha;
 }
