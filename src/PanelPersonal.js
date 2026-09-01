@@ -5,6 +5,7 @@ import SeleccionEquipo from "./SeleccionEquipo";
 import NuevoEquipo from "./NuevoEquipo";
 import RIC29 from "./RIC29";
 import RIC37 from "./RIC37";
+import RIC44 from "./RIC44";
 
 export default function PanelPersonal({ personal, onLogout }) {
   const [vista, setVista] = useState("tareas");
@@ -47,6 +48,13 @@ export default function PanelPersonal({ personal, onLogout }) {
 
       {vista === "ric37" && (
         <RIC37
+          setVista={setVista}
+          personal={personal}
+        />
+      )}
+
+      {vista === "ric44" && (
+        <RIC44
           setVista={setVista}
           personal={personal}
         />
