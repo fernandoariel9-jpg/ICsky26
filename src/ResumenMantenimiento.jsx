@@ -1,4 +1,28 @@
-import { formatTimestamp } from "./utils/formatTimestamp";
+function formatTimestamp(ts) {
+  if (!ts) return "";
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(ts)) return ts;
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?$/.test(ts)) {
+    const [fechaPart, horaPart] = ts.split(" ");
+    const [year, month, day] = fechaPart.split("-").map(Number);
+    const [hour, min, sec = "00"] = horaPart.split(":");
+    return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}, ${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  }
+  try {
+    const d = new Date(ts);
+    return new Intl.DateTimeFormat("es-AR", {
+      timeZone: "America/Argentina/Buenos_Aires",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).format(d);
+  } catch {
+    return String(ts);
+  }
+}
 
 export default function ResumenMantenimiento({ mantenimiento, onCerrar }) {
   if (!mantenimiento) return null;
@@ -14,12 +38,7 @@ export default function ResumenMantenimiento({ mantenimiento, onCerrar }) {
               {mantenimiento.fecha ? ` · ${formatTimestamp(mantenimiento.fecha)}` : ""}
             </p>
           </div>
-          <button
-            onClick={onCerrar}
-            className="text-red-600 hover:text-red-800 font-bold text-xl"
-          >
-            ✖
-          </button>
+          <button onClick={onCerrar} className="text-red-600 hover:text-red-800 font-bold text-xl">✖</button>
         </div>
 
         <div className="overflow-auto max-h-[calc(90vh-76px)] p-5 space-y-5">
