@@ -152,7 +152,7 @@ export default function EstadisticasEquipo({ equipo, className = "" }) {
           <div>
             <div className="text-xs font-semibold text-gray-800">TMF</div>
             <div className="text-[10px] text-gray-500">
-              Tiempo medio de funcionamiento entre ingresos
+              Tiempo medio entre fallas
             </div>
           </div>
           <div className="text-base font-bold text-gray-800">
