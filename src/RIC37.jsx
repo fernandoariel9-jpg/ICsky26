@@ -23,9 +23,9 @@ export default function RIC37({ setVista, personal }) {
   const [observaciones, setObservaciones] = useState("");
 
   const [determinaciones, setDeterminaciones] = useState([
-    { numero: 1, nombre: "Resistencia de protección a tierra", medicion: "", rango: 0.3, conforme: null, noAplica: false },
-    { numero: 2, nombre: "Corriente de fuga de equipo", medicion: "", rango: 500, conforme: null, noAplica: false },
-    { numero: 3, nombre: "Corriente de fuga reversa de equipo", medicion: "", rango: 500, conforme: null, noAplica: false }
+    { numero: 1, nombre: "Resistencia de protección a tierra - Ω", medicion: "", rango: 0.3, conforme: null, noAplica: false },
+    { numero: 2, nombre: "Corriente de fuga de equipo - µA", medicion: "", rango: 500, conforme: null, noAplica: false },
+    { numero: 3, nombre: "Corriente de fuga reversa de equipo - µA", medicion: "", rango: 500, conforme: null, noAplica: false }
   ]);
 
   const [medicionesPartesAplicables, setMedicionesPartesAplicables] = useState([
@@ -88,7 +88,7 @@ export default function RIC37({ setVista, personal }) {
     setMedicionesPartesAplicables(actuales => actuales.map(item => {
       if (item.id !== id) return item;
       const actualizado = { ...item, [campo]: valor };
-      if (campo === "medicion") actualizado.conforme = calcularConformidad(valor, 0.3);
+      if (campo === "medicion") actualizado.conforme = calcularConformidad(valor, 50);
       return actualizado;
     }));
   };
@@ -114,8 +114,8 @@ export default function RIC37({ setVista, personal }) {
     });
     medicionesPartesAplicables.forEach((item, index) => {
       if (item.conforme === false && !item.noAplica) resultados.push({
-        etapa: "Partes aplicables", medicion: `Medición ${index + 1}`,
-        resultado: item.medicion, rango: "≤ 0.3"
+        etapa: "Partes aplicables - µA", medicion: `Medición ${index + 1}`,
+        resultado: item.medicion, rango: "≤ 50"
       });
     });
     return resultados;
