@@ -10,6 +10,7 @@ import RegistroPersonal from "./RegistroPersonal";
 import LoginPersonal from "./LoginPersonal";
 import FormularioUsuario from "./FormularioUsuario";
 import NotificacionesMantenimiento from "./NotificacionesMantenimiento";
+import MobileKeyboardSupport from "./MobileKeyboardSupport";
 import TareasPersonal from "./TareasPersonal";
 import PanelLogin from "./PanelLogin";
 import ManualUsuario from "./ManualUsuario";
@@ -106,6 +107,8 @@ function Main() {
 export default function App() {
   return (
     <BrowserRouter>
+      {/* Soporte global para la tecla de acción del teclado virtual móvil */}
+      <MobileKeyboardSupport />
       <Routes>
 
         {/* 🌐 URL pública accesible desde cualquier PC */}
