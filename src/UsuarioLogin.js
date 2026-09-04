@@ -7,7 +7,7 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu, 
   const [recordar, setRecordar] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [loading, setLoading] = useState(false);
- 
+
   useEffect(() => {
     const savedMail = localStorage.getItem("usuarioRecordado");
     const savedPassword = localStorage.getItem("passwordRecordado");
@@ -41,7 +41,10 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu, 
       if (res.ok) {
         const data = await res.json();
         toast.success(`Bienvenido ${data.nombre} ✅`);
-        onLogin(data.nombre);
+
+        // Conservamos el objeto completo del usuario para disponer de
+        // id, servicio, mail, nombre, etc. en el resto de la aplicación.
+        onLogin(data);
 
         if (recordar) {
           localStorage.setItem("usuarioRecordado", mail);
@@ -103,7 +106,6 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu, 
           Ingresar
         </button>
 
-        {/* 🔹 Botón volver al menú */}
         <button
           type="button"
           onClick={switchToMenu}
@@ -113,7 +115,6 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu, 
         </button>
       </form>
 
-      {/* 🔹 Overlay con spinner mientras carga */}
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -122,7 +123,3 @@ export default function UsuarioLogin({ onLogin, switchToRegister, switchToMenu, 
     </div>
   );
 }
-
-
-
-
