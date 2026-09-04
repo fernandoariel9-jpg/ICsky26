@@ -9,7 +9,6 @@ import UsuarioLogin from "./UsuarioLogin";
 import RegistroPersonal from "./RegistroPersonal";
 import LoginPersonal from "./LoginPersonal";
 import FormularioUsuario from "./FormularioUsuario";
-import NotificacionesMantenimiento from "./NotificacionesMantenimiento";
 import TareasPersonal from "./TareasPersonal";
 import PanelLogin from "./PanelLogin";
 import ManualUsuario from "./ManualUsuario";
@@ -41,17 +40,8 @@ function Main() {
 
   // ----------- Renderizado según estado -----------
 
-  // Usuario logueado → FormularioUsuario + notificaciones de mantenimiento
-  if (usuario) {
-    return (
-      <div className="relative min-h-screen">
-        <div className="fixed top-4 right-4 z-[60]">
-          <NotificacionesMantenimiento usuario={usuario} />
-        </div>
-        <FormularioUsuario usuario={usuario} onLogout={handleLogout} />
-      </div>
-    );
-  }
+  // Usuario logueado → FormularioUsuario
+  if (usuario) return <FormularioUsuario usuario={usuario} onLogout={handleLogout} />;
 
   // Personal logueado → TareasPersonal
   if (personal) return <PanelPersonal personal={personal} onLogout={handleLogout} />;
