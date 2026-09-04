@@ -215,15 +215,6 @@ export default function SeleccionEquipo({ setVista }) {
         </div>
       )}
 
-      {(!equipo.servicio || !equipo.sub_servicio) && (
-  <div className="bg-red-100 text-red-700 p-3 rounded-xl mt-3">
-    ⚠️ Este equipo no puede utilizarse para mantenimiento porque
-    {!equipo.servicio && " no tiene Servicio asignado"}
-    {!equipo.servicio && !equipo.sub_servicio && " ni"}
-    {!equipo.sub_servicio && " no tiene Subservicio asignado"}.
-  </div>
-)}
-
       {/* Error */}
       {error && (
         <p className="text-red-500 mt-3">{error}</p>
