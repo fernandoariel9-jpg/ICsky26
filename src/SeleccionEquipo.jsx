@@ -44,6 +44,13 @@ export default function SeleccionEquipo({ setVista }) {
 
 };
   const seleccionarEquipo = async () => {
+      if (!equipo?.servicio || !equipo?.sub_servicio) {
+    alert(
+      "⚠️ No se puede seleccionar este equipo.\n\n" +
+      "El equipo debe tener asignados Servicio y Subservicio."
+    );
+    return;
+  }
     try {
       const tareaActiva = JSON.parse(localStorage.getItem("tareaActiva"));
 
@@ -194,6 +201,7 @@ export default function SeleccionEquipo({ setVista }) {
           <p><b>Marca:</b> {equipo.marca_modelo}</p>
           <p><b>Serie:</b> {equipo.numero_serie}</p>
           <p><b>Servicio:</b> {equipo.servicio}</p>
+          <p><b>Subservicio:</b> {equipo.sub_servicio}</p>
           <p><b>Área:</b> {equipo.area}</p>
           <p><b>Estado:</b> {equipo.estado}</p>
           <p><b>Último mantenimiento:</b> {equipo.ultimo_mant}</p>
@@ -206,6 +214,15 @@ export default function SeleccionEquipo({ setVista }) {
           </button>
         </div>
       )}
+
+      {(!equipo.servicio || !equipo.sub_servicio) && (
+  <div className="bg-red-100 text-red-700 p-3 rounded-xl mt-3">
+    ⚠️ Este equipo no puede utilizarse para mantenimiento porque
+    {!equipo.servicio && " no tiene Servicio asignado"}
+    {!equipo.servicio && !equipo.sub_servicio && " ni"}
+    {!equipo.sub_servicio && " no tiene Subservicio asignado"}.
+  </div>
+)}
 
       {/* Error */}
       {error && (
