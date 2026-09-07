@@ -17,6 +17,7 @@ export default function LoginPersonal({ onLogin, switchToRegister }) {
       });
       if (res.ok) {
         const data = await res.json();
+        console.log("DATOS PERSONAL LOGIN:", data);
         toast.success(`Bienvenido ${data.nombre} ✅`);
         onLogin(data);
       } else {
