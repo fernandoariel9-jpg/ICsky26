@@ -34,6 +34,13 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         ? usuario
         : usuario.mail || usuario.nombre;
 
+    console.log("🔎 USUARIO COMPLETO:", usuario);
+console.log("🔎 IDENTIFICADOR USADO PARA CONSULTAR:", JSON.stringify(userIdentifier));
+console.log(
+  "🔎 URL CONSULTA:",
+  `${API_TAREAS}?usuario=${encodeURIComponent(userIdentifier)}`
+);
+
     const res = await fetch(
       `${API_TAREAS}?usuario=${encodeURIComponent(userIdentifier)}`
     );
