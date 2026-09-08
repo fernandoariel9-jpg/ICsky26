@@ -169,7 +169,12 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
     try {
       if (!personal?.area) return;
       const res = await fetch(
-  `${API_TAREAS}/${encodeURIComponent(personal.area)}?personal=${encodeURIComponent(personal.nombre)}`
+  `${API_TAREAS}/${encodeURIComponent(personal.area)}?personal=${encodeURIComponent(personal.nombre)}`,
+  {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("personal_token") || ""}`
+    }
+  }
 );
       if (!res.ok) throw new Error("Error HTTP " + res.status);
       const data = await res.json();
