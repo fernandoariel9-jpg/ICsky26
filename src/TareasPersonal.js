@@ -656,7 +656,26 @@ if (mostrarGuardias) {
 
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
-  const finalizadas = tareas.filter((t) => t.fin);
+  const finalizadas = tareas.filter((t) => {
+  if (!t.fin) return false;
+
+  // Personal normal: ve todas las finalizadas como hasta ahora
+  if (personal?.rol !== "superusuario") {
+    return true;
+  }
+
+  // Superusuario: solo finalizadas del último mes
+  if (!t.fecha_fin) {
+    return false;
+  }
+
+  const fechaFin = new Date(t.fecha_fin);
+  const haceUnMes = new Date();
+
+  haceUnMes.setMonth(haceUnMes.getMonth() - 1);
+
+  return fechaFin >= haceUnMes;
+});
 
   // 🔍 Filtrado global por búsqueda
 let tareasFiltradas = [];
