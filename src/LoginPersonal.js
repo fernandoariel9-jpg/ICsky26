@@ -32,6 +32,9 @@ export default function LoginPersonal({ onLogin, switchToRegister, switchToMenu 
       if (res.ok) {
         const data = await res.json();
         console.log("DATOS PERSONAL LOGIN:", data);
+        if (data.token) {
+  localStorage.setItem("personal_token", data.token);
+}
         toast.success(`Bienvenido ${data.nombre} ✅`);
         onLogin(data);
 
