@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { API_URL } from "./config";
+
 function formatTimestamp(ts) {
   if (!ts) return "";
   if (/^\d{2}\/\d{2}\/\d{4}/.test(ts)) return ts;
@@ -25,7 +28,52 @@ function formatTimestamp(ts) {
 }
 
 export default function ResumenMantenimiento({ mantenimiento, onCerrar }) {
+  const [enviandoDrive, setEnviandoDrive] = useState(false);
+
   if (!mantenimiento) return null;
+
+  const ric29 = mantenimiento.ric29 || null;
+  const resultado = String(ric29?.resultado_general || "").trim().toUpperCase();
+  const tieneResultado = Boolean(resultado);
+  const esConforme = resultado === "CONFORME";
+  const observacionesRIC29 = String(ric29?.observaciones || "").trim();
+
+  const abrirPDF = () => {
+    if (!ric29?.id) {
+      alert("Este mantenimiento preventivo no tiene un RIC29 asociado.");
+      return;
+    }
+
+    window.open(`${API_URL.Ric29}/${ric29.id}/pdf`, "_blank");
+  };
+
+  const reenviarDrive = async () => {
+    if (!ric29?.id) {
+      alert("Este mantenimiento preventivo no tiene un RIC29 asociado.");
+      return;
+    }
+
+    try {
+      setEnviandoDrive(true);
+
+      const res = await fetch(`${API_URL.Ric29}/${ric29.id}/drive`, {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "No se pudo enviar el PDF a Google Drive");
+      }
+
+      alert("✅ PDF reenviado correctamente a Google Drive");
+    } catch (error) {
+      console.error("Error reenviando RIC29 a Drive:", error);
+      alert(error.message || "No se pudo reenviar el PDF a Google Drive");
+    } finally {
+      setEnviandoDrive(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
@@ -55,6 +103,57 @@ export default function ResumenMantenimiento({ mantenimiento, onCerrar }) {
             </div>
           </section>
 
+          {ric29 && (
+            <section className="bg-gray-50 border rounded-xl p-4 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-800 mb-3">Resultado del preventivo</h3>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="font-semibold">Resultado:</span>
+                {tieneResultado ? (
+                  <span
+                    className={`px-3 py-1 rounded-full font-bold text-white ${
+                      esConforme ? "bg-green-600" : "bg-red-600"
+                    }`}
+                  >
+                    {resultado}
+                  </span>
+                ) : (
+                  <span className="text-gray-500">Sin resultado registrado</span>
+                )}
+              </div>
+
+              {observacionesRIC29 && (
+                <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3">
+                  <strong>📝 Observaciones del protocolo</strong>
+                  <p className="mt-2 whitespace-pre-wrap text-sm">{observacionesRIC29}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                <button
+                  onClick={abrirPDF}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-semibold"
+                >
+                  📄 Descargar / abrir PDF
+                </button>
+
+                <button
+                  onClick={reenviarDrive}
+                  disabled={enviandoDrive}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-xl font-semibold"
+                >
+                  {enviandoDrive ? "Enviando..." : "☁️ Volver a enviar a Drive"}
+                </button>
+              </div>
+            </section>
+          )}
+
+          {!ric29 && (
+            <section className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm text-yellow-800">
+              Este mantenimiento preventivo no tiene un RIC29 asociado.
+            </section>
+          )}
+
           {mantenimiento.diagnostico && (
             <section className="bg-red-50 border border-red-200 rounded-xl p-4">
               <h3 className="font-bold text-gray-800">🩺 Diagnóstico</h3>
@@ -71,7 +170,7 @@ export default function ResumenMantenimiento({ mantenimiento, onCerrar }) {
 
           {mantenimiento.observacion && (
             <section className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <h3 className="font-bold text-gray-800">📝 Observaciones</h3>
+              <h3 className="font-bold text-gray-800">📝 Observaciones del mantenimiento</h3>
               <p className="mt-2 whitespace-pre-wrap text-sm">{mantenimiento.observacion}</p>
             </section>
           )}
