@@ -55,8 +55,27 @@ export default function EstadisticasEquipo({ equipo, className = "" }) {
 
   const tmfDias = equipo.tmf?.dias ?? null;
   const fechaAlta = equipo.equipo?.fecha_alta ?? equipo.fecha_alta ?? null;
-  const tieneFechaAlta = Boolean(fechaAlta && !Number.isNaN(new Date(fechaAlta).getTime()));
+  const fechaAltaDate = fechaAlta ? new Date(fechaAlta) : null;
+  const tieneFechaAlta = Boolean(
+    fechaAltaDate && !Number.isNaN(fechaAltaDate.getTime())
+  );
   const tieneIngresosTmf = correctivos > 0;
+
+  const fechaAltaFormateada = tieneFechaAlta
+    ? new Intl.DateTimeFormat("es-AR", {
+        timeZone: "America/Argentina/Buenos_Aires",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }).format(fechaAltaDate)
+    : "Sin datos";
+
+  const diasTotalesDesdeAlta = tieneFechaAlta
+    ? Math.max(
+        0,
+        Math.floor((Date.now() - fechaAltaDate.getTime()) / 86400000)
+      )
+    : null;
 
   const Item = ({ icon, value, label, title }) => (
     <div
@@ -147,16 +166,33 @@ export default function EstadisticasEquipo({ equipo, className = "" }) {
         )}
       </div>
 
-      <div className="mt-2 rounded-lg border border-gray-100 bg-white px-3 py-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <div>
+      <div className="mt-2 rounded-lg border border-gray-100 bg-white px-3 py-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="rounded-lg bg-gray-50 border border-gray-100 px-3 py-3">
+            <div className="text-xs font-semibold text-gray-800">
+              Fecha de alta
+            </div>
+            <div className="mt-1 text-base font-bold text-gray-800">
+              {fechaAltaFormateada}
+            </div>
+            <div className="mt-2 text-[10px] text-gray-500">
+              Tiempo total desde el alta
+            </div>
+            <div className="text-sm font-semibold text-gray-700">
+              {diasTotalesDesdeAlta != null
+                ? `${diasTotalesDesdeAlta} días`
+                : "Sin datos"}
+            </div>
+          </div>
+
+          <div className="rounded-lg bg-gray-50 border border-gray-100 px-3 py-3">
             <div className="text-xs font-semibold text-gray-800">TMF</div>
             <div className="text-[10px] text-gray-500">
               Tiempo medio entre fallas
             </div>
-          </div>
-          <div className="text-base font-bold text-gray-800">
-            {tmfDias != null ? `${Number(tmfDias).toFixed(1)} días` : "Sin datos"}
+            <div className="mt-2 text-base font-bold text-gray-800">
+              {tmfDias != null ? `${Number(tmfDias).toFixed(1)} días` : "Sin datos"}
+            </div>
           </div>
         </div>
 
