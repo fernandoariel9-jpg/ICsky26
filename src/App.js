@@ -20,6 +20,8 @@ import PanelPersonal from "./PanelPersonal";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ResumenEstados from "./ResumenEstados";
 import RIC37 from "./RIC37";
+import InformacionPublica from "./InformacionPublica";
+import PoliticaPrivacidad from "./PoliticaPrivacidad";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
@@ -111,7 +113,9 @@ export default function App() {
       <MobileKeyboardSupport />
       <Routes>
 
-        {/* 🌐 URL pública accesible desde cualquier PC */}
+        {/* 🌐 Páginas públicas */}
+        <Route path="/informacion" element={<InformacionPublica />} />
+        <Route path="/privacidad" element={<PoliticaPrivacidad />} />
         <Route
           path="/analitica-areas"
           element={<AnaliticaAreas />}
