@@ -3,6 +3,7 @@ import TareasPersonal from "./TareasPersonal";
 import Equipos from "./Equipos";
 import SeleccionEquipo from "./SeleccionEquipo";
 import NuevoEquipo from "./NuevoEquipo";
+import RIC25 from "./RIC25";
 import RIC29 from "./RIC29";
 import RIC37 from "./RIC37";
 import RIC44 from "./RIC44";
@@ -36,6 +37,13 @@ export default function PanelPersonal({ personal, onLogout }) {
       {vista === "nuevoEquipo" && (
         <NuevoEquipo
           setVista={setVista}
+        />
+      )}
+
+      {vista === "ric25" && (
+        <RIC25
+          setVista={setVista}
+          personal={personal}
         />
       )}
 
