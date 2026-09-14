@@ -189,7 +189,6 @@ const guardarSolucion = async (id, textoSolucion) => {
   try {
     const fecha_comp = getFechaLocal();
 
-    // Agregar fecha y hora al inicio del texto
     const solucion = `[${fecha_comp}] ${textoSolucion}`;
 
     const res = await fetch(
@@ -222,9 +221,7 @@ const guardarSolucion = async (id, textoSolucion) => {
   const guardarObservacion = async () => {
   try {
     const fecha = getFechaLocal();
-
     const nuevaLinea = `[${fecha}] ${observacion}`;
-
     const observacionFinal =
       (tareaObservacionActual || "").trim()
         ? `${tareaObservacionActual}\n${nuevaLinea}`
@@ -232,16 +229,13 @@ const guardarSolucion = async (id, textoSolucion) => {
 
     await fetch(`${API_TAREAS}/${tareaObsId}/observacion`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ observacion: observacionFinal }),
     });
 
     toast.success("Observación agregada");
     setMostrarObservacion(false);
     setObservacion("");
-
     fetchTareas();
   } catch (error) {
     console.error(error);
@@ -264,12 +258,8 @@ const guardarSolucion = async (id, textoSolucion) => {
   try {
     const res = await fetch(`${API_URL.Base}/usuarios`);
     if (!res.ok) throw new Error("Error al obtener usuarios");
-
     const data = await res.json();
-
-    // 👉 Guardamos TODOS los usuarios
     setUsuarios(data);
-
   } catch (err) {
     console.error("Error al cargar usuarios:", err);
     toast.error("❌ No se pudieron cargar los usuarios");
@@ -278,21 +268,15 @@ const guardarSolucion = async (id, textoSolucion) => {
 
   const verUsuariosFiltrados = () => {
   if (!usuarios.length) return;
-
   const area = personal.area?.trim().toUpperCase();
-
-  // 👉 Si es administrador ve todos
   if (area === "ADMIN") {
     setUsuarios(usuarios);
     setMostrarUsuarios(true);
     return;
   }
-
-  // 👉 Sino filtramos por área
   const filtrados = usuarios.filter(
     (u) => u.area?.trim().toUpperCase() === area
   );
-
   setUsuarios(filtrados);
   setMostrarUsuarios(true);
 };
@@ -301,23 +285,15 @@ const guardarSolucion = async (id, textoSolucion) => {
   try {
     const res = await fetch(`${API_URL.Base}/usuarios`);
     if (!res.ok) throw new Error("Error al obtener usuarios");
-
     const data = await res.json();
-
     const area = personal.area?.trim().toUpperCase();
-
-    // 👉 ADMIN ve todos
     const filtrados =
       area === "ADMIN"
         ? data
-        : data.filter(
-            (u) => u.area?.trim().toUpperCase() === area
-          );
-
+        : data.filter((u) => u.area?.trim().toUpperCase() === area);
     setUsuarios(filtrados);
-    setMostrarUsuarios(true); // 👉 ahora SÍ se muestran
+    setMostrarUsuarios(true);
     console.log("Usuarios filtrados:", filtrados);
-
   } catch (err) {
     console.error("Error al cargar usuarios:", err);
     toast.error("❌ No se pudieron cargar los usuarios");
@@ -343,69 +319,40 @@ const guardarSolucion = async (id, textoSolucion) => {
     });
 
     console.log("Status:", response.status);
-
-    if (!response.ok) {
-      throw new Error("Error al guardar");
-    }
-
-    // ✅ SOLO si salió bien
+    if (!response.ok) throw new Error("Error al guardar");
     setDescripcionInterna("");
     setDestinoInterno("");
     setModalPedidoInterno(false);
-
     alert("Pedido creado correctamente");
-
   } catch (error) {
     console.error(error);
     alert("Hubo un error al guardar");
   }
 };
 
-  const abrirFinalizar = (tarea) => {
-  setTareaSeleccionada(tarea);
-  setEstadoFinal("Activo");
-  setMostrarFinalizar(true);
-};
-
 const finalizarTarea = async (id, estadoFinal) => {
   try {
-    const res = await fetch(
-      `${API_TAREAS}/finalizar/${id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          estado: estadoFinal,
-        })
-      }
-    );
-
-    if (!res.ok) {
-      throw new Error("Error");
-    }
-
+    const res = await fetch(`${API_TAREAS}/finalizar/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estado: estadoFinal })
+    });
+    if (!res.ok) throw new Error("Error");
     setMostrarFinalizar(false);
     setTareaFinalizar(null);
-
     fetchTareas();
-
   } catch (error) {
     console.error(error);
   }
 };
 
 const imprimirHistorial = (numeroSerie) => {
-
   if (!numeroSerie) return;
-
   window.open(
     `${API_URL.HistorialEquipo}/${encodeURIComponent(numeroSerie)}/historial/pdf`,
     "_blank",
     "noopener,noreferrer"
   );
-
 };
   
   const handleSeleccionUsuario = (u) => {
@@ -449,9 +396,7 @@ const cargarEstados = async () => {
   try {
     const res = await fetch(`${API_URL.Estados}`);
     const data = await res.json();
-
     setEstados(data);
-
   } catch (err) {
     console.error(err);
   }
@@ -466,7 +411,6 @@ const cargarEstados = async () => {
 
   useEffect(() => {
     if (!personal?.id) return;
-
     if (Notification.permission === "granted") {
       registrarPush(personal.id);
     } else if (Notification.permission === "default") {
@@ -482,8 +426,6 @@ const cargarEstados = async () => {
     try {
       const fecha_comp = getFechaLocal();
       const textoSolucion = soluciones[id] || "";
-
-// 👉 Agregar fecha y hora al inicio del texto
       const solucion = `[${fecha_comp}] ${textoSolucion}`;
       const url = `${API_TAREAS}/${id}/solucion`;
       const res = await fetch(url, {
@@ -511,18 +453,12 @@ const cargarEstados = async () => {
       toast.warn("Escriba una nueva solución antes de guardar ✏️");
       return;
     }
-
-    // 👉 buscamos la solución actual
     const tareaActual = tareas.find((t) => t.id === id);
     const solucionAnterior = tareaActual?.solucion || "";
-
     const fecha = getFechaLocal();
-
-    // 👉 armamos historial
     const solucionFinal = solucionAnterior
       ? `${solucionAnterior}\n[${fecha}] ${textoNuevo}`
       : `[${fecha}] ${textoNuevo}`;
-
     const url = `${API_TAREAS}/${id}/solucion`;
     const res = await fetch(url, {
       method: "PUT",
@@ -532,19 +468,14 @@ const cargarEstados = async () => {
         asignado: personal.nombre,
       }),
     });
-
     if (!res.ok) throw new Error("Error HTTP " + res.status);
-
     setTareas((prev) =>
       prev.map((t) =>
         t.id === id ? { ...t, solucion: solucionFinal } : t
       )
     );
-
-    // limpiamos input y salimos de edición
     setSoluciones((prev) => ({ ...prev, [id]: "" }));
     setEditando(null);
-
     toast.success("📝 Historial de solución actualizado");
   } catch (err) {
     console.error("Error al editar solución", err);
@@ -582,9 +513,7 @@ const cargarEstados = async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(editUsuario),
     });
-
     if (!res.ok) throw new Error("Error al actualizar usuario");
-
     toast.success("✅ Usuario actualizado correctamente");
     setUsuarioSeleccionado(null);
     fetchUsuarios();
@@ -597,16 +526,13 @@ const cargarEstados = async () => {
 const cambiarPassword = async (id) => {
   const nueva = prompt("Ingrese la nueva contraseña:");
   if (!nueva) return;
-
   try {
     const res = await fetch(`${API_URL.Base}/usuarios/${id}/password`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password: nueva }),
     });
-
     if (!res.ok) throw new Error("Error al cambiar contraseña");
-
     toast.success("🔐 Contraseña actualizada");
   } catch (err) {
     console.error(err);
@@ -623,13 +549,11 @@ const cambiarPassword = async (id) => {
       >
         ⬅ Volver a tareas
       </button>
-
       <ResumenEstados />
     </div>
   );
 }
 
-  // 👉 Si el usuario entra a Guardias
 if (mostrarGuardias) {
   return (
     <div className="p-4 max-w-2xl mx-auto">
@@ -639,17 +563,15 @@ if (mostrarGuardias) {
       >
         ⬅ Volver a tareas
       </button>
-
       <GuardiasServicios
-  personalId={personal.id}
-  personalNombre={personal.nombre}
-  onConfirmar={() => setMostrarGuardias(false)}
-/>
+        personalId={personal.id}
+        personalNombre={personal.nombre}
+        onConfirmar={() => setMostrarGuardias(false)}
+      />
     </div>
   );
 }
 
-    // 👉 Si el usuario elige "Registrar Usuario", mostrar ese formulario
   if (mostrarRegistro) {
     return <RegistroUsuario onCancelar={() => setMostrarRegistro(false)} />;
   }
@@ -657,29 +579,16 @@ if (mostrarGuardias) {
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
   const finalizadas = tareas.filter((t) => {
-  if (!t.fin) return false;
+    if (!t.fin) return false;
+    if (personal?.rol !== "superusuario") return true;
+    if (!t.fecha_fin) return false;
+    const fechaFin = new Date(t.fecha_fin);
+    const haceUnMes = new Date();
+    haceUnMes.setMonth(haceUnMes.getMonth() - 1);
+    return fechaFin >= haceUnMes;
+  });
 
-  // Personal normal: ve todas las finalizadas como hasta ahora
-  if (personal?.rol !== "superusuario") {
-    return true;
-  }
-
-  // Superusuario: solo finalizadas del último mes
-  if (!t.fecha_fin) {
-    return false;
-  }
-
-  const fechaFin = new Date(t.fecha_fin);
-  const haceUnMes = new Date();
-
-  haceUnMes.setMonth(haceUnMes.getMonth() - 1);
-
-  return fechaFin >= haceUnMes;
-});
-
-  // 🔍 Filtrado global por búsqueda
 let tareasFiltradas = [];
-
 if (busqueda.trim()) {
   const texto = busqueda.toLowerCase();
   tareasFiltradas = tareas.filter((t) => {
@@ -755,13 +664,13 @@ if (busqueda.trim()) {
     <div className="p-4 max-w-2xl mx-auto">
       <p className={`text-center mb-4 font-semibold ${notificacionesActivas ? "text-green-600" : "text-red-600"}`}>
         {notificacionesActivas ? "🔔 Notificaciones activadas" : "🔕 Notificaciones desactivadas"}
-     <button
+        <button
           onClick={() => toggleNotificaciones(personal.id)}
           className="bg-yellow-500 text-white px-3 py-1 rounded-xl text-sm"
         >
           {notificacionesActivas ? "🔕 Desactivar notificaciones" : "🔔 Activar notificaciones"}
         </button>
-</p>
+      </p>
 
       <img src="/logosmall_old.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
       <h1 className="text-2xl font-bold mb-4 text-center">
@@ -774,255 +683,231 @@ if (busqueda.trim()) {
           🔄 Actualizar lista
         </button>
         <div className="relative">
-  <button
-    onClick={() => setMenuAbierto((v) => !v)}
-    className="bg-gray-700 text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2"
-  >
-    ☰ Acciones
-  </button>
+          <button
+            onClick={() => setMenuAbierto((v) => !v)}
+            className="bg-gray-700 text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2"
+          >
+            ☰ Acciones
+          </button>
 
-  {menuAbierto && (
-    <div className="absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-lg z-50">
-      
-      <button
-        onClick={() => {
-          handleExportarPDF();
-          setMenuAbierto(false);
-        }}
-        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-      >
-        📄 Exportar lista en PDF
-      </button>
+          {menuAbierto && (
+            <div className="absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-lg z-50">
+              <button
+                onClick={() => {
+                  handleExportarPDF();
+                  setMenuAbierto(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                📄 Exportar lista en PDF
+              </button>
 
-      <button
-        onClick={() => {
-          setMostrarRegistro(true);
-          setMenuAbierto(false);
-        }}
-        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-      >
-        ➕ Registrar usuario
-      </button>
+              <button
+                onClick={() => {
+                  setMostrarRegistro(true);
+                  setMenuAbierto(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                ➕ Registrar usuario
+              </button>
 
-      <button
-        onClick={() => {
-          verUsuarios();
-          setMenuAbierto(false);
-        }}
-        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-      >
-        👥 Ver usuarios
-      </button>
+              <button
+                onClick={() => {
+                  verUsuarios();
+                  setMenuAbierto(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                👥 Ver usuarios
+              </button>
 
-    <button
-  onClick={() => {
-    setMenuAbierto(false);
-    setModalPedidoInterno(true);
-  }}
-  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
->
-  ➕ Pedido Interno
-</button>
+              <button
+                onClick={() => {
+                  setMenuAbierto(false);
+                  setModalPedidoInterno(true);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                ➕ Pedido Interno
+              </button>
 
-    <button
-  onClick={() => {
-    setMostrarPanelControl(true);
-    setMenuAbierto(false);
-  }}
-  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
->
-  📊 Panel de control
-</button>
+              <button
+                onClick={() => {
+                  setMostrarPanelControl(true);
+                  setMenuAbierto(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                📊 Panel de control
+              </button>
 
-    <button
-  onClick={() => {
-    setMenuAbierto(false);
-    setVista("equipos"); // 👈 consistente con tu lógica
-  }}
-  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
->
-  🏥 Equipos
-</button>
+              <button
+                onClick={() => {
+                  setMenuAbierto(false);
+                  setVista("equipos");
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                🏥 Equipos
+              </button>
 
-      <div className="border-t my-1" />
+              <button
+                onClick={() => {
+                  setMenuAbierto(false);
+                  setVista("ric25");
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                🫁 Probar RIC25 · CITREX
+              </button>
 
-      <button
-        onClick={() => {
-          setMenuAbierto(false);
-          onLogout();
-        }}
-        className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 text-sm"
-      >
-          
-        🚪 Cerrar sesión
-      </button>
-    </div>
-  )}
-</div>
-      </div>
-{mostrarUsuarios && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-4 rounded-xl w-80 shadow-lg">
-      <h2 className="text-xl font-bold mb-3">Usuarios Registrados</h2>
+              <div className="border-t my-1" />
 
-      <ul className="max-h-60 overflow-y-auto">
-        {usuarios.map((u) => (
-          <li
-  key={u.id}
-  className="border-b py-2 cursor-pointer hover:bg-gray-100"
-  onClick={() => handleSeleccionUsuario(u)}
->
-            <strong>{u.nombre}</strong>
-            <br />
-            <span className="text-gray-600 text-sm">{u.mail}</span>
-          </li>
-        ))}
-      </ul>
-
-      <button
-        onClick={() => setMostrarUsuarios(false)}
-        className="mt-3 bg-red-500 text-white px-3 py-1 rounded-xl w-full"
-      >
-        Cerrar
-      </button>
-    </div>
-  </div>
-)}
-
-{modalPedidoInterno && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-    <div className="bg-white p-6 rounded w-96">
-
-      <h2 className="text-lg font-bold mb-4">
-        Nuevo Pedido Interno
-      </h2>
-
-      <select
-  className="w-full border p-2 mb-3 rounded"
-  value={destinoInterno}
-  onChange={(e) => setDestinoInterno(e.target.value)}
->
-  <option value="">Seleccionar destino</option>
-
-  {areas.map((a) => (
-    <option key={a.id} value={a.area}>
-      {a.area}
-    </option>
-  ))}
-</select>
-
-      <textarea
-        className="w-full border p-2 mb-3 rounded"
-        placeholder="Describa el pedido..."
-        value={descripcionInterna}
-        onChange={(e) => setDescripcionInterna(e.target.value)}
-      />
-
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={() => setModalPedidoInterno(false)}
-          className="px-3 py-1 bg-gray-400 text-white rounded"
-        >
-          Cancelar
-        </button>
-
-        <button
-          onClick={handleCrearPedidoInterno}
-          className="px-3 py-1 bg-green-600 text-white rounded"
-        >
-          Crear
-        </button>
-      </div>
-
-    </div>
-  </div>
-)}
-
-{usuarioSeleccionado && (
-  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-2xl shadow-2xl w-96 animate-fadeIn">
-
-      <h2 className="text-2xl font-bold mb-4 text-center text-blue-700">
-        Editar Usuario
-      </h2>
-
-      <div className="space-y-3">
-        <div>
-          <label className="text-sm font-semibold">Nombre</label>
-          <input
-            className="border w-full p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={editUsuario.nombre}
-            onChange={(e) =>
-              setEditUsuario({ ...editUsuario, nombre: e.target.value })
-            }
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold">Email</label>
-          <input
-            className="border w-full p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={editUsuario.mail}
-            onChange={(e) =>
-              setEditUsuario({ ...editUsuario, mail: e.target.value })
-            }
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold">Área</label>
-          <input
-            className="border w-full p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={editUsuario.area}
-            onChange={(e) =>
-              setEditUsuario({ ...editUsuario, area: e.target.value })
-            }
-          />
+              <button
+                onClick={() => {
+                  setMenuAbierto(false);
+                  onLogout();
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 text-sm"
+              >
+                🚪 Cerrar sesión
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="mt-5 space-y-2">
+      {mostrarUsuarios && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-xl w-80 shadow-lg">
+            <h2 className="text-xl font-bold mb-3">Usuarios Registrados</h2>
+            <ul className="max-h-60 overflow-y-auto">
+              {usuarios.map((u) => (
+                <li
+                  key={u.id}
+                  className="border-b py-2 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSeleccionUsuario(u)}
+                >
+                  <strong>{u.nombre}</strong>
+                  <br />
+                  <span className="text-gray-600 text-sm">{u.mail}</span>
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => setMostrarUsuarios(false)}
+              className="mt-3 bg-red-500 text-white px-3 py-1 rounded-xl w-full"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
 
-        <button
-          onClick={() => cambiarPassword(editUsuario.id)}
-          className="w-full py-2 rounded-lg bg-yellow-500 text-white font-semibold hover:bg-yellow-600"
-        >
-          Cambiar contraseña
-        </button>
+      {modalPedidoInterno && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded w-96">
+            <h2 className="text-lg font-bold mb-4">Nuevo Pedido Interno</h2>
+            <select
+              className="w-full border p-2 mb-3 rounded"
+              value={destinoInterno}
+              onChange={(e) => setDestinoInterno(e.target.value)}
+            >
+              <option value="">Seleccionar destino</option>
+              {areas.map((a) => (
+                <option key={a.id} value={a.area}>{a.area}</option>
+              ))}
+            </select>
+            <textarea
+              className="w-full border p-2 mb-3 rounded"
+              placeholder="Describa el pedido..."
+              value={descripcionInterna}
+              onChange={(e) => setDescripcionInterna(e.target.value)}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setModalPedidoInterno(false)}
+                className="px-3 py-1 bg-gray-400 text-white rounded"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCrearPedidoInterno}
+                className="px-3 py-1 bg-green-600 text-white rounded"
+              >
+                Crear
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-        <button
-          onClick={guardarCambiosUsuario}
-          className="w-full py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700"
-        >
-          Guardar Cambios
-        </button>
+      {usuarioSeleccionado && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl w-96 animate-fadeIn">
+            <h2 className="text-2xl font-bold mb-4 text-center text-blue-700">Editar Usuario</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-semibold">Nombre</label>
+                <input
+                  className="border w-full p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  value={editUsuario.nombre}
+                  onChange={(e) => setEditUsuario({ ...editUsuario, nombre: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold">Email</label>
+                <input
+                  className="border w-full p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  value={editUsuario.mail}
+                  onChange={(e) => setEditUsuario({ ...editUsuario, mail: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold">Área</label>
+                <input
+                  className="border w-full p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  value={editUsuario.area}
+                  onChange={(e) => setEditUsuario({ ...editUsuario, area: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="mt-5 space-y-2">
+              <button
+                onClick={() => cambiarPassword(editUsuario.id)}
+                className="w-full py-2 rounded-lg bg-yellow-500 text-white font-semibold hover:bg-yellow-600"
+              >
+                Cambiar contraseña
+              </button>
+              <button
+                onClick={guardarCambiosUsuario}
+                className="w-full py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700"
+              >
+                Guardar Cambios
+              </button>
+              <button
+                onClick={() => setUsuarioSeleccionado(null)}
+                className="w-full py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-        <button
-          onClick={() => setUsuarioSeleccionado(null)}
-          className="w-full py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600"
-        >
-          Cerrar
-        </button>
-
+      <div className="relative my-3">
+        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Buscar en todas las columnas..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value.toLowerCase())}
+          className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+        />
       </div>
-    </div>
-  </div>
-)}
 
-
-{/* 🔍 Cuadro de búsqueda global */}
-<div className="relative my-3">
-  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-  <input
-    type="text"
-    placeholder="Buscar en todas las columnas..."
-    value={busqueda}
-    onChange={(e) => setBusqueda(e.target.value.toLowerCase())}
-    className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
-  />
-</div>
-
- {/* Filtros */}
       <div className="flex justify-center space-x-2 mb-4">
         <button
           onClick={() => setFiltro("pendientes")}
@@ -1044,438 +929,332 @@ if (busqueda.trim()) {
         </button>
       </div>
 
-      {/* Lista de tareas */}
       <ul className="space-y-3">
-  {tareasFiltradas.length === 0 && (
-    <p className="text-center text-gray-500 italic">
-      No hay tareas en esta categoría.
-    </p>
-  )}
-
-  {tareasFiltradas.map((t) => {
-  const tieneObservacion =
-    t.observacion && t.observacion.trim() !== "";
-  return (
-    <li key={t.id} className="p-3 rounded-xl shadow bg-white">
-      <div className="flex items-start space-x-3">
-        {/* Imagen clickeable para ampliar */}
-        {t.imagen && (
-          <img
-            src={`data:image/jpeg;base64,${t.imagen}`}
-            alt="Foto de tarea"
-            className="w-14 h-14 rounded-lg object-cover cursor-pointer"
-            onClick={() =>
-              setImagenAmpliada(`data:image/jpeg;base64,${t.imagen}`)
-            }
-          />
+        {tareasFiltradas.length === 0 && (
+          <p className="text-center text-gray-500 italic">No hay tareas en esta categoría.</p>
         )}
 
-        <div className="flex-1">
-          <p className="font-semibold text-base">
-            🆔 #{t.id} — 📝 {t.tarea}
-          </p>
+        {tareasFiltradas.map((t) => {
+          const tieneObservacion = t.observacion && t.observacion.trim() !== "";
+          return (
+            <li key={t.id} className="p-3 rounded-xl shadow bg-white">
+              <div className="flex items-start space-x-3">
+                {t.imagen && (
+                  <img
+                    src={`data:image/jpeg;base64,${t.imagen}`}
+                    alt="Foto de tarea"
+                    className="w-14 h-14 rounded-lg object-cover cursor-pointer"
+                    onClick={() => setImagenAmpliada(`data:image/jpeg;base64,${t.imagen}`)}
+                  />
+                )}
 
-          <p className="text-sm text-gray-700">
-  👤 Usuario: <span className="font-medium">{t.usuario}</span>
-</p>
+                <div className="flex-1">
+                  <p className="font-semibold text-base">🆔 #{t.id} — 📝 {t.tarea}</p>
+                  <p className="text-sm text-gray-700">👤 Usuario: <span className="font-medium">{t.usuario}</span></p>
 
-{t.movil && (
-  <button
-    onClick={() => {
-      const mensaje = `Hola ${t.usuario}, soy ${personal.nombre} del Servicio de Ingeniería Clínica, te contacto respecto a tu pedido de tarea #${t.id}: '${t.tarea}'.`;
-      const numero = t.movil.replace(/\D/g, ""); // limpia caracteres no numéricos
-      const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
-      window.open(url, "_blank");
-    }}
-    className="mt-1 flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs shadow-sm transition"
-  >
-    <FaWhatsapp size={14} />
-    Contactar usuario
-  </button>
-)}
-          <p className="text-sm text-gray-700">
-            🏢 Área: <span className="font-medium">{t.area || "—"}</span>
-          </p>
-          <p className="text-sm text-gray-700">
-            🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span>
-          </p>
-          {t.subservicio && (
-            <p className="text-sm text-gray-700">
-              🧩 Subservicio: <span className="font-medium">{t.subservicio}</span>
-            </p>
-          )}
-          {t.descripcion && (
-            <p className="text-sm text-green-600 mt-1">
-             🔧 Equipo: {t.descripcion}
-            </p>
-          )}
+                  {t.movil && (
+                    <button
+                      onClick={() => {
+                        const mensaje = `Hola ${t.usuario}, soy ${personal.nombre} del Servicio de Ingeniería Clínica, te contacto respecto a tu pedido de tarea #${t.id}: '${t.tarea}'.`;
+                        const numero = t.movil.replace(/\D/g, "");
+                        const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+                        window.open(url, "_blank");
+                      }}
+                      className="mt-1 flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs shadow-sm transition"
+                    >
+                      <FaWhatsapp size={14} />
+                      Contactar usuario
+                    </button>
+                  )}
 
-          {t.marca_modelo && (
-            <p className="text-sm text-green-600 mt-1">
-             🔧 Marca: {t.marca_modelo}
-            </p>
-          )}
+                  <p className="text-sm text-gray-700">🏢 Área: <span className="font-medium">{t.area || "—"}</span></p>
+                  <p className="text-sm text-gray-700">🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span></p>
+                  {t.subservicio && (
+                    <p className="text-sm text-gray-700">🧩 Subservicio: <span className="font-medium">{t.subservicio}</span></p>
+                  )}
+                  {t.descripcion && <p className="text-sm text-green-600 mt-1">🔧 Equipo: {t.descripcion}</p>}
+                  {t.marca_modelo && <p className="text-sm text-green-600 mt-1">🔧 Marca: {t.marca_modelo}</p>}
+                  {t.numero_serie && <p className="text-sm text-green-600 mt-1">🔧 N/S: {t.numero_serie}</p>}
 
-          {t.numero_serie && (
-            <p className="text-sm text-green-600 mt-1">
-             🔧 N/S: {t.numero_serie}
-            </p>
-          )}
+                  {t.numero_serie && !t.fin && (!t.diagnostico || t.diagnostico.trim() === "") && (
+                    <button
+                      onClick={() => cargarEquipoDesdeTarea(t)}
+                      className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
+                    >
+                      🔧 Iniciar / Continuar mantenimiento
+                    </button>
+                  )}
 
-{t.numero_serie &&
- !t.fin &&
- (!t.diagnostico || t.diagnostico.trim() === "") && (
-  <button
-    onClick={() => cargarEquipoDesdeTarea(t)}
-    className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
-  >
-    🔧 Iniciar / Continuar mantenimiento
-  </button>
-)}
+                  {t.numero_serie && (
+                    <button
+                      onClick={() => imprimirHistorial(t.numero_serie)}
+                      className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-sm"
+                      title="Imprimir historial del equipo"
+                    >
+                      🖨 Imprimir RIC02
+                    </button>
+                  )}
 
-{t.numero_serie && (
-  <button
-    onClick={() => imprimirHistorial(t.numero_serie)}
-    className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-sm"
-    title="Imprimir historial del equipo"
-  >
-    🖨 Imprimir RIC02
-  </button>
-)}
-          {t.diagnostico && (
-            <p className="text-medium text-red-600 mt-1">
-             🔧 Diagnóstico: {t.diagnostico}
-            </p>
-          )}
+                  {t.diagnostico && <p className="text-medium text-red-600 mt-1">🔧 Diagnóstico: {t.diagnostico}</p>}
 
-         {!t.fin &&
- t.diagnostico &&
- t.diagnostico.trim() !== "" &&
- Array.isArray(t.soluciones_posibles) &&
- t.soluciones_posibles.length > 0 && (
-  <select
-    value={t.solucion || ""}
-    onChange={(e) => guardarSolucion(t.id, e.target.value)}
-    className="w-full border rounded p-2 mt-2"
-  >
-    <option value="">Seleccionar solución</option>
+                  {!t.fin && t.diagnostico && t.diagnostico.trim() !== "" && Array.isArray(t.soluciones_posibles) && t.soluciones_posibles.length > 0 && (
+                    <select
+                      value={t.solucion || ""}
+                      onChange={(e) => guardarSolucion(t.id, e.target.value)}
+                      className="w-full border rounded p-2 mt-2"
+                    >
+                      <option value="">Seleccionar solución</option>
+                      {t.soluciones_posibles.map((s, i) => (
+                        <option key={i} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  )}
 
-    {t.soluciones_posibles.map((s, i) => (
-      <option key={i} value={s}>
-        {s}
-      </option>
-    ))}
-  </select>
-)}
+                  {t.reasignado_a && (
+                    <p className="text-sm text-purple-700 mt-1">
+                      🔄 Reasignada a <strong>{t.reasignado_a}</strong> por <strong>{t.reasignado_por}</strong> (desde {t.area})
+                    </p>
+                  )}
 
-          {t.reasignado_a && (
-            <p className="text-sm text-purple-700 mt-1">
-              🔄 Reasignada a <strong>{t.reasignado_a}</strong> por{" "}
-              <strong>{t.reasignado_por}</strong> (desde {t.area})
-            </p>
-          )}
+                  {t.fecha && <p className="text-sm text-gray-600 mt-1">📅 Iniciado el {formatTimestamp(t.fecha)}</p>}
 
-          {t.fecha && (
-            <p className="text-sm text-gray-600 mt-1">
-              📅 Iniciado el {formatTimestamp(t.fecha)}
-            </p>
-          )}
+                  {t.solucion && (
+                    <div className="mt-2 bg-gray-100 rounded p-2">
+                      <p className="text-sm font-semibold mb-1">💡 Historial de solución</p>
+                      <ul className="text-sm space-y-1 list-disc list-inside">
+                        {t.solucion.split("\n").filter((l) => l.trim()).map((linea, idx) => (
+                          <li key={idx} className="text-gray-700">{linea}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-          {t.solucion && (
-  <div className="mt-2 bg-gray-100 rounded p-2">
-    <p className="text-sm font-semibold mb-1">💡 Historial de solución</p>
+                  {t.fecha_comp && <p className="text-xs text-gray-500 mt-1">⏰ Solucionado el {formatTimestamp(t.fecha_comp)}</p>}
 
-    <ul className="text-sm space-y-1 list-disc list-inside">
-      {t.solucion
-        .split("\n")
-        .filter((l) => l.trim())
-        .map((linea, idx) => (
-          <li key={idx} className="text-gray-700">
-            {linea}
-          </li>
-          ))}
-    </ul>
-  </div>
-)}
+                  {t.observacion && (
+                    <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
+                      <p className="text-sm font-semibold mb-1 text-blue-700">📝 Procesos administrativos</p>
+                      <ul className="text-sm space-y-1 list-disc list-inside">
+                        {t.observacion.split("\n").filter((l) => l.trim()).map((linea, idx) => (
+                          <li key={idx} className="text-gray-700">{linea}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-          {t.fecha_comp && (
-            <p className="text-xs text-gray-500 mt-1">
-              ⏰ Solucionado el {formatTimestamp(t.fecha_comp)}
-            </p>
-          )}
+                  {t.fecha_fin && <p className="text-xs text-gray-500 mt-1">⏰ Finalizado el {formatTimestamp(t.fecha_fin)}</p>}
 
-{t.observacion && (
-  <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
-    <p className="text-sm font-semibold mb-1 text-blue-700">
-      📝 Procesos administrativos
-    </p>
+                  <div className="mt-3">
+                    {filtro === "pendientes" && (
+                      <>
+                        <div className="flex gap-2 flex-wrap">
+                          <button
+                            onClick={() => setModal(t)}
+                            className="px-3 py-1 bg-purple-500 text-white rounded text-sm"
+                          >
+                            🔄 Reasignar área
+                          </button>
 
-    <ul className="text-sm space-y-1 list-disc list-inside">
-      {t.observacion
-        .split("\n")
-        .filter((l) => l.trim())
-        .map((linea, idx) => (
-          <li key={idx} className="text-gray-700">
-            {linea}
-          </li>
-        ))}
-    </ul>
-  </div>
-)}
-          {t.fecha_fin && (
-            <p className="text-xs text-gray-500 mt-1">
-              ⏰ Finalizado el {formatTimestamp(t.fecha_fin)}
-            </p>
-          )}
+                          <button
+                            onClick={() => {
+                              localStorage.setItem("tareaActiva", JSON.stringify(t));
+                              setVista("seleccionarEquipo");
+                            }}
+                            disabled={!!t.numero_serie}
+                            className={`px-3 py-1 rounded text-sm text-white ${t.numero_serie ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500"}`}
+                          >
+                            {t.numero_serie ? "✅ Equipo identificado" : "➕ Identificar equipo"}
+                          </button>
+                        </div>
 
-          {/* Botones según tipo de lista */}
-          <div className="mt-3">
-            {filtro === "pendientes" && (
-  <>
-    <div className="flex gap-2 flex-wrap">
+                        <textarea
+                          className="w-full p-2 border rounded mt-2"
+                          placeholder="Escriba la solución..."
+                          value={soluciones[t.id] || t.solucion || ""}
+                          onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+                          disabled={!!t.solucion || tieneObservacion}
+                        />
 
-  {/* REASIGNAR */}
-  <button
-    onClick={() => setModal(t)}
-    className="px-3 py-1 bg-purple-500 text-white rounded text-sm"
-  >
-    🔄 Reasignar área
-  </button>
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={() => setMostrarRic02(t.id)}
+                            className="bg-blue-500 text-white px-3 py-1 rounded"
+                          >
+                            Asociar a RIC02
+                          </button>
 
-  {/* CARGAR EQUIPO */}
-  <button
-    onClick={() => {
-      localStorage.setItem("tareaActiva", JSON.stringify(t));
-      setVista("seleccionarEquipo");
-    }}
-    disabled={!!t.numero_serie}
-    className={`px-3 py-1 rounded text-sm text-white ${
-      t.numero_serie
-        ? "bg-gray-400 cursor-not-allowed"
-        : "bg-blue-500"
-    }`}
-  >
-    {t.numero_serie
-      ? "✅ Equipo identificado"
-      : "➕ Identificar equipo"}
-  </button>
+                          <button
+                            onClick={() => handleCompletar(t.id)}
+                            className={`px-3 py-1 rounded text-white ${t.solucion ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"}`}
+                            disabled={!!t.solucion}
+                          >
+                            ✅ Completar
+                          </button>
+                        </div>
 
-</div>
+                        {mostrarRic02 === t.id && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <input
+                              type="number"
+                              placeholder="Nº RIC02"
+                              value={valorRic02}
+                              onChange={(e) => setValorRic02(e.target.value)}
+                              className="border p-1 rounded w-32"
+                            />
+                            <button
+                              onClick={() => {
+                                const textoRic02 = `Asociado a RIC02 Nº ${valorRic02}`;
+                                handleSolucionChange(
+                                  t.id,
+                                  (soluciones[t.id] || t.solucion || "") +
+                                    ((soluciones[t.id] || t.solucion) ? "\n" : "") +
+                                    textoRic02
+                                );
+                                setValorRic02("");
+                                setMostrarRic02(null);
+                              }}
+                              className="bg-green-600 text-white px-3 py-1 rounded"
+                            >
+                              OK
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
 
-    <textarea
-      className="w-full p-2 border rounded mt-2"
-      placeholder="Escriba la solución..."
-      value={soluciones[t.id] || t.solucion || ""}
-      onChange={(e) => handleSolucionChange(t.id, e.target.value)}
-      disabled={!!t.solucion || tieneObservacion}
-    />
+                    {filtro === "enProceso" && !t.fin && (
+                      <>
+                        <button
+                          onClick={() => {
+                            localStorage.setItem("tareaActiva", JSON.stringify(t));
+                            setVista("seleccionarEquipo");
+                          }}
+                          disabled={!!t.numero_serie}
+                          className={`px-3 py-1 rounded text-sm text-white ${t.numero_serie ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500"}`}
+                        >
+                          {t.numero_serie ? "✅ Equipo identificado" : "➕ Identificar equipo"}
+                        </button>
 
-    {/* BOTONES */}
-    <div className="flex gap-2 mt-2">
-      <button
-        onClick={() => setMostrarRic02(t.id)}
-        className="bg-blue-500 text-white px-3 py-1 rounded"
-      >
-        Asociar a RIC02
-      </button>
+                        {editando === t.id ? (
+                          <>
+                            <textarea
+                              className="w-full p-2 border rounded mt-2"
+                              placeholder="Agregar nueva entrada al historial..."
+                              value={soluciones[t.id] || ""}
+                              onChange={(e) => handleSolucionChange(t.id, e.target.value)}
+                            />
+                            <div className="flex gap-2 mt-2">
+                              <button
+                                onClick={() => setMostrarRic02(t.id)}
+                                className="bg-blue-500 text-white px-3 py-1 rounded mt-2"
+                              >
+                                Asociar a RIC02
+                              </button>
 
-      <button
-        onClick={() => handleCompletar(t.id)}
-        className={`px-3 py-1 rounded text-white ${
-          t.solucion
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-green-500"
-        }`}
-        disabled={!!t.solucion}
-      >
-        ✅ Completar
-      </button>
-    </div>
+                              {mostrarRic02 === t.id && (
+                                <div className="mt-2 flex items-center gap-2">
+                                  <input
+                                    type="number"
+                                    placeholder="Nº RIC02"
+                                    value={valorRic02}
+                                    onChange={(e) => setValorRic02(e.target.value)}
+                                    className="border p-1 rounded w-32"
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const textoRic02 = `Asociado a RIC02 Nº ${valorRic02}`;
+                                      handleSolucionChange(
+                                        t.id,
+                                        (soluciones[t.id] ?? t.solucion ?? "") +
+                                          ((soluciones[t.id] ?? t.solucion) ? "\n" : "") +
+                                          textoRic02
+                                      );
+                                      setValorRic02("");
+                                      setMostrarRic02(null);
+                                    }}
+                                    className="bg-green-600 text-white px-3 py-1 rounded"
+                                  >
+                                    OK
+                                  </button>
+                                </div>
+                              )}
 
-    {/* CUADRO RIC02 */}
-    {mostrarRic02 === t.id && (
-      <div className="mt-2 flex items-center gap-2">
-        <input
-          type="number"
-          placeholder="Nº RIC02"
-          value={valorRic02}
-          onChange={(e) => setValorRic02(e.target.value)}
-          className="border p-1 rounded w-32"
-        />
+                              <button
+                                onClick={() => handleEditarSolucion(t.id)}
+                                className="px-3 py-1 rounded bg-blue-500 text-white text-sm"
+                              >
+                                💾 Guardar
+                              </button>
+                              <button
+                                onClick={() => setEditando(null)}
+                                className="px-3 py-1 rounded bg-gray-400 text-white text-sm"
+                              >
+                                ❌ Cancelar
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex gap-2 mt-2">
+                            <button
+                              onClick={() => {
+                                setEditando(t.id);
+                                setSoluciones((prev) => ({ ...prev, [t.id]: "" }));
+                              }}
+                              disabled={tieneObservacion}
+                              className={`px-3 py-1 rounded text-white ${tieneObservacion ? "bg-gray-400 cursor-not-allowed" : "bg-yellow-500"}`}
+                            >
+                              ✏️ Editar solución o asociar a RIC02
+                            </button>
 
-        <button
-          onClick={() => {
-            const textoRic02 = `Asociado a RIC02 Nº ${valorRic02}`;
-            handleSolucionChange(
-              t.id,
-              (soluciones[t.id] || t.solucion || "") +
-                ((soluciones[t.id] || t.solucion) ? "\n" : "") +
-                textoRic02
-            );
-            setValorRic02("");
-            setMostrarRic02(null);
-          }}
-          className="bg-green-600 text-white px-3 py-1 rounded"
+                            <button
+                              onClick={() => {
+                                setTareaObsId(t.id);
+                                setTareaObservacionActual(t.observacion || "");
+                                setObservacion("");
+                                setMostrarObservacion(true);
+                              }}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              📝 Obs.
+                            </button>
+
+                            {t.solucion && t.usuario === personal.nombre && !t.fin && (
+                              <button
+                                onClick={() => {
+                                  setTareaFinalizar(t);
+                                  setEstadoSeleccionado("");
+                                  setMostrarFinalizar(true);
+                                }}
+                                className="px-3 py-1 bg-green-600 text-white rounded text-sm"
+                              >
+                                ✅ Finalizar
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {imagenAmpliada && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          onClick={() => setImagenAmpliada(null)}
         >
-          OK
-        </button>
-      </div>
-    )}
-  </>
-)}
-
-            {filtro === "enProceso" && !t.fin && (
-  <>
-
-  {/* CARGAR EQUIPO */}
-  <button
-    onClick={() => {
-      localStorage.setItem("tareaActiva", JSON.stringify(t));
-      setVista("seleccionarEquipo");
-    }}
-    disabled={!!t.numero_serie}
-    className={`px-3 py-1 rounded text-sm text-white ${
-      t.numero_serie
-        ? "bg-gray-400 cursor-not-allowed"
-        : "bg-blue-500"
-    }`}
-  >
-    {t.numero_serie
-      ? "✅ Equipo identificado"
-      : "➕ Identificar equipo"}
-  </button>
-              
-    {/* EDICIÓN DE SOLUCIÓN */}
-    {editando === t.id ? (
-      <>
-        <textarea
-  className="w-full p-2 border rounded mt-2"
-  placeholder="Agregar nueva entrada al historial..."
-  value={soluciones[t.id] || ""}
-  onChange={(e) => handleSolucionChange(t.id, e.target.value)}
-/>
-        <div className="flex gap-2 mt-2">
-     {/* BOTÓN ASOCIAR RIC02 */}
-    <button
-      onClick={() => setMostrarRic02(t.id)}
-      className="bg-blue-500 text-white px-3 py-1 rounded mt-2"
-    >
-      Asociar a RIC02
-    </button>
-
-    {/* CUADRO RIC02 */}
-    {mostrarRic02 === t.id && (
-      <div className="mt-2 flex items-center gap-2">
-        <input
-          type="number"
-          placeholder="Nº RIC02"
-          value={valorRic02}
-          onChange={(e) => setValorRic02(e.target.value)}
-          className="border p-1 rounded w-32"
-        />
-        <button
-          onClick={() => {
-            const textoRic02 = `Asociado a RIC02 Nº ${valorRic02}`;
-            handleSolucionChange(
-              t.id,
-              (soluciones[t.id] ?? t.solucion ?? "") +
-                ((soluciones[t.id] ?? t.solucion) ? "\n" : "") +
-                textoRic02
-            );
-            setValorRic02("");
-            setMostrarRic02(null);
-          }}
-          className="bg-green-600 text-white px-3 py-1 rounded"
-        >
-          OK
-        </button>
-      </div>
-    )}
-          <button
-            onClick={() => handleEditarSolucion(t.id)}
-            className="px-3 py-1 rounded bg-blue-500 text-white text-sm"
-          >
-            💾 Guardar
-          </button>
-          <button
-            onClick={() => setEditando(null)}
-            className="px-3 py-1 rounded bg-gray-400 text-white text-sm"
-          >
-            ❌ Cancelar
-          </button>
+          <img
+            src={imagenAmpliada}
+            alt="Ampliada"
+            className="max-w-full max-h-full rounded-lg shadow-lg"
+          />
         </div>
-      </>
-    ) : (
-      <div className="flex gap-2 mt-2">
-  <button
-  onClick={() => {
-    setEditando(t.id);
-    setSoluciones((prev) => ({ ...prev, [t.id]: "" }));
-  }}
-  disabled={tieneObservacion}
-  className={`px-3 py-1 rounded text-white ${
-    tieneObservacion
-      ? "bg-gray-400 cursor-not-allowed"
-      : "bg-yellow-500"
-  }`}
->
-  ✏️ Editar solución o asociar a RIC02
-</button>
+      )}
 
-  <button
-  onClick={() => {
-    setTareaObsId(t.id);
-    setTareaObservacionActual(t.observacion || "");
-    setObservacion("");
-    setMostrarObservacion(true);
-  }}
-  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
->
-  📝 Obs.
-</button>
-    {t.solucion &&
-      t.usuario === personal.nombre &&
-      !t.fin && (
-        
-        <button
-          onClick={() => {
-    setTareaFinalizar(t);
-    setEstadoSeleccionado("");
-    setMostrarFinalizar(true);
-  }}
-          className="px-3 py-1 bg-green-600 text-white rounded text-sm"
-        >
-          ✅ Finalizar
-        </button>
-)}
-</div>
-    )}
-  </>
-)}
-
-          </div>
-        </div>
-      </div>
-    </li>
-  );
-})}
-</ul>
-
-{/* Modal de imagen ampliada */}
-{imagenAmpliada && (
-  <div
-    className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-    onClick={() => setImagenAmpliada(null)}
-  >
-    <img
-      src={imagenAmpliada}
-      alt="Ampliada"
-      className="max-w-full max-h-full rounded-lg shadow-lg"
-    />
-  </div>
-)}
-
-      {/* Modal de reasignación */}
       {modal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl shadow-xl w-80">
@@ -1495,96 +1274,68 @@ if (busqueda.trim()) {
         </div>
       )}
 
-{mostrarFinalizar && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div className="bg-white p-4 rounded-xl w-80">
-      <h2 className="font-bold text-lg mb-3">
-        Finalizar mantenimiento
-      </h2>
+      {mostrarFinalizar && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-xl w-80">
+            <h2 className="font-bold text-lg mb-3">Finalizar mantenimiento</h2>
+            <label className="block mb-2">Estado final del equipo</label>
+            <select
+              value={estadoSeleccionado}
+              onChange={(e) => setEstadoSeleccionado(e.target.value)}
+              className="w-full border p-2 rounded mb-4"
+            >
+              <option value="">Seleccionar estado</option>
+              {estados.map((est) => (
+                <option key={est.id} value={est.estado}>{est.estado}</option>
+              ))}
+            </select>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setMostrarFinalizar(false)}
+                className="flex-1 bg-gray-400 text-white p-2 rounded"
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={!estadoSeleccionado}
+                onClick={() => finalizarTarea(tareaFinalizar.id, estadoSeleccionado)}
+                className="flex-1 bg-green-600 text-white p-2 rounded"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <label className="block mb-2">
-        Estado final del equipo
-      </label>
-
-      <select
-        value={estadoSeleccionado}
-        onChange={(e) =>
-          setEstadoSeleccionado(e.target.value)
-        }
-        className="w-full border p-2 rounded mb-4"
-      >
-        <option value="">
-          Seleccionar estado
-        </option>
-
-        {estados.map((est) => (
-          <option
-            key={est.id}
-            value={est.estado}
-          >
-            {est.estado}
-          </option>
-        ))}
-      </select>
-
-      <div className="flex gap-2">
-        <button
-          onClick={() => setMostrarFinalizar(false)}
-          className="flex-1 bg-gray-400 text-white p-2 rounded"
-        >
-          Cancelar
-        </button>
-
-        <button
-          disabled={!estadoSeleccionado}
-          onClick={() =>
-            finalizarTarea(
-              tareaFinalizar.id,
-              estadoSeleccionado
-            )
-          }
-          className="flex-1 bg-green-600 text-white p-2 rounded"
-        >
-          Confirmar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-        {mostrarObservacion && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-4 rounded-lg w-full max-w-md">
-      <h3 className="text-lg font-semibold mb-2">
-        Observaciones
-      </h3>
-
-      <textarea
-        value={observacion}
-        onChange={(e) => setObservacion(e.target.value)}
-        rows={5}
-        className="w-full border rounded p-2 text-sm"
-        placeholder="Escriba una observación..."
-      />
-
-      <div className="flex justify-end gap-2 mt-3">
-        <button
-          onClick={() => setMostrarObservacion(false)}
-          className="px-3 py-1 text-sm bg-gray-300 rounded"
-        >
-          Cancelar
-        </button>
-
-        <button
-          onClick={guardarObservacion}
-          className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
-        >
-          Guardar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      {mostrarObservacion && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-2">Observaciones</h3>
+            <textarea
+              value={observacion}
+              onChange={(e) => setObservacion(e.target.value)}
+              rows={5}
+              className="w-full border rounded p-2 text-sm"
+              placeholder="Escriba una observación..."
+            />
+            <div className="flex justify-end gap-2 mt-3">
+              <button
+                onClick={() => setMostrarObservacion(false)}
+                className="px-3 py-1 text-sm bg-gray-300 rounded"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={guardarObservacion}
+                className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
