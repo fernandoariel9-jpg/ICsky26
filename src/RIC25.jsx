@@ -112,6 +112,18 @@ export default function RIC25({ setVista }) {
         throw new Error(data?.error || `El backend respondió HTTP ${res.status}.`);
       }
 
+      if (data.conectado === false) {
+        const segundos = Number.isFinite(Number(data.antiguedadMs))
+          ? Math.round(Number(data.antiguedadMs) / 1000)
+          : null;
+
+        throw new Error(
+          segundos == null
+            ? "Sky26 Agent está desconectado. No se utilizarán mediciones almacenadas."
+            : `Sky26 Agent está desconectado. La última medición tiene ${segundos} s de antigüedad y no se utilizará.`
+        );
+      }
+
       const normalizadas = normalizarMediciones(data.datos);
 
       if (Object.keys(normalizadas).length === 0) {
