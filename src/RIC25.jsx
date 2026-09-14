@@ -36,6 +36,14 @@ const PARAMETROS_DESTACADOS = [
   "OXYGEN",
 ];
 
+const PUNTO_ENSAYO_1 = {
+  modo: "VCV",
+  volumenCorriente: 500,
+  frecuenciaRespiratoria: 12,
+  peep: 5,
+  fio2: 21,
+};
+
 function normalizarValor(valor) {
   if (valor == null || valor === "" || valor === "--") return null;
   const numero = Number(valor);
@@ -65,6 +73,30 @@ function normalizarMediciones(lista) {
   }, {});
 }
 
+function redondear(valor, decimales = 1) {
+  if (!Number.isFinite(Number(valor))) return null;
+  const factor = 10 ** decimales;
+  return Math.round(Number(valor) * factor) / factor;
+}
+
+function mbarACmH2O(valor) {
+  if (!Number.isFinite(Number(valor))) return null;
+  return Number(valor) * 1.019716;
+}
+
+function calcularDiferencia(medido, programado, decimales = 1) {
+  if (!Number.isFinite(Number(medido)) || !Number.isFinite(Number(programado))) {
+    return null;
+  }
+
+  return redondear(Number(medido) - Number(programado), decimales);
+}
+
+function mostrarNumero(valor, unidad = "") {
+  if (valor == null || !Number.isFinite(Number(valor))) return "--";
+  return `${valor}${unidad ? ` ${unidad}` : ""}`;
+}
+
 function Valor({ valor, unidad }) {
   return (
     <span className={valor == null ? "text-gray-400" : "font-semibold text-gray-800"}>
@@ -92,6 +124,55 @@ export default function RIC25({ setVista }) {
   const destacados = PARAMETROS_DESTACADOS
     .map((id) => mediciones[id])
     .filter(Boolean);
+
+  const medicionesPunto1 = useMemo(() => {
+    const volumen = mediciones.VTE?.valor;
+    const frecuencia = mediciones.BREATHRATE?.valor;
+    const peepMbar = mediciones.PEEP?.valor;
+    const oxigeno = mediciones.OXYGEN?.valor;
+    const presionPicoMbar = mediciones.PEAKPRESSURE?.valor;
+
+    const peepCmH2O = redondear(mbarACmH2O(peepMbar), 1);
+    const presionPicoCmH2O = redondear(mbarACmH2O(presionPicoMbar), 1);
+
+    return [
+      {
+        parametro: "Volumen corriente espirado",
+        programado: PUNTO_ENSAYO_1.volumenCorriente,
+        medido: redondear(volumen, 0),
+        diferencia: calcularDiferencia(volumen, PUNTO_ENSAYO_1.volumenCorriente, 0),
+        unidad: "ml",
+      },
+      {
+        parametro: "Frecuencia respiratoria",
+        programado: PUNTO_ENSAYO_1.frecuenciaRespiratoria,
+        medido: redondear(frecuencia, 1),
+        diferencia: calcularDiferencia(frecuencia, PUNTO_ENSAYO_1.frecuenciaRespiratoria, 1),
+        unidad: "resp/min",
+      },
+      {
+        parametro: "PEEP",
+        programado: PUNTO_ENSAYO_1.peep,
+        medido: peepCmH2O,
+        diferencia: calcularDiferencia(peepCmH2O, PUNTO_ENSAYO_1.peep, 1),
+        unidad: "cmH₂O",
+      },
+      {
+        parametro: "Concentración de oxígeno",
+        programado: PUNTO_ENSAYO_1.fio2,
+        medido: redondear(oxigeno, 1),
+        diferencia: calcularDiferencia(oxigeno, PUNTO_ENSAYO_1.fio2, 1),
+        unidad: "%",
+      },
+      {
+        parametro: "Presión pico",
+        programado: null,
+        medido: presionPicoCmH2O,
+        diferencia: null,
+        unidad: "cmH₂O",
+      },
+    ];
+  }, [mediciones]);
 
   const capturarCitrex = async () => {
     try {
@@ -220,6 +301,71 @@ export default function RIC25({ setVista }) {
           </div>
         )}
       </div>
+
+      <section className="bg-white border rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b bg-gray-50">
+          <h2 className="font-bold text-gray-900">Punto de ensayo 1</h2>
+          <p className="text-sm text-gray-500">Verificación de parámetros programados y medidos</p>
+        </div>
+
+        <div className="p-4 grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="bg-gray-50 border rounded-xl p-3">
+            <div className="text-xs text-gray-500">Modo ventilatorio</div>
+            <div className="font-bold text-gray-900 mt-1">{PUNTO_ENSAYO_1.modo}</div>
+          </div>
+          <div className="bg-gray-50 border rounded-xl p-3">
+            <div className="text-xs text-gray-500">Volumen corriente</div>
+            <div className="font-bold text-gray-900 mt-1">500 ml</div>
+          </div>
+          <div className="bg-gray-50 border rounded-xl p-3">
+            <div className="text-xs text-gray-500">Frecuencia respiratoria</div>
+            <div className="font-bold text-gray-900 mt-1">12 resp/min</div>
+          </div>
+          <div className="bg-gray-50 border rounded-xl p-3">
+            <div className="text-xs text-gray-500">PEEP</div>
+            <div className="font-bold text-gray-900 mt-1">5 cmH₂O</div>
+          </div>
+          <div className="bg-gray-50 border rounded-xl p-3">
+            <div className="text-xs text-gray-500">FiO₂</div>
+            <div className="font-bold text-gray-900 mt-1">21 %</div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto border-t">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-600">
+              <tr>
+                <th className="text-left px-3 py-2">Parámetro</th>
+                <th className="text-right px-3 py-2">Programado</th>
+                <th className="text-right px-3 py-2">Medido</th>
+                <th className="text-right px-3 py-2">Diferencia</th>
+              </tr>
+            </thead>
+            <tbody>
+              {medicionesPunto1.map((fila) => (
+                <tr key={fila.parametro} className="border-t">
+                  <td className="px-3 py-2 font-semibold text-gray-800">{fila.parametro}</td>
+                  <td className="px-3 py-2 text-right">
+                    {fila.programado == null ? "—" : mostrarNumero(fila.programado, fila.unidad)}
+                  </td>
+                  <td className="px-3 py-2 text-right font-semibold">
+                    {mostrarNumero(fila.medido, fila.unidad)}
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    {fila.diferencia == null
+                      ? "—"
+                      : `${fila.diferencia > 0 ? "+" : ""}${fila.diferencia} ${fila.unidad}`}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="px-4 py-3 border-t bg-amber-50 text-xs text-amber-800">
+          La PEEP y la presión pico recibidas en mbar se convierten automáticamente a cmH₂O para mostrarlas en la misma unidad utilizada en el ensayo.
+        </div>
+      </section>
 
       {destacados.length > 0 && (
         <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
