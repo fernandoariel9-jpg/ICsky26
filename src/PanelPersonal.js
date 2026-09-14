@@ -14,21 +14,11 @@ export default function PanelPersonal({ personal, onLogout }) {
   return (
     <>
       {vista === "tareas" && (
-        <>
-          <TareasPersonal
-            personal={personal}
-            onLogout={onLogout}
-            setVista={setVista}
-          />
-          <div className="fixed bottom-4 right-4 z-40">
-            <button
-              onClick={() => setVista("ric25")}
-              className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-3 rounded-xl shadow-lg font-semibold"
-            >
-              🫁 Probar RIC25 · CITREX
-            </button>
-          </div>
-        </>
+        <TareasPersonal
+          personal={personal}
+          onLogout={onLogout}
+          setVista={setVista}
+        />
       )}
 
       {vista === "equipos" && (
