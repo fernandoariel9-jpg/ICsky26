@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 
-const URL_CITREX_DEFAULT = "http://192.168.2.109:8080/request";
-const URL_BRIDGE = "http://127.0.0.1:8787/citrex";
+const URL_SNAPSHOT = "https://sky26.onrender.com/api/ric29/agent/snapshot";
 
 const UNIDADES = {
   lPerMin: "l/min",
@@ -75,9 +74,6 @@ function Valor({ valor, unidad }) {
 }
 
 export default function RIC25({ setVista }) {
-  const [urlCitrex, setUrlCitrex] = useState(
-    localStorage.getItem("ric25_citrex_url") || URL_CITREX_DEFAULT
-  );
   const [mediciones, setMediciones] = useState({});
   const [capturando, setCapturando] = useState(false);
   const [error, setError] = useState("");
@@ -98,78 +94,35 @@ export default function RIC25({ setVista }) {
     .filter(Boolean);
 
   const capturarCitrex = async () => {
-    const url = urlCitrex.trim();
-
-    if (!url) {
-      setError("Falta la URL de mediciones del CITREX H5.");
-      return;
-    }
-
     try {
       setCapturando(true);
       setError("");
-      localStorage.setItem("ric25_citrex_url", url);
 
-      const urlObj = new URL(url);
-      const path = `${urlObj.pathname || "/"}${urlObj.search || ""}`;
-      const bridgeUrl = `${URL_BRIDGE}?path=${encodeURIComponent(path)}`;
-
-      const res = await fetch(bridgeUrl, {
+      const res = await fetch(URL_SNAPSHOT, {
         method: "GET",
         cache: "no-store",
         headers: {
-          Accept: "application/json, text/plain, */*",
+          Accept: "application/json",
         },
       });
 
-      const texto = await res.text();
+      const data = await res.json();
 
       if (!res.ok) {
-        let mensaje = `El agente respondió HTTP ${res.status}.`;
-
-        try {
-          const dataError = JSON.parse(texto);
-          mensaje = dataError.error || mensaje;
-          if (dataError.detalle) mensaje += ` ${dataError.detalle}`;
-        } catch {
-          if (texto.trim()) mensaje += ` ${texto.trim()}`;
-        }
-
-        throw new Error(mensaje);
+        throw new Error(data?.error || `El backend respondió HTTP ${res.status}.`);
       }
 
-      if (texto.trim().startsWith("<")) {
-        throw new Error(
-          "El CITREX respondió una página HTML. Verifique que la ruta sea /request."
-        );
-      }
-
-      let data;
-      try {
-        data = JSON.parse(texto);
-      } catch {
-        throw new Error("El CITREX respondió, pero el contenido no es JSON válido.");
-      }
-
-      const normalizadas = normalizarMediciones(data);
+      const normalizadas = normalizarMediciones(data.datos);
 
       if (Object.keys(normalizadas).length === 0) {
-        throw new Error("El CITREX respondió, pero no se encontraron mediciones.");
+        throw new Error("El backend respondió, pero no se encontraron mediciones.");
       }
 
       setMediciones(normalizadas);
-      setUltimaCaptura(new Date());
+      setUltimaCaptura(data.recibidoEn ? new Date(data.recibidoEn) : new Date());
     } catch (err) {
       console.error("Error capturando CITREX:", err);
-
-      const bridgeCaido =
-        err instanceof TypeError || /Failed to fetch/i.test(err.message || "");
-
-      setError(
-        bridgeCaido
-          ? "No se pudo conectar con el agente local en 127.0.0.1:8787. Verifique que node agent.js esté ejecutándose en la PC conectada al CITREX."
-          : err.message || "No se pudo capturar la medición del CITREX H5."
-      );
+      setError(err.message || "No se pudo capturar la medición del CITREX H5.");
     } finally {
       setCapturando(false);
     }
@@ -216,7 +169,7 @@ export default function RIC25({ setVista }) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">RIC25 · Respiradores</h1>
-            <p className="text-sm text-gray-500">Prueba de captura automática desde IMT Analytics CITREX H5</p>
+            <p className="text-sm text-gray-500">Captura automática desde IMT Analytics CITREX H5</p>
           </div>
           <button
             onClick={() => setVista("tareas")}
@@ -227,22 +180,13 @@ export default function RIC25({ setVista }) {
         </div>
 
         <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm">
-          <strong>Agente local:</strong> 127.0.0.1:8787 → CITREX H5
+          <strong>Conexión:</strong> CITREX H5 → Sky26 Agent → Render → RIC25
           <p className="mt-1 text-gray-600">
-            Sky26 consulta al agente local; el agente consulta /request del CITREX dentro de la red técnica.
+            El equipo puede capturar mediciones desde PC, tablet o celular mientras el agente esté enviando datos.
           </p>
         </div>
 
-        <label className="block mt-4 text-sm font-semibold text-gray-700">
-          URL de mediciones CITREX
-        </label>
-        <div className="flex flex-col sm:flex-row gap-2 mt-1">
-          <input
-            value={urlCitrex}
-            onChange={(e) => setUrlCitrex(e.target.value)}
-            placeholder="http://192.168.2.109:8080/request"
-            className="flex-1 border rounded-xl px-3 py-2 font-mono text-sm"
-          />
+        <div className="mt-4">
           <button
             onClick={capturarCitrex}
             disabled={capturando}
@@ -289,7 +233,7 @@ export default function RIC25({ setVista }) {
 
       {Object.keys(mediciones).length === 0 && (
         <div className="bg-gray-50 border border-dashed rounded-xl p-6 text-center text-gray-500">
-          Todavía no hay datos capturados. Mantenga node agent.js ejecutándose y presione “Capturar CITREX”.
+          Todavía no hay datos capturados. Mantenga Sky26 Agent ejecutándose en la PC conectada al CITREX y presione “Capturar CITREX”.
         </div>
       )}
     </div>
