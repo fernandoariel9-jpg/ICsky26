@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-const URL_CITREX_DEFAULT = "http://192.168.2.109:8080";
+const URL_CITREX_DEFAULT = "http://192.168.2.109:8080/request";
 const URL_BRIDGE = "http://127.0.0.1:8787/citrex";
 
 const UNIDADES = {
@@ -110,7 +110,10 @@ export default function RIC25({ setVista }) {
       setError("");
       localStorage.setItem("ric25_citrex_url", url);
 
-      const bridgeUrl = `${URL_BRIDGE}?url=${encodeURIComponent(url)}`;
+      const urlObj = new URL(url);
+      const path = `${urlObj.pathname || "/"}${urlObj.search || ""}`;
+      const bridgeUrl = `${URL_BRIDGE}?path=${encodeURIComponent(path)}`;
+
       const res = await fetch(bridgeUrl, {
         method: "GET",
         cache: "no-store",
@@ -135,7 +138,7 @@ export default function RIC25({ setVista }) {
         const texto = await res.text();
         throw new Error(
           texto.trim().startsWith("<")
-            ? "El CITREX respondió una página HTML. Ingrese la Request URL exacta que devuelve el JSON de mediciones."
+            ? "El CITREX respondió una página HTML. Verifique que la ruta sea /request."
             : "El CITREX no devolvió JSON de mediciones."
         );
       }
@@ -157,7 +160,7 @@ export default function RIC25({ setVista }) {
 
       setError(
         bridgeCaido
-          ? "No se pudo conectar con el bridge local en 127.0.0.1:8787. Ejecute scripts/citrex-bridge.mjs en la PC conectada al CITREX y mantenga esa ventana abierta."
+          ? "No se pudo conectar con el agente local en 127.0.0.1:8787. Verifique que node agent.js esté ejecutándose en la PC conectada al CITREX."
           : err.message || "No se pudo capturar la medición del CITREX H5."
       );
     } finally {
@@ -217,20 +220,20 @@ export default function RIC25({ setVista }) {
         </div>
 
         <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm">
-          <strong>Bridge local:</strong> 127.0.0.1:8787 → CITREX H5
+          <strong>Agente local:</strong> 127.0.0.1:8787 → CITREX H5
           <p className="mt-1 text-gray-600">
-            Sky26 consulta al bridge local; el bridge consulta al CITREX dentro de la red técnica.
+            Sky26 consulta al agente local; el agente consulta /request del CITREX dentro de la red técnica.
           </p>
         </div>
 
         <label className="block mt-4 text-sm font-semibold text-gray-700">
-          URL exacta de mediciones CITREX
+          URL de mediciones CITREX
         </label>
         <div className="flex flex-col sm:flex-row gap-2 mt-1">
           <input
             value={urlCitrex}
             onChange={(e) => setUrlCitrex(e.target.value)}
-            placeholder="http://192.168.2.109:8080/..."
+            placeholder="http://192.168.2.109:8080/request"
             className="flex-1 border rounded-xl px-3 py-2 font-mono text-sm"
           />
           <button
@@ -279,7 +282,7 @@ export default function RIC25({ setVista }) {
 
       {Object.keys(mediciones).length === 0 && (
         <div className="bg-gray-50 border border-dashed rounded-xl p-6 text-center text-gray-500">
-          Todavía no hay datos capturados. Ejecute el bridge local, ingrese la URL JSON del CITREX y presione “Capturar CITREX”.
+          Todavía no hay datos capturados. Mantenga node agent.js ejecutándose y presione “Capturar CITREX”.
         </div>
       )}
     </div>
