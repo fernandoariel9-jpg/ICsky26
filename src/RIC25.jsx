@@ -122,28 +122,35 @@ export default function RIC25({ setVista }) {
         },
       });
 
-      const contentType = res.headers.get("content-type") || "";
+      const texto = await res.text();
 
       if (!res.ok) {
-        let mensaje = `El bridge respondió HTTP ${res.status}.`;
-        if (contentType.toLowerCase().includes("json")) {
-          const dataError = await res.json();
+        let mensaje = `El agente respondió HTTP ${res.status}.`;
+
+        try {
+          const dataError = JSON.parse(texto);
           mensaje = dataError.error || mensaje;
           if (dataError.detalle) mensaje += ` ${dataError.detalle}`;
+        } catch {
+          if (texto.trim()) mensaje += ` ${texto.trim()}`;
         }
+
         throw new Error(mensaje);
       }
 
-      if (!contentType.toLowerCase().includes("json")) {
-        const texto = await res.text();
+      if (texto.trim().startsWith("<")) {
         throw new Error(
-          texto.trim().startsWith("<")
-            ? "El CITREX respondió una página HTML. Verifique que la ruta sea /request."
-            : "El CITREX no devolvió JSON de mediciones."
+          "El CITREX respondió una página HTML. Verifique que la ruta sea /request."
         );
       }
 
-      const data = await res.json();
+      let data;
+      try {
+        data = JSON.parse(texto);
+      } catch {
+        throw new Error("El CITREX respondió, pero el contenido no es JSON válido.");
+      }
+
       const normalizadas = normalizarMediciones(data);
 
       if (Object.keys(normalizadas).length === 0) {
