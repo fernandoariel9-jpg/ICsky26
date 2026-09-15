@@ -260,13 +260,7 @@ function Supervision() {
   );
 }
 
-function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToRegistroPersonal }) {
-  const [loggedIn, setLoggedIn] = useState(false);
-
-  const handleLoginSuccess = () => {
-    setLoggedIn(true);
-  };
-
+function SupervisionWrapper() {
   const abrirMonitorIndicadores = () => {
     window.open(
       "/monitor-indicadores",
@@ -275,50 +269,16 @@ function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToReg
     );
   };
 
-  return loggedIn ? (
-    <div className="p-4 max-w-md mx-auto pb-40">
-      <Supervision />
+  return (
+    <div className="relative min-h-screen">
+      <PanelLogin />
 
-      {/* 🔹 Botones visibles dentro del modo supervisor */}
-      <div className="mt-6 flex flex-col space-y-2">
-        <button
-          onClick={switchToMenu}
-          className="bg-gray-400 text-white px-4 py-2 rounded-xl w-full"
-        >
-          Volver al menú
-        </button>
-
-        <button
-          onClick={switchToRegistroUsuario}
-          className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full"
-        >
-          Registrar nuevo usuario
-        </button>
-
-        <button
-          onClick={switchToRegistroPersonal}
-          className="bg-green-500 text-white px-4 py-2 rounded-xl w-full"
-        >
-          Registrar nuevo personal
-        </button>
-
-        <button
-          onClick={() => window.location.href = "/estado-equipos"}
-          className="bg-purple-600 text-white px-4 py-2 rounded-xl w-full"
-        >
-          Ver estado de equipos
-        </button>
-
-        <button
-          onClick={abrirMonitorIndicadores}
-          className="bg-slate-800 text-white px-4 py-2 rounded-xl w-full"
-        >
-          🖥 Abrir monitor de indicadores
-        </button>
-      </div>
+      <button
+        onClick={abrirMonitorIndicadores}
+        className="fixed top-4 right-4 z-[80] bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-xl shadow-lg font-semibold"
+      >
+        🖥 Monitor externo
+      </button>
     </div>
-  ) : (
-    // 🔹 Pasamos la función de éxito al login del supervisor
-    <PanelLogin onLogin={handleLoginSuccess} />
   );
 }
