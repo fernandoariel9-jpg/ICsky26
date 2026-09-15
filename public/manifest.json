@@ -3,13 +3,13 @@
   "name": "IC Sky App",
   "icons": [
     {
-      "src": "logosmall.png",
+      "src": "logosmall_old.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "logobig.png",
+      "src": "logosmall_old.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
