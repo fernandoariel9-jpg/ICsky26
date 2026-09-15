@@ -22,6 +22,7 @@ import ResumenEstados from "./ResumenEstados";
 import RIC37 from "./RIC37";
 import InformacionPublica from "./InformacionPublica";
 import PoliticaPrivacidad from "./PoliticaPrivacidad";
+import MonitorIndicadores from "./MonitorIndicadores";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
@@ -120,6 +121,7 @@ export default function App() {
           path="/analitica-areas"
           element={<AnaliticaAreas />}
         />
+        <Route path="/monitor-indicadores" element={<MonitorIndicadores />} />
 
         {/* 🔁 Todo lo demás sigue funcionando igual */}
         <Route path="/*" element={<Main />} />
@@ -227,7 +229,7 @@ function Supervision() {
           className="bg-purple-600 text-white px-4 py-2 rounded-xl w-full"
         >
           Ver estado de equipos
-</button>
+        </button>
       </div>
 
       <AnimatePresence>
@@ -265,6 +267,14 @@ function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToReg
     setLoggedIn(true);
   };
 
+  const abrirMonitorIndicadores = () => {
+    window.open(
+      "/monitor-indicadores",
+      "monitorIndicadores",
+      "noopener,noreferrer"
+    );
+  };
+
   return loggedIn ? (
     <div className="p-4 max-w-md mx-auto pb-40">
       <Supervision />
@@ -297,6 +307,13 @@ function SupervisionWrapper({ switchToMenu, switchToRegistroUsuario, switchToReg
           className="bg-purple-600 text-white px-4 py-2 rounded-xl w-full"
         >
           Ver estado de equipos
+        </button>
+
+        <button
+          onClick={abrirMonitorIndicadores}
+          className="bg-slate-800 text-white px-4 py-2 rounded-xl w-full"
+        >
+          🖥 Abrir monitor de indicadores
         </button>
       </div>
     </div>
