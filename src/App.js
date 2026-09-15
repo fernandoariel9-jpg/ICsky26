@@ -27,25 +27,20 @@ import MonitorIndicadores from "./MonitorIndicadores";
 const API_URL = "https://sky26.onrender.com/tareas";
 
 function Main() {
-  const [modo, setModo] = useState("menu"); // "menu", "loginUsuario", "registroUsuario", "loginPersonal", "registroPersonal"
+  const [modo, setModo] = useState("menu");
   const [usuario, setUsuario] = useState(null);
   const [personal, setPersonal] = useState(null);
 
   useEffect(() => {
-    // 🔹 Exponer función global para permitir cambiar modo desde Supervision
     window.setModoGlobal = setModo;
   }, [setModo]);
 
-  // Logout para ambos tipos
   const handleLogout = () => {
     setUsuario(null);
     setPersonal(null);
     setModo("menu");
   };
 
-  // ----------- Renderizado según estado -----------
-
-  // Usuario logueado → FormularioUsuario + campana de notificaciones
   if (usuario) {
     return (
       <div className="relative min-h-screen">
@@ -57,51 +52,29 @@ function Main() {
     );
   }
 
-  // Personal logueado → TareasPersonal
   if (personal) return <PanelPersonal personal={personal} onLogout={handleLogout} />;
 
-  // Menú inicial
   if (modo === "menu") {
     return (
       <div className="p-4 max-w-md mx-auto mt-20 text-center">
         <img src="/logosmall_old.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
         <h1 className="text-2xl font-bold mb-6">Bienvenido al gestor de tareas de INGENIERÍA CLÍNICA</h1>
         <div className="flex flex-col space-y-4">
-          <button className="bg-blue-500 text-white p-2 rounded-xl" onClick={() => setModo("loginUsuario")}>
-            Ingreso de Usuario
-          </button>
-          <button className="bg-green-500 text-white p-2 rounded-xl" onClick={() => setModo("loginPersonal")}>
-            Ingreso de Personal de Ingeniería Clínica
-          </button>
-          <button className="bg-orange-500 text-white p-2 rounded-xl" onClick={() => setModo("supervision")}>
-            Panel de Supervisión
-          </button>
+          <button className="bg-blue-500 text-white p-2 rounded-xl" onClick={() => setModo("loginUsuario")}>Ingreso de Usuario</button>
+          <button className="bg-green-500 text-white p-2 rounded-xl" onClick={() => setModo("loginPersonal")}>Ingreso de Personal de Ingeniería Clínica</button>
+          <button className="bg-orange-500 text-white p-2 rounded-xl" onClick={() => setModo("supervision")}>Panel de Supervisión</button>
         </div>
       </div>
     );
   }
 
-  // Login Usuario
   if (modo === "loginUsuario") return <UsuarioLogin onLogin={(u) => setUsuario(u)} switchToRegister={() => setModo("registroUsuario")} switchToMenu={() => setModo("menu")} />;
-
-  // Registro Usuario
   if (modo === "registroUsuario") return <RegistroUsuario onRegister={(u) => setUsuario(u)} switchToLogin={() => setModo("loginUsuario")} />;
-
-  // Login Personal
   if (modo === "loginPersonal") return <LoginPersonal onLogin={(p) => setPersonal(p)} switchToRegister={() => setModo("registroPersonal")} switchToMenu={() => setModo("menu")} />;
-
-  // Registro Personal
   if (modo === "registroPersonal") return <RegistroPersonal onRegister={(p) => setPersonal(p)} switchToLogin={() => setModo("loginPersonal")} />;
 
-  // Mostrar supervisión
   if (modo === "supervision") {
-    return (
-      <SupervisionWrapper
-        switchToMenu={() => setModo("menu")}
-        switchToRegistroUsuario={() => setModo("registroUsuario")}
-        switchToRegistroPersonal={() => setModo("registroPersonal")}
-      />
-    );
+    return <SupervisionWrapper />;
   }
 
   return null;
@@ -110,20 +83,12 @@ function Main() {
 export default function App() {
   return (
     <BrowserRouter>
-      {/* Soporte global para la tecla de acción del teclado virtual móvil */}
       <MobileKeyboardSupport />
       <Routes>
-
-        {/* 🌐 Páginas públicas */}
         <Route path="/informacion" element={<InformacionPublica />} />
         <Route path="/privacidad" element={<PoliticaPrivacidad />} />
-        <Route
-          path="/analitica-areas"
-          element={<AnaliticaAreas />}
-        />
+        <Route path="/analitica-areas" element={<AnaliticaAreas />} />
         <Route path="/monitor-indicadores" element={<MonitorIndicadores />} />
-
-        {/* 🔁 Todo lo demás sigue funcionando igual */}
         <Route path="/*" element={<Main />} />
         <Route path="/estado-equipos" element={<ResumenEstados />} />
       </Routes>
@@ -131,16 +96,14 @@ export default function App() {
   );
 }
 
-// ToastContainer global
 export function Toast() {
   return <ToastContainer position="bottom-right" autoClose={2000} hideProgressBar={false} />;
 }
 
-// ---------- Panel de Supervisión ----------
 function Supervision() {
   const [tareas, setTareas] = useState([]);
   const [modalImagen, setModalImagen] = useState(null);
-  const setModoGlobal = window.setModoGlobal; // 🔹 acceder al modo global
+  const setModoGlobal = window.setModoGlobal;
 
   useEffect(() => {
     fetchTareas();
@@ -162,24 +125,13 @@ function Supervision() {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <img
-        src="/logosmall_old.png"
-        alt="Logo"
-        className="mx-auto mb-4 w-24 h-auto"
-      />
-      <h1 className="text-2xl font-bold text-center mb-4">
-        📋 Panel de Supervisión
-      </h1>
-      <p className="text-center mb-4 text-red-600 font-semibold">
-        Tareas pendientes: {tareas.length}
-      </p>
+      <img src="/logosmall_old.png" alt="Logo" className="mx-auto mb-4 w-24 h-auto" />
+      <h1 className="text-2xl font-bold text-center mb-4">📋 Panel de Supervisión</h1>
+      <p className="text-center mb-4 text-red-600 font-semibold">Tareas pendientes: {tareas.length}</p>
 
       <ul className="space-y-3">
         {tareas.map((t) => (
-          <li
-            key={t.id}
-            className="p-3 rounded-xl shadow-sm bg-yellow-100 flex items-center space-x-3"
-          >
+          <li key={t.id} className="p-3 rounded-xl shadow-sm bg-yellow-100 flex items-center space-x-3">
             {t.imagen && (
               <img
                 src={`data:image/jpeg;base64,${t.imagen}`}
@@ -189,47 +141,18 @@ function Supervision() {
               />
             )}
             <div>
-              <p>
-                <span className="font-bold text-gray-700">#{t.id}</span>{" "}
-                {t.usuario}: {t.tarea} 🔹
-              </p>
-              <p className="text-sm text-gray-500">
-                Fecha: {new Date(t.fecha).toLocaleString()}
-              </p>
+              <p><span className="font-bold text-gray-700">#{t.id}</span> {t.usuario}: {t.tarea} 🔹</p>
+              <p className="text-sm text-gray-500">Fecha: {new Date(t.fecha).toLocaleString()}</p>
             </div>
           </li>
         ))}
       </ul>
 
-      {/* 🔹 Botones añadidos aquí */}
       <div className="mt-6 flex flex-col space-y-2">
-        <button
-          onClick={() => setModoGlobal("menu")}
-          className="bg-gray-400 text-white px-4 py-2 rounded-xl w-full"
-        >
-          Volver al menú
-        </button>
-
-        <button
-          onClick={() => setModoGlobal("registroUsuario")}
-          className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full"
-        >
-          Registrar nuevo usuario
-        </button>
-
-        <button
-          onClick={() => setModoGlobal("registroPersonal")}
-          className="bg-green-500 text-white px-4 py-2 rounded-xl w-full"
-        >
-          Registrar nuevo personal
-        </button>
-
-        <button
-          onClick={() => window.location.href = "/estado-equipos"}
-          className="bg-purple-600 text-white px-4 py-2 rounded-xl w-full"
-        >
-          Ver estado de equipos
-        </button>
+        <button onClick={() => setModoGlobal("menu")} className="bg-gray-400 text-white px-4 py-2 rounded-xl w-full">Volver al menú</button>
+        <button onClick={() => setModoGlobal("registroUsuario")} className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full">Registrar nuevo usuario</button>
+        <button onClick={() => setModoGlobal("registroPersonal")} className="bg-green-500 text-white px-4 py-2 rounded-xl w-full">Registrar nuevo personal</button>
+        <button onClick={() => window.location.href = "/estado-equipos"} className="bg-purple-600 text-white px-4 py-2 rounded-xl w-full">Ver estado de equipos</button>
       </div>
 
       <AnimatePresence>
@@ -261,24 +184,43 @@ function Supervision() {
 }
 
 function SupervisionWrapper() {
-  const abrirMonitorIndicadores = () => {
-    window.open(
-      "/monitor-indicadores",
-      "monitorIndicadores",
-      "noopener,noreferrer"
-    );
-  };
+  useEffect(() => {
+    const insertarBotonMonitor = () => {
+      if (document.getElementById("monitor-indicadores-supervision")) return;
 
-  return (
-    <div className="relative min-h-screen">
-      <PanelLogin />
+      const botones = Array.from(document.querySelectorAll("button"));
+      const botonEstado = botones.find((boton) =>
+        boton.textContent?.trim().includes("Ver estado de equipos")
+      );
 
-      <button
-        onClick={abrirMonitorIndicadores}
-        className="fixed top-4 right-4 z-[80] bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-xl shadow-lg font-semibold"
-      >
-        🖥 Monitor externo
-      </button>
-    </div>
-  );
+      if (!botonEstado?.parentElement) return;
+
+      const botonMonitor = document.createElement("button");
+      botonMonitor.id = "monitor-indicadores-supervision";
+      botonMonitor.type = "button";
+      botonMonitor.textContent = "🖥 Monitor externo";
+      botonMonitor.className = "bg-slate-800 text-white px-4 py-2 rounded-xl text_sm";
+      botonMonitor.onclick = () => {
+        window.open(
+          "/monitor-indicadores",
+          "monitorIndicadores",
+          "noopener,noreferrer"
+        );
+      };
+
+      botonEstado.parentElement.appendChild(botonMonitor);
+    };
+
+    insertarBotonMonitor();
+
+    const observer = new MutationObserver(insertarBotonMonitor);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      document.getElementById("monitor-indicadores-supervision")?.remove();
+    };
+  }, []);
+
+  return <PanelLogin />;
 }
