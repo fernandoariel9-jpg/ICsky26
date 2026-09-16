@@ -30,20 +30,20 @@ export default function Stock({ setVista, personal }) {
     codigo: "",
     descripcion: "",
     categoria: "",
-    unidad: "unidad",
+    unidad: "UNIDAD",
     stock_minimo: 0
   });
 
   const [entrada, setEntrada] = useState({
     item_id: "",
-    area: personal?.area || "",
+    area: (personal?.area || "").toUpperCase(),
     cantidad: "",
     observacion: ""
   });
 
   const [salida, setSalida] = useState({
     item_id: "",
-    area: personal?.area || "",
+    area: (personal?.area || "").toUpperCase(),
     cantidad: "",
     tipo: "SALIDA",
     ric01_id: "",
@@ -110,7 +110,7 @@ export default function Stock({ setVista, personal }) {
         stock_minimo: Number(nuevoItem.stock_minimo || 0)
       });
 
-      setNuevoItem({ codigo: "", descripcion: "", categoria: "", unidad: "unidad", stock_minimo: 0 });
+      setNuevoItem({ codigo: "", descripcion: "", categoria: "", unidad: "UNIDAD", stock_minimo: 0 });
       setMostrarAlta(false);
       setMensaje("Artículo creado correctamente");
       await cargarDatos();
@@ -138,7 +138,7 @@ export default function Stock({ setVista, personal }) {
         observacion: entrada.observacion
       });
 
-      setEntrada({ item_id: "", area: personal?.area || "", cantidad: "", observacion: "" });
+      setEntrada({ item_id: "", area: (personal?.area || "").toUpperCase(), cantidad: "", observacion: "" });
       setMostrarEntrada(false);
       setMensaje("Entrada registrada correctamente");
       await cargarDatos();
@@ -168,7 +168,7 @@ export default function Stock({ setVista, personal }) {
         observacion: salida.observacion
       });
 
-      setSalida({ item_id: "", area: personal?.area || "", cantidad: "", tipo: "SALIDA", ric01_id: "", observacion: "" });
+      setSalida({ item_id: "", area: (personal?.area || "").toUpperCase(), cantidad: "", tipo: "SALIDA", ric01_id: "", observacion: "" });
       setMostrarSalida(false);
       setMensaje(salida.tipo === "CONSUMO" ? "Consumo registrado correctamente" : "Salida registrada correctamente");
       await cargarDatos();
@@ -220,10 +220,10 @@ export default function Stock({ setVista, personal }) {
 
         {mostrarAlta && (
           <form onSubmit={crearItem} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-5 gap-3">
-            <input className={inputClass} placeholder="Código" value={nuevoItem.codigo} onChange={(e) => setNuevoItem({ ...nuevoItem, codigo: e.target.value })} />
-            <input className={inputClass} placeholder="Descripción" required value={nuevoItem.descripcion} onChange={(e) => setNuevoItem({ ...nuevoItem, descripcion: e.target.value })} />
-            <input className={inputClass} placeholder="Categoría" value={nuevoItem.categoria} onChange={(e) => setNuevoItem({ ...nuevoItem, categoria: e.target.value })} />
-            <input className={inputClass} placeholder="Unidad" value={nuevoItem.unidad} onChange={(e) => setNuevoItem({ ...nuevoItem, unidad: e.target.value })} />
+            <input className={inputClass} placeholder="Código" value={nuevoItem.codigo} onChange={(e) => setNuevoItem({ ...nuevoItem, codigo: e.target.value.toUpperCase() })} />
+            <input className={inputClass} placeholder="Descripción" required value={nuevoItem.descripcion} onChange={(e) => setNuevoItem({ ...nuevoItem, descripcion: e.target.value.toUpperCase() })} />
+            <input className={inputClass} placeholder="Categoría" value={nuevoItem.categoria} onChange={(e) => setNuevoItem({ ...nuevoItem, categoria: e.target.value.toUpperCase() })} />
+            <input className={inputClass} placeholder="Unidad" value={nuevoItem.unidad} onChange={(e) => setNuevoItem({ ...nuevoItem, unidad: e.target.value.toUpperCase() })} />
             <input className={inputClass} type="number" min="0" step="0.01" placeholder="Stock mínimo" value={nuevoItem.stock_minimo} onChange={(e) => setNuevoItem({ ...nuevoItem, stock_minimo: e.target.value })} />
             <div className="md:col-span-5 flex justify-end">
               <button disabled={guardando} className="px-4 py-2 rounded-xl bg-indigo-600 text-white disabled:opacity-50">Guardar artículo</button>
@@ -237,9 +237,9 @@ export default function Stock({ setVista, personal }) {
               <option value="">Seleccionar artículo</option>
               {items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}
             </select>
-            <input className={inputClass} required placeholder="Área" value={entrada.area} onChange={(e) => setEntrada({ ...entrada, area: e.target.value })} />
+            <input className={inputClass} required placeholder="Área" value={entrada.area} onChange={(e) => setEntrada({ ...entrada, area: e.target.value.toUpperCase() })} />
             <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={entrada.cantidad} onChange={(e) => setEntrada({ ...entrada, cantidad: e.target.value })} />
-            <input className={inputClass} placeholder="Observación" value={entrada.observacion} onChange={(e) => setEntrada({ ...entrada, observacion: e.target.value })} />
+            <input className={inputClass} placeholder="Observación" value={entrada.observacion} onChange={(e) => setEntrada({ ...entrada, observacion: e.target.value.toUpperCase() })} />
             <div className="md:col-span-4 flex justify-end">
               <button disabled={guardando} className="px-4 py-2 rounded-xl bg-green-600 text-white disabled:opacity-50">Registrar entrada</button>
             </div>
@@ -252,14 +252,14 @@ export default function Stock({ setVista, personal }) {
               <option value="">Seleccionar artículo</option>
               {items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}
             </select>
-            <input className={inputClass} required placeholder="Área" value={salida.area} onChange={(e) => setSalida({ ...salida, area: e.target.value })} />
+            <input className={inputClass} required placeholder="Área" value={salida.area} onChange={(e) => setSalida({ ...salida, area: e.target.value.toUpperCase() })} />
             <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={salida.cantidad} onChange={(e) => setSalida({ ...salida, cantidad: e.target.value })} />
             <select className={inputClass} value={salida.tipo} onChange={(e) => setSalida({ ...salida, tipo: e.target.value, ric01_id: e.target.value === "CONSUMO" ? salida.ric01_id : "" })}>
               <option value="SALIDA">Salida</option>
               <option value="CONSUMO">Consumo</option>
             </select>
             <input className={inputClass} type="number" min="1" required={salida.tipo === "CONSUMO"} disabled={salida.tipo !== "CONSUMO"} placeholder="RIC01 ID" value={salida.ric01_id} onChange={(e) => setSalida({ ...salida, ric01_id: e.target.value })} />
-            <input className={inputClass} placeholder="Observación" value={salida.observacion} onChange={(e) => setSalida({ ...salida, observacion: e.target.value })} />
+            <input className={inputClass} placeholder="Observación" value={salida.observacion} onChange={(e) => setSalida({ ...salida, observacion: e.target.value.toUpperCase() })} />
             <div className="md:col-span-6 flex justify-end">
               <button disabled={guardando} className="px-4 py-2 rounded-xl bg-amber-600 text-white disabled:opacity-50">Registrar {salida.tipo === "CONSUMO" ? "consumo" : "salida"}</button>
             </div>
@@ -279,7 +279,7 @@ export default function Stock({ setVista, personal }) {
                 <button key={valor} onClick={() => setTab(valor)} className={`px-4 py-2 rounded-xl font-semibold ${tab === valor ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>{etiqueta}</button>
               ))}
             </div>
-            <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar..." className="w-full lg:w-80 border rounded-xl px-4 py-2" />
+            <input value={busqueda} onChange={(e) => setBusqueda(e.target.value.toUpperCase())} placeholder="Buscar..." className="w-full lg:w-80 border rounded-xl px-4 py-2" />
           </div>
         </div>
 
