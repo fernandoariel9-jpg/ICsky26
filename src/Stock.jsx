@@ -13,6 +13,7 @@ const inputClass = "w-full border rounded-xl px-3 py-2";
 
 export default function Stock({ setVista, personal }) {
   const [tab, setTab] = useState("catalogo");
+  const [categorias, setCategorias] = useState([]);
   const [items, setItems] = useState([]);
   const [existencias, setExistencias] = useState([]);
   const [movimientos, setMovimientos] = useState([]);
@@ -55,22 +56,25 @@ export default function Stock({ setVista, personal }) {
     setError("");
 
     try {
-      const [rItems, rExistencias, rMovimientos] = await Promise.all([
+      const [rCategorias, rItems, rExistencias, rMovimientos] = await Promise.all([
+        fetch(`${API}/categorias`, { cache: "no-store" }),
         fetch(`${API}/items`, { cache: "no-store" }),
         fetch(`${API}/existencias`, { cache: "no-store" }),
         fetch(`${API}/movimientos`, { cache: "no-store" })
       ]);
 
-      if (!rItems.ok || !rExistencias.ok || !rMovimientos.ok) {
+      if (!rCategorias.ok || !rItems.ok || !rExistencias.ok || !rMovimientos.ok) {
         throw new Error("No se pudo obtener la información de stock");
       }
 
-      const [dItems, dExistencias, dMovimientos] = await Promise.all([
+      const [dCategorias, dItems, dExistencias, dMovimientos] = await Promise.all([
+        rCategorias.json(),
         rItems.json(),
         rExistencias.json(),
         rMovimientos.json()
       ]);
 
+      setCategorias(Array.isArray(dCategorias) ? dCategorias : []);
       setItems(Array.isArray(dItems) ? dItems : []);
       setExistencias(Array.isArray(dExistencias) ? dExistencias : []);
       setMovimientos(Array.isArray(dMovimientos) ? dMovimientos : []);
@@ -222,7 +226,12 @@ export default function Stock({ setVista, personal }) {
           <form onSubmit={crearItem} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-5 gap-3">
             <input className={inputClass} placeholder="Código" value={nuevoItem.codigo} onChange={(e) => setNuevoItem({ ...nuevoItem, codigo: e.target.value.toUpperCase() })} />
             <input className={inputClass} placeholder="Descripción" required value={nuevoItem.descripcion} onChange={(e) => setNuevoItem({ ...nuevoItem, descripcion: e.target.value.toUpperCase() })} />
-            <input className={inputClass} placeholder="Categoría" value={nuevoItem.categoria} onChange={(e) => setNuevoItem({ ...nuevoItem, categoria: e.target.value.toUpperCase() })} />
+            <select className={inputClass} required value={nuevoItem.categoria} onChange={(e) => setNuevoItem({ ...nuevoItem, categoria: e.target.value })}>
+              <option value="">SELECCIONAR CATEGORÍA</option>
+              {categorias.map((categoria) => (
+                <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>
+              ))}
+            </select>
             <input className={inputClass} placeholder="Unidad" value={nuevoItem.unidad} onChange={(e) => setNuevoItem({ ...nuevoItem, unidad: e.target.value.toUpperCase() })} />
             <input className={inputClass} type="number" min="0" step="0.01" placeholder="Stock mínimo" value={nuevoItem.stock_minimo} onChange={(e) => setNuevoItem({ ...nuevoItem, stock_minimo: e.target.value })} />
             <div className="md:col-span-5 flex justify-end">
