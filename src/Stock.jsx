@@ -11,6 +11,9 @@ function formatearFecha(valor) {
 }
 
 const inputClass = "w-full border rounded-xl px-3 py-2";
+const actionButtonClass = "h-10 w-full sm:w-40 px-3 rounded-xl font-semibold inline-flex items-center justify-center whitespace-nowrap";
+const formButtonClass = "h-10 min-w-40 px-4 rounded-xl font-semibold inline-flex items-center justify-center disabled:opacity-50";
+const tableButtonClass = "h-8 min-w-20 px-3 rounded-lg font-semibold inline-flex items-center justify-center";
 
 export default function Stock({ setVista, personal }) {
   const [tab, setTab] = useState("catalogo");
@@ -160,25 +163,30 @@ export default function Stock({ setVista, personal }) {
     return lista.filter((fila) => Object.values(fila || {}).some((valor) => String(valor ?? "").toLowerCase().includes(texto)));
   };
 
+  const existenciasArea = useMemo(
+    () => existencias.filter((e) => String(e.area || "").trim().toUpperCase() === areaPersonal),
+    [existencias, areaPersonal]
+  );
+
   const datos = useMemo(() => {
     if (tab === "catalogo") return filtrar(items);
-    if (tab === "existencias") return filtrar(existencias);
+    if (tab === "existencias") return filtrar(existenciasArea);
     if (tab === "transferencias") return filtrar(transferencias);
     return filtrar(movimientos);
-  }, [tab, items, existencias, movimientos, transferencias, busqueda]);
+  }, [tab, items, existenciasArea, movimientos, transferencias, busqueda]);
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
           <div><h1 className="text-3xl font-bold text-gray-800">Stock</h1><p className="text-gray-500">Repuestos e insumos de Ingeniería Clínica</p></div>
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => setMostrarAlta((v) => !v)} className="px-4 py-2 rounded-xl bg-indigo-600 text-white">Nuevo artículo</button>
-            <button onClick={() => setMostrarEntrada((v) => !v)} className="px-4 py-2 rounded-xl bg-green-600 text-white">Entrada</button>
-            <button onClick={() => setMostrarSalida((v) => !v)} className="px-4 py-2 rounded-xl bg-amber-600 text-white">Salida / consumo</button>
-            <button onClick={() => setMostrarTransferencia((v) => !v)} className="px-4 py-2 rounded-xl bg-purple-600 text-white">Transferir</button>
-            <button onClick={cargarDatos} className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700">Actualizar</button>
-            <button onClick={() => setVista?.("tareas")} className="px-4 py-2 rounded-xl bg-gray-700 text-white hover:bg-gray-800">Volver</button>
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full md:w-auto">
+            <button onClick={() => setMostrarAlta((v) => !v)} className={`${actionButtonClass} bg-indigo-600 text-white`}>Nuevo artículo</button>
+            <button onClick={() => setMostrarEntrada((v) => !v)} className={`${actionButtonClass} bg-green-600 text-white`}>Entrada</button>
+            <button onClick={() => setMostrarSalida((v) => !v)} className={`${actionButtonClass} bg-amber-600 text-white`}>Salida / consumo</button>
+            <button onClick={() => setMostrarTransferencia((v) => !v)} className={`${actionButtonClass} bg-purple-600 text-white`}>Transferir</button>
+            <button onClick={cargarDatos} className={`${actionButtonClass} bg-blue-600 text-white hover:bg-blue-700`}>Actualizar</button>
+            <button onClick={() => setVista?.("tareas")} className={`${actionButtonClass} bg-gray-700 text-white hover:bg-gray-800`}>Volver</button>
           </div>
         </div>
 
@@ -191,7 +199,7 @@ export default function Stock({ setVista, personal }) {
           <select className={inputClass} required value={nuevoItem.categoria} onChange={(e) => setNuevoItem({ ...nuevoItem, categoria: e.target.value })}><option value="">SELECCIONAR CATEGORÍA</option>{categorias.map((categoria) => <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>)}</select>
           <input className={inputClass} placeholder="Unidad" value={nuevoItem.unidad} onChange={(e) => setNuevoItem({ ...nuevoItem, unidad: e.target.value.toUpperCase() })} />
           <input className={inputClass} type="number" min="0" step="0.01" placeholder="Stock mínimo" value={nuevoItem.stock_minimo} onChange={(e) => setNuevoItem({ ...nuevoItem, stock_minimo: e.target.value })} />
-          <div className="md:col-span-5 flex justify-end"><button disabled={guardando} className="px-4 py-2 rounded-xl bg-indigo-600 text-white disabled:opacity-50">Guardar artículo</button></div>
+          <div className="md:col-span-5 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-indigo-600 text-white`}>Guardar artículo</button></div>
         </form>}
 
         {mostrarEntrada && <form onSubmit={registrarEntrada} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -199,7 +207,7 @@ export default function Stock({ setVista, personal }) {
           <input className={inputClass} required placeholder="Área" value={entrada.area} onChange={(e) => setEntrada({ ...entrada, area: e.target.value.toUpperCase() })} />
           <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={entrada.cantidad} onChange={(e) => setEntrada({ ...entrada, cantidad: e.target.value })} />
           <input className={inputClass} placeholder="Observación" value={entrada.observacion} onChange={(e) => setEntrada({ ...entrada, observacion: e.target.value.toUpperCase() })} />
-          <div className="md:col-span-4 flex justify-end"><button disabled={guardando} className="px-4 py-2 rounded-xl bg-green-600 text-white disabled:opacity-50">Registrar entrada</button></div>
+          <div className="md:col-span-4 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-green-600 text-white`}>Registrar entrada</button></div>
         </form>}
 
         {mostrarSalida && <form onSubmit={registrarSalida} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-6 gap-3">
@@ -209,7 +217,7 @@ export default function Stock({ setVista, personal }) {
           <select className={inputClass} value={salida.tipo} onChange={(e) => setSalida({ ...salida, tipo: e.target.value, ric01_id: e.target.value === "CONSUMO" ? salida.ric01_id : "" })}><option value="SALIDA">Salida</option><option value="CONSUMO">Consumo</option></select>
           <input className={inputClass} type="number" min="1" required={salida.tipo === "CONSUMO"} disabled={salida.tipo !== "CONSUMO"} placeholder="RIC01 ID" value={salida.ric01_id} onChange={(e) => setSalida({ ...salida, ric01_id: e.target.value })} />
           <input className={inputClass} placeholder="Observación" value={salida.observacion} onChange={(e) => setSalida({ ...salida, observacion: e.target.value.toUpperCase() })} />
-          <div className="md:col-span-6 flex justify-end"><button disabled={guardando} className="px-4 py-2 rounded-xl bg-amber-600 text-white disabled:opacity-50">Registrar {salida.tipo === "CONSUMO" ? "consumo" : "salida"}</button></div>
+          <div className="md:col-span-6 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-amber-600 text-white`}>Registrar {salida.tipo === "CONSUMO" ? "consumo" : "salida"}</button></div>
         </form>}
 
         {mostrarTransferencia && <form onSubmit={solicitarTransferencia} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-5 gap-3">
@@ -222,30 +230,30 @@ export default function Stock({ setVista, personal }) {
           <input className={`${inputClass} bg-gray-100`} readOnly value={transferencia.area_destino} placeholder="Área solicitante" title="Área destino: área del técnico que solicita" />
           <input className={inputClass} placeholder="Observación" value={transferencia.observacion} onChange={(e) => setTransferencia({ ...transferencia, observacion: e.target.value.toUpperCase() })} />
           <div className="md:col-span-5 text-sm text-gray-500">El área seleccionada entrega el artículo a {transferencia.area_destino || "TU ÁREA"}.</div>
-          <div className="md:col-span-5 flex justify-end"><button disabled={guardando} className="px-4 py-2 rounded-xl bg-purple-600 text-white disabled:opacity-50">Solicitar transferencia</button></div>
+          <div className="md:col-span-5 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-purple-600 text-white`}>Solicitar transferencia</button></div>
         </form>}
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-5">
-          <div className="bg-white rounded-2xl shadow p-4"><div className="text-sm text-gray-500">Artículos</div><div className="text-3xl font-bold text-gray-800">{items.length}</div></div>
-          <div className="bg-white rounded-2xl shadow p-4"><div className="text-sm text-gray-500">Existencias registradas</div><div className="text-3xl font-bold text-gray-800">{existencias.length}</div></div>
-          <div className="bg-white rounded-2xl shadow p-4"><div className="text-sm text-gray-500">Stock bajo</div><div className="text-3xl font-bold text-red-600">{existencias.filter((e) => e.stock_bajo).length}</div></div>
-          <div className="bg-white rounded-2xl shadow p-4"><div className="text-sm text-gray-500">Transferencias pendientes</div><div className="text-3xl font-bold text-purple-600">{transferencias.filter((t) => t.estado === "PENDIENTE").length}</div></div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3 mb-4 md:mb-5">
+          <div className="bg-white rounded-xl md:rounded-2xl shadow p-3 md:p-4"><div className="text-xs sm:text-sm leading-tight text-gray-500">Artículos</div><div className="text-2xl md:text-3xl font-bold text-gray-800">{items.length}</div></div>
+          <div className="bg-white rounded-xl md:rounded-2xl shadow p-3 md:p-4"><div className="text-xs sm:text-sm leading-tight text-gray-500">Existencias del área</div><div className="text-2xl md:text-3xl font-bold text-gray-800">{existenciasArea.length}</div></div>
+          <div className="bg-white rounded-xl md:rounded-2xl shadow p-3 md:p-4"><div className="text-xs sm:text-sm leading-tight text-gray-500">Stock bajo</div><div className="text-2xl md:text-3xl font-bold text-red-600">{existenciasArea.filter((e) => e.stock_bajo).length}</div></div>
+          <div className="bg-white rounded-xl md:rounded-2xl shadow p-3 md:p-4"><div className="text-xs sm:text-sm leading-tight text-gray-500">Transferencias pendientes</div><div className="text-2xl md:text-3xl font-bold text-purple-600">{transferencias.filter((t) => t.estado === "PENDIENTE").length}</div></div>
         </div>
 
         <div className="bg-white rounded-2xl shadow p-4 mb-5"><div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
-          <div className="flex flex-wrap gap-2">{[["catalogo", "Catálogo"], ["existencias", "Existencias"], ["movimientos", "Movimientos"], ["transferencias", "Transferencias"]].map(([valor, etiqueta]) => <button key={valor} onClick={() => setTab(valor)} className={`px-4 py-2 rounded-xl font-semibold ${tab === valor ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>{etiqueta}</button>)}</div>
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">{[["catalogo", "Catálogo"], ["existencias", "Existencias"], ["movimientos", "Movimientos"], ["transferencias", "Transferencias"]].map(([valor, etiqueta]) => <button key={valor} onClick={() => setTab(valor)} className={`h-10 w-full sm:w-36 px-3 rounded-xl font-semibold inline-flex items-center justify-center ${tab === valor ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>{etiqueta}</button>)}</div>
           <input value={busqueda} onChange={(e) => setBusqueda(e.target.value.toUpperCase())} placeholder="Buscar..." className="w-full lg:w-80 border rounded-xl px-4 py-2" />
         </div></div>
 
         <div className="bg-white rounded-2xl shadow overflow-hidden">
           {cargando ? <div className="p-8 text-center text-gray-500">Cargando stock...</div> : datos.length === 0 ? <div className="p-8 text-center text-gray-500">Sin registros para mostrar.</div> : tab === "catalogo" ?
-            <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Código</th><th className="text-left p-3">Descripción</th><th className="text-left p-3">Categoría</th><th className="text-left p-3">Unidad</th><th className="text-right p-3">Stock mínimo</th><th className="text-center p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead><tbody>{datos.map((item) => <tr key={item.id} className="border-t"><td className="p-3 font-medium">{item.codigo || "-"}</td><td className="p-3">{item.descripcion}</td><td className="p-3">{item.categoria || "-"}</td><td className="p-3">{item.unidad}</td><td className="p-3 text-right">{item.stock_minimo}</td><td className="p-3 text-center"><span>{item.activo ? "Activo" : "Inactivo"}</span></td><td className="p-3 text-center"><button onClick={() => eliminarItem(item)} className="px-3 py-1 rounded-lg bg-red-600 text-white">Eliminar</button></td></tr>)}</tbody></table></div>
+            <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Código</th><th className="text-left p-3">Descripción</th><th className="text-left p-3">Categoría</th><th className="text-left p-3">Unidad</th><th className="text-right p-3">Stock mínimo</th><th className="text-center p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead><tbody>{datos.map((item) => <tr key={item.id} className="border-t"><td className="p-3 font-medium">{item.codigo || "-"}</td><td className="p-3">{item.descripcion}</td><td className="p-3">{item.categoria || "-"}</td><td className="p-3">{item.unidad}</td><td className="p-3 text-right">{item.stock_minimo}</td><td className="p-3 text-center"><span>{item.activo ? "Activo" : "Inactivo"}</span></td><td className="p-3 text-center"><button onClick={() => eliminarItem(item)} className={`${tableButtonClass} bg-red-600 text-white`}>Eliminar</button></td></tr>)}</tbody></table></div>
           : tab === "existencias" ?
             <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Código</th><th className="text-left p-3">Descripción</th><th className="text-left p-3">Área</th><th className="text-right p-3">Cantidad</th><th className="text-right p-3">Mínimo</th><th className="text-center p-3">Estado</th></tr></thead><tbody>{datos.map((e) => <tr key={e.id} className="border-t"><td className="p-3 font-medium">{e.codigo || "-"}</td><td className="p-3">{e.descripcion}</td><td className="p-3">{e.area}</td><td className="p-3 text-right font-semibold">{e.cantidad} {e.unidad}</td><td className="p-3 text-right">{e.stock_minimo}</td><td className="p-3 text-center">{e.stock_bajo ? "Stock bajo" : "Normal"}</td></tr>)}</tbody></table></div>
           : tab === "transferencias" ?
             <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Fecha</th><th className="text-left p-3">Artículo</th><th className="text-right p-3">Cantidad</th><th className="text-left p-3">Origen</th><th className="text-left p-3">Destino</th><th className="text-left p-3">Solicitado por</th><th className="text-left p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead><tbody>{datos.map((t) => {
               const puedeResolver = t.estado === "PENDIENTE" && String(t.area_origen || "").trim().toUpperCase() === areaPersonal;
-              return <tr key={t.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(t.fecha_solicitud)}</td><td className="p-3">{t.codigo ? `${t.codigo} · ` : ""}{t.descripcion}</td><td className="p-3 text-right">{t.cantidad} {t.unidad}</td><td className="p-3">{t.area_origen}</td><td className="p-3">{t.area_destino}</td><td className="p-3">{t.solicitado_por_nombre || "-"}</td><td className="p-3 font-semibold">{t.estado}</td><td className="p-3 text-center">{puedeResolver ? <div className="flex gap-2 justify-center"><button onClick={() => resolverTransferencia(t, "APROBAR")} className="px-3 py-1 rounded-lg bg-green-600 text-white">Aprobar</button><button onClick={() => resolverTransferencia(t, "RECHAZAR")} className="px-3 py-1 rounded-lg bg-red-600 text-white">Rechazar</button></div> : t.estado === "PENDIENTE" ? <span className="text-xs text-gray-500">Esperando área origen</span> : "-"}</td></tr>;
+              return <tr key={t.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(t.fecha_solicitud)}</td><td className="p-3">{t.codigo ? `${t.codigo} · ` : ""}{t.descripcion}</td><td className="p-3 text-right">{t.cantidad} {t.unidad}</td><td className="p-3">{t.area_origen}</td><td className="p-3">{t.area_destino}</td><td className="p-3">{t.solicitado_por_nombre || "-"}</td><td className="p-3 font-semibold">{t.estado}</td><td className="p-3 text-center">{puedeResolver ? <div className="flex gap-2 justify-center"><button onClick={() => resolverTransferencia(t, "APROBAR")} className={`${tableButtonClass} bg-green-600 text-white`}>Aprobar</button><button onClick={() => resolverTransferencia(t, "RECHAZAR")} className={`${tableButtonClass} bg-red-600 text-white`}>Rechazar</button></div> : t.estado === "PENDIENTE" ? <span className="text-xs text-gray-500">Esperando área origen</span> : "-"}</td></tr>;
             })}</tbody></table></div>
           : <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Fecha</th><th className="text-left p-3">Tipo</th><th className="text-left p-3">Artículo</th><th className="text-right p-3">Cantidad</th><th className="text-left p-3">Origen</th><th className="text-left p-3">Destino</th><th className="text-left p-3">Personal</th><th className="text-left p-3">Referencia</th></tr></thead><tbody>{datos.map((m) => <tr key={m.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(m.fecha)}</td><td className="p-3 font-semibold">{m.tipo}</td><td className="p-3">{m.codigo ? `${m.codigo} · ` : ""}{m.descripcion}</td><td className="p-3 text-right">{m.cantidad} {m.unidad}</td><td className="p-3">{m.area_origen || "-"}</td><td className="p-3">{m.area_destino || "-"}</td><td className="p-3">{m.personal_nombre || "-"}</td><td className="p-3">{m.referencia_tipo && m.referencia_id ? `${m.referencia_tipo} #${m.referencia_id}` : "-"}</td></tr>)}</tbody></table></div>}
         </div>
