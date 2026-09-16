@@ -753,6 +753,16 @@ if (busqueda.trim()) {
               </button>
 
               <button
+  onClick={() => {
+    setMenuAbierto(false);
+    setVista("stock");
+  }}
+  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+>
+  📦 Stock
+</button>
+
+              <button
                 onClick={() => {
                   setMenuAbierto(false);
                   setVista("ric25");
