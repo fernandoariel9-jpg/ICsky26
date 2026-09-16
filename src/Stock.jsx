@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { API_URL } from "./config";
 
 const API = "https://sky26.onrender.com/api/stock";
 
@@ -14,6 +15,7 @@ const inputClass = "w-full border rounded-xl px-3 py-2";
 export default function Stock({ setVista, personal }) {
   const [tab, setTab] = useState("catalogo");
   const [categorias, setCategorias] = useState([]);
+  const [areas, setAreas] = useState([]);
   const [items, setItems] = useState([]);
   const [existencias, setExistencias] = useState([]);
   const [movimientos, setMovimientos] = useState([]);
@@ -66,20 +68,22 @@ export default function Stock({ setVista, personal }) {
     setError("");
 
     try {
-      const [rCategorias, rItems, rExistencias, rMovimientos, rTransferencias] = await Promise.all([
+      const [rCategorias, rAreas, rItems, rExistencias, rMovimientos, rTransferencias] = await Promise.all([
         fetch(`${API}/categorias`, { cache: "no-store" }),
+        fetch(API_URL.Areas, { cache: "no-store" }),
         fetch(`${API}/items`, { cache: "no-store" }),
         fetch(`${API}/existencias`, { cache: "no-store" }),
         fetch(`${API}/movimientos`, { cache: "no-store" }),
         fetch(`${API}/transferencias`, { cache: "no-store" })
       ]);
 
-      if (!rCategorias.ok || !rItems.ok || !rExistencias.ok || !rMovimientos.ok || !rTransferencias.ok) {
+      if (!rCategorias.ok || !rAreas.ok || !rItems.ok || !rExistencias.ok || !rMovimientos.ok || !rTransferencias.ok) {
         throw new Error("No se pudo obtener la información de stock");
       }
 
-      const [dCategorias, dItems, dExistencias, dMovimientos, dTransferencias] = await Promise.all([
+      const [dCategorias, dAreas, dItems, dExistencias, dMovimientos, dTransferencias] = await Promise.all([
         rCategorias.json(),
+        rAreas.json(),
         rItems.json(),
         rExistencias.json(),
         rMovimientos.json(),
@@ -87,6 +91,7 @@ export default function Stock({ setVista, personal }) {
       ]);
 
       setCategorias(Array.isArray(dCategorias) ? dCategorias : []);
+      setAreas(Array.isArray(dAreas) ? dAreas : []);
       setItems(Array.isArray(dItems) ? dItems : []);
       setExistencias(Array.isArray(dExistencias) ? dExistencias : []);
       setMovimientos(Array.isArray(dMovimientos) ? dMovimientos : []);
@@ -352,7 +357,14 @@ export default function Stock({ setVista, personal }) {
             <select className={inputClass} required value={transferencia.item_id} onChange={(e) => setTransferencia({ ...transferencia, item_id: e.target.value })}><option value="">Seleccionar artículo</option>{items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}</select>
             <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={transferencia.cantidad} onChange={(e) => setTransferencia({ ...transferencia, cantidad: e.target.value })} />
             <input className={inputClass} required placeholder="Área origen" value={transferencia.area_origen} onChange={(e) => setTransferencia({ ...transferencia, area_origen: e.target.value.toUpperCase() })} />
-            <input className={inputClass} required placeholder="Área destino" value={transferencia.area_destino} onChange={(e) => setTransferencia({ ...transferencia, area_destino: e.target.value.toUpperCase() })} />
+            <select className={inputClass} required value={transferencia.area_destino} onChange={(e) => setTransferencia({ ...transferencia, area_destino: e.target.value })}>
+              <option value="">SELECCIONAR ÁREA DESTINO</option>
+              {areas
+                .map((a) => String(a.area || a.nombre || "").trim().toUpperCase())
+                .filter((nombre, index, lista) => nombre && nombre !== transferencia.area_origen && lista.indexOf(nombre) === index)
+                .sort()
+                .map((nombre) => <option key={nombre} value={nombre}>{nombre}</option>)}
+            </select>
             <input className={inputClass} placeholder="Observación" value={transferencia.observacion} onChange={(e) => setTransferencia({ ...transferencia, observacion: e.target.value.toUpperCase() })} />
             <div className="md:col-span-5 flex justify-end"><button disabled={guardando} className="px-4 py-2 rounded-xl bg-purple-600 text-white disabled:opacity-50">Solicitar transferencia</button></div>
           </form>
