@@ -31,14 +31,16 @@ export default function Stock({ setVista, personal }) {
   const [mostrarSalida, setMostrarSalida] = useState(false);
   const [mostrarTransferencia, setMostrarTransferencia] = useState(false);
 
+  const areaPersonal = (personal?.area || "").trim().toUpperCase();
+
   const [nuevoItem, setNuevoItem] = useState({ codigo: "", descripcion: "", categoria: "", unidad: "UNIDAD", stock_minimo: 0 });
-  const [entrada, setEntrada] = useState({ item_id: "", area: (personal?.area || "").toUpperCase(), cantidad: "", observacion: "" });
-  const [salida, setSalida] = useState({ item_id: "", area: (personal?.area || "").toUpperCase(), cantidad: "", tipo: "SALIDA", ric01_id: "", observacion: "" });
+  const [entrada, setEntrada] = useState({ item_id: "", area: areaPersonal, cantidad: "", observacion: "" });
+  const [salida, setSalida] = useState({ item_id: "", area: areaPersonal, cantidad: "", tipo: "SALIDA", ric01_id: "", observacion: "" });
   const [transferencia, setTransferencia] = useState({
     item_id: "",
     cantidad: "",
     area_origen: "",
-    area_destino: (personal?.area || "").toUpperCase(),
+    area_destino: areaPersonal,
     observacion: ""
   });
 
@@ -106,7 +108,7 @@ export default function Stock({ setVista, personal }) {
     e.preventDefault(); setGuardando(true); setError(""); setMensaje("");
     try {
       await postJSON(`${API}/entradas`, { item_id: Number(entrada.item_id), area: entrada.area, cantidad: Number(entrada.cantidad), personal_id: personal?.id || null, personal_nombre: personal?.nombre || null, observacion: entrada.observacion });
-      setEntrada({ item_id: "", area: (personal?.area || "").toUpperCase(), cantidad: "", observacion: "" });
+      setEntrada({ item_id: "", area: areaPersonal, cantidad: "", observacion: "" });
       setMostrarEntrada(false); setMensaje("Entrada registrada correctamente"); await cargarDatos(); setTab("existencias");
     } catch (e2) { setError(e2.message); } finally { setGuardando(false); }
   };
@@ -115,7 +117,7 @@ export default function Stock({ setVista, personal }) {
     e.preventDefault(); setGuardando(true); setError(""); setMensaje("");
     try {
       await postJSON(`${API}/salidas`, { item_id: Number(salida.item_id), area: salida.area, cantidad: Number(salida.cantidad), tipo: salida.tipo, ric01_id: salida.tipo === "CONSUMO" ? Number(salida.ric01_id) : null, personal_id: personal?.id || null, personal_nombre: personal?.nombre || null, observacion: salida.observacion });
-      setSalida({ item_id: "", area: (personal?.area || "").toUpperCase(), cantidad: "", tipo: "SALIDA", ric01_id: "", observacion: "" });
+      setSalida({ item_id: "", area: areaPersonal, cantidad: "", tipo: "SALIDA", ric01_id: "", observacion: "" });
       setMostrarSalida(false); setMensaje(salida.tipo === "CONSUMO" ? "Consumo registrado correctamente" : "Salida registrada correctamente"); await cargarDatos(); setTab("movimientos");
     } catch (e2) { setError(e2.message); } finally { setGuardando(false); }
   };
@@ -132,7 +134,7 @@ export default function Stock({ setVista, personal }) {
         solicitado_por_nombre: personal?.nombre || null,
         observacion: transferencia.observacion
       });
-      setTransferencia({ item_id: "", cantidad: "", area_origen: "", area_destino: (personal?.area || "").toUpperCase(), observacion: "" });
+      setTransferencia({ item_id: "", cantidad: "", area_origen: "", area_destino: areaPersonal, observacion: "" });
       setMostrarTransferencia(false); setMensaje("Transferencia solicitada correctamente"); await cargarDatos(); setTab("transferencias");
     } catch (e2) { setError(e2.message); } finally { setGuardando(false); }
   };
@@ -142,7 +144,12 @@ export default function Stock({ setVista, personal }) {
     if (!window.confirm(`¿${verbo} TRANSFERENCIA #${t.id}?`)) return;
     setError(""); setMensaje("");
     try {
-      await postJSON(`${API}/transferencias/${t.id}/resolver`, { accion, aprobado_por_id: personal?.id || null, aprobado_por_nombre: personal?.nombre || null }, "PUT");
+      await postJSON(`${API}/transferencias/${t.id}/resolver`, {
+        accion,
+        aprobado_por_id: personal?.id || null,
+        aprobado_por_nombre: personal?.nombre || null,
+        aprobado_por_area: areaPersonal
+      }, "PUT");
       setMensaje(accion === "APROBAR" ? "Transferencia aprobada" : "Transferencia rechazada"); await cargarDatos(); setTab("transferencias");
     } catch (e) { setError(e.message); }
   };
@@ -236,7 +243,10 @@ export default function Stock({ setVista, personal }) {
           : tab === "existencias" ?
             <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Código</th><th className="text-left p-3">Descripción</th><th className="text-left p-3">Área</th><th className="text-right p-3">Cantidad</th><th className="text-right p-3">Mínimo</th><th className="text-center p-3">Estado</th></tr></thead><tbody>{datos.map((e) => <tr key={e.id} className="border-t"><td className="p-3 font-medium">{e.codigo || "-"}</td><td className="p-3">{e.descripcion}</td><td className="p-3">{e.area}</td><td className="p-3 text-right font-semibold">{e.cantidad} {e.unidad}</td><td className="p-3 text-right">{e.stock_minimo}</td><td className="p-3 text-center">{e.stock_bajo ? "Stock bajo" : "Normal"}</td></tr>)}</tbody></table></div>
           : tab === "transferencias" ?
-            <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Fecha</th><th className="text-left p-3">Artículo</th><th className="text-right p-3">Cantidad</th><th className="text-left p-3">Origen</th><th className="text-left p-3">Destino</th><th className="text-left p-3">Solicitado por</th><th className="text-left p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead><tbody>{datos.map((t) => <tr key={t.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(t.fecha_solicitud)}</td><td className="p-3">{t.codigo ? `${t.codigo} · ` : ""}{t.descripcion}</td><td className="p-3 text-right">{t.cantidad} {t.unidad}</td><td className="p-3">{t.area_origen}</td><td className="p-3">{t.area_destino}</td><td className="p-3">{t.solicitado_por_nombre || "-"}</td><td className="p-3 font-semibold">{t.estado}</td><td className="p-3 text-center">{t.estado === "PENDIENTE" ? <div className="flex gap-2 justify-center"><button onClick={() => resolverTransferencia(t, "APROBAR")} className="px-3 py-1 rounded-lg bg-green-600 text-white">Aprobar</button><button onClick={() => resolverTransferencia(t, "RECHAZAR")} className="px-3 py-1 rounded-lg bg-red-600 text-white">Rechazar</button></div> : "-"}</td></tr>)}</tbody></table></div>
+            <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Fecha</th><th className="text-left p-3">Artículo</th><th className="text-right p-3">Cantidad</th><th className="text-left p-3">Origen</th><th className="text-left p-3">Destino</th><th className="text-left p-3">Solicitado por</th><th className="text-left p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead><tbody>{datos.map((t) => {
+              const puedeResolver = t.estado === "PENDIENTE" && String(t.area_origen || "").trim().toUpperCase() === areaPersonal;
+              return <tr key={t.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(t.fecha_solicitud)}</td><td className="p-3">{t.codigo ? `${t.codigo} · ` : ""}{t.descripcion}</td><td className="p-3 text-right">{t.cantidad} {t.unidad}</td><td className="p-3">{t.area_origen}</td><td className="p-3">{t.area_destino}</td><td className="p-3">{t.solicitado_por_nombre || "-"}</td><td className="p-3 font-semibold">{t.estado}</td><td className="p-3 text-center">{puedeResolver ? <div className="flex gap-2 justify-center"><button onClick={() => resolverTransferencia(t, "APROBAR")} className="px-3 py-1 rounded-lg bg-green-600 text-white">Aprobar</button><button onClick={() => resolverTransferencia(t, "RECHAZAR")} className="px-3 py-1 rounded-lg bg-red-600 text-white">Rechazar</button></div> : t.estado === "PENDIENTE" ? <span className="text-xs text-gray-500">Esperando área origen</span> : "-"}</td></tr>;
+            })}</tbody></table></div>
           : <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Fecha</th><th className="text-left p-3">Tipo</th><th className="text-left p-3">Artículo</th><th className="text-right p-3">Cantidad</th><th className="text-left p-3">Origen</th><th className="text-left p-3">Destino</th><th className="text-left p-3">Personal</th><th className="text-left p-3">Referencia</th></tr></thead><tbody>{datos.map((m) => <tr key={m.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(m.fecha)}</td><td className="p-3 font-semibold">{m.tipo}</td><td className="p-3">{m.codigo ? `${m.codigo} · ` : ""}{m.descripcion}</td><td className="p-3 text-right">{m.cantidad} {m.unidad}</td><td className="p-3">{m.area_origen || "-"}</td><td className="p-3">{m.area_destino || "-"}</td><td className="p-3">{m.personal_nombre || "-"}</td><td className="p-3">{m.referencia_tipo && m.referencia_id ? `${m.referencia_tipo} #${m.referencia_id}` : "-"}</td></tr>)}</tbody></table></div>}
         </div>
       </div>
