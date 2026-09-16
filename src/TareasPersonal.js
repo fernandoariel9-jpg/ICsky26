@@ -1027,6 +1027,31 @@ if (busqueda.trim()) {
                   )}
 
                   {t.fecha && <p className="text-sm text-gray-600 mt-1">📅 Iniciado el {formatTimestamp(t.fecha)}</p>}
+                   {Array.isArray(t.consumos) && t.consumos.length > 0 && (
+  <div className="mt-2 bg-cyan-50 border border-cyan-200 rounded p-2">
+    <p className="text-sm font-semibold mb-1 text-cyan-800">
+      🔩 Repuestos utilizados
+    </p>
+
+    <ul className="text-sm space-y-1">
+      {t.consumos.map((c) => (
+        <li key={c.id} className="text-gray-700">
+          <strong>
+            {c.codigo ? `${c.codigo} · ` : ""}
+            {c.descripcion}
+          </strong>
+          {" — "}
+          {c.cantidad} {c.unidad || "unidad"}
+          {c.personal_nombre && (
+            <span className="text-gray-500">
+              {" "}· Técnico: {c.personal_nombre}
+            </span>
+          )}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
 
                   {t.solucion && (
                     <div className="mt-2 bg-gray-100 rounded p-2">
