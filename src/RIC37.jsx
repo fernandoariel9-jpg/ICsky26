@@ -284,7 +284,7 @@ export default function RIC37({ setVista, personal }) {
                   <h3 className="font-bold mb-3">{item.numero}. {item.nombre}</h3>
                   <label className="font-semibold block mb-2">Medición</label>
                   <input type="text" value={item.medicion} disabled={item.noAplica} onChange={e => cambiarMedicionDeterminacion(index, e.target.value)} className={`w-full border rounded-xl p-3 text-lg ${item.conforme === true ? "bg-green-100 border-green-500" : item.conforme === false ? "bg-red-100 border-red-500" : ""}`} />
-                  <p className="text-sm mt-2">Rango de aceptación: <b>≤ {item.rango}</b></p>
+                  <p className="text-sm mt-2">Rango de aceptación: <b>≤ {item.rango}µA</b></p>
                   <div className="flex items-center justify-between mt-4 gap-3">
                     <div className="flex gap-2">
                       <button type="button" disabled={item.noAplica} onClick={() => cambiarDeterminacion(index, "conforme", true)} className={`px-3 py-2 rounded-xl ${item.conforme === true ? "bg-green-600 text-white" : "bg-gray-200"}`}>Conforme</button>
@@ -309,7 +309,7 @@ export default function RIC37({ setVista, personal }) {
                   <div className="flex justify-between items-center mb-3"><h3 className="font-bold">Medición {index + 1}</h3>{medicionesPartesAplicables.length > 1 && <button type="button" onClick={() => eliminarMedicionPartes(item.id)} className="text-red-600 text-sm font-semibold">Eliminar</button>}</div>
                   <label className="font-semibold block mb-2">Medición</label>
                   <input type="text" value={item.medicion} disabled={item.noAplica} onChange={e => cambiarMedicionPartes(item.id, "medicion", e.target.value)} className={`w-full border rounded-xl p-3 text-lg ${item.conforme === true ? "bg-green-100 border-green-500" : item.conforme === false ? "bg-red-100 border-red-500" : ""}`} />
-                  <p className="text-sm mt-2">Rango de aceptación: <b>≤ 0.3</b></p>
+                  <p className="text-sm mt-2">Rango de aceptación: <b>≤ 50 µA</b></p>
                   <label className="font-semibold block mt-4 mb-2">Observaciones</label>
                   <textarea value={item.observaciones} onChange={e => cambiarMedicionPartes(item.id, "observaciones", e.target.value)} className="w-full border rounded-xl p-3" rows={3} placeholder="Observaciones de esta medición..." />
                   <div className="flex items-center justify-between mt-4 gap-3">
