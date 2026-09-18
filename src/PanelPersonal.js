@@ -7,6 +7,7 @@ import Stock from "./Stock";
 import RIC25 from "./RIC25";
 import RIC29 from "./RIC29";
 import RIC37 from "./RIC37";
+import RIC39 from "./RIC39";
 import RIC44 from "./RIC44";
 
 export default function PanelPersonal({ personal, onLogout }) {
@@ -64,6 +65,13 @@ export default function PanelPersonal({ personal, onLogout }) {
 
       {vista === "ric37" && (
         <RIC37
+          setVista={setVista}
+          personal={personal}
+        />
+      )}
+
+      {vista === "ric39" && (
+        <RIC39
           setVista={setVista}
           personal={personal}
         />
