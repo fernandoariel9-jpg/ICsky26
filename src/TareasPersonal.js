@@ -578,15 +578,19 @@ if (mostrarGuardias) {
 
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
-  const finalizadas = tareas.filter((t) => {
-    if (!t.fin) return false;
-    if (personal?.rol !== "superusuario") return true;
-    if (!t.fecha_fin) return false;
-    const fechaFin = new Date(t.fecha_fin);
-    const haceUnMes = new Date();
-    haceUnMes.setMonth(haceUnMes.getMonth() - 1);
-    return fechaFin >= haceUnMes;
-  });
+const haceUnMes = new Date();
+haceUnMes.setMonth(haceUnMes.getMonth() - 1);
+
+const finalizadas = tareas.filter((t) => {
+  if (!t.fin || !t.fecha_fin) return false;
+
+  const fechaFin = new Date(t.fecha_fin);
+
+  return (
+    !Number.isNaN(fechaFin.getTime()) &&
+    fechaFin >= haceUnMes
+  );
+});
 
 let tareasFiltradas = [];
 if (busqueda.trim()) {
