@@ -227,16 +227,41 @@ export default function Equipos({ setVista, personal }) {
   }
 
   const protocolosMantenimiento = [
-    { protocolo: "RIC29", tipo: "preventivo", descripcion: "cardiodesfibrilador", vista: "ric29" }
-  ];
+  {
+    protocolo: "RIC29",
+    tipo: "preventivo",
+    descripcion: "cardiodesfibrilador",
+    vista: "ric29"
+  },
+  {
+    protocolo: "RIC39",
+    tipo: "preventivo",
+    descripcion: "monitor multiparametrico",
+    vista: "ric39"
+  }
+];
 
-  const obtenerProtocoloMantenimiento = (tipo, descripcionEquipo) => {
-    const tipoNormalizado = tipo?.trim().toLowerCase();
-    const descripcionNormalizada = descripcionEquipo?.trim().toLowerCase();
-    return protocolosMantenimiento.find(
-      (p) => p.tipo === tipoNormalizado && descripcionNormalizada.includes(p.descripcion)
-    ) || null;
-  };
+const normalizarTexto = (texto = "") =>
+  String(texto)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
+const obtenerProtocoloMantenimiento = (tipo, descripcionEquipo) => {
+  const tipoNormalizado = normalizarTexto(tipo);
+  const descripcionNormalizada = normalizarTexto(descripcionEquipo);
+
+  return (
+    protocolosMantenimiento.find(
+      (p) =>
+        normalizarTexto(p.tipo) === tipoNormalizado &&
+        descripcionNormalizada.includes(
+          normalizarTexto(p.descripcion)
+        )
+    ) || null
+  );
+};
 
   const abrirRIC37 = (mantenimiento) => {
     if (!equipo) return alert("Primero seleccione un equipo.");
