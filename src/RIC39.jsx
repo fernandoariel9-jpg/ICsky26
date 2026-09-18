@@ -58,16 +58,10 @@ const hoyLocal = () => {
 };
 
 const normalizar = (valor = "") =>
-  String(valor)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
+  String(valor).normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
 
 const leerNumero = (valor) => {
-  const match = String(valor ?? "")
-    .replace(",", ".")
-    .match(/-?\d+(?:\.\d+)?/);
+  const match = String(valor ?? "").replace(",", ".").match(/-?\d+(?:\.\d+)?/);
   return match ? Number(match[0]) : NaN;
 };
 
@@ -93,10 +87,7 @@ const crearMediciones = () =>
 
 const evaluar = (item, valor) => {
   if (String(valor ?? "").trim() === "") return null;
-
-  if (item.tipo === "onda") {
-    return normalizar(valor) === "normal";
-  }
+  if (item.tipo === "onda") return normalizar(valor) === "normal";
 
   if (item.tipo === "numero") {
     const numero = leerNumero(valor);
@@ -125,35 +116,24 @@ const evaluar = (item, valor) => {
   );
 };
 
-function Estado({ conforme }) {
+function Estado({ conforme, noAplica }) {
+  if (noAplica) {
+    return <span className="inline-flex px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-bold">NO APLICA</span>;
+  }
   if (conforme === true) {
-    return (
-      <span className="inline-flex px-3 py-1 rounded-full bg-green-100 text-green-700 font-bold">
-        CONFORME
-      </span>
-    );
+    return <span className="inline-flex px-3 py-1 rounded-full bg-green-100 text-green-700 font-bold">CONFORME</span>;
   }
-
   if (conforme === false) {
-    return (
-      <span className="inline-flex px-3 py-1 rounded-full bg-red-100 text-red-700 font-bold">
-        NO CONFORME
-      </span>
-    );
+    return <span className="inline-flex px-3 py-1 rounded-full bg-red-100 text-red-700 font-bold">NO CONFORME</span>;
   }
-
-  return (
-    <span className="inline-flex px-3 py-1 rounded-full bg-gray-100 text-gray-500 font-semibold">
-      PENDIENTE
-    </span>
-  );
+  return <span className="inline-flex px-3 py-1 rounded-full bg-gray-100 text-gray-500 font-semibold">PENDIENTE</span>;
 }
 
 function Campo({ label, ...props }) {
   return (
     <label className="text-sm block">
       <span className="font-semibold block mb-1">{label}</span>
-      <input {...props} className="w-full border rounded-lg px-3 py-2 bg-white" />
+      <input {...props} className="w-full border rounded-xl p-3 bg-white" />
     </label>
   );
 }
@@ -199,9 +179,7 @@ export default function RIC39({ setVista, personal }) {
         let equipo = null;
 
         if (tarea.numero_serie) {
-          const res = await fetch(
-            `${API_URL.BuscarEquipo}/${encodeURIComponent(tarea.numero_serie)}`
-          );
+          const res = await fetch(`${API_URL.BuscarEquipo}/${encodeURIComponent(tarea.numero_serie)}`);
           if (res.ok) equipo = await res.json();
         }
 
@@ -210,8 +188,7 @@ export default function RIC39({ setVista, personal }) {
           ric01_id: tarea.ric01_id || tarea.id || "",
           equipo_id: equipo?.id || tarea.equipo_id || "",
           numero_serie: equipo?.numero_serie || tarea.numero_serie || "",
-          descripcion:
-            equipo?.descripcion || tarea.descripcion || "MONITOR MULTIPARAMÉTRICO",
+          descripcion: equipo?.descripcion || tarea.descripcion || "MONITOR MULTIPARAMÉTRICO",
           marca_modelo: equipo?.marca_modelo || tarea.marca_modelo || "",
           area: equipo?.area || tarea.area || "",
           servicio: equipo?.servicio || tarea.servicio || "",
@@ -231,9 +208,10 @@ export default function RIC39({ setVista, personal }) {
   }, [personal]);
 
   const resumen = useMemo(() => {
-    const evaluadas = mediciones.filter((m) => m.conforme !== null);
+    const evaluadas = mediciones.filter((m) => !m.no_aplica && m.conforme !== null);
     const noConformes = evaluadas.filter((m) => m.conforme === false);
-    const faltantes = mediciones.filter((m) => !String(m.medicion).trim()).length;
+    const noAplica = mediciones.filter((m) => m.no_aplica).length;
+    const faltantes = mediciones.filter((m) => !m.no_aplica && !String(m.medicion).trim()).length;
 
     const inspeccionesValores = [
       inspecciones.aceptacion_visual,
@@ -241,28 +219,19 @@ export default function RIC39({ setVista, personal }) {
       inspecciones.estado_baterias,
       inspecciones.estado_cables
     ];
-
     const inspeccionesPendientes = inspeccionesValores.some((v) => !v);
     const inspeccionesNoConformes = Object.entries(inspecciones)
-      .filter(
-        ([campo, valor]) => campo !== "observaciones" && valor === "NO CONFORME"
-      )
+      .filter(([campo, valor]) => campo !== "observaciones" && valor === "NO CONFORME")
       .map(([campo]) => campo.replace(/_/g, " "));
 
     let resultado = "PENDIENTE";
     if (faltantes === 0 && !inspeccionesPendientes) {
-      resultado =
-        noConformes.length > 0 || inspeccionesNoConformes.length > 0
-          ? "NO CONFORME"
-          : "CONFORME";
+      resultado = noConformes.length > 0 || inspeccionesNoConformes.length > 0 ? "NO CONFORME" : "CONFORME";
     }
 
     const observacionAutomatica = noConformes.length
       ? `Mediciones no conformes: ${noConformes
-          .map(
-            (m) =>
-              `${m.escenario} - ${m.parametro}: ${m.medicion} (rango ${m.rango_aceptacion})`
-          )
+          .map((m) => `${m.escenario} - ${m.parametro}: ${m.medicion} (rango ${m.rango_aceptacion})`)
           .join(" | ")}`
       : "";
 
@@ -270,6 +239,7 @@ export default function RIC39({ setVista, personal }) {
       evaluadas: evaluadas.length,
       conformes: evaluadas.filter((m) => m.conforme === true).length,
       noConformes,
+      noAplica,
       faltantes,
       inspeccionesNoConformes,
       resultado,
@@ -282,12 +252,20 @@ export default function RIC39({ setVista, personal }) {
   const actualizarMedicion = (indice, valor) => {
     setMediciones((prev) =>
       prev.map((m, i) =>
+        i === indice ? { ...m, medicion: valor, conforme: evaluar(m, valor), no_aplica: false } : m
+      )
+    );
+  };
+
+  const cambiarNoAplica = (indice, marcado) => {
+    setMediciones((prev) =>
+      prev.map((m, i) =>
         i === indice
           ? {
               ...m,
-              medicion: valor,
-              conforme: evaluar(m, valor),
-              no_aplica: false
+              no_aplica: marcado,
+              medicion: marcado ? "" : m.medicion,
+              conforme: marcado ? null : evaluar(m, m.medicion)
             }
           : m
       )
@@ -295,14 +273,12 @@ export default function RIC39({ setVista, personal }) {
   };
 
   const medicionesEscenario = (escenario) =>
-    mediciones
-      .map((m, indice) => ({ ...m, indice }))
-      .filter((m) => m.escenario === escenario);
+    mediciones.map((m, indice) => ({ ...m, indice })).filter((m) => m.escenario === escenario);
 
   const guardar = async () => {
     if (!datos.numero_serie) return alert("Falta el número de serie.");
     if (resumen.resultado === "PENDIENTE") {
-      return alert("Complete las inspecciones y todas las mediciones antes de guardar.");
+      return alert("Complete las inspecciones y todas las mediciones, o marque No aplica donde corresponda.");
     }
 
     const observacionFinal = [
@@ -358,16 +334,12 @@ export default function RIC39({ setVista, personal }) {
 
     try {
       setEnviandoDrive(true);
-      const res = await fetch(`${API_URL.Ric39}/${ric39Id}/drive`, {
-        method: "POST"
-      });
+      const res = await fetch(`${API_URL.Ric39}/${ric39Id}/drive`, { method: "POST" });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "Error enviando a Drive");
 
       alert("RIC39 enviado correctamente a Google Drive.");
-      if (body.archivo?.webViewLink) {
-        window.open(body.archivo.webViewLink, "_blank", "noopener,noreferrer");
-      }
+      if (body.archivo?.webViewLink) window.open(body.archivo.webViewLink, "_blank", "noopener,noreferrer");
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -377,42 +349,45 @@ export default function RIC39({ setVista, personal }) {
   };
 
   const renderEscenario = (nombre) => (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {medicionesEscenario(nombre).map((m) => (
         <div
           key={`${m.escenario}-${m.orden}`}
-          className={`border rounded-xl p-4 ${
-            m.conforme === true
-              ? "border-green-300 bg-green-50"
-              : m.conforme === false
-                ? "border-red-300 bg-red-50"
-                : "bg-white"
+          className={`rounded-2xl border p-4 shadow-sm transition-colors ${
+            m.no_aplica
+              ? "border-gray-300 bg-gray-50"
+              : m.conforme === true
+                ? "border-green-300 bg-green-50"
+                : m.conforme === false
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-200 bg-white"
           }`}
         >
-          <div className="flex flex-col md:flex-row md:justify-between gap-3">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
             <div>
-              <h3 className="font-bold text-gray-800">{m.parametro}</h3>
-              <p className="text-sm text-gray-600">
-                Valor nominal: <b>{m.valor_nominal}</b>
-              </p>
-              <p className="text-sm text-gray-600">
-                Rango de aceptación: <b>{m.rango_aceptacion}</b>
-              </p>
-              {m.incertidumbre && (
-                <p className="text-sm text-gray-600">
-                  Incertidumbre: <b>{m.incertidumbre}</b>
-                </p>
-              )}
+              <h3 className="text-lg font-bold text-gray-800">{m.parametro}</h3>
+              <p className="text-sm text-gray-600 mt-1">Valor nominal: <b>{m.valor_nominal}</b></p>
+              <p className="text-sm text-gray-600">Rango de aceptación: <b>{m.rango_aceptacion}</b></p>
+              {m.incertidumbre && <p className="text-sm text-gray-600">Incertidumbre: <b>{m.incertidumbre}</b></p>}
             </div>
-            <Estado conforme={m.conforme} />
+            <Estado conforme={m.conforme} noAplica={m.no_aplica} />
           </div>
 
-          <div className="mt-3">
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-center">
             {m.tipo === "onda" ? (
               <select
                 value={m.medicion}
+                disabled={m.no_aplica}
                 onChange={(e) => actualizarMedicion(m.indice, e.target.value)}
-                className="w-full md:w-80 border rounded-lg px-3 py-2 bg-white"
+                className={`w-full border rounded-xl p-3 text-lg ${
+                  m.no_aplica
+                    ? "bg-gray-100 text-gray-400"
+                    : m.conforme === true
+                      ? "border-green-400 bg-white"
+                      : m.conforme === false
+                        ? "border-red-400 bg-white"
+                        : "bg-white"
+                }`}
               >
                 <option value="">Seleccionar resultado</option>
                 <option value="Normal">Normal</option>
@@ -421,59 +396,57 @@ export default function RIC39({ setVista, personal }) {
             ) : (
               <input
                 value={m.medicion}
+                disabled={m.no_aplica}
                 onChange={(e) => actualizarMedicion(m.indice, e.target.value)}
-                placeholder={
-                  m.tipo.startsWith("presion")
-                    ? "Ej.: 120/80"
-                    : "Ingrese medición"
-                }
-                className="w-full md:w-80 border rounded-lg px-3 py-2 bg-white"
+                placeholder={m.tipo.startsWith("presion") ? "Ej.: 120/80" : "Ingrese medición"}
+                className={`w-full border rounded-xl p-3 text-lg ${
+                  m.no_aplica
+                    ? "bg-gray-100 text-gray-400"
+                    : m.conforme === true
+                      ? "border-green-400 bg-white"
+                      : m.conforme === false
+                        ? "border-red-400 bg-white"
+                        : "bg-white"
+                }`}
               />
             )}
+
+            <label className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 text-sm font-semibold cursor-pointer whitespace-nowrap">
+              <input
+                type="checkbox"
+                checked={m.no_aplica}
+                onChange={(e) => cambiarNoAplica(m.indice, e.target.checked)}
+                className="w-4 h-4"
+              />
+              No aplica
+            </label>
           </div>
         </div>
       ))}
     </div>
   );
 
-  if (cargando) {
-    return <div className="p-6">Cargando RIC39...</div>;
-  }
+  if (cargando) return <div className="p-6">Cargando RIC39...</div>;
 
   return (
     <div className="min-h-screen bg-gray-100 p-3 md:p-6">
       <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="bg-blue-600 text-white px-4 md:px-6 py-5">
+        <div className="bg-blue-600 text-white p-5 md:p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold text-blue-100">
-                SISTEMA DE GESTIÓN DE LA CALIDAD
-              </p>
-              <h1 className="text-2xl md:text-3xl font-bold">
-                RIC 39 · Verificación de monitor multiparamétrico
-              </h1>
-              <p className="text-sm text-blue-100 mt-1">
-                Servicio de Ingeniería Clínica
-              </p>
+              <p className="text-sm font-semibold text-blue-100 uppercase tracking-wide">Sistema de Gestión de la Calidad</p>
+              <h1 className="text-2xl md:text-3xl font-bold mt-1">RIC 39</h1>
+              <p className="text-lg font-semibold text-blue-50">Verificación de monitor multiparamétrico</p>
             </div>
-            <button
-              onClick={() => setVista("equipos")}
-              className="px-4 py-2 rounded-xl bg-blue-700 hover:bg-blue-800 font-semibold"
-            >
-              ← Volver
-            </button>
+            <button onClick={() => setVista("equipos")} className="px-4 py-2 rounded-xl bg-blue-700 hover:bg-blue-800 font-semibold">← Volver</button>
           </div>
         </div>
 
         <div className="p-4 md:p-6">
-          {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-300 text-red-700">
-              {error}
-            </div>
-          )}
+          {error && <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-300 text-red-700">{error}</div>}
 
-          <div className="border rounded-xl overflow-hidden mb-5">
-            <div className="bg-gray-100 px-4 py-2 font-bold">Datos del equipo</div>
+          <div className="border border-gray-200 rounded-2xl overflow-hidden mb-5 shadow-sm">
+            <div className="bg-gray-100 px-4 py-3 font-bold text-gray-800">Datos del equipo</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 p-4 text-sm">
               <p><b>Equipo:</b> {datos.descripcion}</p>
               <p><b>Área:</b> {datos.area}</p>
@@ -482,200 +455,158 @@ export default function RIC39({ setVista, personal }) {
               <p><b>Nº de Serie:</b> {datos.numero_serie}</p>
               <p><b>Subservicio:</b> {datos.sub_servicio}</p>
               <p><b>Técnico:</b> {datos.tecnico}</p>
-              <Campo
-                label="Fecha"
-                type="date"
-                value={datos.fecha}
-                onChange={(e) => setDatos({ ...datos, fecha: e.target.value })}
-              />
+              <Campo label="Fecha" type="date" value={datos.fecha} onChange={(e) => setDatos({ ...datos, fecha: e.target.value })} />
             </div>
           </div>
 
-          <div className="mb-6">
-            <div className="flex justify-between text-sm font-semibold mb-2">
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-6 shadow-sm">
+            <div className="flex justify-between text-sm font-bold mb-2">
               <span>{ETAPAS[etapa]}</span>
               <span>{etapa + 1} / {ETAPAS.length}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progreso}%` }}
-              />
+              <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${progreso}%` }} />
             </div>
           </div>
 
-          {etapa === 0 && (
-            <div>
-              <h2 className="text-xl font-bold mb-4">Inspecciones previas</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  ["aceptacion_visual", "Aceptación según inspección visual"],
-                  ["limpieza_exterior", "Limpieza exterior"],
-                  ["estado_baterias", "Estado de baterías"],
-                  ["estado_cables", "Estado de cables"]
-                ].map(([campo, label]) => (
-                  <label key={campo} className="text-sm">
-                    <span className="font-semibold block mb-1">{label}</span>
-                    <select
-                      value={inspecciones[campo]}
-                      onChange={(e) =>
-                        setInspecciones({
-                          ...inspecciones,
-                          [campo]: e.target.value
-                        })
-                      }
-                      className={`w-full border rounded-lg px-3 py-2 ${
-                        inspecciones[campo] === "CONFORME"
-                          ? "border-green-400 bg-green-50 text-green-700"
-                          : inspecciones[campo] === "NO CONFORME"
-                            ? "border-red-400 bg-red-50 text-red-700"
-                            : "bg-white"
-                      }`}
-                    >
-                      <option value="">Seleccionar</option>
-                      <option value="CONFORME">CONFORME</option>
-                      <option value="NO CONFORME">NO CONFORME</option>
-                      <option value="NO APLICA">NO APLICA</option>
-                    </select>
-                  </label>
-                ))}
+          <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm">
+            {etapa === 0 && (
+              <div>
+                <h2 className="text-xl font-bold mb-4">Inspecciones previas</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    ["aceptacion_visual", "Aceptación según inspección visual"],
+                    ["limpieza_exterior", "Limpieza exterior"],
+                    ["estado_baterias", "Estado de baterías"],
+                    ["estado_cables", "Estado de cables"]
+                  ].map(([campo, label]) => (
+                    <label key={campo} className="text-sm">
+                      <span className="font-semibold block mb-1">{label}</span>
+                      <select
+                        value={inspecciones[campo]}
+                        onChange={(e) => setInspecciones({ ...inspecciones, [campo]: e.target.value })}
+                        className={`w-full border rounded-xl p-3 ${
+                          inspecciones[campo] === "CONFORME"
+                            ? "border-green-400 bg-green-50 text-green-700"
+                            : inspecciones[campo] === "NO CONFORME"
+                              ? "border-red-400 bg-red-50 text-red-700"
+                              : "bg-white"
+                        }`}
+                      >
+                        <option value="">Seleccionar</option>
+                        <option value="CONFORME">CONFORME</option>
+                        <option value="NO CONFORME">NO CONFORME</option>
+                        <option value="NO APLICA">NO APLICA</option>
+                      </select>
+                    </label>
+                  ))}
+                </div>
+
+                <textarea
+                  value={inspecciones.observaciones}
+                  onChange={(e) => setInspecciones({ ...inspecciones, observaciones: e.target.value })}
+                  placeholder="Observaciones de inspección"
+                  className="mt-4 w-full border rounded-xl p-3 min-h-24"
+                />
               </div>
+            )}
 
-              <textarea
-                value={inspecciones.observaciones}
-                onChange={(e) =>
-                  setInspecciones({
-                    ...inspecciones,
-                    observaciones: e.target.value
-                  })
-                }
-                placeholder="Observaciones de inspección"
-                className="mt-4 w-full border rounded-lg px-3 py-2 min-h-24"
-              />
-            </div>
-          )}
+            {etapa === 1 && renderEscenario("NORMAL")}
+            {etapa === 2 && renderEscenario("HIPERTENSO")}
+            {etapa === 3 && renderEscenario("BRADICARDIA")}
 
-          {etapa === 1 && renderEscenario("NORMAL")}
-          {etapa === 2 && renderEscenario("HIPERTENSO")}
-          {etapa === 3 && renderEscenario("BRADICARDIA")}
-
-          {etapa === 4 && (
-            <div>
-              <h2 className="text-xl font-bold mb-4">
-                Ensayo de seguridad eléctrica · RIC 37
-              </h2>
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-sm text-blue-800">
-                Asociá el RIC37 realizado para este equipo. El PDF de RIC39 utilizará ese vínculo como ensayo de seguridad eléctrica.
+            {etapa === 4 && (
+              <div>
+                <h2 className="text-xl font-bold mb-4">Ensayo de seguridad eléctrica · RIC 37</h2>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-sm text-blue-800">
+                  Asociá el RIC37 realizado para este equipo. El PDF de RIC39 utilizará ese vínculo como ensayo de seguridad eléctrica.
+                </div>
+                <Campo label="ID RIC37" type="number" value={datos.ric37_id} onChange={(e) => setDatos({ ...datos, ric37_id: e.target.value })} />
+                <div className="mt-4 text-sm bg-gray-50 border rounded-xl p-3">
+                  <b>Equipo verificador:</b> ANALIZADOR DE MONITORES FLUKE PROSIM 8 · NS 2496025 · ETYC 27/01/2025 · VIGENCIA 27/01/2026
+                </div>
               </div>
-              <Campo
-                label="ID RIC37"
-                type="number"
-                value={datos.ric37_id}
-                onChange={(e) =>
-                  setDatos({ ...datos, ric37_id: e.target.value })
-                }
-              />
-              <div className="mt-4 text-sm bg-gray-50 rounded-xl p-3">
-                <b>Equipo verificador:</b> ANALIZADOR DE MONITORES FLUKE PROSIM 8 · NS 2496025 · ETYC 27/01/2025 · VIGENCIA 27/01/2026
-              </div>
-            </div>
-          )}
+            )}
 
-          {etapa === 5 && (
-            <div>
-              <h2 className="text-xl font-bold mb-4">Resumen final</h2>
+            {etapa === 5 && (
+              <div>
+                <h2 className="text-xl font-bold mb-4">Resumen final</h2>
 
-              <div
-                className={`rounded-2xl border-2 p-5 mb-4 ${
+                <div className={`rounded-2xl border-2 p-5 mb-4 ${
                   resumen.resultado === "CONFORME"
                     ? "border-green-400 bg-green-50"
                     : resumen.resultado === "NO CONFORME"
                       ? "border-red-400 bg-red-50"
                       : "border-gray-300 bg-gray-50"
-                }`}
-              >
-                <div className="text-sm text-gray-600">Resultado general</div>
-                <div
-                  className={`text-2xl font-bold mt-1 ${
+                }`}>
+                  <div className="text-sm text-gray-600">Resultado general</div>
+                  <div className={`text-2xl font-bold mt-1 ${
                     resumen.resultado === "CONFORME"
                       ? "text-green-700"
                       : resumen.resultado === "NO CONFORME"
                         ? "text-red-700"
                         : "text-gray-600"
-                  }`}
-                >
-                  {resumen.resultado}
+                  }`}>
+                    {resumen.resultado}
+                  </div>
+                  <div className="mt-3 text-sm flex flex-wrap gap-x-4 gap-y-1">
+                    <span>Evaluadas: <b>{resumen.evaluadas}</b></span>
+                    <span>Conformes: <b className="text-green-700">{resumen.conformes}</b></span>
+                    <span>No conformes: <b className="text-red-700">{resumen.noConformes.length}</b></span>
+                    <span>No aplica: <b>{resumen.noAplica}</b></span>
+                  </div>
                 </div>
-                <div className="mt-3 text-sm">
-                  Evaluadas: <b>{resumen.evaluadas}</b> · Conformes:{" "}
-                  <b className="text-green-700">{resumen.conformes}</b> · No conformes:{" "}
-                  <b className="text-red-700">{resumen.noConformes.length}</b>
+
+                {resumen.observacionAutomatica && (
+                  <div className="rounded-xl border border-red-300 bg-red-50 p-4 mb-4 text-red-800">
+                    <div className="font-bold mb-1">Observación automática</div>
+                    {resumen.observacionAutomatica}
+                  </div>
+                )}
+
+                {resumen.inspeccionesNoConformes.length > 0 && (
+                  <div className="rounded-xl border border-red-300 bg-red-50 p-4 mb-4 text-red-800">
+                    <b>Inspecciones no conformes:</b> {resumen.inspeccionesNoConformes.join(", ")}
+                  </div>
+                )}
+
+                <textarea
+                  value={observaciones}
+                  onChange={(e) => setObservaciones(e.target.value)}
+                  placeholder="Observaciones adicionales del técnico"
+                  className="w-full border rounded-xl p-3 min-h-28"
+                />
+
+                <div className="flex flex-wrap gap-2 mt-5">
+                  <button onClick={guardar} disabled={guardando || resumen.resultado === "PENDIENTE"} className="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold disabled:opacity-40">
+                    {guardando ? "Guardando..." : "Guardar RIC39"}
+                  </button>
+                  <button onClick={abrirPDF} disabled={!ric39Id} className="px-4 py-2 rounded-xl bg-gray-700 text-white font-semibold disabled:opacity-40">Ver PDF</button>
+                  <button onClick={enviarDrive} disabled={!ric39Id || enviandoDrive} className="px-4 py-2 rounded-xl bg-green-700 text-white font-semibold disabled:opacity-40">
+                    {enviandoDrive ? "Enviando..." : "Enviar a Drive"}
+                  </button>
                 </div>
               </div>
+            )}
+          </div>
 
-              {resumen.observacionAutomatica && (
-                <div className="rounded-xl border border-red-300 bg-red-50 p-4 mb-4 text-red-800">
-                  <div className="font-bold mb-1">Observación automática</div>
-                  {resumen.observacionAutomatica}
-                </div>
-              )}
-
-              {resumen.inspeccionesNoConformes.length > 0 && (
-                <div className="rounded-xl border border-red-300 bg-red-50 p-4 mb-4 text-red-800">
-                  <b>Inspecciones no conformes:</b>{" "}
-                  {resumen.inspeccionesNoConformes.join(", ")}
-                </div>
-              )}
-
-              <textarea
-                value={observaciones}
-                onChange={(e) => setObservaciones(e.target.value)}
-                placeholder="Observaciones adicionales del técnico"
-                className="w-full border rounded-lg px-3 py-2 min-h-28"
-              />
-
-              <div className="flex flex-wrap gap-2 mt-5">
-                <button
-                  onClick={guardar}
-                  disabled={guardando || resumen.resultado === "PENDIENTE"}
-                  className="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold disabled:opacity-40"
-                >
-                  {guardando ? "Guardando..." : "Guardar RIC39"}
-                </button>
-                <button
-                  onClick={abrirPDF}
-                  disabled={!ric39Id}
-                  className="px-4 py-2 rounded-xl bg-slate-700 text-white font-semibold disabled:opacity-40"
-                >
-                  Ver PDF
-                </button>
-                <button
-                  onClick={enviarDrive}
-                  disabled={!ric39Id || enviandoDrive}
-                  className="px-4 py-2 rounded-xl bg-green-700 text-white font-semibold disabled:opacity-40"
-                >
-                  {enviandoDrive ? "Enviando..." : "Enviar a Drive"}
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-between gap-3 mt-7 pt-5 border-t">
+          <div className="flex justify-between gap-3 mt-6">
             <button
-              onClick={() => setEtapa((actual) => Math.max(0, actual - 1))}
-              disabled={etapa === 0}
-              className="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 font-semibold disabled:opacity-40"
+              onClick={() => {
+                if (etapa === 0) {
+                  setVista("equipos");
+                  return;
+                }
+                setEtapa((actual) => Math.max(0, actual - 1));
+              }}
+              className="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 font-semibold"
             >
-              ← Anterior
+              {etapa === 0 ? "← Volver" : "← Anterior"}
             </button>
 
             {etapa < ETAPAS.length - 1 && (
               <button
-                onClick={() =>
-                  setEtapa((actual) =>
-                    Math.min(ETAPAS.length - 1, actual + 1)
-                  )
-                }
+                onClick={() => setEtapa((actual) => Math.min(ETAPAS.length - 1, actual + 1))}
                 className="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold"
               >
                 Siguiente →
