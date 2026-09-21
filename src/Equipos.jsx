@@ -42,6 +42,7 @@ export default function Equipos({ setVista, personal }) {
   const [estadisticasEquipo, setEstadisticasEquipo] = useState(null);
   const [cargandoEstadisticas, setCargandoEstadisticas] = useState(false);
 
+  // Repuestos vinculados a un mantenimiento abierto
   const [mostrarRepuestos, setMostrarRepuestos] = useState(false);
   const [mantenimientoRepuestos, setMantenimientoRepuestos] = useState(null);
   const [existenciasRepuestos, setExistenciasRepuestos] = useState([]);
@@ -226,20 +227,41 @@ export default function Equipos({ setVista, personal }) {
   }
 
   const protocolosMantenimiento = [
-    { protocolo: "RIC29", tipo: "preventivo", descripcion: "cardiodesfibrilador", vista: "ric29" },
-    { protocolo: "RIC39", tipo: "preventivo", descripcion: "monitor multiparametrico", vista: "ric39" }
-  ];
+  {
+    protocolo: "RIC29",
+    tipo: "preventivo",
+    descripcion: "cardiodesfibrilador",
+    vista: "ric29"
+  },
+  {
+    protocolo: "RIC39",
+    tipo: "preventivo",
+    descripcion: "monitor multiparametrico",
+    vista: "ric39"
+  }
+];
 
-  const normalizarTexto = (texto = "") =>
-    String(texto).normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+const normalizarTexto = (texto = "") =>
+  String(texto)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
 
-  const obtenerProtocoloMantenimiento = (tipo, descripcionEquipo) => {
-    const tipoNormalizado = normalizarTexto(tipo);
-    const descripcionNormalizada = normalizarTexto(descripcionEquipo);
-    return protocolosMantenimiento.find(
-      (p) => normalizarTexto(p.tipo) === tipoNormalizado && descripcionNormalizada.includes(normalizarTexto(p.descripcion))
-    ) || null;
-  };
+const obtenerProtocoloMantenimiento = (tipo, descripcionEquipo) => {
+  const tipoNormalizado = normalizarTexto(tipo);
+  const descripcionNormalizada = normalizarTexto(descripcionEquipo);
+
+  return (
+    protocolosMantenimiento.find(
+      (p) =>
+        normalizarTexto(p.tipo) === tipoNormalizado &&
+        descripcionNormalizada.includes(
+          normalizarTexto(p.descripcion)
+        )
+    ) || null
+  );
+};
 
   const abrirRIC37 = (mantenimiento) => {
     if (!equipo) return alert("Primero seleccione un equipo.");
@@ -278,28 +300,6 @@ export default function Equipos({ setVista, personal }) {
   };
 
   const continuarMantenimientoAbierto = (m) => {
-    const protocolo = obtenerProtocoloMantenimiento(m?.tipo_mantenimiento, equipo?.descripcion);
-
-    if (protocolo) {
-      localStorage.setItem("tareaActiva", JSON.stringify({
-        id: m.id,
-        ric01_id: m.id,
-        equipo_id: equipo?.id || null,
-        numero_serie: equipo?.numero_serie || "",
-        descripcion: equipo?.descripcion || "",
-        marca_modelo: equipo?.marca_modelo || "",
-        area: equipo?.area || personal?.area || "",
-        servicio: equipo?.servicio || "",
-        sub_servicio: equipo?.sub_servicio || "",
-        tipo_mantenimiento: m.tipo_mantenimiento || "Preventivo",
-        diagnostico: m.diagnostico || "",
-        asignado: m.asignado || personal?.nombre || "",
-        continuar_preventivo: true
-      }));
-      setVista(protocolo.vista);
-      return;
-    }
-
     setMantenimientoEnEdicion(m);
     setTipoMantenimiento(m.tipo_mantenimiento || "");
     setDiagnosticoSeleccionado(m.diagnostico || "");
@@ -317,6 +317,9 @@ export default function Equipos({ setVista, personal }) {
     setMostrarFinalizar(true);
   };
 
+  // ---------------------------------------------------------
+  // REPUESTOS / STOCK PARA MANTENIMIENTO ABIERTO
+  // ---------------------------------------------------------
   const cerrarRepuestos = () => {
     if (guardandoRepuestos) return;
     setMostrarRepuestos(false);
@@ -344,10 +347,12 @@ export default function Equipos({ setVista, personal }) {
       const res = await fetch(`${STOCK_API}/existencias`, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No se pudieron obtener las existencias");
+
       const disponibles = (Array.isArray(data) ? data : [])
         .filter((e) => String(e.area || "").trim().toUpperCase() === areaPersonal)
         .filter((e) => Number(e.cantidad || 0) > 0)
         .sort((a, b) => String(a.descripcion || "").localeCompare(String(b.descripcion || ""), "es"));
+
       setExistenciasRepuestos(disponibles);
     } catch (err) {
       console.error("Error cargando repuestos:", err);
@@ -362,38 +367,73 @@ export default function Equipos({ setVista, personal }) {
     const itemId = Number(repuestoItemId);
     const cantidad = Number(repuestoCantidad);
     const existencia = existenciasRepuestos.find((e) => Number(e.item_id || e.id) === itemId);
+
     if (!existencia) return setErrorRepuestos("Seleccione un repuesto.");
     if (!Number.isFinite(cantidad) || cantidad <= 0) return setErrorRepuestos("Ingrese una cantidad válida.");
+
     const yaAgregado = repuestosSeleccionados.find((r) => r.item_id === itemId);
     const cantidadTotal = cantidad + Number(yaAgregado?.cantidad || 0);
     const disponible = Number(existencia.cantidad || 0);
-    if (cantidadTotal > disponible) return setErrorRepuestos(`Stock insuficiente. Disponible: ${disponible} ${existencia.unidad || ""}`);
-    const repuesto = { item_id: itemId, codigo: existencia.codigo || "", descripcion: existencia.descripcion || "Repuesto", unidad: existencia.unidad || "", cantidad: cantidadTotal, disponible };
+
+    if (cantidadTotal > disponible) {
+      return setErrorRepuestos(`Stock insuficiente. Disponible: ${disponible} ${existencia.unidad || ""}`);
+    }
+
+    const repuesto = {
+      item_id: itemId,
+      codigo: existencia.codigo || "",
+      descripcion: existencia.descripcion || "Repuesto",
+      unidad: existencia.unidad || "",
+      cantidad: cantidadTotal,
+      disponible
+    };
+
     setRepuestosSeleccionados((actuales) => {
       const existe = actuales.some((r) => r.item_id === itemId);
-      return existe ? actuales.map((r) => r.item_id === itemId ? repuesto : r) : [...actuales, repuesto];
+      return existe
+        ? actuales.map((r) => r.item_id === itemId ? repuesto : r)
+        : [...actuales, repuesto];
     });
+
     setRepuestoItemId("");
     setRepuestoCantidad("");
   };
 
-  const quitarRepuesto = (itemId) => setRepuestosSeleccionados((actuales) => actuales.filter((r) => r.item_id !== itemId));
+  const quitarRepuesto = (itemId) => {
+    setRepuestosSeleccionados((actuales) => actuales.filter((r) => r.item_id !== itemId));
+  };
 
   const confirmarRepuestos = async () => {
     if (!mantenimientoRepuestos?.id) return setErrorRepuestos("No se identificó el mantenimiento.");
     if (repuestosSeleccionados.length === 0) return setErrorRepuestos("Agregue al menos un repuesto.");
-    const detalle = repuestosSeleccionados.map((r) => `${r.descripcion}: ${r.cantidad} ${r.unidad || ""}`).join("\n");
+
+    const detalle = repuestosSeleccionados
+      .map((r) => `${r.descripcion}: ${r.cantidad} ${r.unidad || ""}`)
+      .join("\n");
+
     if (!window.confirm(`¿REGISTRAR ESTOS REPUESTOS EN EL MANTENIMIENTO #${mantenimientoRepuestos.id}?\n\n${detalle}`)) return;
+
     setGuardandoRepuestos(true);
     setErrorRepuestos("");
     let registrados = 0;
+
     try {
       for (const repuesto of repuestosSeleccionados) {
         const res = await fetch(`${STOCK_API}/salidas`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ item_id: repuesto.item_id, area: areaPersonal, cantidad: Number(repuesto.cantidad), tipo: "CONSUMO", ric01_id: Number(mantenimientoRepuestos.id), personal_id: personal?.id || null, personal_nombre: personal?.nombre || null, observacion: `REPUESTO UTILIZADO EN MANTENIMIENTO #${mantenimientoRepuestos.id} - ${equipo?.descripcion || "EQUIPO"} - SERIE ${equipo?.numero_serie || "-"}` })
+          body: JSON.stringify({
+            item_id: repuesto.item_id,
+            area: areaPersonal,
+            cantidad: Number(repuesto.cantidad),
+            tipo: "CONSUMO",
+            ric01_id: Number(mantenimientoRepuestos.id),
+            personal_id: personal?.id || null,
+            personal_nombre: personal?.nombre || null,
+            observacion: `REPUESTO UTILIZADO EN MANTENIMIENTO #${mantenimientoRepuestos.id} - ${equipo?.descripcion || "EQUIPO"} - SERIE ${equipo?.numero_serie || "-"}`
+          })
         });
+
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           const prefijo = registrados > 0 ? `${registrados} repuesto(s) ya fueron registrados. ` : "";
@@ -401,6 +441,7 @@ export default function Equipos({ setVista, personal }) {
         }
         registrados += 1;
       }
+
       alert(`✅ ${registrados} repuesto(s) registrado(s) en el mantenimiento #${mantenimientoRepuestos.id}`);
       cerrarRepuestos();
     } catch (err) {
@@ -416,6 +457,7 @@ export default function Equipos({ setVista, personal }) {
       alert("⚠️ No se puede iniciar el mantenimiento.\n\nEl equipo debe tener asignados Servicio y Subservicio.");
       return;
     }
+
     try {
       const tareaGuardada = localStorage.getItem("tareaActiva");
       const tareaActiva = tareaGuardada ? JSON.parse(tareaGuardada) : null;
@@ -424,23 +466,116 @@ export default function Equipos({ setVista, personal }) {
       const continuar = Boolean(mantenimientoContinuar?.id);
       const protocolo = obtenerProtocoloMantenimiento(tipoMantenimiento, equipo?.descripcion);
       let res;
+
       if (continuar) {
-        res = await fetch(`${API_URL.Ric01}/${mantenimientoContinuar.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ diagnostico: diagnosticoSeleccionado, descripcion, solucion: observaciones, fecha_comp: getFechaLocal() }) });
+        res = await fetch(`${API_URL.Ric01}/${mantenimientoContinuar.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            diagnostico: diagnosticoSeleccionado,
+            descripcion,
+            solucion: observaciones,
+            fecha_comp: getFechaLocal()
+          })
+        });
       } else if (esPreventivo) {
-        res = await fetch(API_URL.Ric01, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ usuario: personal.nombre, fecha: getFechaLocal(), tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`, diagnostico: diagnosticoSeleccionado, tipo_mantenimiento: tipoMantenimiento, descripcion: equipo.descripcion, marca_modelo: equipo.marca_modelo, numero_serie: equipo.numero_serie, area: equipo.area || personal.area, servicio: equipo.servicio, subservicio: equipo.sub_servicio, asignado: personal.nombre, solicitado_por: personal.nombre, origen: "interno", solucion: observaciones }) });
+        res = await fetch(API_URL.Ric01, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            usuario: personal.nombre,
+            fecha: getFechaLocal(),
+            tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
+            diagnostico: diagnosticoSeleccionado,
+            tipo_mantenimiento: tipoMantenimiento,
+            descripcion: equipo.descripcion,
+            marca_modelo: equipo.marca_modelo,
+            numero_serie: equipo.numero_serie,
+            area: equipo.area || personal.area,
+            servicio: equipo.servicio,
+            subservicio: equipo.sub_servicio,
+            asignado: personal.nombre,
+            solicitado_por: personal.nombre,
+            origen: "interno",
+            solucion: observaciones
+          })
+        });
       } else if (tareaActiva) {
-        res = await fetch(`${API_URL.Ric01}/${tareaActiva.id}/iniciar-mantenimiento`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ diagnostico: diagnosticoSeleccionado, tipo_mantenimiento: tipoMantenimiento, descripcion: equipo.descripcion, marca_modelo: equipo.marca_modelo, numero_serie: equipo.numero_serie, servicio: equipo.servicio, subservicio: equipo.sub_servicio, asignado: personal.nombre, solucion: observaciones }) });
+        res = await fetch(`${API_URL.Ric01}/${tareaActiva.id}/iniciar-mantenimiento`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            diagnostico: diagnosticoSeleccionado,
+            tipo_mantenimiento: tipoMantenimiento,
+            descripcion: equipo.descripcion,
+            marca_modelo: equipo.marca_modelo,
+            numero_serie: equipo.numero_serie,
+            servicio: equipo.servicio,
+            subservicio: equipo.sub_servicio,
+            asignado: personal.nombre,
+            solucion: observaciones
+          })
+        });
       } else {
-        res = await fetch(API_URL.Ric01, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ usuario: personal.nombre, fecha: getFechaLocal(), tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`, diagnostico: diagnosticoSeleccionado, tipo_mantenimiento: tipoMantenimiento, descripcion: equipo.descripcion, marca_modelo: equipo.marca_modelo, numero_serie: equipo.numero_serie, area: personal.area, servicio: equipo.servicio, subservicio: equipo.sub_servicio, asignado: personal.nombre, solicitado_por: personal.nombre, origen: "interno", solucion: observaciones }) });
+        res = await fetch(API_URL.Ric01, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            usuario: personal.nombre,
+            fecha: getFechaLocal(),
+            tarea: `Mantenimiento ${tipoMantenimiento} - ${equipo.descripcion} ${equipo.marca_modelo} - Serie: ${equipo.numero_serie}`,
+            diagnostico: diagnosticoSeleccionado,
+            tipo_mantenimiento: tipoMantenimiento,
+            descripcion: equipo.descripcion,
+            marca_modelo: equipo.marca_modelo,
+            numero_serie: equipo.numero_serie,
+            area: personal.area,
+            servicio: equipo.servicio,
+            subservicio: equipo.sub_servicio,
+            asignado: personal.nombre,
+            solicitado_por: personal.nombre,
+            origen: "interno",
+            solucion: observaciones
+          })
+        });
       }
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al guardar el mantenimiento");
+
       if (protocolo && !continuar) {
-        localStorage.setItem("tareaActiva", JSON.stringify({ ...data, tipo_mantenimiento: tipoMantenimiento, descripcion: equipo.descripcion, marca_modelo: equipo.marca_modelo, numero_serie: equipo.numero_serie, area: equipo.area || personal.area, servicio: equipo.servicio, subservicio: equipo.sub_servicio, asignado: personal.nombre, diagnostico: diagnosticoSeleccionado }));
-        setMostrarForm(false); setTipoMantenimiento(""); setDiagnosticoSeleccionado(""); setObservaciones(""); setDescripcion(""); setMantenimientoEnEdicion(null); setVista(protocolo.vista); return;
+        localStorage.setItem("tareaActiva", JSON.stringify({
+          ...data,
+          tipo_mantenimiento: tipoMantenimiento,
+          descripcion: equipo.descripcion,
+          marca_modelo: equipo.marca_modelo,
+          numero_serie: equipo.numero_serie,
+          area: equipo.area || personal.area,
+          servicio: equipo.servicio,
+          subservicio: equipo.sub_servicio,
+          asignado: personal.nombre,
+          diagnostico: diagnosticoSeleccionado
+        }));
+        setMostrarForm(false);
+        setTipoMantenimiento("");
+        setDiagnosticoSeleccionado("");
+        setObservaciones("");
+        setDescripcion("");
+        setMantenimientoEnEdicion(null);
+        setVista(protocolo.vista);
+        return;
       }
+
       alert(continuar ? `Mantenimiento #${mantenimientoContinuar.id} actualizado ✅` : "Mantenimiento iniciado ✅");
-      setMostrarForm(false); setTipoMantenimiento(""); setDiagnosticoSeleccionado(""); setObservaciones(""); setDescripcion(""); setMantenimientoEnEdicion(null); localStorage.removeItem("tareaActiva"); setEquipo(null); setSerie("");
+      setMostrarForm(false);
+      setTipoMantenimiento("");
+      setDiagnosticoSeleccionado("");
+      setObservaciones("");
+      setDescripcion("");
+      setMantenimientoEnEdicion(null);
+      localStorage.removeItem("tareaActiva");
+      setEquipo(null);
+      setSerie("");
     } catch (err) {
       console.error("ERROR COMPLETO:", err);
       alert(err.message || "Error al guardar el mantenimiento");
@@ -453,28 +588,69 @@ export default function Equipos({ setVista, personal }) {
     const quedanOtros = abiertos.filter((x) => x.id !== mantenimientoParaFinalizar.id).length > 0;
     const estadoAEnviar = quedanOtros ? equipo?.estado : estadoFinal;
     if (!estadoAEnviar) return alert("Seleccione un estado para el equipo");
+
     try {
       const fechaFin = new Date().toISOString().slice(0, 19).replace("T", " ");
       const numeroSerie = equipo.numero_serie;
-      const res = await fetch(`${API_URL.Ric01}/finalizar/${mantenimientoParaFinalizar.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fecha_fin: fechaFin, estado: estadoAEnviar, numero_serie: numeroSerie, usuario: personal.nombre }) });
+      const res = await fetch(`${API_URL.Ric01}/finalizar/${mantenimientoParaFinalizar.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fecha_fin: fechaFin,
+          estado: estadoAEnviar,
+          numero_serie: numeroSerie,
+          usuario: personal.nombre
+        })
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al finalizar mantenimiento");
+
       alert(`✅ Mantenimiento #${mantenimientoParaFinalizar.id} finalizado`);
-      setMostrarFinalizar(false); setEstadoFinal(""); setMantenimientoParaFinalizar(null); setMostrarForm(false); setTipoMantenimiento(""); setDiagnosticoSeleccionado(""); setObservaciones(""); setDescripcion(""); setMantenimientoEnEdicion(null); localStorage.removeItem("tareaActiva"); await buscarEquipo(numeroSerie);
-    } catch (err) { console.error(err); alert(err.message); }
+      setMostrarFinalizar(false);
+      setEstadoFinal("");
+      setMantenimientoParaFinalizar(null);
+      setMostrarForm(false);
+      setTipoMantenimiento("");
+      setDiagnosticoSeleccionado("");
+      setObservaciones("");
+      setDescripcion("");
+      setMantenimientoEnEdicion(null);
+      localStorage.removeItem("tareaActiva");
+      await buscarEquipo(numeroSerie);
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
   };
 
   const cargarDiagnosticos = async () => {
-    try { const res = await fetch(API_URL.DiagnosticosRIC02); const data = await res.json(); setDiagnosticos(data); }
-    catch { alert("Error cargando diagnósticos"); }
+    try {
+      const res = await fetch(API_URL.DiagnosticosRIC02);
+      const data = await res.json();
+      setDiagnosticos(data);
+    } catch {
+      alert("Error cargando diagnósticos");
+    }
   };
 
-  const handleTipoChange = (value) => { setTipoMantenimiento(value); if (value === "Correctivo") cargarDiagnosticos(); };
+  const handleTipoChange = (value) => {
+    setTipoMantenimiento(value);
+    if (value === "Correctivo") cargarDiagnosticos();
+  };
 
   const buscarCoincidencias = async (texto) => {
-    if (!texto.trim()) { setCoincidencias([]); return; }
-    try { const res = await fetch(`${API_URL.Base}/buscar-equipos?q=${encodeURIComponent(texto)}`); if (!res.ok) throw new Error("Error buscando equipos"); setCoincidencias(await res.json()); }
-    catch (err) { console.error(err); setCoincidencias([]); }
+    if (!texto.trim()) {
+      setCoincidencias([]);
+      return;
+    }
+    try {
+      const res = await fetch(`${API_URL.Base}/buscar-equipos?q=${encodeURIComponent(texto)}`);
+      if (!res.ok) throw new Error("Error buscando equipos");
+      setCoincidencias(await res.json());
+    } catch (err) {
+      console.error(err);
+      setCoincidencias([]);
+    }
   };
 
   const buscarEquipo = async (serieBuscar = serie) => {
@@ -485,69 +661,439 @@ export default function Equipos({ setVista, personal }) {
       if (!res.ok) throw new Error("No encontrado");
       const data = await res.json();
       const tareaGuardada = localStorage.getItem("tareaActiva");
-      if (tareaGuardada) { const tarea = JSON.parse(tareaGuardada); if (tarea.numero_serie !== data.numero_serie) localStorage.removeItem("tareaActiva"); }
-      setEquipo(data); setError(""); setEstadisticasEquipo(null); setMostrarEstadisticas(false); setMantenimientoEnEdicion(null); setMostrarForm(false); setTipoMantenimiento(""); setDiagnosticoSeleccionado(""); setObservaciones(""); setDescripcion(""); setSerie(serieFinal);
+      if (tareaGuardada) {
+        const tarea = JSON.parse(tareaGuardada);
+        if (tarea.numero_serie !== data.numero_serie) localStorage.removeItem("tareaActiva");
+      }
+      setEquipo(data);
+      setError("");
+      setEstadisticasEquipo(null);
+      setMostrarEstadisticas(false);
+      setMantenimientoEnEdicion(null);
+      setMostrarForm(false);
+      setTipoMantenimiento("");
+      setDiagnosticoSeleccionado("");
+      setObservaciones("");
+      setDescripcion("");
+      setSerie(serieFinal);
     } catch (err) {
-      setEquipo(null); setEstadisticasEquipo(null); setMostrarEstadisticas(false); setMantenimientoEnEdicion(null); setError("Equipo no encontrado");
+      setEquipo(null);
+      setEstadisticasEquipo(null);
+      setMostrarEstadisticas(false);
+      setMantenimientoEnEdicion(null);
+      setError("Equipo no encontrado");
     }
   };
 
   const verHistorial = async () => {
     if (!equipo?.numero_serie) return;
-    try { setCargandoHistorial(true); const res = await fetch(`${API_URL.HistorialEquipo}/${equipo.numero_serie}/historial`); if (!res.ok) throw new Error("Error obteniendo historial"); setHistorial(await res.json()); setMostrarHistorial(true); }
-    catch (err) { console.error(err); alert("No se pudo obtener el historial."); }
-    finally { setCargandoHistorial(false); }
+    try {
+      setCargandoHistorial(true);
+      const res = await fetch(`${API_URL.HistorialEquipo}/${equipo.numero_serie}/historial`);
+      if (!res.ok) throw new Error("Error obteniendo historial");
+      setHistorial(await res.json());
+      setMostrarHistorial(true);
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo obtener el historial.");
+    } finally {
+      setCargandoHistorial(false);
+    }
   };
 
-  const imprimirHistorial = () => { if (!equipo?.numero_serie) return; window.open(`${API_URL.HistorialEquipo}/${equipo.numero_serie}/historial/pdf`, "_blank"); };
+  const imprimirHistorial = () => {
+    if (!equipo?.numero_serie) return;
+    window.open(`${API_URL.HistorialEquipo}/${equipo.numero_serie}/historial/pdf`, "_blank");
+  };
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <button onClick={cargarEquiposProximos} className="w-full mb-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-xl shadow">{cargandoProximos ? "Consultando..." : "🟠 Ver preventivos próximos a vencer"}<span className="ml-2 font-bold">({cantidadProximos})</span></button>
-      <button onClick={cargarEquiposVencidos} className="w-full mb-4 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow">{cargandoVencidos ? "Consultando..." : "⚠️ Ver mantenimientos vencidos"}<span className="ml-2 font-bold">({cantidadVencidos})</span></button>
+      <button onClick={cargarEquiposProximos} className="w-full mb-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-xl shadow">
+        {cargandoProximos ? "Consultando..." : "🟠 Ver preventivos próximos a vencer"}
+        <span className="ml-2 font-bold">({cantidadProximos})</span>
+      </button>
 
-      {mostrarProximos && <div className="bg-white rounded-2xl shadow-md p-4 mb-6"><div className="flex justify-between items-center mb-4"><h2 className="text-xl font-bold text-gray-800">Preventivos próximos a vencer</h2><span className="ml-2 font-bold text-orange-600">({cantidadProximos})</span><button onClick={() => setMostrarProximos(false)} className="text-gray-500 hover:text-gray-800 font-bold">✕</button></div>{equiposProximos.length === 0 ? <p className="text-green-600 font-semibold">✓ No hay preventivos que venzan en los próximos 30 días.</p> : <div className="space-y-3">{equiposProximos.map((e) => { const proximo = new Date(e.proximo_mant); const hoy = new Date(); const diasRestantes = Math.ceil((proximo-hoy)/86400000); return <div key={e.id} className="border rounded-xl p-4 hover:bg-gray-50"><div className="flex justify-between items-start gap-2"><div><p className="font-bold text-gray-800">{e.descripcion}</p><p className="text-sm text-gray-600">{e.marca_modelo || "Sin marca/modelo"}</p><p className="text-sm"><strong>Nº serie:</strong> {e.numero_serie}</p><p className="text-sm"><strong>Servicio:</strong> {e.servicio || "Sin asignar"}</p><p className="text-sm"><strong>Sub Servicio:</strong> {e.sub_servicio || "Sin asignar"}</p><p className="text-sm"><strong>Área:</strong> {e.area || "Sin asignar"}</p></div><div className="text-right"><p className="text-sm text-gray-600">Último mantenimiento</p><p className="font-semibold">{e.ultimo_mant ? new Date(e.ultimo_mant).toLocaleDateString("es-AR") : "-"}</p><p className="text-sm text-gray-600 mt-2">Próximo mantenimiento</p><p className="font-bold text-orange-600">{proximo.toLocaleDateString("es-AR")}</p><p className="text-sm font-semibold text-orange-600">Vence en {diasRestantes} días</p></div></div><button onClick={() => { setMostrarProximos(false); buscarEquipo(e.numero_serie); }} className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl">Ver equipo</button></div>; })}</div>}</div>}
+      <button onClick={cargarEquiposVencidos} className="w-full mb-4 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow">
+        {cargandoVencidos ? "Consultando..." : "⚠️ Ver mantenimientos vencidos"}
+        <span className="ml-2 font-bold">({cantidadVencidos})</span>
+      </button>
 
-      {mostrarVencidos && <div className="bg-white rounded-2xl shadow-md p-4 mb-6"><div className="flex justify-between items-center mb-4"><h2 className="text-xl font-bold text-gray-800">Equipos con mantenimiento vencido</h2><span className="ml-2 font-bold text-red-600">({cantidadVencidos})</span><button onClick={() => setMostrarVencidos(false)} className="text-gray-500 hover:text-gray-800 font-bold">✕</button></div>{equiposVencidos.length === 0 ? <p className="text-green-600 font-semibold">✓ No hay equipos con mantenimiento vencido.</p> : <div className="space-y-3">{equiposVencidos.map((e) => { const proximo = new Date(e.proximo_mant); const hoy = new Date(); const diasVencido = Math.floor((hoy-proximo)/86400000); return <div key={e.id} className="border rounded-xl p-4 hover:bg-gray-50"><div className="flex justify-between items-start gap-2"><div><p className="font-bold text-gray-800">{e.descripcion}</p><p className="text-sm text-gray-600">{e.marca_modelo || "Sin marca/modelo"}</p><p className="text-sm"><strong>Nº serie:</strong> {e.numero_serie}</p><p className="text-sm"><strong>Servicio:</strong> {e.servicio || "Sin asignar"}</p><p className="text-sm"><strong>Sub Servicio:</strong> {e.sub_servicio || "Sin asignar"}</p><p className="text-sm"><strong>Área:</strong> {e.area || "Sin asignar"}</p></div><div className="text-right"><p className="text-sm text-gray-600">Último mantenimiento</p><p className="font-semibold">{e.ultimo_mant ? new Date(e.ultimo_mant).toLocaleDateString("es-AR") : "-"}</p><p className="text-sm text-gray-600 mt-2">Próximo mantenimiento</p><p className="font-bold text-red-600">{proximo.toLocaleDateString("es-AR")}</p><p className="text-sm font-semibold text-red-600">Vencido hace {diasVencido} días</p></div></div><button onClick={() => { setMostrarVencidos(false); buscarEquipo(e.numero_serie); }} className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl">Ver equipo</button></div>; })}</div>}</div>}
+      {mostrarProximos && (
+        <div className="bg-white rounded-2xl shadow-md p-4 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800">Preventivos próximos a vencer</h2>
+            <span className="ml-2 font-bold text-orange-600">({cantidadProximos})</span>
+            <button onClick={() => setMostrarProximos(false)} className="text-gray-500 hover:text-gray-800 font-bold">✕</button>
+          </div>
+          {equiposProximos.length === 0 ? (
+            <p className="text-green-600 font-semibold">✓ No hay preventivos que venzan en los próximos 30 días.</p>
+          ) : (
+            <div className="space-y-3">
+              {equiposProximos.map((e) => {
+                const proximo = new Date(e.proximo_mant);
+                const hoy = new Date();
+                const diasRestantes = Math.ceil((proximo - hoy) / 86400000);
+                return (
+                  <div key={e.id} className="border rounded-xl p-4 hover:bg-gray-50">
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <p className="font-bold text-gray-800">{e.descripcion}</p>
+                        <p className="text-sm text-gray-600">{e.marca_modelo || "Sin marca/modelo"}</p>
+                        <p className="text-sm"><strong>Nº serie:</strong> {e.numero_serie}</p>
+                        <p className="text-sm"><strong>Servicio:</strong> {e.servicio || "Sin asignar"}</p>
+                        <p className="text-sm"><strong>Sub Servicio:</strong> {e.sub_servicio || "Sin asignar"}</p>
+                        <p className="text-sm"><strong>Área:</strong> {e.area || "Sin asignar"}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Último mantenimiento</p>
+                        <p className="font-semibold">{e.ultimo_mant ? new Date(e.ultimo_mant).toLocaleDateString("es-AR") : "-"}</p>
+                        <p className="text-sm text-gray-600 mt-2">Próximo mantenimiento</p>
+                        <p className="font-bold text-orange-600">{proximo.toLocaleDateString("es-AR")}</p>
+                        <p className="text-sm font-semibold text-orange-600">Vence en {diasRestantes} días</p>
+                      </div>
+                    </div>
+                    <button onClick={() => { setMostrarProximos(false); buscarEquipo(e.numero_serie); }} className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl">Ver equipo</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {mostrarVencidos && (
+        <div className="bg-white rounded-2xl shadow-md p-4 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800">Equipos con mantenimiento vencido</h2>
+            <span className="ml-2 font-bold text-red-600">({cantidadVencidos})</span>
+            <button onClick={() => setMostrarVencidos(false)} className="text-gray-500 hover:text-gray-800 font-bold">✕</button>
+          </div>
+          {equiposVencidos.length === 0 ? (
+            <p className="text-green-600 font-semibold">✓ No hay equipos con mantenimiento vencido.</p>
+          ) : (
+            <div className="space-y-3">
+              {equiposVencidos.map((e) => {
+                const proximo = new Date(e.proximo_mant);
+                const hoy = new Date();
+                const diasVencido = Math.floor((hoy - proximo) / 86400000);
+                return (
+                  <div key={e.id} className="border rounded-xl p-4 hover:bg-gray-50">
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <p className="font-bold text-gray-800">{e.descripcion}</p>
+                        <p className="text-sm text-gray-600">{e.marca_modelo || "Sin marca/modelo"}</p>
+                        <p className="text-sm"><strong>Nº serie:</strong> {e.numero_serie}</p>
+                        <p className="text-sm"><strong>Servicio:</strong> {e.servicio || "Sin asignar"}</p>
+                        <p className="text-sm"><strong>Sub Servicio:</strong> {e.sub_servicio || "Sin asignar"}</p>
+                        <p className="text-sm"><strong>Área:</strong> {e.area || "Sin asignar"}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Último mantenimiento</p>
+                        <p className="font-semibold">{e.ultimo_mant ? new Date(e.ultimo_mant).toLocaleDateString("es-AR") : "-"}</p>
+                        <p className="text-sm text-gray-600 mt-2">Próximo mantenimiento</p>
+                        <p className="font-bold text-red-600">{proximo.toLocaleDateString("es-AR")}</p>
+                        <p className="text-sm font-semibold text-red-600">Vencido hace {diasVencido} días</p>
+                      </div>
+                    </div>
+                    <button onClick={() => { setMostrarVencidos(false); buscarEquipo(e.numero_serie); }} className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl">Ver equipo</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       <button onClick={() => setMostrarPorServicio(true)} className="w-full mb-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow">📋 Ver equipos por servicio</button>
       {mostrarPorServicio && <EquiposPorServicio personal={personal} buscarEquipo={buscarEquipo} onCerrar={() => setMostrarPorServicio(false)} setVista={setVista} />}
+
       <h1 className="text-xl font-bold mb-4">🔧 Búsqueda de Equipos</h1>
-      <div className="flex items-center gap-2"><input type="text" value={serie} onChange={(e) => { const valor=e.target.value; setSerie(valor); buscarCoincidencias(valor); }} placeholder="Buscar equipo..." className="flex-1 border rounded px-3 py-2" /></div>
-      <div className="flex gap-2"><button onClick={() => buscarEquipo()} className="flex-1 bg-green-600 text-white px-4 py-2 rounded-xl">🔍 Buscar</button><button onClick={() => setVista("nuevoEquipo")} className="bg-blue-600 text-white px-4 py-2 rounded-xl">➕ Nuevo</button></div>
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={serie}
+          onChange={(e) => { const valor = e.target.value; setSerie(valor); buscarCoincidencias(valor); }}
+          placeholder="Buscar equipo..."
+          className="flex-1 border rounded px-3 py-2"
+        />
+      </div>
+      <div className="flex gap-2">
+        <button onClick={() => buscarEquipo()} className="flex-1 bg-green-600 text-white px-4 py-2 rounded-xl">🔍 Buscar</button>
+        <button onClick={() => setVista("nuevoEquipo")} className="bg-blue-600 text-white px-4 py-2 rounded-xl">➕ Nuevo</button>
+      </div>
+
       {localStorage.getItem("tareaActiva") && <div className="bg-yellow-100 p-2 rounded mb-3">🔧 Iniciando mantenimiento desde tarea</div>}
-      {coincidencias.length > 0 && <div className="border rounded bg-white shadow max-h-64 overflow-y-auto mt-1">{coincidencias.map((item) => <div key={item.id} onClick={() => { setSerie(item.numero_serie); setCoincidencias([]); buscarEquipo(item.numero_serie); }} className="p-2 border-b cursor-pointer hover:bg-blue-100"><div className="font-semibold">{item.descripcion}</div><div className="text-sm text-gray-600">{item.marca_modelo}</div><div className="text-sm">Serie: <b>{item.numero_serie}</b></div><div className="text-xs text-gray-500">{item.servicio}</div></div>)}</div>}
 
-      {equipo && <div className="bg-white shadow rounded-xl p-3 mt-3">
-        <p><b>Equipo:</b> {equipo.descripcion}</p><p><b>Marca:</b> {equipo.marca_modelo}</p><p><b>Serie:</b> {equipo.numero_serie}</p><p><b>Servicio:</b> {equipo.servicio}</p><p><b>Sub Servicio:</b> {equipo.sub_servicio}</p><p><b>Área:</b> {equipo.area}</p><p><b>Estado:</b> {equipo.estado}</p>
-        <div className="mt-4 flex justify-center">{equipo.imagen ? <img src={equipo.imagen} alt="Equipo" className="max-w-full w-96 max-h-72 object-contain rounded-lg border shadow cursor-pointer" onClick={() => window.open(equipo.imagen,"_blank")} /> : <div className="w-96 h-60 border-2 border-dashed rounded-lg flex items-center justify-center text-gray-500 bg-gray-100">Sin fotografía</div>}</div>
-        <div className="mt-2"><button onClick={() => inputImagenRef.current.click()} className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full">📷 Imágen</button><button onClick={() => { localStorage.setItem("equipoEditar",JSON.stringify(equipo)); setVista("nuevoEquipo"); }} className="bg-orange-500 text-white px-4 py-2 rounded-xl w-full mt-2">✏️ Editar equipo</button></div>
-        <p className="text-sm font-semibold mb-1 mt-2">Cambiar estado:</p><select value={equipo.estado || ""} onChange={(e) => cambiarEstado(equipo.id,e.target.value)} className="w-full border rounded px-2 py-1 text-sm"><option value="">Seleccionar estado</option>{estados.map((est)=><option key={est.id} value={est.estado}>{est.estado}</option>)}</select>
-        <p><b>Último mantenimiento preventivo:</b> {equipo.ultimo_mant || "-"}</p>
-        <button onClick={cargarEstadisticasEquipo} disabled={cargandoEstadisticas} className="mt-3 w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-xl font-semibold">{cargandoEstadisticas ? "📊 Consultando estadísticas..." : mostrarEstadisticas ? "📊 Ocultar estadísticas" : "📊 Ver estadísticas del equipo"}</button>
-        {mostrarEstadisticas && estadisticasEquipo && <div className="mt-3"><EstadisticasEquipo equipo={estadisticasEquipo} /></div>}
-        <button onClick={verHistorial} className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl w-full">📋 Historial del equipo</button>
-        <button onClick={imprimirHistorial} className="mt-3 w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl">📄 Imprimir historial</button>
-        <button onClick={() => { setMantenimientoEnEdicion(null); setTipoMantenimiento(""); setDiagnosticoSeleccionado(""); setObservaciones(""); setDescripcion(""); setMostrarForm(true); }} className="px-4 py-2 rounded-xl w-full mt-3 bg-blue-500 text-white">🛠️ Iniciar mantenimiento</button>
-        <button onClick={abrirRIC44} className="px-4 py-2 rounded-xl w-full mt-2 bg-orange-600 hover:bg-orange-700 text-white">♻️ RIC44 - Obsolescencia</button>
+      {coincidencias.length > 0 && (
+        <div className="border rounded bg-white shadow max-h-64 overflow-y-auto mt-1">
+          {coincidencias.map((item) => (
+            <div key={item.id} onClick={() => { setSerie(item.numero_serie); setCoincidencias([]); buscarEquipo(item.numero_serie); }} className="p-2 border-b cursor-pointer hover:bg-blue-100">
+              <div className="font-semibold">{item.descripcion}</div>
+              <div className="text-sm text-gray-600">{item.marca_modelo}</div>
+              <div className="text-sm">Serie: <b>{item.numero_serie}</b></div>
+              <div className="text-xs text-gray-500">{item.servicio}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
-        {Array.isArray(equipo.mantenimientos_abiertos) && equipo.mantenimientos_abiertos.length > 0 && <div className="mt-3"><p className="font-bold text-gray-800 mb-2">🔧 Mantenimientos abiertos ({equipo.mantenimientos_abiertos.length})</p><div className="space-y-2">{equipo.mantenimientos_abiertos.map((m)=><div key={m.id} className="border border-yellow-300 bg-yellow-50 rounded-xl p-3 text-sm"><div className="flex justify-between items-center"><strong>Mantenimiento #{m.id}</strong><span className="text-orange-600 font-semibold">ABIERTO</span></div><p><strong>Tipo:</strong> {m.tipo_mantenimiento || "Sin especificar"}</p>{m.diagnostico && <p><strong>Diagnóstico:</strong> {m.diagnostico}</p>}{m.fecha && <p><strong>Inicio:</strong> {formatTimestamp(m.fecha)}</p>}{m.asignado && <p><strong>Técnico:</strong> {m.asignado}</p>}<div className="grid grid-cols-2 gap-2 mt-2"><button onClick={() => continuarMantenimientoAbierto(m)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-xl font-semibold">🔧 Continuar</button><button onClick={() => abrirFinalizarMantenimiento(m)} className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-xl font-semibold">✅ Finalizar</button><button onClick={() => abrirRepuestos(m)} className="col-span-2 bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-2 rounded-xl font-semibold">🔩 Usar repuestos</button><button onClick={() => abrirRIC37(m)} className="col-span-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl font-semibold">⚡ RIC37 - Seguridad eléctrica</button></div></div>)}</div></div>}
-      </div>}
+      {equipo && (
+        <div className="bg-white shadow rounded-xl p-3 mt-3">
+          <p><b>Equipo:</b> {equipo.descripcion}</p>
+          <p><b>Marca:</b> {equipo.marca_modelo}</p>
+          <p><b>Serie:</b> {equipo.numero_serie}</p>
+          <p><b>Servicio:</b> {equipo.servicio}</p>
+          <p><b>Sub Servicio:</b> {equipo.sub_servicio}</p>
+          <p><b>Área:</b> {equipo.area}</p>
+          <p><b>Estado:</b> {equipo.estado}</p>
+
+          <div className="mt-4 flex justify-center">
+            {equipo.imagen ? (
+              <img src={equipo.imagen} alt="Equipo" className="max-w-full w-96 max-h-72 object-contain rounded-lg border shadow cursor-pointer" onClick={() => window.open(equipo.imagen, "_blank")} />
+            ) : (
+              <div className="w-96 h-60 border-2 border-dashed rounded-lg flex items-center justify-center text-gray-500 bg-gray-100">Sin fotografía</div>
+            )}
+          </div>
+
+          <div className="mt-2">
+            <button onClick={() => inputImagenRef.current.click()} className="bg-blue-500 text-white px-4 py-2 rounded-xl w-full">📷 Imágen</button>
+            <button onClick={() => { localStorage.setItem("equipoEditar", JSON.stringify(equipo)); setVista("nuevoEquipo"); }} className="bg-orange-500 text-white px-4 py-2 rounded-xl w-full mt-2">✏️ Editar equipo</button>
+          </div>
+
+          <p className="text-sm font-semibold mb-1 mt-2">Cambiar estado:</p>
+          <select value={equipo.estado || ""} onChange={(e) => cambiarEstado(equipo.id, e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
+            <option value="">Seleccionar estado</option>
+            {estados.map((est) => <option key={est.id} value={est.estado}>{est.estado}</option>)}
+          </select>
+
+          <p><b>Último mantenimiento preventivo:</b> {equipo.ultimo_mant || "-"}</p>
+
+          <button onClick={cargarEstadisticasEquipo} disabled={cargandoEstadisticas} className="mt-3 w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-xl font-semibold">
+            {cargandoEstadisticas ? "📊 Consultando estadísticas..." : mostrarEstadisticas ? "📊 Ocultar estadísticas" : "📊 Ver estadísticas del equipo"}
+          </button>
+          {mostrarEstadisticas && estadisticasEquipo && <div className="mt-3"><EstadisticasEquipo equipo={estadisticasEquipo} /></div>}
+
+          <button onClick={verHistorial} className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl w-full">📋 Historial del equipo</button>
+          <button onClick={imprimirHistorial} className="mt-3 w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl">📄 Imprimir historial</button>
+          <button onClick={() => { setMantenimientoEnEdicion(null); setTipoMantenimiento(""); setDiagnosticoSeleccionado(""); setObservaciones(""); setDescripcion(""); setMostrarForm(true); }} className="px-4 py-2 rounded-xl w-full mt-3 bg-blue-500 text-white">🛠️ Iniciar mantenimiento</button>
+          <button onClick={abrirRIC44} className="px-4 py-2 rounded-xl w-full mt-2 bg-orange-600 hover:bg-orange-700 text-white">♻️ RIC44 - Obsolescencia</button>
+
+          {equipo.estado?.toLowerCase() !== "activo" && equipo.mantenimiento_id && (
+            <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2 text-sm">
+              <p>🔧 Mantenimiento abierto #{equipo.mantenimiento_id}</p>
+              {equipo.tipo_mantenimiento && <p>Tipo: {equipo.tipo_mantenimiento}</p>}
+              {equipo.diagnostico && <p>Diagnóstico: {equipo.diagnostico}</p>}
+            </div>
+          )}
+
+          {Array.isArray(equipo.mantenimientos_abiertos) && equipo.mantenimientos_abiertos.length > 0 && (
+            <div className="mt-3">
+              <p className="font-bold text-gray-800 mb-2">🔧 Mantenimientos abiertos ({equipo.mantenimientos_abiertos.length})</p>
+              <div className="space-y-2">
+                {equipo.mantenimientos_abiertos.map((m) => (
+                  <div key={m.id} className="border border-yellow-300 bg-yellow-50 rounded-xl p-3 text-sm">
+                    <div className="flex justify-between items-center">
+                      <strong>Mantenimiento #{m.id}</strong>
+                      <span className="text-orange-600 font-semibold">ABIERTO</span>
+                    </div>
+                    <p><strong>Tipo:</strong> {m.tipo_mantenimiento || "Sin especificar"}</p>
+                    {m.diagnostico && <p><strong>Diagnóstico:</strong> {m.diagnostico}</p>}
+                    {m.fecha && <p><strong>Inicio:</strong> {formatTimestamp(m.fecha)}</p>}
+                    {m.asignado && <p><strong>Técnico:</strong> {m.asignado}</p>}
+
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <button onClick={() => continuarMantenimientoAbierto(m)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-xl font-semibold">🔧 Continuar</button>
+                      <button onClick={() => abrirFinalizarMantenimiento(m)} className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-xl font-semibold">✅ Finalizar</button>
+                      <button onClick={() => abrirRepuestos(m)} className="col-span-2 bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-2 rounded-xl font-semibold">🔩 Usar repuestos</button>
+                      <button onClick={() => abrirRIC37(m)} className="col-span-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl font-semibold">⚡ RIC37 - Seguridad eléctrica</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {error && <p className="text-red-500 mt-3">{error}</p>}
-      {mostrarForm && <div className="bg-gray-100 p-3 rounded-xl mt-3">{mantenimientoEnEdicion && <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mb-2"><p className="font-bold">🔧 Continuando mantenimiento #{mantenimientoEnEdicion.id}</p><p>Tipo: <strong>{mantenimientoEnEdicion.tipo_mantenimiento || "Sin especificar"}</strong></p>{mantenimientoEnEdicion.diagnostico && <p>Diagnóstico: <strong>{mantenimientoEnEdicion.diagnostico}</strong></p>}</div>}{!mantenimientoEnEdicion && <select value={tipoMantenimiento} onChange={(e)=>handleTipoChange(e.target.value)} className="w-full border p-2 rounded-xl mb-2"><option value="">Seleccionar tipo</option><option value="Correctivo">Correctivo</option><option value="Preventivo">Preventivo</option><option value="Verificación">Verificación</option></select>}{!mantenimientoEnEdicion && tipoMantenimiento === "Correctivo" && <select value={diagnosticoSeleccionado} onChange={(e)=>setDiagnosticoSeleccionado(e.target.value)} className="w-full border p-2 rounded-xl mb-2"><option value="">Seleccionar diagnóstico</option>{diagnosticos.map((d,i)=><option key={i} value={d.diagnostico}>{d.diagnostico}</option>)}</select>}<textarea value={observaciones} onChange={(e)=>setObservaciones(e.target.value)} placeholder="Ingrese solución / avance realizado..." className="w-full border p-2 rounded-xl mb-2" rows={4}/><button onClick={guardarMantenimiento} className="bg-green-500 text-white px-4 py-2 rounded-xl w-full">💾 Guardar</button></div>}
 
-      {mostrarHistorial && <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50"><div className="bg-white rounded-xl shadow-xl w-11/12 max-w-6xl max-h-[85vh] overflow-hidden"><div className="flex justify-between items-center p-4 border-b"><h2 className="text-xl font-bold">📋 Historial del equipo</h2><button onClick={()=>setMostrarHistorial(false)} className="text-red-600 font-bold">✖</button></div><div className="overflow-auto max-h-[70vh]"><div className="p-4 space-y-4">{historial.map((h)=>{ let color="border-gray-300",icono="⚪"; switch((h.tipo_mantenimiento||"").toLowerCase()){case"correctivo":color="border-red-500";icono="🔴";break;case"preventivo":color="border-green-500";icono="🟢";break;default:break;} const esPreventivo=(h.tipo_mantenimiento||"").trim().toLowerCase()==="preventivo"; const tieneRIC37=!!h.ric37?.id; return <div key={h.id} className={`border-l-8 ${color} bg-white rounded-lg shadow p-4`}><div className="flex justify-between items-center"><h3 className="font-bold text-lg flex items-center gap-2">{icono}{h.tipo_mantenimiento||"Sin tipo"}{h.fin&&<span className="text-green-600 text-xl">✅</span>}</h3><span className="text-sm text-gray-500">{formatTimestamp(h.fecha)}</span></div><div className="mt-3 text-sm space-y-2"><p>👤 <strong>Solicitado por:</strong> {h.solicitado_por||h.usuario}</p><p>👨‍🔧 <strong>Técnico:</strong> {h.asignado||"-"}</p>{h.diagnostico&&<div className="bg-red-50 rounded p-3"><strong>🩺 Diagnóstico</strong><p className="mt-1 whitespace-pre-wrap">{h.diagnostico}</p></div>}{h.solucion&&<div className="bg-green-50 rounded p-3"><strong>💡 Solución</strong><p className="mt-1 whitespace-pre-wrap">{h.solucion}</p></div>}{h.observacion&&<div className="bg-blue-50 rounded p-3"><strong>📝 Observaciones</strong><p className="mt-1 whitespace-pre-wrap">{h.observacion}</p></div>}<div className="flex flex-col md:flex-row gap-2 pt-2">{esPreventivo&&<button onClick={()=>setMantenimientoSeleccionado(h)} className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-xl font-semibold">📄 Resumen del mantenimiento</button>}{tieneRIC37&&<button onClick={()=>setRic37Seleccionado(h.ric37.id)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl font-semibold">📋 Resumen RIC37</button>}</div></div></div>; })}</div></div></div></div>}
+      {mostrarForm && (
+        <div className="bg-gray-100 p-3 rounded-xl mt-3">
+          {mantenimientoEnEdicion && (
+            <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mb-2">
+              <p className="font-bold">🔧 Continuando mantenimiento #{mantenimientoEnEdicion.id}</p>
+              <p>Tipo: <strong>{mantenimientoEnEdicion.tipo_mantenimiento || "Sin especificar"}</strong></p>
+              {mantenimientoEnEdicion.diagnostico && <p>Diagnóstico: <strong>{mantenimientoEnEdicion.diagnostico}</strong></p>}
+              {mantenimientoEnEdicion.fecha && <p className="text-sm text-gray-600">Iniciado: <strong>{formatTimestamp(mantenimientoEnEdicion.fecha)}</strong></p>}
+            </div>
+          )}
 
-      {mantenimientoSeleccionado && <ResumenMantenimiento mantenimiento={mantenimientoSeleccionado} onCerrar={()=>setMantenimientoSeleccionado(null)} />}
-      {ric37Seleccionado && <ResumenRIC37 id={ric37Seleccionado} onCerrar={()=>setRic37Seleccionado(null)} />}
+          {!mantenimientoEnEdicion && (
+            <select value={tipoMantenimiento} onChange={(e) => handleTipoChange(e.target.value)} className="w-full border p-2 rounded-xl mb-2">
+              <option value="">Seleccionar tipo</option>
+              <option value="Correctivo">Correctivo</option>
+              <option value="Preventivo">Preventivo</option>
+              <option value="Verificación">Verificación</option>
+            </select>
+          )}
 
-      {mostrarFinalizar && mantenimientoParaFinalizar && <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"><div className="bg-white p-5 rounded-xl shadow-xl w-96 max-w-full"><h2 className="text-lg font-bold mb-2">Finalizar mantenimiento #{mantenimientoParaFinalizar.id}</h2><p className="mb-4 text-sm"><strong>Tipo:</strong> {mantenimientoParaFinalizar.tipo_mantenimiento || "Sin especificar"}</p><p className="mb-2">¿En qué estado queda el equipo?</p><select value={estadoFinal} onChange={(e)=>setEstadoFinal(e.target.value)} className="w-full border p-2 rounded mb-4"><option value="">Seleccionar estado</option>{estados.map((est)=><option key={est.id} value={est.estado}>{est.estado}</option>)}</select><div className="flex gap-2"><button onClick={()=>{setMostrarFinalizar(false);setEstadoFinal("");setMantenimientoParaFinalizar(null);}} className="flex-1 bg-gray-500 text-white py-2 rounded">Cancelar</button><button onClick={finalizarMantenimiento} className="flex-1 bg-green-600 text-white py-2 rounded">Confirmar</button></div></div></div>}
+          {!mantenimientoEnEdicion && tipoMantenimiento === "Correctivo" && (
+            <select value={diagnosticoSeleccionado} onChange={(e) => setDiagnosticoSeleccionado(e.target.value)} className="w-full border p-2 rounded-xl mb-2">
+              <option value="">Seleccionar diagnóstico</option>
+              {diagnosticos.map((d, i) => <option key={i} value={d.diagnostico}>{d.diagnostico}</option>)}
+            </select>
+          )}
 
-      {mostrarRepuestos && mantenimientoRepuestos && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3"><div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-4"><div className="flex items-start justify-between gap-3 mb-3"><div><h2 className="text-lg font-bold text-gray-800">🔩 Repuestos del mantenimiento #{mantenimientoRepuestos.id}</h2><p className="text-sm text-gray-600">{equipo?.descripcion} · Serie {equipo?.numero_serie}</p></div><button onClick={cerrarRepuestos} className="text-gray-500 hover:text-red-600 font-bold text-xl">✕</button></div>{errorRepuestos&&<div className="mb-3 bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">{errorRepuestos}</div>}{cargandoRepuestos?<div className="py-8 text-center text-gray-500">Cargando repuestos...</div>:<><select value={repuestoItemId} onChange={(e)=>setRepuestoItemId(e.target.value)} className="w-full border rounded-xl px-3 py-2"><option value="">Seleccionar repuesto</option>{existenciasRepuestos.map((r)=>{const id=r.item_id||r.id;return <option key={`${id}-${r.area}`} value={id}>{r.descripcion} — {r.cantidad} {r.unidad}</option>;})}</select><input type="number" value={repuestoCantidad} onChange={(e)=>setRepuestoCantidad(e.target.value)} placeholder="Cantidad" className="w-full border rounded-xl px-3 py-2 mt-2"/><button onClick={agregarRepuesto} className="mt-2 w-full bg-cyan-700 text-white font-semibold py-2 rounded-xl">＋ Agregar repuesto</button></>}{repuestosSeleccionados.map((r)=><div key={r.item_id} className="border rounded-xl p-3 mt-2"><p className="font-semibold">{r.descripcion}</p><p>Cantidad: {r.cantidad} {r.unidad}</p><button onClick={()=>quitarRepuesto(r.item_id)} className="bg-red-600 text-white px-3 py-1 rounded-xl mt-1">Quitar</button></div>)}<div className="grid grid-cols-2 gap-2 mt-4"><button onClick={cerrarRepuestos} className="bg-gray-500 text-white py-2 rounded-xl">Cancelar</button><button onClick={confirmarRepuestos} className="bg-green-600 text-white py-2 rounded-xl">Confirmar consumo</button></div></div></div>}
+          <textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} placeholder="Ingrese solución / avance realizado..." className="w-full border p-2 rounded-xl mb-2" rows={4} />
+          <button onClick={guardarMantenimiento} className="bg-green-500 text-white px-4 py-2 rounded-xl w-full">💾 Guardar</button>
+        </div>
+      )}
+
+      {mostrarHistorial && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-11/12 max-w-6xl max-h-[85vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h2 className="text-xl font-bold">📋 Historial del equipo</h2>
+              <button onClick={() => setMostrarHistorial(false)} className="text-red-600 font-bold">✖</button>
+            </div>
+            <div className="overflow-auto max-h-[70vh]">
+              <div className="p-4 space-y-4">
+                {historial.map((h) => {
+                  let color = "border-gray-300";
+                  let icono = "⚪";
+                  switch ((h.tipo_mantenimiento || "").toLowerCase()) {
+                    case "correctivo": color = "border-red-500"; icono = "🔴"; break;
+                    case "preventivo": color = "border-green-500"; icono = "🟢"; break;
+                    case "calibración":
+                    case "calibracion": color = "border-yellow-500"; icono = "🟡"; break;
+                    case "instalación":
+                    case "instalacion": color = "border-blue-500"; icono = "🔵"; break;
+                    default: break;
+                  }
+                  const esPreventivo = (h.tipo_mantenimiento || "").trim().toLowerCase() === "preventivo";
+                  const tieneRIC37 = !!h.ric37?.id;
+                  return (
+                    <div key={h.id} className={`border-l-8 ${color} bg-white rounded-lg shadow p-4`}>
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-bold text-lg flex items-center gap-2">{icono}{h.tipo_mantenimiento || "Sin tipo"}{h.fin && <span className="text-green-600 text-xl">✅</span>}</h3>
+                        <span className="text-sm text-gray-500">{formatTimestamp(h.fecha)}</span>
+                      </div>
+                      <div className="mt-3 text-sm space-y-2">
+                        <p>👤 <strong>Solicitado por:</strong> {h.solicitado_por || h.usuario}</p>
+                        <p>👨‍🔧 <strong>Técnico:</strong> {h.asignado || "-"}</p>
+                        {h.diagnostico && <div className="bg-red-50 rounded p-3"><strong>🩺 Diagnóstico</strong><p className="mt-1 whitespace-pre-wrap">{h.diagnostico}</p></div>}
+                        {h.solucion && <div className="bg-green-50 rounded p-3"><strong>💡 Solución</strong><p className="mt-1 whitespace-pre-wrap">{h.solucion}</p></div>}
+                        {h.observacion && <div className="bg-blue-50 rounded p-3"><strong>📝 Observaciones</strong><p className="mt-1 whitespace-pre-wrap">{h.observacion}</p></div>}
+                        {h.calificacion && <p>⭐ <strong>Calificación:</strong> {h.calificacion}</p>}
+                        <div className="flex flex-col md:flex-row gap-2 pt-2">
+                          {esPreventivo && <button onClick={() => setMantenimientoSeleccionado(h)} className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-xl font-semibold">📄 Resumen del mantenimiento</button>}
+                          {tieneRIC37 && <button onClick={() => setRic37Seleccionado(h.ric37.id)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl font-semibold">📋 Resumen RIC37</button>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mantenimientoSeleccionado && <ResumenMantenimiento mantenimiento={mantenimientoSeleccionado} onCerrar={() => setMantenimientoSeleccionado(null)} />}
+      {ric37Seleccionado && <ResumenRIC37 id={ric37Seleccionado} onCerrar={() => setRic37Seleccionado(null)} />}
+
+      {mostrarFinalizar && mantenimientoParaFinalizar && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-5 rounded-xl shadow-xl w-96 max-w-full">
+            <h2 className="text-lg font-bold mb-2">Finalizar mantenimiento #{mantenimientoParaFinalizar.id}</h2>
+            <p className="mb-4 text-sm"><strong>Tipo:</strong> {mantenimientoParaFinalizar.tipo_mantenimiento || "Sin especificar"}</p>
+            {Array.isArray(equipo?.mantenimientos_abiertos) && equipo.mantenimientos_abiertos.filter((m) => m.id !== mantenimientoParaFinalizar.id).length > 0 ? (
+              <div className="bg-yellow-50 border border-yellow-300 rounded p-3 mb-4 text-sm">
+                <p className="font-semibold">⚠️ El equipo tiene otros mantenimientos abiertos.</p>
+                <p>Se cerrará únicamente este mantenimiento y el equipo conservará su estado actual: <strong>{equipo.estado}</strong>.</p>
+              </div>
+            ) : (
+              <>
+                <p className="mb-2">¿En qué estado queda el equipo?</p>
+                <select value={estadoFinal} onChange={(e) => setEstadoFinal(e.target.value)} className="w-full border p-2 rounded mb-4">
+                  <option value="">Seleccionar estado</option>
+                  {estados.map((est) => <option key={est.id} value={est.estado}>{est.estado}</option>)}
+                </select>
+              </>
+            )}
+            <div className="flex gap-2">
+              <button onClick={() => { setMostrarFinalizar(false); setEstadoFinal(""); setMantenimientoParaFinalizar(null); }} className="flex-1 bg-gray-500 text-white py-2 rounded">Cancelar</button>
+              <button onClick={finalizarMantenimiento} className="flex-1 bg-green-600 text-white py-2 rounded">Confirmar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mostrarRepuestos && mantenimientoRepuestos && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-4">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">🔩 Repuestos del mantenimiento #{mantenimientoRepuestos.id}</h2>
+                <p className="text-sm text-gray-600">{equipo?.descripcion} · Serie {equipo?.numero_serie}</p>
+                <p className="text-xs text-gray-500">Stock disponible en {areaPersonal || "área sin definir"}</p>
+              </div>
+              <button onClick={cerrarRepuestos} disabled={guardandoRepuestos} className="text-gray-500 hover:text-red-600 font-bold text-xl disabled:opacity-50">✕</button>
+            </div>
+
+            {errorRepuestos && <div className="mb-3 bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">{errorRepuestos}</div>}
+
+            {cargandoRepuestos ? (
+              <div className="py-8 text-center text-gray-500">Cargando repuestos...</div>
+            ) : existenciasRepuestos.length === 0 ? (
+              <div className="py-6 text-center text-gray-500 bg-gray-50 rounded-xl">No hay repuestos con stock disponible en {areaPersonal}.</div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_110px] gap-2">
+                  <select value={repuestoItemId} onChange={(e) => setRepuestoItemId(e.target.value)} className="w-full border rounded-xl px-3 py-2">
+                    <option value="">Seleccionar repuesto</option>
+                    {existenciasRepuestos.map((r) => {
+                      const id = r.item_id || r.id;
+                      return <option key={`${id}-${r.area}`} value={id}>{r.codigo ? `${r.codigo} · ` : ""}{r.descripcion} — {r.cantidad} {r.unidad}</option>;
+                    })}
+                  </select>
+                  <input type="number" min="0.01" step="0.01" value={repuestoCantidad} onChange={(e) => setRepuestoCantidad(e.target.value)} placeholder="Cantidad" className="w-full border rounded-xl px-3 py-2" />
+                </div>
+
+                <button onClick={agregarRepuesto} className="mt-2 w-full bg-cyan-700 hover:bg-cyan-800 text-white font-semibold py-2 rounded-xl">＋ Agregar repuesto</button>
+              </>
+            )}
+
+            {repuestosSeleccionados.length > 0 && (
+              <div className="mt-4">
+                <p className="font-bold text-gray-800 mb-2">Repuestos a utilizar ({repuestosSeleccionados.length})</p>
+                <div className="space-y-2">
+                  {repuestosSeleccionados.map((r) => (
+                    <div key={r.item_id} className="border rounded-xl p-3 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm truncate">{r.codigo ? `${r.codigo} · ` : ""}{r.descripcion}</p>
+                        <p className="text-sm text-gray-600">Cantidad: <strong>{r.cantidad} {r.unidad}</strong></p>
+                        <p className="text-xs text-gray-500">Disponible: {r.disponible} {r.unidad}</p>
+                      </div>
+                      <button onClick={() => quitarRepuesto(r.item_id)} disabled={guardandoRepuestos} className="shrink-0 bg-red-600 text-white px-3 py-2 rounded-xl text-sm disabled:opacity-50">Quitar</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <button onClick={cerrarRepuestos} disabled={guardandoRepuestos} className="bg-gray-500 text-white py-2 rounded-xl disabled:opacity-50">Cancelar</button>
+              <button onClick={confirmarRepuestos} disabled={guardandoRepuestos || repuestosSeleccionados.length === 0} className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl font-semibold disabled:bg-gray-300">
+                {guardandoRepuestos ? "Registrando..." : "Confirmar consumo"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <button onClick={() => setVista("tareas")} className="bg-gray-400 text-white px-4 py-2 rounded-xl w-full mt-4">← Volver</button>
-      <input ref={inputImagenRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={subirImagen}/>
+      <input ref={inputImagenRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={subirImagen} />
     </div>
   );
 }
