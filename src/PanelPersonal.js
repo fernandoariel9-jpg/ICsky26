@@ -9,6 +9,7 @@ import RIC29 from "./RIC29";
 import RIC37 from "./RIC37";
 import RIC39 from "./RIC39";
 import RIC44 from "./RIC44";
+import RIC48 from "./RIC48";
 
 const normalizar = (texto = "") =>
   String(texto)
@@ -21,10 +22,12 @@ export default function PanelPersonal({ personal, onLogout }) {
   const [vista, setVista] = useState("tareas");
   const [ric29Montado, setRic29Montado] = useState(false);
   const [ric39Montado, setRic39Montado] = useState(false);
+  const [ric48Montado, setRic48Montado] = useState(false);
 
   useEffect(() => {
     if (vista === "ric29") setRic29Montado(true);
     if (vista === "ric39") setRic39Montado(true);
+    if (vista === "ric48") setRic48Montado(true);
   }, [vista]);
 
   const leerCampoEquipo = (contenedor, etiqueta) => {
@@ -58,6 +61,7 @@ export default function PanelPersonal({ personal, onLogout }) {
     let vistaPreventivo = "";
     if (descripcionNormalizada.includes("cardiodesfibrilador")) vistaPreventivo = "ric29";
     if (descripcionNormalizada.includes("monitor multiparametrico")) vistaPreventivo = "ric39";
+    if (descripcionNormalizada.includes("electrocardiografo")) vistaPreventivo = "ric48";
     if (!vistaPreventivo) return;
 
     const numeroSerie = leerCampoEquipo(contenedor, "Serie");
@@ -167,6 +171,15 @@ export default function PanelPersonal({ personal, onLogout }) {
           setVista={setVista}
           personal={personal}
         />
+      )}
+
+      {ric48Montado && (
+        <div style={{ display: vista === "ric48" ? "block" : "none" }}>
+          <RIC48
+            setVista={setVista}
+            personal={personal}
+          />
+        </div>
       )}
     </>
   );
