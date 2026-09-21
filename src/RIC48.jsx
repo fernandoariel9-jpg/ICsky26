@@ -34,15 +34,9 @@ const crearManual = (items) =>
   items.map((nombre) => ({ nombre, resultado: "", conforme: null, noAplica: false }));
 
 function Estado({ conforme, noAplica }) {
-  if (noAplica) {
-    return <span className="px-2 py-1 rounded-lg bg-gray-200 text-gray-700 text-xs font-bold">NO APLICA</span>;
-  }
-  if (conforme === true) {
-    return <span className="px-2 py-1 rounded-lg bg-green-100 text-green-700 text-xs font-bold">CONFORME</span>;
-  }
-  if (conforme === false) {
-    return <span className="px-2 py-1 rounded-lg bg-red-100 text-red-700 text-xs font-bold">NO CONFORME</span>;
-  }
+  if (noAplica) return <span className="px-2 py-1 rounded-lg bg-gray-200 text-gray-700 text-xs font-bold">NO APLICA</span>;
+  if (conforme === true) return <span className="px-2 py-1 rounded-lg bg-green-100 text-green-700 text-xs font-bold">CONFORME</span>;
+  if (conforme === false) return <span className="px-2 py-1 rounded-lg bg-red-100 text-red-700 text-xs font-bold">NO CONFORME</span>;
   return <span className="px-2 py-1 rounded-lg bg-gray-100 text-gray-500 text-xs font-bold">PENDIENTE</span>;
 }
 
@@ -58,6 +52,9 @@ export default function RIC48({ setVista, personal }) {
   const [cargando, setCargando] = useState(true);
   const [borradorCargado, setBorradorCargado] = useState(false);
   const [error, setError] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [enviandoDrive, setEnviandoDrive] = useState(false);
+  const [ric48Id, setRic48Id] = useState(null);
 
   const [datos, setDatos] = useState({
     ric01_id: "",
@@ -156,7 +153,7 @@ export default function RIC48({ setVista, personal }) {
   }, [personal]);
 
   useEffect(() => {
-    if (!borradorCargado || cargando || !datos.ric01_id) return;
+    if (!borradorCargado || cargando || !datos.ric01_id || ric48Id) return;
     localStorage.setItem(
       claveBorrador(datos.ric01_id),
       JSON.stringify({
@@ -178,90 +175,41 @@ export default function RIC48({ setVista, personal }) {
         ric37_id: datos.ric37_id
       })
     );
-  }, [
-    borradorCargado,
-    cargando,
-    datos.ric01_id,
-    datos.ric37_id,
-    etapa,
-    inspecciones,
-    frecuencias,
-    frecuenciaActual,
-    amplitudes,
-    amplitudActual,
-    gruposOnda,
-    grupoActual,
-    artefactos,
-    artefactoActual,
-    formasOnda,
-    formaActual,
-    segmentoST,
-    stActual,
-    observaciones
-  ]);
+  }, [borradorCargado, cargando, datos.ric01_id, datos.ric37_id, ric48Id, etapa, inspecciones, frecuencias, frecuenciaActual, amplitudes, amplitudActual, gruposOnda, grupoActual, artefactos, artefactoActual, formasOnda, formaActual, segmentoST, stActual, observaciones]);
 
   const resumen = useMemo(() => {
-    const inspeccionesEvaluadas = [
-      inspecciones.limpieza_exterior,
-      inspecciones.papel_registro,
-      inspecciones.estado_cables
-    ];
+    const inspeccionesEvaluadas = [inspecciones.limpieza_exterior, inspecciones.papel_registro, inspecciones.estado_cables];
     const inspeccionesPendientes = inspeccionesEvaluadas.some((v) => !v);
     const inspeccionesNC = inspeccionesEvaluadas.filter((v) => v === "NO CONFORME").length;
-
-    const grupos = [frecuencias, amplitudes, gruposOnda, artefactos, formasOnda, segmentoST];
-    const todos = grupos.flat();
+    const todos = [frecuencias, amplitudes, gruposOnda, artefactos, formasOnda, segmentoST].flat();
     const pendientes = todos.filter((m) => !m.noAplica && m.conforme === null).length;
     const noConformes = todos.filter((m) => !m.noAplica && m.conforme === false);
     const conformes = todos.filter((m) => !m.noAplica && m.conforme === true).length;
     const noAplica = todos.filter((m) => m.noAplica).length;
-
-    const resultado = inspeccionesPendientes || pendientes > 0
-      ? "PENDIENTE"
-      : inspeccionesNC > 0 || noConformes.length > 0
-      ? "NO CONFORME"
-      : "CONFORME";
-
+    const resultado = inspeccionesPendientes || pendientes > 0 ? "PENDIENTE" : inspeccionesNC > 0 || noConformes.length > 0 ? "NO CONFORME" : "CONFORME";
     return { resultado, pendientes, noConformes, conformes, noAplica, inspeccionesNC };
   }, [inspecciones, frecuencias, amplitudes, gruposOnda, artefactos, formasOnda, segmentoST]);
 
   const progreso = ((etapa + 1) / ETAPAS.length) * 100;
 
   const actualizarNumerica = (setter, indice, valor, min, max) => {
-    setter((prev) => prev.map((item, i) =>
-      i === indice
-        ? { ...item, resultado: valor, conforme: evaluarNumero(valor, min, max), noAplica: false }
-        : item
-    ));
+    setter((prev) => prev.map((item, i) => i === indice ? { ...item, resultado: valor, conforme: evaluarNumero(valor, min, max), noAplica: false } : item));
   };
 
   const actualizarManual = (setter, indice, cambios) => {
     setter((prev) => prev.map((item, i) => i === indice ? { ...item, ...cambios } : item));
   };
 
-  const validarActual = (item) => {
-    if (!item) return false;
-    if (item.noAplica) return true;
-    return item.conforme !== null;
-  };
+  const validarActual = (item) => item ? item.noAplica || item.conforme !== null : false;
 
   const avanzarLista = (lista, indiceActual, setIndiceActual, siguienteEtapa) => {
-    if (!validarActual(lista[indiceActual])) {
-      alert("Complete la verificación o marque No aplica antes de continuar.");
-      return;
-    }
-    if (indiceActual < lista.length - 1) {
-      setIndiceActual(indiceActual + 1);
-      return;
-    }
+    if (!validarActual(lista[indiceActual])) return alert("Complete la verificación o marque No aplica antes de continuar.");
+    if (indiceActual < lista.length - 1) return setIndiceActual(indiceActual + 1);
     setEtapa(siguienteEtapa);
   };
 
   const retrocederLista = (indiceActual, setIndiceActual, etapaAnterior) => {
-    if (indiceActual > 0) {
-      setIndiceActual(indiceActual - 1);
-      return;
-    }
+    if (indiceActual > 0) return setIndiceActual(indiceActual - 1);
     setEtapa(etapaAnterior);
   };
 
@@ -276,56 +224,90 @@ export default function RIC48({ setVista, personal }) {
     setEtapa(etapa - 1);
   };
 
-  const cancelar = () => {
-    setVista("equipos");
+  const cancelar = () => setVista("equipos");
+
+  const medicionesPayload = () => {
+    const numericas = [
+      ...frecuencias.map((item, i) => ({ grupo: "FRECUENCIA", orden: i + 1, parametro: item.nombre, valor_nominal: item.nombre, medicion: item.resultado, rango_aceptacion: `${item.min} a ${item.max} BPM`, incertidumbre: item.incertidumbre, conforme: item.conforme, no_aplica: item.noAplica })),
+      ...amplitudes.map((item, i) => ({ grupo: "AMPLITUD", orden: i + 1, parametro: item.nombre, valor_nominal: item.nombre, medicion: item.resultado, rango_aceptacion: `${item.min} a ${item.max} mV`, incertidumbre: item.incertidumbre, conforme: item.conforme, no_aplica: item.noAplica }))
+    ];
+
+    const manuales = [
+      ["GRUPO DE ONDA", gruposOnda],
+      ["ARTEFACTOS", artefactos],
+      ["FORMA DE ONDA", formasOnda],
+      ["SEGMENTO ST", segmentoST]
+    ].flatMap(([grupo, lista]) => lista.map((item, i) => ({ grupo, orden: i + 1, parametro: item.nombre, valor_nominal: item.nombre, medicion: item.resultado || null, rango_aceptacion: null, incertidumbre: grupo === "ARTEFACTOS" ? "± 1%" : null, conforme: item.conforme, no_aplica: item.noAplica })));
+
+    return [...numericas, ...manuales];
+  };
+
+  const guardarRIC48 = async () => {
+    if (resumen.resultado === "PENDIENTE") return alert("Complete todas las verificaciones o marque No aplica antes de guardar.");
+
+    try {
+      setGuardando(true);
+      setError("");
+      const respuesta = await fetch(API_URL.Ric48, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...datos,
+          ric37_id: datos.ric37_id || null,
+          resultado_general: resumen.resultado,
+          observaciones,
+          verificador_equipo: "ANALIZADOR DE MONITORES FLUKE PROSIM 8",
+          verificador_numero_serie: "2496025",
+          verificador_etyc: "2025-01-27",
+          verificador_vigencia: "2026-01-27",
+          inspecciones,
+          mediciones: medicionesPayload()
+        })
+      });
+      const body = await respuesta.json();
+      if (!respuesta.ok) throw new Error(body.error || "Error guardando RIC48");
+      setRic48Id(body.ric48_id);
+      if (datos.ric01_id) localStorage.removeItem(claveBorrador(datos.ric01_id));
+      alert(`RIC48 guardado correctamente. ID: ${body.ric48_id}`);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "No se pudo guardar RIC48.");
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const abrirPDF = () => ric48Id ? window.open(`${API_URL.Ric48}/${ric48Id}/pdf`, "_blank") : alert("Primero debe guardar el RIC48.");
+
+  const enviarDrive = async () => {
+    if (!ric48Id) return alert("Primero debe guardar el RIC48.");
+    try {
+      setEnviandoDrive(true);
+      const respuesta = await fetch(`${API_URL.Ric48}/${ric48Id}/drive`, { method: "POST" });
+      const body = await respuesta.json();
+      if (!respuesta.ok) throw new Error(body.error || "Error enviando RIC48 a Drive");
+      alert("RIC48 enviado correctamente a Google Drive.");
+      if (body.archivo?.webViewLink) window.open(body.archivo.webViewLink, "_blank");
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "No se pudo enviar RIC48 a Drive.");
+    } finally {
+      setEnviandoDrive(false);
+    }
   };
 
   const tarjetaNumerica = (titulo, lista, indice, setter, setIndice, siguienteEtapa, unidad) => {
     const item = lista[indice];
     return (
       <div className="bg-white rounded-xl shadow p-4">
-        <div className="flex justify-between items-center mb-3">
-          <div>
-            <h2 className="text-xl font-bold">{titulo}</h2>
-            <p className="text-sm text-gray-500">Medición {indice + 1} de {lista.length}</p>
-          </div>
-          <Estado conforme={item.conforme} noAplica={item.noAplica} />
-        </div>
-
+        <div className="flex justify-between items-center mb-3"><div><h2 className="text-xl font-bold">{titulo}</h2><p className="text-sm text-gray-500">Medición {indice + 1} de {lista.length}</p></div><Estado conforme={item.conforme} noAplica={item.noAplica} /></div>
         <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">{INSTRUCCION_GENERICA}</p>
-
         <div className={`border rounded-xl p-3 ${item.noAplica ? "bg-gray-50" : item.conforme === true ? "bg-green-50 border-green-300" : item.conforme === false ? "bg-red-50 border-red-300" : "bg-white"}`}>
-          <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-            <div><span className="text-gray-500 text-xs">Valor nominal</span><div className="font-bold">{item.nombre}</div></div>
-            <div><span className="text-gray-500 text-xs">Incertidumbre</span><div className="font-bold">{item.incertidumbre}</div></div>
-            <div className="col-span-2"><span className="text-gray-500 text-xs">Rango de aceptación</span><div>{item.min} a {item.max} {unidad}</div></div>
-          </div>
-
-          <input
-            type="number"
-            step="0.001"
-            value={item.resultado}
-            disabled={item.noAplica}
-            onChange={(e) => actualizarNumerica(setter, indice, e.target.value, item.min, item.max)}
-            placeholder={`Ingrese resultado en ${unidad}`}
-            className="w-full border rounded-xl p-3 bg-white disabled:bg-gray-100"
-          />
-
-          <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
-            <input
-              type="checkbox"
-              checked={item.noAplica}
-              onChange={(e) => actualizarManual(setter, indice, { noAplica: e.target.checked, resultado: e.target.checked ? "" : item.resultado, conforme: e.target.checked ? null : item.conforme })}
-            />
-            No aplica
-          </label>
+          <div className="grid grid-cols-2 gap-3 text-sm mb-4"><div><span className="text-gray-500 text-xs">Valor nominal</span><div className="font-bold">{item.nombre}</div></div><div><span className="text-gray-500 text-xs">Incertidumbre</span><div className="font-bold">{item.incertidumbre}</div></div><div className="col-span-2"><span className="text-gray-500 text-xs">Rango de aceptación</span><div>{item.min} a {item.max} {unidad}</div></div></div>
+          <input type="number" step="0.001" value={item.resultado} disabled={item.noAplica} onChange={(e) => actualizarNumerica(setter, indice, e.target.value, item.min, item.max)} placeholder={`Ingrese resultado en ${unidad}`} className="w-full border rounded-xl p-3 bg-white disabled:bg-gray-100" />
+          <label className="mt-3 flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={item.noAplica} onChange={(e) => actualizarManual(setter, indice, { noAplica: e.target.checked, resultado: e.target.checked ? "" : item.resultado, conforme: e.target.checked ? null : item.conforme })} />No aplica</label>
         </div>
-
-        <div className="flex gap-2 mt-6">
-          <button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button>
-          <button onClick={cancelar} className="flex-1 bg-red-500 text-white rounded-xl p-3">Cancelar</button>
-          <button onClick={() => avanzarLista(lista, indice, setIndice, siguienteEtapa)} className="flex-1 bg-blue-600 text-white rounded-xl p-3">Aceptar →</button>
-        </div>
+        <div className="flex gap-2 mt-6"><button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button><button onClick={cancelar} className="flex-1 bg-red-500 text-white rounded-xl p-3">Cancelar</button><button onClick={() => avanzarLista(lista, indice, setIndice, siguienteEtapa)} className="flex-1 bg-blue-600 text-white rounded-xl p-3">Aceptar →</button></div>
       </div>
     );
   };
@@ -334,154 +316,32 @@ export default function RIC48({ setVista, personal }) {
     const item = lista[indice];
     return (
       <div className="bg-white rounded-xl shadow p-4">
-        <div className="flex justify-between items-center mb-3">
-          <div>
-            <h2 className="text-xl font-bold">{titulo}</h2>
-            <p className="text-sm text-gray-500">Verificación {indice + 1} de {lista.length}</p>
-          </div>
-          <Estado conforme={item.conforme} noAplica={item.noAplica} />
-        </div>
-
+        <div className="flex justify-between items-center mb-3"><div><h2 className="text-xl font-bold">{titulo}</h2><p className="text-sm text-gray-500">Verificación {indice + 1} de {lista.length}</p></div><Estado conforme={item.conforme} noAplica={item.noAplica} /></div>
         <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">{INSTRUCCION_GENERICA}</p>
-
         <div className={`border rounded-xl p-3 ${item.noAplica ? "bg-gray-50" : item.conforme === true ? "bg-green-50 border-green-300" : item.conforme === false ? "bg-red-50 border-red-300" : "bg-white"}`}>
-          <p className="text-xs text-gray-500">Determinación</p>
-          <p className="text-xl font-bold mb-4">{item.nombre}</p>
-
-          {pideResultado && (
-            <input
-              value={item.resultado}
-              disabled={item.noAplica}
-              onChange={(e) => actualizarManual(setter, indice, { resultado: e.target.value })}
-              placeholder="Ingrese resultado de medición"
-              className="w-full border rounded-xl p-3 mb-3 bg-white disabled:bg-gray-100"
-            />
-          )}
-
-          <select
-            value={item.conforme === true ? "CONFORME" : item.conforme === false ? "NO CONFORME" : ""}
-            disabled={item.noAplica}
-            onChange={(e) => actualizarManual(setter, indice, { conforme: e.target.value === "" ? null : e.target.value === "CONFORME" })}
-            className="w-full border rounded-xl p-3 bg-white disabled:bg-gray-100"
-          >
-            <option value="">Seleccionar resultado</option>
-            <option value="CONFORME">CONFORME</option>
-            <option value="NO CONFORME">NO CONFORME</option>
-          </select>
-
-          <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
-            <input
-              type="checkbox"
-              checked={item.noAplica}
-              onChange={(e) => actualizarManual(setter, indice, { noAplica: e.target.checked, conforme: e.target.checked ? null : item.conforme })}
-            />
-            No aplica
-          </label>
+          <p className="text-xs text-gray-500">Determinación</p><p className="text-xl font-bold mb-4">{item.nombre}</p>
+          {pideResultado && <input value={item.resultado} disabled={item.noAplica} onChange={(e) => actualizarManual(setter, indice, { resultado: e.target.value })} placeholder="Ingrese resultado de medición" className="w-full border rounded-xl p-3 mb-3 bg-white disabled:bg-gray-100" />}
+          <select value={item.conforme === true ? "CONFORME" : item.conforme === false ? "NO CONFORME" : ""} disabled={item.noAplica} onChange={(e) => actualizarManual(setter, indice, { conforme: e.target.value === "" ? null : e.target.value === "CONFORME" })} className="w-full border rounded-xl p-3 bg-white disabled:bg-gray-100"><option value="">Seleccionar resultado</option><option value="CONFORME">CONFORME</option><option value="NO CONFORME">NO CONFORME</option></select>
+          <label className="mt-3 flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={item.noAplica} onChange={(e) => actualizarManual(setter, indice, { noAplica: e.target.checked, conforme: e.target.checked ? null : item.conforme })} />No aplica</label>
         </div>
-
-        <div className="flex gap-2 mt-6">
-          <button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button>
-          <button onClick={cancelar} className="flex-1 bg-red-500 text-white rounded-xl p-3">Cancelar</button>
-          <button onClick={() => avanzarLista(lista, indice, setIndice, siguienteEtapa)} className="flex-1 bg-blue-600 text-white rounded-xl p-3">Aceptar →</button>
-        </div>
+        <div className="flex gap-2 mt-6"><button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button><button onClick={cancelar} className="flex-1 bg-red-500 text-white rounded-xl p-3">Cancelar</button><button onClick={() => avanzarLista(lista, indice, setIndice, siguienteEtapa)} className="flex-1 bg-blue-600 text-white rounded-xl p-3">Aceptar →</button></div>
       </div>
     );
   };
 
-  if (cargando) {
-    return <div className="p-6 text-center"><p className="text-lg">⏳ Cargando datos del equipo...</p></div>;
-  }
+  if (cargando) return <div className="p-6 text-center"><p className="text-lg">⏳ Cargando datos del equipo...</p></div>;
 
-  if (error) {
-    return (
-      <div className="p-6 max-w-xl mx-auto">
-        <div className="bg-red-100 text-red-700 p-4 rounded-xl">⚠️ {error}</div>
-        <button onClick={() => setVista("equipos")} className="w-full bg-gray-500 text-white rounded-xl p-3 mt-4">← Volver</button>
-      </div>
-    );
-  }
+  if (error && !datos.numero_serie) return <div className="p-6 max-w-xl mx-auto"><div className="bg-red-100 text-red-700 p-4 rounded-xl">⚠️ {error}</div><button onClick={() => setVista("equipos")} className="w-full bg-gray-500 text-white rounded-xl p-3 mt-4">← Volver</button></div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-50 bg-white shadow">
-        <div className="max-w-xl mx-auto p-3">
-          <div className="flex justify-between text-xs text-gray-500 mb-1">
-            <p className="font-bold">RIC48 - Verificación de Electrocardiógrafos</p>
-            <span>{ETAPAS[etapa]}</span>
-            <span>{etapa + 1} / {ETAPAS.length}</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${progreso}%` }} />
-          </div>
-        </div>
-      </div>
+      <div className="sticky top-0 z-50 bg-white shadow"><div className="max-w-xl mx-auto p-3"><div className="flex justify-between text-xs text-gray-500 mb-1"><p className="font-bold">RIC48 - Verificación de Electrocardiógrafos</p><span>{ETAPAS[etapa]}</span><span>{etapa + 1} / {ETAPAS.length}</span></div><div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${progreso}%` }} /></div></div></div>
 
       <div className="p-4 max-w-xl mx-auto pb-10">
-        <div className="bg-gray-100 rounded-xl p-3 mb-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="font-bold">{datos.descripcion}</p>
-              <p className="text-sm text-gray-600">{datos.marca_modelo}</p>
-            </div>
-            <div className="text-right text-xs">
-              <p><b>Serie:</b> {datos.numero_serie}</p>
-              <p><b>Área:</b> {datos.area}</p>
-              <p><b>Servicio:</b> {datos.servicio}</p>
-            </div>
-          </div>
-        </div>
+        {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-xl">⚠️ {error}</div>}
+        <div className="bg-gray-100 rounded-xl p-3 mb-4"><div className="flex justify-between items-center"><div><p className="font-bold">{datos.descripcion}</p><p className="text-sm text-gray-600">{datos.marca_modelo}</p></div><div className="text-right text-xs"><p><b>Serie:</b> {datos.numero_serie}</p><p><b>Área:</b> {datos.area}</p><p><b>Servicio:</b> {datos.servicio}</p></div></div></div>
 
-        {etapa === 0 && (
-          <div className="bg-white rounded-xl shadow p-4">
-            <h2 className="text-xl font-bold mb-2">1. Inspección visual</h2>
-            <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
-              Verifique visualmente el estado general del electrocardiógrafo antes de comenzar las mediciones.
-            </p>
-            <div className="space-y-4">
-              {[
-                ["limpieza_exterior", "Limpieza exterior"],
-                ["papel_registro", "Papel de registro"],
-                ["estado_cables", "Estado de cables"]
-              ].map(([campo, titulo]) => (
-                <div key={campo}>
-                  <label className="font-semibold block mb-1">{titulo}</label>
-                  <select
-                    value={inspecciones[campo]}
-                    onChange={(e) => setInspecciones((prev) => ({ ...prev, [campo]: e.target.value }))}
-                    className={`w-full border rounded-xl p-3 ${inspecciones[campo] === "CONFORME" ? "bg-green-50 border-green-400" : inspecciones[campo] === "NO CONFORME" ? "bg-red-50 border-red-400" : "bg-white"}`}
-                  >
-                    <option value="">Seleccionar</option>
-                    <option value="CONFORME">CONFORME</option>
-                    <option value="NO CONFORME">NO CONFORME</option>
-                    <option value="NO APLICA">NO APLICA</option>
-                  </select>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-5">
-              <label className="font-semibold block mb-2">Observaciones</label>
-              <textarea
-                value={inspecciones.observaciones}
-                onChange={(e) => setInspecciones((prev) => ({ ...prev, observaciones: e.target.value }))}
-                rows={4}
-                placeholder="Ingrese observaciones de la inspección..."
-                className="w-full border rounded-xl p-3"
-              />
-            </div>
-
-            <div className="flex gap-2 mt-6">
-              <button onClick={cancelar} className="flex-1 bg-red-500 text-white rounded-xl p-3">Cancelar</button>
-              <button
-                disabled={!inspecciones.limpieza_exterior || !inspecciones.papel_registro || !inspecciones.estado_cables}
-                onClick={() => setEtapa(1)}
-                className="flex-1 bg-blue-600 disabled:bg-gray-300 text-white rounded-xl p-3"
-              >
-                Continuar →
-              </button>
-            </div>
-          </div>
-        )}
+        {etapa === 0 && <div className="bg-white rounded-xl shadow p-4"><h2 className="text-xl font-bold mb-2">1. Inspección visual</h2><p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">Verifique visualmente el estado general del electrocardiógrafo antes de comenzar las mediciones.</p><div className="space-y-4">{[["limpieza_exterior", "Limpieza exterior"], ["papel_registro", "Papel de registro"], ["estado_cables", "Estado de cables"]].map(([campo, titulo]) => <div key={campo}><label className="font-semibold block mb-1">{titulo}</label><select value={inspecciones[campo]} onChange={(e) => setInspecciones((prev) => ({ ...prev, [campo]: e.target.value }))} className={`w-full border rounded-xl p-3 ${inspecciones[campo] === "CONFORME" ? "bg-green-50 border-green-400" : inspecciones[campo] === "NO CONFORME" ? "bg-red-50 border-red-400" : "bg-white"}`}><option value="">Seleccionar</option><option value="CONFORME">CONFORME</option><option value="NO CONFORME">NO CONFORME</option><option value="NO APLICA">NO APLICA</option></select></div>)}</div><div className="mt-5"><label className="font-semibold block mb-2">Observaciones</label><textarea value={inspecciones.observaciones} onChange={(e) => setInspecciones((prev) => ({ ...prev, observaciones: e.target.value }))} rows={4} placeholder="Ingrese observaciones de la inspección..." className="w-full border rounded-xl p-3" /></div><div className="flex gap-2 mt-6"><button onClick={cancelar} className="flex-1 bg-red-500 text-white rounded-xl p-3">Cancelar</button><button disabled={!inspecciones.limpieza_exterior || !inspecciones.papel_registro || !inspecciones.estado_cables} onClick={() => setEtapa(1)} className="flex-1 bg-blue-600 disabled:bg-gray-300 text-white rounded-xl p-3">Continuar →</button></div></div>}
 
         {etapa === 1 && tarjetaNumerica("2. Frecuencia", frecuencias, frecuenciaActual, setFrecuencias, setFrecuenciaActual, 2, "BPM")}
         {etapa === 2 && tarjetaNumerica("3. Amplitud", amplitudes, amplitudActual, setAmplitudes, setAmplitudActual, 3, "mV")}
@@ -490,78 +350,9 @@ export default function RIC48({ setVista, personal }) {
         {etapa === 5 && tarjetaManual("6. Forma de onda", formasOnda, formaActual, setFormasOnda, setFormaActual, 6, false)}
         {etapa === 6 && tarjetaManual("7. Desviación de segmento ST", segmentoST, stActual, setSegmentoST, setStActual, 7, true)}
 
-        {etapa === 7 && (
-          <div className="bg-white rounded-xl shadow p-4 space-y-4">
-            <h2 className="text-xl font-bold">8. Seguridad eléctrica · RIC 37</h2>
-            <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3">
-              Realice el ensayo de seguridad eléctrica mediante el procedimiento RIC37 y vincule su identificador al mantenimiento.
-            </p>
-            <input
-              type="number"
-              value={datos.ric37_id}
-              onChange={(e) => setDatos((prev) => ({ ...prev, ric37_id: e.target.value }))}
-              placeholder="ID RIC37"
-              className="w-full border rounded-xl p-3"
-            />
-            <div className="bg-gray-50 border rounded-xl p-3 text-sm">
-              <b>Verificador principal:</b> ANALIZADOR DE MONITORES FLUKE PROSIM 8 · NS 2496025 · ETYC 27/01/2025 · Vigencia 27/01/2026
-            </div>
-            <div className="flex gap-2 mt-6">
-              <button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button>
-              <button onClick={cancelar} className="flex-1 bg-red-500 text-white rounded-xl p-3">Cancelar</button>
-              <button onClick={() => setEtapa(8)} className="flex-1 bg-blue-600 text-white rounded-xl p-3">Ver resumen →</button>
-            </div>
-          </div>
-        )}
+        {etapa === 7 && <div className="bg-white rounded-xl shadow p-4 space-y-4"><h2 className="text-xl font-bold">8. Seguridad eléctrica · RIC 37</h2><p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3">Realice el ensayo de seguridad eléctrica mediante el procedimiento RIC37 y vincule su identificador al mantenimiento.</p><input type="number" value={datos.ric37_id} onChange={(e) => setDatos((prev) => ({ ...prev, ric37_id: e.target.value }))} placeholder="ID RIC37" className="w-full border rounded-xl p-3" /><div className="bg-gray-50 border rounded-xl p-3 text-sm"><b>Verificador principal:</b> ANALIZADOR DE MONITORES FLUKE PROSIM 8 · NS 2496025 · ETYC 27/01/2025 · Vigencia 27/01/2026</div><div className="flex gap-2 mt-6"><button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button><button onClick={cancelar} className="flex-1 bg-red-500 text-white rounded-xl p-3">Cancelar</button><button onClick={() => setEtapa(8)} className="flex-1 bg-blue-600 text-white rounded-xl p-3">Ver resumen →</button></div></div>}
 
-        {etapa === 8 && (
-          <div className="bg-white rounded-xl shadow p-4 space-y-4">
-            <h2 className="text-xl font-bold">9. Resumen de la verificación</h2>
-
-            <div className={`border rounded-xl p-4 ${resumen.resultado === "CONFORME" ? "bg-green-50 border-green-400" : resumen.resultado === "NO CONFORME" ? "bg-red-50 border-red-400" : "bg-gray-50"}`}>
-              <p className={`font-bold text-lg ${resumen.resultado === "CONFORME" ? "text-green-700" : resumen.resultado === "NO CONFORME" ? "text-red-700" : "text-gray-700"}`}>
-                {resumen.resultado === "CONFORME" ? "✅ VERIFICACIÓN CONFORME" : resumen.resultado === "NO CONFORME" ? "❌ VERIFICACIÓN NO CONFORME" : "⏳ VERIFICACIÓN PENDIENTE"}
-              </p>
-              <p className="text-sm mt-2">
-                Conformes: <b>{resumen.conformes}</b> · No conformes: <b>{resumen.noConformes.length + resumen.inspeccionesNC}</b> · No aplica: <b>{resumen.noAplica}</b>
-              </p>
-            </div>
-
-            {resumen.noConformes.length > 0 && (
-              <div className="bg-red-50 border border-red-300 rounded-xl p-3 text-sm text-red-800">
-                <p className="font-bold mb-2">Determinaciones no conformes</p>
-                {resumen.noConformes.map((item, index) => (
-                  <p key={`${item.nombre}-${index}`}>• {item.nombre}{item.resultado ? `: ${item.resultado}` : ""}</p>
-                ))}
-              </div>
-            )}
-
-            {inspecciones.observaciones?.trim() && (
-              <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-3 text-sm">
-                <p className="font-bold mb-1">Observaciones de inspección</p>
-                <p className="whitespace-pre-wrap">{inspecciones.observaciones}</p>
-              </div>
-            )}
-
-            <label className="font-semibold block">Observaciones generales</label>
-            <textarea
-              value={observaciones}
-              onChange={(e) => setObservaciones(e.target.value)}
-              rows={5}
-              placeholder="Ingrese observaciones generales de la verificación..."
-              className="w-full border rounded-xl p-3"
-            />
-
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-800">
-              El avance de RIC48 se guarda automáticamente. La persistencia definitiva, PDF y Google Drive se conectarán al backend cuando creemos las tablas y endpoints específicos de RIC48.
-            </div>
-
-            <div className="flex gap-2">
-              <button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button>
-              <button onClick={() => setVista("equipos")} className="flex-1 bg-blue-600 text-white rounded-xl p-3">Guardar avance y salir</button>
-            </div>
-          </div>
-        )}
+        {etapa === 8 && <div className="bg-white rounded-xl shadow p-4 space-y-4"><h2 className="text-xl font-bold">9. Resumen de la verificación</h2><div className={`border rounded-xl p-4 ${resumen.resultado === "CONFORME" ? "bg-green-50 border-green-400" : resumen.resultado === "NO CONFORME" ? "bg-red-50 border-red-400" : "bg-gray-50"}`}><p className={`font-bold text-lg ${resumen.resultado === "CONFORME" ? "text-green-700" : resumen.resultado === "NO CONFORME" ? "text-red-700" : "text-gray-700"}`}>{resumen.resultado === "CONFORME" ? "✅ VERIFICACIÓN CONFORME" : resumen.resultado === "NO CONFORME" ? "❌ VERIFICACIÓN NO CONFORME" : "⏳ VERIFICACIÓN PENDIENTE"}</p><p className="text-sm mt-2">Conformes: <b>{resumen.conformes}</b> · No conformes: <b>{resumen.noConformes.length + resumen.inspeccionesNC}</b> · No aplica: <b>{resumen.noAplica}</b></p></div>{resumen.noConformes.length > 0 && <div className="bg-red-50 border border-red-300 rounded-xl p-3 text-sm text-red-800"><p className="font-bold mb-2">Determinaciones no conformes</p>{resumen.noConformes.map((item, index) => <p key={`${item.nombre}-${index}`}>• {item.nombre}{item.resultado ? `: ${item.resultado}` : ""}</p>)}</div>}{inspecciones.observaciones?.trim() && <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-3 text-sm"><p className="font-bold mb-1">Observaciones de inspección</p><p className="whitespace-pre-wrap">{inspecciones.observaciones}</p></div>}<label className="font-semibold block">Observaciones generales</label><textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={5} placeholder="Ingrese observaciones generales de la verificación..." className="w-full border rounded-xl p-3" /><div className="flex gap-2"><button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button><button onClick={guardarRIC48} disabled={guardando || resumen.resultado === "PENDIENTE" || !!ric48Id} className="flex-1 bg-green-600 disabled:bg-gray-300 text-white rounded-xl p-3 font-semibold">{guardando ? "Guardando..." : ric48Id ? "Guardado ✓" : "💾 Guardar RIC48"}</button></div>{ric48Id && <div className="grid grid-cols-1 md:grid-cols-2 gap-3"><button onClick={abrirPDF} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-3 font-bold">📄 Ver PDF</button><button onClick={enviarDrive} disabled={enviandoDrive} className="bg-green-700 hover:bg-green-800 disabled:bg-gray-400 text-white rounded-xl p-3 font-bold">{enviandoDrive ? "☁️ Enviando..." : "☁️ Enviar a Drive"}</button><button onClick={() => setVista("equipos")} className="md:col-span-2 bg-gray-600 hover:bg-gray-700 text-white rounded-xl p-3 font-bold">🚪 Salir</button></div>}</div>}
       </div>
     </div>
   );
