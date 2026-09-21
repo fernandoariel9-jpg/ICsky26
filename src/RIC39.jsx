@@ -3,6 +3,7 @@ import { API_URL } from "./config";
 
 const ETAPAS = ["Aceptación visual", "Normal", "Hipertenso", "Bradicardia", "Seguridad eléctrica", "Resumen"];
 const INSTRUCCION_GENERICA = "Procedimiento: configure el simulador según el valor nominal indicado, realice la medición y registre el valor obtenido.";
+const claveBorrador = (ric01Id) => `preventivo:ric39:${ric01Id}`;
 
 const ESCENARIOS = [
   {
@@ -116,6 +117,7 @@ export default function RIC39({ setVista, personal }) {
   const [enviandoDrive, setEnviandoDrive] = useState(false);
   const [error, setError] = useState("");
   const [ric39Id, setRic39Id] = useState(null);
+  const [borradorCargado, setBorradorCargado] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -123,6 +125,7 @@ export default function RIC39({ setVista, personal }) {
         const raw = localStorage.getItem("tareaActiva");
         if (!raw) throw new Error("No hay una tarea activa.");
         const tarea = JSON.parse(raw);
+        const ric01Id = tarea.ric01_id || tarea.id || "";
         let equipo = null;
         if (tarea.numero_serie) {
           const r = await fetch(`${API_URL.BuscarEquipo}/${encodeURIComponent(tarea.numero_serie)}`);
@@ -130,7 +133,7 @@ export default function RIC39({ setVista, personal }) {
         }
         setDatos((p) => ({
           ...p,
-          ric01_id: tarea.ric01_id || tarea.id || "",
+          ric01_id: ric01Id,
           equipo_id: equipo?.id || tarea.equipo_id || "",
           numero_serie: equipo?.numero_serie || tarea.numero_serie || "",
           descripcion: equipo?.descripcion || tarea.descripcion || "MONITOR MULTIPARAMÉTRICO",
@@ -141,13 +144,34 @@ export default function RIC39({ setVista, personal }) {
           encargado: equipo?.encargado || tarea.encargado || "",
           tecnico: personal?.nombre || tarea.usuario || ""
         }));
+
+        if (ric01Id) {
+          const borradorRaw = localStorage.getItem(claveBorrador(ric01Id));
+          if (borradorRaw) {
+            const borrador = JSON.parse(borradorRaw);
+            if (Number.isInteger(borrador.etapa)) setEtapa(borrador.etapa);
+            if (borrador.actual) setActual(borrador.actual);
+            if (borrador.inspecciones) setInspecciones(borrador.inspecciones);
+            if (Array.isArray(borrador.mediciones)) setMediciones(borrador.mediciones);
+            if (typeof borrador.observaciones === "string") setObservaciones(borrador.observaciones);
+          }
+        }
       } catch (e) {
         setError(e.message || "No se pudieron cargar los datos del equipo.");
       } finally {
+        setBorradorCargado(true);
         setCargando(false);
       }
     })();
   }, [personal]);
+
+  useEffect(() => {
+    if (!borradorCargado || cargando || !datos.ric01_id || ric39Id) return;
+    localStorage.setItem(
+      claveBorrador(datos.ric01_id),
+      JSON.stringify({ etapa, actual, inspecciones, mediciones, observaciones })
+    );
+  }, [borradorCargado, cargando, datos.ric01_id, ric39Id, etapa, actual, inspecciones, mediciones, observaciones]);
 
   const resumen = useMemo(() => {
     const evaluadas = mediciones.filter((m) => !m.no_aplica && m.conforme !== null);
@@ -197,6 +221,7 @@ export default function RIC39({ setVista, personal }) {
       const b = await r.json();
       if (!r.ok) throw new Error(b.error || "Error guardando RIC39");
       setRic39Id(b.ric39_id);
+      if (datos.ric01_id) localStorage.removeItem(claveBorrador(datos.ric01_id));
       alert(`RIC39 guardado correctamente. ID: ${b.ric39_id}`);
     } catch (e) { setError(e.message); } finally { setGuardando(false); }
   };
