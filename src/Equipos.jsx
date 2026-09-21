@@ -238,6 +238,12 @@ export default function Equipos({ setVista, personal }) {
     tipo: "preventivo",
     descripcion: "monitor multiparametrico",
     vista: "ric39"
+  },
+  {
+    protocolo: "RIC48",
+    tipo: "preventivo",
+    descripcion: "electrocardiografo",
+    vista: "ric48"
   }
 ];
 
