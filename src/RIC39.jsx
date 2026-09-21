@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
 
 const ETAPAS = ["Aceptación visual", "Normal", "Hipertenso", "Bradicardia", "Seguridad eléctrica", "Resumen"];
+const INSTRUCCION_GENERICA = "Procedimiento: configure el simulador según el valor nominal indicado, realice la medición y registre el valor obtenido.";
 
 const ESCENARIOS = [
   {
@@ -64,6 +65,7 @@ const crearMediciones = () =>
       b: f[6],
       c: f[7],
       d: f[8],
+      instruccion: f[9] || INSTRUCCION_GENERICA,
       medicion: "",
       conforme: null,
       no_aplica: false,
@@ -294,6 +296,10 @@ export default function RIC39({ setVista, personal }) {
               </div>
               <Estado conforme={med.conforme} noAplica={med.no_aplica} />
             </div>
+
+            <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
+              {med.instruccion}
+            </p>
 
             <div className={`border rounded-xl p-3 ${med.no_aplica ? "bg-gray-50" : med.conforme === true ? "bg-green-50 border-green-300" : med.conforme === false ? "bg-red-50 border-red-300" : "bg-white"}`}>
               <div className="grid grid-cols-2 gap-3 text-sm mb-4">
