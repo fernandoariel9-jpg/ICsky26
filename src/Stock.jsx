@@ -34,6 +34,10 @@ export default function Stock({ setVista, personal }) {
   const [mostrarSalida, setMostrarSalida] = useState(false);
   const [mostrarTransferencia, setMostrarTransferencia] = useState(false);
 
+  const [kpiActivo, setKpiActivo] = useState(null);
+  const [existenciaAjuste, setExistenciaAjuste] = useState(null);
+  const [ajuste, setAjuste] = useState({ nueva_cantidad: "", observacion: "" });
+
   const areaPersonal = (personal?.area || "").trim().toUpperCase();
 
   const [nuevoItem, setNuevoItem] = useState({ codigo: "", descripcion: "", categoria: "", unidad: "UNIDAD", stock_minimo: 0 });
@@ -59,10 +63,20 @@ export default function Stock({ setVista, personal }) {
         fetch(`${API}/movimientos`, { cache: "no-store" }),
         fetch(`${API}/transferencias`, { cache: "no-store" })
       ]);
-      if (!rCategorias.ok || !rAreas.ok || !rItems.ok || !rExistencias.ok || !rMovimientos.ok || !rTransferencias.ok) throw new Error("No se pudo obtener la información de stock");
+
+      if (!rCategorias.ok || !rAreas.ok || !rItems.ok || !rExistencias.ok || !rMovimientos.ok || !rTransferencias.ok) {
+        throw new Error("No se pudo obtener la información de stock");
+      }
+
       const [dCategorias, dAreas, dItems, dExistencias, dMovimientos, dTransferencias] = await Promise.all([
-        rCategorias.json(), rAreas.json(), rItems.json(), rExistencias.json(), rMovimientos.json(), rTransferencias.json()
+        rCategorias.json(),
+        rAreas.json(),
+        rItems.json(),
+        rExistencias.json(),
+        rMovimientos.json(),
+        rTransferencias.json()
       ]);
+
       setCategorias(Array.isArray(dCategorias) ? dCategorias : []);
       setAreas(Array.isArray(dAreas) ? dAreas : []);
       setItems(Array.isArray(dItems) ? dItems : []);
@@ -77,56 +91,115 @@ export default function Stock({ setVista, personal }) {
     }
   };
 
-  useEffect(() => { cargarDatos(); }, []);
+  useEffect(() => {
+    cargarDatos();
+  }, []);
 
   const postJSON = async (url, body, method = "POST") => {
-    const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "Error al guardar");
     return data;
   };
 
   const crearItem = async (e) => {
-    e.preventDefault(); setGuardando(true); setError(""); setMensaje("");
+    e.preventDefault();
+    setGuardando(true);
+    setError("");
+    setMensaje("");
     try {
       await postJSON(`${API}/items`, { ...nuevoItem, stock_minimo: Number(nuevoItem.stock_minimo || 0) });
       setNuevoItem({ codigo: "", descripcion: "", categoria: "", unidad: "UNIDAD", stock_minimo: 0 });
-      setMostrarAlta(false); setMensaje("Artículo creado correctamente"); await cargarDatos(); setTab("catalogo");
-    } catch (e2) { setError(e2.message); } finally { setGuardando(false); }
+      setMostrarAlta(false);
+      setMensaje("Artículo creado correctamente");
+      await cargarDatos();
+      setTab("catalogo");
+    } catch (e2) {
+      setError(e2.message);
+    } finally {
+      setGuardando(false);
+    }
   };
 
   const eliminarItem = async (item) => {
     const nombre = `${item.codigo ? `${item.codigo} · ` : ""}${item.descripcion}`;
     if (!window.confirm(`¿ELIMINAR DEFINITIVAMENTE ${nombre}?`)) return;
-    setError(""); setMensaje("");
+    setError("");
+    setMensaje("");
     try {
       const res = await fetch(`${API}/items/${item.id}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "No se pudo eliminar el artículo");
-      setMensaje("Artículo eliminado correctamente"); await cargarDatos();
-    } catch (e) { setError(e.message); }
+      setMensaje("Artículo eliminado correctamente");
+      await cargarDatos();
+    } catch (e) {
+      setError(e.message);
+    }
   };
 
   const registrarEntrada = async (e) => {
-    e.preventDefault(); setGuardando(true); setError(""); setMensaje("");
+    e.preventDefault();
+    setGuardando(true);
+    setError("");
+    setMensaje("");
     try {
-      await postJSON(`${API}/entradas`, { item_id: Number(entrada.item_id), area: entrada.area, cantidad: Number(entrada.cantidad), personal_id: personal?.id || null, personal_nombre: personal?.nombre || null, observacion: entrada.observacion });
+      await postJSON(`${API}/entradas`, {
+        item_id: Number(entrada.item_id),
+        area: entrada.area,
+        cantidad: Number(entrada.cantidad),
+        personal_id: personal?.id || null,
+        personal_nombre: personal?.nombre || null,
+        observacion: entrada.observacion
+      });
       setEntrada({ item_id: "", area: areaPersonal, cantidad: "", observacion: "" });
-      setMostrarEntrada(false); setMensaje("Entrada registrada correctamente"); await cargarDatos(); setTab("existencias");
-    } catch (e2) { setError(e2.message); } finally { setGuardando(false); }
+      setMostrarEntrada(false);
+      setMensaje("Entrada registrada correctamente");
+      await cargarDatos();
+      setTab("existencias");
+    } catch (e2) {
+      setError(e2.message);
+    } finally {
+      setGuardando(false);
+    }
   };
 
   const registrarSalida = async (e) => {
-    e.preventDefault(); setGuardando(true); setError(""); setMensaje("");
+    e.preventDefault();
+    setGuardando(true);
+    setError("");
+    setMensaje("");
     try {
-      await postJSON(`${API}/salidas`, { item_id: Number(salida.item_id), area: salida.area, cantidad: Number(salida.cantidad), tipo: salida.tipo, ric01_id: salida.tipo === "CONSUMO" ? Number(salida.ric01_id) : null, personal_id: personal?.id || null, personal_nombre: personal?.nombre || null, observacion: salida.observacion });
+      await postJSON(`${API}/salidas`, {
+        item_id: Number(salida.item_id),
+        area: salida.area,
+        cantidad: Number(salida.cantidad),
+        tipo: salida.tipo,
+        ric01_id: salida.tipo === "CONSUMO" ? Number(salida.ric01_id) : null,
+        personal_id: personal?.id || null,
+        personal_nombre: personal?.nombre || null,
+        observacion: salida.observacion
+      });
       setSalida({ item_id: "", area: areaPersonal, cantidad: "", tipo: "SALIDA", ric01_id: "", observacion: "" });
-      setMostrarSalida(false); setMensaje(salida.tipo === "CONSUMO" ? "Consumo registrado correctamente" : "Salida registrada correctamente"); await cargarDatos(); setTab("movimientos");
-    } catch (e2) { setError(e2.message); } finally { setGuardando(false); }
+      setMostrarSalida(false);
+      setMensaje(salida.tipo === "CONSUMO" ? "Consumo registrado correctamente" : "Salida registrada correctamente");
+      await cargarDatos();
+      setTab("movimientos");
+    } catch (e2) {
+      setError(e2.message);
+    } finally {
+      setGuardando(false);
+    }
   };
 
   const solicitarTransferencia = async (e) => {
-    e.preventDefault(); setGuardando(true); setError(""); setMensaje("");
+    e.preventDefault();
+    setGuardando(true);
+    setError("");
+    setMensaje("");
     try {
       await postJSON(`${API}/transferencias`, {
         item_id: Number(transferencia.item_id),
@@ -138,14 +211,22 @@ export default function Stock({ setVista, personal }) {
         observacion: transferencia.observacion
       });
       setTransferencia({ item_id: "", cantidad: "", area_origen: "", area_destino: areaPersonal, observacion: "" });
-      setMostrarTransferencia(false); setMensaje("Transferencia solicitada correctamente"); await cargarDatos(); setTab("transferencias");
-    } catch (e2) { setError(e2.message); } finally { setGuardando(false); }
+      setMostrarTransferencia(false);
+      setMensaje("Transferencia solicitada correctamente");
+      await cargarDatos();
+      setTab("transferencias");
+    } catch (e2) {
+      setError(e2.message);
+    } finally {
+      setGuardando(false);
+    }
   };
 
   const resolverTransferencia = async (t, accion) => {
     const verbo = accion === "APROBAR" ? "APROBAR" : "RECHAZAR";
     if (!window.confirm(`¿${verbo} TRANSFERENCIA #${t.id}?`)) return;
-    setError(""); setMensaje("");
+    setError("");
+    setMensaje("");
     try {
       await postJSON(`${API}/transferencias/${t.id}/resolver`, {
         accion,
@@ -153,8 +234,43 @@ export default function Stock({ setVista, personal }) {
         aprobado_por_nombre: personal?.nombre || null,
         aprobado_por_area: areaPersonal
       }, "PUT");
-      setMensaje(accion === "APROBAR" ? "Transferencia aprobada" : "Transferencia rechazada"); await cargarDatos(); setTab("transferencias");
-    } catch (e) { setError(e.message); }
+      setMensaje(accion === "APROBAR" ? "Transferencia aprobada" : "Transferencia rechazada");
+      await cargarDatos();
+      setTab("transferencias");
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
+  const abrirAjuste = (existencia) => {
+    setExistenciaAjuste(existencia);
+    setAjuste({ nueva_cantidad: String(existencia.cantidad ?? ""), observacion: "" });
+  };
+
+  const guardarAjuste = async (e) => {
+    e.preventDefault();
+    if (!existenciaAjuste) return;
+    setGuardando(true);
+    setError("");
+    setMensaje("");
+    try {
+      await postJSON(`${API}/existencias/ajustar`, {
+        existencia_id: existenciaAjuste.id,
+        nueva_cantidad: Number(ajuste.nueva_cantidad),
+        personal_id: personal?.id || null,
+        personal_nombre: personal?.nombre || null,
+        observacion: ajuste.observacion
+      }, "PUT");
+      setExistenciaAjuste(null);
+      setAjuste({ nueva_cantidad: "", observacion: "" });
+      setMensaje("Ajuste de stock registrado correctamente");
+      await cargarDatos();
+      setKpiActivo("existencias");
+    } catch (e2) {
+      setError(e2.message);
+    } finally {
+      setGuardando(false);
+    }
   };
 
   const filtrar = (lista) => {
@@ -168,6 +284,16 @@ export default function Stock({ setVista, personal }) {
     [existencias, areaPersonal]
   );
 
+  const stockBajoArea = useMemo(
+    () => existenciasArea.filter((e) => e.stock_bajo),
+    [existenciasArea]
+  );
+
+  const transferenciasPendientes = useMemo(
+    () => transferencias.filter((t) => t.estado === "PENDIENTE"),
+    [transferencias]
+  );
+
   const datos = useMemo(() => {
     if (tab === "catalogo") return filtrar(items);
     if (tab === "existencias") return filtrar(existenciasArea);
@@ -175,11 +301,76 @@ export default function Stock({ setVista, personal }) {
     return filtrar(movimientos);
   }, [tab, items, existenciasArea, movimientos, transferencias, busqueda]);
 
+  const kpiConfig = {
+    articulos: { titulo: "Artículos", lista: items },
+    existencias: { titulo: `Existencias de ${areaPersonal || "mi área"}`, lista: existenciasArea },
+    bajo: { titulo: "Stock bajo", lista: stockBajoArea },
+    transferencias: { titulo: "Transferencias pendientes", lista: transferenciasPendientes }
+  };
+
+  const kpiSeleccionado = kpiActivo ? kpiConfig[kpiActivo] : null;
+
+  const renderListaKpi = () => {
+    if (!kpiSeleccionado) return null;
+    const lista = kpiSeleccionado.lista;
+
+    if (lista.length === 0) {
+      return <div className="p-6 text-center text-gray-500">No hay registros para mostrar.</div>;
+    }
+
+    if (kpiActivo === "articulos") {
+      return (
+        <div className="divide-y">
+          {lista.map((item) => (
+            <div key={item.id} className="p-3">
+              <div className="font-semibold">{item.codigo ? `${item.codigo} · ` : ""}{item.descripcion}</div>
+              <div className="text-sm text-gray-500">{item.categoria || "Sin categoría"} · {item.unidad} · Mínimo: {item.stock_minimo}</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (kpiActivo === "existencias" || kpiActivo === "bajo") {
+      return (
+        <div className="divide-y">
+          {lista.map((e) => (
+            <div key={e.id} className="p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <div className="font-semibold">{e.codigo ? `${e.codigo} · ` : ""}{e.descripcion}</div>
+                <div className="text-sm text-gray-500">{e.area} · {e.cantidad} {e.unidad} · Mínimo: {e.stock_minimo}</div>
+                {e.stock_bajo && <div className="text-sm font-semibold text-red-600">Stock bajo</div>}
+              </div>
+              {kpiActivo === "existencias" && (
+                <button onClick={() => abrirAjuste(e)} className="px-3 py-2 rounded-lg bg-amber-600 text-white font-semibold">Ajustar</button>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="divide-y">
+        {lista.map((t) => (
+          <div key={t.id} className="p-3">
+            <div className="font-semibold">#{t.id} · {t.codigo ? `${t.codigo} · ` : ""}{t.descripcion}</div>
+            <div className="text-sm text-gray-500">{t.cantidad} {t.unidad} · {t.area_origen} → {t.area_destino}</div>
+            <div className="text-sm text-gray-500">Solicitado por: {t.solicitado_por_nombre || "-"} · {formatearFecha(t.fecha_solicitud)}</div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
-          <div><h1 className="text-3xl font-bold text-gray-800">Stock</h1><p className="text-gray-500">Repuestos e insumos de Ingeniería Clínica</p></div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Stock</h1>
+            <p className="text-gray-500">Repuestos e insumos de Ingeniería Clínica</p>
+          </div>
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full md:w-auto">
             <button onClick={() => setMostrarAlta((v) => !v)} className={`${actionButtonClass} bg-indigo-600 text-white`}>Nuevo artículo</button>
             <button onClick={() => setMostrarEntrada((v) => !v)} className={`${actionButtonClass} bg-green-600 text-white`}>Entrada</button>
@@ -193,71 +384,178 @@ export default function Stock({ setVista, personal }) {
         {mensaje && <div className="mb-4 bg-green-100 text-green-700 border border-green-200 rounded-xl p-3">{mensaje}</div>}
         {error && <div className="mb-4 bg-red-100 text-red-700 border border-red-200 rounded-xl p-3">{error}</div>}
 
-        {mostrarAlta && <form onSubmit={crearItem} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-5 gap-3">
-          <input className={inputClass} placeholder="Código" value={nuevoItem.codigo} onChange={(e) => setNuevoItem({ ...nuevoItem, codigo: e.target.value.toUpperCase() })} />
-          <input className={inputClass} placeholder="Descripción" required value={nuevoItem.descripcion} onChange={(e) => setNuevoItem({ ...nuevoItem, descripcion: e.target.value.toUpperCase() })} />
-          <select className={inputClass} required value={nuevoItem.categoria} onChange={(e) => setNuevoItem({ ...nuevoItem, categoria: e.target.value })}><option value="">SELECCIONAR CATEGORÍA</option>{categorias.map((categoria) => <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>)}</select>
-          <input className={inputClass} placeholder="Unidad" value={nuevoItem.unidad} onChange={(e) => setNuevoItem({ ...nuevoItem, unidad: e.target.value.toUpperCase() })} />
-          <input className={inputClass} type="number" min="0" step="0.01" placeholder="Stock mínimo" value={nuevoItem.stock_minimo} onChange={(e) => setNuevoItem({ ...nuevoItem, stock_minimo: e.target.value })} />
-          <div className="md:col-span-5 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-indigo-600 text-white`}>Guardar artículo</button></div>
-        </form>}
+        {mostrarAlta && (
+          <form onSubmit={crearItem} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-5 gap-3">
+            <input className={inputClass} placeholder="Código" value={nuevoItem.codigo} onChange={(e) => setNuevoItem({ ...nuevoItem, codigo: e.target.value.toUpperCase() })} />
+            <input className={inputClass} placeholder="Descripción" required value={nuevoItem.descripcion} onChange={(e) => setNuevoItem({ ...nuevoItem, descripcion: e.target.value.toUpperCase() })} />
+            <select className={inputClass} required value={nuevoItem.categoria} onChange={(e) => setNuevoItem({ ...nuevoItem, categoria: e.target.value })}>
+              <option value="">SELECCIONAR CATEGORÍA</option>
+              {categorias.map((categoria) => <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>)}
+            </select>
+            <input className={inputClass} placeholder="Unidad" value={nuevoItem.unidad} onChange={(e) => setNuevoItem({ ...nuevoItem, unidad: e.target.value.toUpperCase() })} />
+            <input className={inputClass} type="number" min="0" step="0.01" placeholder="Stock mínimo" value={nuevoItem.stock_minimo} onChange={(e) => setNuevoItem({ ...nuevoItem, stock_minimo: e.target.value })} />
+            <div className="md:col-span-5 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-indigo-600 text-white`}>Guardar artículo</button></div>
+          </form>
+        )}
 
-        {mostrarEntrada && <form onSubmit={registrarEntrada} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-4 gap-3">
-          <select className={inputClass} required value={entrada.item_id} onChange={(e) => setEntrada({ ...entrada, item_id: e.target.value })}><option value="">Seleccionar artículo</option>{items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}</select>
-          <input className={inputClass} required placeholder="Área" value={entrada.area} onChange={(e) => setEntrada({ ...entrada, area: e.target.value.toUpperCase() })} />
-          <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={entrada.cantidad} onChange={(e) => setEntrada({ ...entrada, cantidad: e.target.value })} />
-          <input className={inputClass} placeholder="Observación" value={entrada.observacion} onChange={(e) => setEntrada({ ...entrada, observacion: e.target.value.toUpperCase() })} />
-          <div className="md:col-span-4 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-green-600 text-white`}>Registrar entrada</button></div>
-        </form>}
+        {mostrarEntrada && (
+          <form onSubmit={registrarEntrada} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-4 gap-3">
+            <select className={inputClass} required value={entrada.item_id} onChange={(e) => setEntrada({ ...entrada, item_id: e.target.value })}>
+              <option value="">Seleccionar artículo</option>
+              {items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}
+            </select>
+            <input className={inputClass} required placeholder="Área" value={entrada.area} onChange={(e) => setEntrada({ ...entrada, area: e.target.value.toUpperCase() })} />
+            <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={entrada.cantidad} onChange={(e) => setEntrada({ ...entrada, cantidad: e.target.value })} />
+            <input className={inputClass} placeholder="Observación" value={entrada.observacion} onChange={(e) => setEntrada({ ...entrada, observacion: e.target.value.toUpperCase() })} />
+            <div className="md:col-span-4 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-green-600 text-white`}>Registrar entrada</button></div>
+          </form>
+        )}
 
-        {mostrarSalida && <form onSubmit={registrarSalida} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-6 gap-3">
-          <select className={inputClass} required value={salida.item_id} onChange={(e) => setSalida({ ...salida, item_id: e.target.value })}><option value="">Seleccionar artículo</option>{items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}</select>
-          <input className={inputClass} required placeholder="Área" value={salida.area} onChange={(e) => setSalida({ ...salida, area: e.target.value.toUpperCase() })} />
-          <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={salida.cantidad} onChange={(e) => setSalida({ ...salida, cantidad: e.target.value })} />
-          <select className={inputClass} value={salida.tipo} onChange={(e) => setSalida({ ...salida, tipo: e.target.value, ric01_id: e.target.value === "CONSUMO" ? salida.ric01_id : "" })}><option value="SALIDA">Salida</option><option value="CONSUMO">Consumo</option></select>
-          <input className={inputClass} type="number" min="1" required={salida.tipo === "CONSUMO"} disabled={salida.tipo !== "CONSUMO"} placeholder="RIC01 ID" value={salida.ric01_id} onChange={(e) => setSalida({ ...salida, ric01_id: e.target.value })} />
-          <input className={inputClass} placeholder="Observación" value={salida.observacion} onChange={(e) => setSalida({ ...salida, observacion: e.target.value.toUpperCase() })} />
-          <div className="md:col-span-6 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-amber-600 text-white`}>Registrar {salida.tipo === "CONSUMO" ? "consumo" : "salida"}</button></div>
-        </form>}
+        {mostrarSalida && (
+          <form onSubmit={registrarSalida} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-6 gap-3">
+            <select className={inputClass} required value={salida.item_id} onChange={(e) => setSalida({ ...salida, item_id: e.target.value })}>
+              <option value="">Seleccionar artículo</option>
+              {items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}
+            </select>
+            <input className={inputClass} required placeholder="Área" value={salida.area} onChange={(e) => setSalida({ ...salida, area: e.target.value.toUpperCase() })} />
+            <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={salida.cantidad} onChange={(e) => setSalida({ ...salida, cantidad: e.target.value })} />
+            <select className={inputClass} value={salida.tipo} onChange={(e) => setSalida({ ...salida, tipo: e.target.value, ric01_id: e.target.value === "CONSUMO" ? salida.ric01_id : "" })}>
+              <option value="SALIDA">Salida</option>
+              <option value="CONSUMO">Consumo</option>
+            </select>
+            <input className={inputClass} type="number" min="1" required={salida.tipo === "CONSUMO"} disabled={salida.tipo !== "CONSUMO"} placeholder="RIC01 ID" value={salida.ric01_id} onChange={(e) => setSalida({ ...salida, ric01_id: e.target.value })} />
+            <input className={inputClass} placeholder="Observación" value={salida.observacion} onChange={(e) => setSalida({ ...salida, observacion: e.target.value.toUpperCase() })} />
+            <div className="md:col-span-6 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-amber-600 text-white`}>Registrar {salida.tipo === "CONSUMO" ? "consumo" : "salida"}</button></div>
+          </form>
+        )}
 
-        {mostrarTransferencia && <form onSubmit={solicitarTransferencia} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-5 gap-3">
-          <select className={inputClass} required value={transferencia.item_id} onChange={(e) => setTransferencia({ ...transferencia, item_id: e.target.value })}><option value="">Seleccionar artículo</option>{items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}</select>
-          <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={transferencia.cantidad} onChange={(e) => setTransferencia({ ...transferencia, cantidad: e.target.value })} />
-          <select className={inputClass} required value={transferencia.area_origen} onChange={(e) => setTransferencia({ ...transferencia, area_origen: e.target.value })}>
-            <option value="">SELECCIONAR ÁREA QUE ENTREGA</option>
-            {areas.map((a) => String(a.area || a.nombre || "").trim().toUpperCase()).filter((nombre, index, lista) => nombre && nombre !== transferencia.area_destino && lista.indexOf(nombre) === index).sort().map((nombre) => <option key={nombre} value={nombre}>{nombre}</option>)}
-          </select>
-          <input className={`${inputClass} bg-gray-100`} readOnly value={transferencia.area_destino} placeholder="Área solicitante" title="Área destino: área del técnico que solicita" />
-          <input className={inputClass} placeholder="Observación" value={transferencia.observacion} onChange={(e) => setTransferencia({ ...transferencia, observacion: e.target.value.toUpperCase() })} />
-          <div className="md:col-span-5 text-sm text-gray-500">El área seleccionada entrega el artículo a {transferencia.area_destino || "TU ÁREA"}.</div>
-          <div className="md:col-span-5 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-purple-600 text-white`}>Solicitar transferencia</button></div>
-        </form>}
+        {mostrarTransferencia && (
+          <form onSubmit={solicitarTransferencia} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-5 gap-3">
+            <select className={inputClass} required value={transferencia.item_id} onChange={(e) => setTransferencia({ ...transferencia, item_id: e.target.value })}>
+              <option value="">Seleccionar artículo</option>
+              {items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}
+            </select>
+            <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={transferencia.cantidad} onChange={(e) => setTransferencia({ ...transferencia, cantidad: e.target.value })} />
+            <select className={inputClass} required value={transferencia.area_origen} onChange={(e) => setTransferencia({ ...transferencia, area_origen: e.target.value })}>
+              <option value="">SELECCIONAR ÁREA QUE ENTREGA</option>
+              {areas.map((a) => String(a.area || a.nombre || "").trim().toUpperCase()).filter((nombre, index, lista) => nombre && nombre !== transferencia.area_destino && lista.indexOf(nombre) === index).sort().map((nombre) => <option key={nombre} value={nombre}>{nombre}</option>)}
+            </select>
+            <input className={`${inputClass} bg-gray-100`} readOnly value={transferencia.area_destino} placeholder="Área solicitante" title="Área destino: área del técnico que solicita" />
+            <input className={inputClass} placeholder="Observación" value={transferencia.observacion} onChange={(e) => setTransferencia({ ...transferencia, observacion: e.target.value.toUpperCase() })} />
+            <div className="md:col-span-5 text-sm text-gray-500">El área seleccionada entrega el artículo a {transferencia.area_destino || "TU ÁREA"}.</div>
+            <div className="md:col-span-5 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-purple-600 text-white`}>Solicitar transferencia</button></div>
+          </form>
+        )}
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3 mb-4 md:mb-5">
-          <div className="bg-white rounded-xl md:rounded-2xl shadow p-3 md:p-4"><div className="text-xs sm:text-sm leading-tight text-gray-500">Artículos</div><div className="text-2xl md:text-3xl font-bold text-gray-800">{items.length}</div></div>
-          <div className="bg-white rounded-xl md:rounded-2xl shadow p-3 md:p-4"><div className="text-xs sm:text-sm leading-tight text-gray-500">Existencias del área</div><div className="text-2xl md:text-3xl font-bold text-gray-800">{existenciasArea.length}</div></div>
-          <div className="bg-white rounded-xl md:rounded-2xl shadow p-3 md:p-4"><div className="text-xs sm:text-sm leading-tight text-gray-500">Stock bajo</div><div className="text-2xl md:text-3xl font-bold text-red-600">{existenciasArea.filter((e) => e.stock_bajo).length}</div></div>
-          <div className="bg-white rounded-xl md:rounded-2xl shadow p-3 md:p-4"><div className="text-xs sm:text-sm leading-tight text-gray-500">Transferencias pendientes</div><div className="text-2xl md:text-3xl font-bold text-purple-600">{transferencias.filter((t) => t.estado === "PENDIENTE").length}</div></div>
+          <button onClick={() => setKpiActivo("articulos")} className="text-left bg-white rounded-xl md:rounded-2xl shadow p-3 md:p-4 hover:ring-2 hover:ring-blue-300 transition">
+            <div className="text-xs sm:text-sm leading-tight text-gray-500">Artículos</div>
+            <div className="text-2xl md:text-3xl font-bold text-gray-800">{items.length}</div>
+          </button>
+          <button onClick={() => setKpiActivo("existencias")} className="text-left bg-white rounded-xl md:rounded-2xl shadow p-3 md:p-4 hover:ring-2 hover:ring-blue-300 transition">
+            <div className="text-xs sm:text-sm leading-tight text-gray-500">Existencias del área</div>
+            <div className="text-2xl md:text-3xl font-bold text-gray-800">{existenciasArea.length}</div>
+          </button>
+          <button onClick={() => setKpiActivo("bajo")} className="text-left bg-white rounded-xl md:rounded-2xl shadow p-3 md:p-4 hover:ring-2 hover:ring-red-300 transition">
+            <div className="text-xs sm:text-sm leading-tight text-gray-500">Stock bajo</div>
+            <div className="text-2xl md:text-3xl font-bold text-red-600">{stockBajoArea.length}</div>
+          </button>
+          <button onClick={() => setKpiActivo("transferencias")} className="text-left bg-white rounded-xl md:rounded-2xl shadow p-3 md:p-4 hover:ring-2 hover:ring-purple-300 transition">
+            <div className="text-xs sm:text-sm leading-tight text-gray-500">Transferencias pendientes</div>
+            <div className="text-2xl md:text-3xl font-bold text-purple-600">{transferenciasPendientes.length}</div>
+          </button>
         </div>
 
-        <div className="bg-white rounded-2xl shadow p-4 mb-5"><div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">{[["catalogo", "Catálogo"], ["existencias", "Existencias"], ["movimientos", "Movimientos"], ["transferencias", "Transferencias"]].map(([valor, etiqueta]) => <button key={valor} onClick={() => setTab(valor)} className={`h-10 w-full sm:w-36 px-3 rounded-xl font-semibold inline-flex items-center justify-center ${tab === valor ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>{etiqueta}</button>)}</div>
-          <input value={busqueda} onChange={(e) => setBusqueda(e.target.value.toUpperCase())} placeholder="Buscar..." className="w-full lg:w-80 border rounded-xl px-4 py-2" />
-        </div></div>
+        <div className="bg-white rounded-2xl shadow p-4 mb-5">
+          <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+              {[["catalogo", "Catálogo"], ["existencias", "Existencias"], ["movimientos", "Movimientos"], ["transferencias", "Transferencias"]].map(([valor, etiqueta]) => (
+                <button key={valor} onClick={() => setTab(valor)} className={`h-10 w-full sm:w-36 px-3 rounded-xl font-semibold inline-flex items-center justify-center ${tab === valor ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>{etiqueta}</button>
+              ))}
+            </div>
+            <input value={busqueda} onChange={(e) => setBusqueda(e.target.value.toUpperCase())} placeholder="Buscar..." className="w-full lg:w-80 border rounded-xl px-4 py-2" />
+          </div>
+        </div>
 
         <div className="bg-white rounded-2xl shadow overflow-hidden">
-          {cargando ? <div className="p-8 text-center text-gray-500">Cargando stock...</div> : datos.length === 0 ? <div className="p-8 text-center text-gray-500">Sin registros para mostrar.</div> : tab === "catalogo" ?
-            <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Código</th><th className="text-left p-3">Descripción</th><th className="text-left p-3">Categoría</th><th className="text-left p-3">Unidad</th><th className="text-right p-3">Stock mínimo</th><th className="text-center p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead><tbody>{datos.map((item) => <tr key={item.id} className="border-t"><td className="p-3 font-medium">{item.codigo || "-"}</td><td className="p-3">{item.descripcion}</td><td className="p-3">{item.categoria || "-"}</td><td className="p-3">{item.unidad}</td><td className="p-3 text-right">{item.stock_minimo}</td><td className="p-3 text-center"><span>{item.activo ? "Activo" : "Inactivo"}</span></td><td className="p-3 text-center"><button onClick={() => eliminarItem(item)} className={`${tableButtonClass} bg-red-600 text-white`}>Eliminar</button></td></tr>)}</tbody></table></div>
-          : tab === "existencias" ?
-            <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Código</th><th className="text-left p-3">Descripción</th><th className="text-left p-3">Área</th><th className="text-right p-3">Cantidad</th><th className="text-right p-3">Mínimo</th><th className="text-center p-3">Estado</th></tr></thead><tbody>{datos.map((e) => <tr key={e.id} className="border-t"><td className="p-3 font-medium">{e.codigo || "-"}</td><td className="p-3">{e.descripcion}</td><td className="p-3">{e.area}</td><td className="p-3 text-right font-semibold">{e.cantidad} {e.unidad}</td><td className="p-3 text-right">{e.stock_minimo}</td><td className="p-3 text-center">{e.stock_bajo ? "Stock bajo" : "Normal"}</td></tr>)}</tbody></table></div>
-          : tab === "transferencias" ?
-            <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Fecha</th><th className="text-left p-3">Artículo</th><th className="text-right p-3">Cantidad</th><th className="text-left p-3">Origen</th><th className="text-left p-3">Destino</th><th className="text-left p-3">Solicitado por</th><th className="text-left p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead><tbody>{datos.map((t) => {
-              const puedeResolver = t.estado === "PENDIENTE" && String(t.area_origen || "").trim().toUpperCase() === areaPersonal;
-              return <tr key={t.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(t.fecha_solicitud)}</td><td className="p-3">{t.codigo ? `${t.codigo} · ` : ""}{t.descripcion}</td><td className="p-3 text-right">{t.cantidad} {t.unidad}</td><td className="p-3">{t.area_origen}</td><td className="p-3">{t.area_destino}</td><td className="p-3">{t.solicitado_por_nombre || "-"}</td><td className="p-3 font-semibold">{t.estado}</td><td className="p-3 text-center">{puedeResolver ? <div className="flex gap-2 justify-center"><button onClick={() => resolverTransferencia(t, "APROBAR")} className={`${tableButtonClass} bg-green-600 text-white`}>Aprobar</button><button onClick={() => resolverTransferencia(t, "RECHAZAR")} className={`${tableButtonClass} bg-red-600 text-white`}>Rechazar</button></div> : t.estado === "PENDIENTE" ? <span className="text-xs text-gray-500">Esperando área origen</span> : "-"}</td></tr>;
-            })}</tbody></table></div>
-          : <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Fecha</th><th className="text-left p-3">Tipo</th><th className="text-left p-3">Artículo</th><th className="text-right p-3">Cantidad</th><th className="text-left p-3">Origen</th><th className="text-left p-3">Destino</th><th className="text-left p-3">Personal</th><th className="text-left p-3">Referencia</th></tr></thead><tbody>{datos.map((m) => <tr key={m.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(m.fecha)}</td><td className="p-3 font-semibold">{m.tipo}</td><td className="p-3">{m.codigo ? `${m.codigo} · ` : ""}{m.descripcion}</td><td className="p-3 text-right">{m.cantidad} {m.unidad}</td><td className="p-3">{m.area_origen || "-"}</td><td className="p-3">{m.area_destino || "-"}</td><td className="p-3">{m.personal_nombre || "-"}</td><td className="p-3">{m.referencia_tipo && m.referencia_id ? `${m.referencia_tipo} #${m.referencia_id}` : "-"}</td></tr>)}</tbody></table></div>}
+          {cargando ? (
+            <div className="p-8 text-center text-gray-500">Cargando stock...</div>
+          ) : datos.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">Sin registros para mostrar.</div>
+          ) : tab === "catalogo" ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Código</th><th className="text-left p-3">Descripción</th><th className="text-left p-3">Categoría</th><th className="text-left p-3">Unidad</th><th className="text-right p-3">Stock mínimo</th><th className="text-center p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead>
+                <tbody>{datos.map((item) => <tr key={item.id} className="border-t"><td className="p-3 font-medium">{item.codigo || "-"}</td><td className="p-3">{item.descripcion}</td><td className="p-3">{item.categoria || "-"}</td><td className="p-3">{item.unidad}</td><td className="p-3 text-right">{item.stock_minimo}</td><td className="p-3 text-center">{item.activo ? "Activo" : "Inactivo"}</td><td className="p-3 text-center"><button onClick={() => eliminarItem(item)} className={`${tableButtonClass} bg-red-600 text-white`}>Eliminar</button></td></tr>)}</tbody>
+              </table>
+            </div>
+          ) : tab === "existencias" ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Código</th><th className="text-left p-3">Descripción</th><th className="text-left p-3">Área</th><th className="text-right p-3">Cantidad</th><th className="text-right p-3">Mínimo</th><th className="text-center p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead>
+                <tbody>{datos.map((e) => <tr key={e.id} className="border-t"><td className="p-3 font-medium">{e.codigo || "-"}</td><td className="p-3">{e.descripcion}</td><td className="p-3">{e.area}</td><td className="p-3 text-right font-semibold">{e.cantidad} {e.unidad}</td><td className="p-3 text-right">{e.stock_minimo}</td><td className="p-3 text-center">{e.stock_bajo ? "Stock bajo" : "Normal"}</td><td className="p-3 text-center"><button onClick={() => abrirAjuste(e)} className={`${tableButtonClass} bg-amber-600 text-white`}>Ajustar</button></td></tr>)}</tbody>
+              </table>
+            </div>
+          ) : tab === "transferencias" ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Fecha</th><th className="text-left p-3">Artículo</th><th className="text-right p-3">Cantidad</th><th className="text-left p-3">Origen</th><th className="text-left p-3">Destino</th><th className="text-left p-3">Solicitado por</th><th className="text-left p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead>
+                <tbody>{datos.map((t) => {
+                  const puedeResolver = t.estado === "PENDIENTE" && String(t.area_origen || "").trim().toUpperCase() === areaPersonal;
+                  return <tr key={t.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(t.fecha_solicitud)}</td><td className="p-3">{t.codigo ? `${t.codigo} · ` : ""}{t.descripcion}</td><td className="p-3 text-right">{t.cantidad} {t.unidad}</td><td className="p-3">{t.area_origen}</td><td className="p-3">{t.area_destino}</td><td className="p-3">{t.solicitado_por_nombre || "-"}</td><td className="p-3 font-semibold">{t.estado}</td><td className="p-3 text-center">{puedeResolver ? <div className="flex gap-2 justify-center"><button onClick={() => resolverTransferencia(t, "APROBAR")} className={`${tableButtonClass} bg-green-600 text-white`}>Aprobar</button><button onClick={() => resolverTransferencia(t, "RECHAZAR")} className={`${tableButtonClass} bg-red-600 text-white`}>Rechazar</button></div> : t.estado === "PENDIENTE" ? <span className="text-xs text-gray-500">Esperando área origen</span> : "-"}</td></tr>;
+                })}</tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Fecha</th><th className="text-left p-3">Tipo</th><th className="text-left p-3">Artículo</th><th className="text-right p-3">Cantidad</th><th className="text-left p-3">Origen</th><th className="text-left p-3">Destino</th><th className="text-left p-3">Personal</th><th className="text-left p-3">Referencia</th><th className="text-left p-3">Observación</th></tr></thead>
+                <tbody>{datos.map((m) => <tr key={m.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(m.fecha)}</td><td className="p-3 font-semibold">{m.tipo}</td><td className="p-3">{m.codigo ? `${m.codigo} · ` : ""}{m.descripcion}</td><td className="p-3 text-right">{m.cantidad} {m.unidad}</td><td className="p-3">{m.area_origen || "-"}</td><td className="p-3">{m.area_destino || "-"}</td><td className="p-3">{m.personal_nombre || "-"}</td><td className="p-3">{m.referencia_tipo && m.referencia_id ? `${m.referencia_tipo} #${m.referencia_id}` : "-"}</td><td className="p-3">{m.observacion || "-"}</td></tr>)}</tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
+
+      {kpiSeleccionado && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setKpiActivo(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">{kpiSeleccionado.titulo}</h2>
+                <p className="text-sm text-gray-500">{kpiSeleccionado.lista.length} registro(s)</p>
+              </div>
+              <button onClick={() => setKpiActivo(null)} className="px-3 py-2 rounded-lg bg-gray-200 text-gray-700">Cerrar</button>
+            </div>
+            <div className="overflow-y-auto max-h-[65vh]">{renderListaKpi()}</div>
+          </div>
+        </div>
+      )}
+
+      {existenciaAjuste && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setExistenciaAjuste(null)}>
+          <form onSubmit={guardarAjuste} className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-bold text-gray-800 mb-1">Ajustar stock</h2>
+            <p className="text-sm text-gray-500 mb-4">{existenciaAjuste.codigo ? `${existenciaAjuste.codigo} · ` : ""}{existenciaAjuste.descripcion}</p>
+
+            <div className="bg-gray-50 rounded-xl p-3 mb-4 text-sm">
+              <div><strong>Área:</strong> {existenciaAjuste.area}</div>
+              <div><strong>Existencia actual:</strong> {existenciaAjuste.cantidad} {existenciaAjuste.unidad}</div>
+            </div>
+
+            <label className="block text-sm font-semibold mb-1">Nueva cantidad</label>
+            <input className={`${inputClass} mb-3`} type="number" min="0" step="0.01" required value={ajuste.nueva_cantidad} onChange={(e) => setAjuste({ ...ajuste, nueva_cantidad: e.target.value })} />
+
+            <label className="block text-sm font-semibold mb-1">Motivo del ajuste</label>
+            <textarea className={`${inputClass} mb-4`} rows="3" required placeholder="Ej.: diferencia detectada en conteo físico" value={ajuste.observacion} onChange={(e) => setAjuste({ ...ajuste, observacion: e.target.value.toUpperCase() })} />
+
+            <div className="flex gap-2 justify-end">
+              <button type="button" onClick={() => setExistenciaAjuste(null)} className="px-4 py-2 rounded-xl bg-gray-300 text-gray-700">Cancelar</button>
+              <button disabled={guardando} className="px-4 py-2 rounded-xl bg-amber-600 text-white font-semibold disabled:opacity-50">Guardar ajuste</button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
