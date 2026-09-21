@@ -212,44 +212,176 @@ export default function RIC39({ setVista, personal }) {
     } catch (e) { setError(e.message); } finally { setEnviandoDrive(false); }
   };
 
-  if (cargando) return <div className="p-4">Cargando RIC39...</div>;
+  if (cargando) return <div className="p-6 text-center"><p className="text-lg">⏳ Cargando datos del equipo...</p></div>;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-2 md:p-3">
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow overflow-hidden">
-        <div className="bg-blue-600 text-white px-4 py-3 flex justify-between items-center gap-3">
-          <div><h1 className="text-xl font-bold">RIC 39</h1><p className="text-sm text-blue-100">Verificación de monitor multiparamétrico</p></div>
-          <button onClick={() => setVista("equipos")} className="px-3 py-1.5 rounded-lg bg-blue-700 text-sm font-semibold">← Volver</button>
-        </div>
-
-        <div className="p-3">
-          {error && <div className="mb-2 p-2 bg-red-50 border border-red-300 rounded-lg text-red-700 text-sm">{error}</div>}
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-1 bg-gray-50 border rounded-lg p-2 mb-3 text-xs">
-            <div><b>Equipo:</b> {datos.descripcion}</div><div><b>Serie:</b> {datos.numero_serie}</div><div><b>Marca/Modelo:</b> {datos.marca_modelo}</div><div><b>Técnico:</b> {datos.tecnico}</div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="sticky top-0 z-50 bg-white shadow">
+        <div className="max-w-xl mx-auto p-3">
+          <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <p className="font-bold">RIC39 - MP Monitores Multiparamétricos</p>
+            <span>{ETAPAS[etapa]}</span>
+            <span>{etapa + 1} / {ETAPAS.length}</span>
           </div>
 
-          <div className="mb-3"><div className="flex justify-between text-xs font-semibold mb-1"><span>{ETAPAS[etapa]}</span><span>{etapa + 1}/{ETAPAS.length}</span></div><div className="h-1.5 bg-gray-200 rounded-full"><div className="h-1.5 bg-blue-600 rounded-full" style={{ width: `${progreso}%` }} /></div></div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progreso}%` }}
+            />
+          </div>
+        </div>
+      </div>
 
-          {etapa === 0 && <div className="space-y-2">
-            {[["aceptacion_visual", "Aceptación visual"], ["limpieza_exterior", "Limpieza exterior"], ["estado_baterias", "Estado de baterías"], ["estado_cables", "Estado de cables"]].map(([campo, label]) => <div key={campo} className="grid grid-cols-[1fr_150px] gap-2 items-center border-b pb-2"><span className="text-sm font-medium">{label}</span><select value={inspecciones[campo]} onChange={(e) => setInspecciones({ ...inspecciones, [campo]: e.target.value })} className={`border rounded-lg px-2 py-1.5 text-sm ${inspecciones[campo] === "CONFORME" ? "border-green-400 bg-green-50" : inspecciones[campo] === "NO CONFORME" ? "border-red-400 bg-red-50" : "bg-white"}`}><option value="">Seleccionar</option><option value="CONFORME">CONFORME</option><option value="NO CONFORME">NO CONFORME</option><option value="NO APLICA">NO APLICA</option></select></div>)}
-            <textarea value={inspecciones.observaciones} onChange={(e) => setInspecciones({ ...inspecciones, observaciones: e.target.value })} placeholder="Observaciones" className="w-full border rounded-lg p-2 text-sm min-h-14" />
-          </div>}
+      <div className="p-4 max-w-xl mx-auto pb-10">
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-xl">
+            ⚠️ {error}
+          </div>
+        )}
 
-          {escenario && med && <div>
-            <div className="flex justify-between items-center mb-2"><div><h2 className="font-bold">{escenario}</h2><p className="text-xs text-gray-500">Medición {pos + 1} de {lista.length}</p></div><Estado conforme={med.conforme} noAplica={med.no_aplica} /></div>
-            <div className={`border rounded-xl p-3 ${med.no_aplica ? "bg-gray-50" : med.conforme === true ? "bg-green-50 border-green-300" : med.conforme === false ? "bg-red-50 border-red-300" : "bg-white"}`}>
-              <div className="grid grid-cols-2 gap-2 text-sm mb-3"><div><span className="text-gray-500 text-xs">Parámetro</span><div className="font-bold">{med.parametro}</div></div><div><span className="text-gray-500 text-xs">Nominal</span><div className="font-bold">{med.valor_nominal}</div></div><div><span className="text-gray-500 text-xs">Aceptación</span><div>{med.rango_aceptacion}</div></div><div><span className="text-gray-500 text-xs">Incertidumbre</span><div>{med.incertidumbre || "-"}</div></div></div>
-              {med.tipo === "onda" ? <select value={med.medicion} disabled={med.no_aplica} onChange={(e) => cambiarMedicion(med.indice, e.target.value)} className="w-full border rounded-lg p-2 bg-white disabled:bg-gray-100"><option value="">Seleccionar resultado</option><option value="Normal">Normal</option><option value="Alterada">Alterada</option></select> : <input value={med.medicion} disabled={med.no_aplica} onChange={(e) => cambiarMedicion(med.indice, e.target.value)} placeholder={med.tipo.startsWith("presion") ? "Ej.: 120/80" : "Ingrese medición"} className="w-full border rounded-lg p-2 bg-white disabled:bg-gray-100" />}
-              <label className="mt-2 flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={med.no_aplica} onChange={(e) => cambiarNA(med.indice, e.target.checked)} /> No aplica</label>
+        <div className="bg-gray-100 rounded-xl p-3 mb-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="font-bold">{datos.descripcion}</p>
+              <p className="text-sm text-gray-600">{datos.marca_modelo}</p>
             </div>
-          </div>}
 
-          {etapa === 4 && <div className="space-y-2"><h2 className="font-bold">Seguridad eléctrica · RIC 37</h2><input type="number" value={datos.ric37_id} onChange={(e) => setDatos({ ...datos, ric37_id: e.target.value })} placeholder="ID RIC37" className="w-full border rounded-lg p-2 text-sm" /><div className="bg-gray-50 border rounded-lg p-2 text-xs"><b>Verificador:</b> FLUKE PROSIM 8 · NS 2496025 · ETYC 27/01/2025 · Vigencia 27/01/2026</div></div>}
+            <div className="text-right text-xs">
+              <p><b>Serie:</b>{" "}{datos.numero_serie}</p>
+              <p><b>Área:</b>{" "}{datos.area}</p>
+              <p><b>Servicio:</b>{" "}{datos.servicio}</p>
+            </div>
+          </div>
+        </div>
 
-          {etapa === 5 && <div className="space-y-2"><h2 className="font-bold">Resumen</h2><div className={`border rounded-xl p-3 ${resumen.resultado === "CONFORME" ? "bg-green-50 border-green-400" : resumen.resultado === "NO CONFORME" ? "bg-red-50 border-red-400" : "bg-gray-50"}`}><div className={`font-bold ${resumen.resultado === "CONFORME" ? "text-green-700" : resumen.resultado === "NO CONFORME" ? "text-red-700" : "text-gray-600"}`}>{resumen.resultado}</div><div className="text-xs mt-1">Conformes: <b>{resumen.conformes}</b> · No conformes: <b>{resumen.noConformes.length}</b> · No aplica: <b>{resumen.noAplica}</b></div></div>{resumen.obsAuto && <div className="bg-red-50 border border-red-300 rounded-lg p-2 text-sm text-red-800"><b>Observación automática:</b> {resumen.obsAuto}</div>}<textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} placeholder="Observaciones adicionales" className="w-full border rounded-lg p-2 text-sm min-h-14" /><div className="flex flex-wrap gap-2"><button onClick={guardar} disabled={guardando || resumen.resultado === "PENDIENTE"} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-semibold disabled:opacity-40">{guardando ? "Guardando..." : "Guardar RIC39"}</button><button onClick={abrirPDF} disabled={!ric39Id} className="px-3 py-1.5 bg-gray-700 text-white rounded-lg text-sm disabled:opacity-40">Ver PDF</button><button onClick={enviarDrive} disabled={!ric39Id || enviandoDrive} className="px-3 py-1.5 bg-green-700 text-white rounded-lg text-sm disabled:opacity-40">{enviandoDrive ? "Enviando..." : "Enviar a Drive"}</button></div></div>}
+        {etapa === 0 && (
+          <div className="bg-white rounded-xl shadow p-4">
+            <h2 className="text-xl font-bold mb-2">1. Inspección visual</h2>
+            <div className="space-y-4">
+              {[["aceptacion_visual", "Aceptación visual"], ["limpieza_exterior", "Limpieza exterior"], ["estado_baterias", "Estado de baterías"], ["estado_cables", "Estado de cables"]].map(([campo, label]) => (
+                <div key={campo}>
+                  <label className="font-semibold block mb-1">{label}</label>
+                  <select
+                    value={inspecciones[campo]}
+                    onChange={(e) => setInspecciones({ ...inspecciones, [campo]: e.target.value })}
+                    className={`w-full border rounded-xl p-3 ${inspecciones[campo] === "CONFORME" ? "border-green-400 bg-green-50" : inspecciones[campo] === "NO CONFORME" ? "border-red-400 bg-red-50" : "bg-white"}`}
+                  >
+                    <option value="">Seleccionar</option>
+                    <option value="CONFORME">CONFORME</option>
+                    <option value="NO CONFORME">NO CONFORME</option>
+                    <option value="NO APLICA">NO APLICA</option>
+                  </select>
+                </div>
+              ))}
 
-          <div className="flex justify-between mt-4 pt-3 border-t"><button onClick={anterior} className="px-3 py-1.5 bg-gray-200 rounded-lg text-sm font-semibold">← {etapa === 0 ? "Volver" : "Anterior"}</button>{etapa < 5 && <button onClick={siguiente} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-semibold">Siguiente →</button>}</div>
+              <textarea
+                value={inspecciones.observaciones}
+                onChange={(e) => setInspecciones({ ...inspecciones, observaciones: e.target.value })}
+                placeholder="Observaciones"
+                className="w-full border rounded-xl p-3 min-h-20"
+              />
+            </div>
+          </div>
+        )}
+
+        {escenario && med && (
+          <div className="bg-white rounded-xl shadow p-4">
+            <div className="flex justify-between items-center mb-3">
+              <div>
+                <h2 className="text-xl font-bold">{escenario}</h2>
+                <p className="text-sm text-gray-500">Medición {pos + 1} de {lista.length}</p>
+              </div>
+              <Estado conforme={med.conforme} noAplica={med.no_aplica} />
+            </div>
+
+            <div className={`border rounded-xl p-3 ${med.no_aplica ? "bg-gray-50" : med.conforme === true ? "bg-green-50 border-green-300" : med.conforme === false ? "bg-red-50 border-red-300" : "bg-white"}`}>
+              <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                <div><span className="text-gray-500 text-xs">Parámetro</span><div className="font-bold">{med.parametro}</div></div>
+                <div><span className="text-gray-500 text-xs">Nominal</span><div className="font-bold">{med.valor_nominal}</div></div>
+                <div><span className="text-gray-500 text-xs">Aceptación</span><div>{med.rango_aceptacion}</div></div>
+                <div><span className="text-gray-500 text-xs">Incertidumbre</span><div>{med.incertidumbre || "-"}</div></div>
+              </div>
+
+              {med.tipo === "onda" ? (
+                <select
+                  value={med.medicion}
+                  disabled={med.no_aplica}
+                  onChange={(e) => cambiarMedicion(med.indice, e.target.value)}
+                  className="w-full border rounded-xl p-3 bg-white disabled:bg-gray-100"
+                >
+                  <option value="">Seleccionar resultado</option>
+                  <option value="Normal">Normal</option>
+                  <option value="Alterada">Alterada</option>
+                </select>
+              ) : (
+                <input
+                  value={med.medicion}
+                  disabled={med.no_aplica}
+                  onChange={(e) => cambiarMedicion(med.indice, e.target.value)}
+                  placeholder={med.tipo.startsWith("presion") ? "Ej.: 120/80" : "Ingrese medición"}
+                  className="w-full border rounded-xl p-3 bg-white disabled:bg-gray-100"
+                />
+              )}
+
+              <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
+                <input type="checkbox" checked={med.no_aplica} onChange={(e) => cambiarNA(med.indice, e.target.checked)} />
+                No aplica
+              </label>
+            </div>
+          </div>
+        )}
+
+        {etapa === 4 && (
+          <div className="bg-white rounded-xl shadow p-4 space-y-4">
+            <h2 className="text-xl font-bold">Seguridad eléctrica · RIC 37</h2>
+            <input
+              type="number"
+              value={datos.ric37_id}
+              onChange={(e) => setDatos({ ...datos, ric37_id: e.target.value })}
+              placeholder="ID RIC37"
+              className="w-full border rounded-xl p-3"
+            />
+            <div className="bg-gray-50 border rounded-xl p-3 text-sm">
+              <b>Verificador:</b> FLUKE PROSIM 8 · NS 2496025 · ETYC 27/01/2025 · Vigencia 27/01/2026
+            </div>
+          </div>
+        )}
+
+        {etapa === 5 && (
+          <div className="bg-white rounded-xl shadow p-4 space-y-4">
+            <h2 className="text-xl font-bold">Resumen</h2>
+            <div className={`border rounded-xl p-3 ${resumen.resultado === "CONFORME" ? "bg-green-50 border-green-400" : resumen.resultado === "NO CONFORME" ? "bg-red-50 border-red-400" : "bg-gray-50"}`}>
+              <div className={`font-bold ${resumen.resultado === "CONFORME" ? "text-green-700" : resumen.resultado === "NO CONFORME" ? "text-red-700" : "text-gray-600"}`}>{resumen.resultado}</div>
+              <div className="text-xs mt-1">Conformes: <b>{resumen.conformes}</b> · No conformes: <b>{resumen.noConformes.length}</b> · No aplica: <b>{resumen.noAplica}</b></div>
+            </div>
+
+            {resumen.obsAuto && (
+              <div className="bg-red-50 border border-red-300 rounded-xl p-3 text-sm text-red-800">
+                <b>Observación automática:</b> {resumen.obsAuto}
+              </div>
+            )}
+
+            <textarea
+              value={observaciones}
+              onChange={(e) => setObservaciones(e.target.value)}
+              placeholder="Observaciones adicionales"
+              className="w-full border rounded-xl p-3 min-h-20"
+            />
+
+            <div className="flex flex-wrap gap-2">
+              <button onClick={guardar} disabled={guardando || resumen.resultado === "PENDIENTE"} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold disabled:opacity-40">{guardando ? "Guardando..." : "Guardar RIC39"}</button>
+              <button onClick={abrirPDF} disabled={!ric39Id} className="px-4 py-2 bg-gray-700 text-white rounded-xl disabled:opacity-40">Ver PDF</button>
+              <button onClick={enviarDrive} disabled={!ric39Id || enviandoDrive} className="px-4 py-2 bg-green-700 text-white rounded-xl disabled:opacity-40">{enviandoDrive ? "Enviando..." : "Enviar a Drive"}</button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-between mt-4">
+          <button onClick={anterior} className="px-4 py-2 bg-gray-200 rounded-xl font-semibold">← {etapa === 0 ? "Volver" : "Anterior"}</button>
+          {etapa < 5 && (
+            <button onClick={siguiente} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold">Siguiente →</button>
+          )}
         </div>
       </div>
     </div>
