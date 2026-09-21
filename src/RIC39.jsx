@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
 
-const ETAPAS = ["Inspecciones", "Normal", "Hipertenso", "Bradicardia", "Seguridad eléctrica", "Resumen"];
+const ETAPAS = ["Aceptación visual", "Normal", "Hipertenso", "Bradicardia", "Seguridad eléctrica", "Resumen"];
 
 const ESCENARIOS = [
   {
@@ -106,7 +106,7 @@ export default function RIC39({ setVista, personal }) {
   const [etapa, setEtapa] = useState(0);
   const [actual, setActual] = useState({ NORMAL: 0, HIPERTENSO: 0, BRADICARDIA: 0 });
   const [datos, setDatos] = useState({ ric01_id: "", ric37_id: "", equipo_id: "", numero_serie: "", descripcion: "", marca_modelo: "", area: "", servicio: "", sub_servicio: "", encargado: "", fecha: hoyLocal(), tecnico: personal?.nombre || "" });
-  const [inspecciones, setInspecciones] = useState({ aceptacion_visual: "", limpieza_exterior: "", estado_baterias: "", estado_cables: "", observaciones: "" });
+  const [inspecciones, setInspecciones] = useState({ limpieza_exterior: "", estado_baterias: "", estado_cables: "", observaciones: "" });
   const [mediciones, setMediciones] = useState(crearMediciones);
   const [observaciones, setObservaciones] = useState("");
   const [cargando, setCargando] = useState(true);
@@ -152,7 +152,7 @@ export default function RIC39({ setVista, personal }) {
     const noConformes = evaluadas.filter((m) => m.conforme === false);
     const noAplica = mediciones.filter((m) => m.no_aplica).length;
     const faltantes = mediciones.filter((m) => !m.no_aplica && !String(m.medicion).trim()).length;
-    const inspPend = [inspecciones.aceptacion_visual, inspecciones.limpieza_exterior, inspecciones.estado_baterias, inspecciones.estado_cables].some((v) => !v);
+    const inspPend = [inspecciones.limpieza_exterior, inspecciones.estado_baterias, inspecciones.estado_cables].some((v) => !v);
     const inspNC = Object.entries(inspecciones).filter(([k, v]) => k !== "observaciones" && v === "NO CONFORME").map(([k]) => k.replace(/_/g, " "));
     const resultado = faltantes || inspPend ? "PENDIENTE" : noConformes.length || inspNC.length ? "NO CONFORME" : "CONFORME";
     const obsAuto = noConformes.length ? `Mediciones no conformes: ${noConformes.map((m) => `${m.escenario} - ${m.parametro}: ${m.medicion} (rango ${m.rango_aceptacion})`).join(" | ")}` : "";
@@ -257,9 +257,9 @@ export default function RIC39({ setVista, personal }) {
 
         {etapa === 0 && (
           <div className="bg-white rounded-xl shadow p-4">
-            <h2 className="text-xl font-bold mb-2">1. Inspección visual</h2>
+            <h2 className="text-xl font-bold mb-2">1. Aceptación visual</h2>
             <div className="space-y-4">
-              {[["aceptacion_visual", "Aceptación visual"], ["limpieza_exterior", "Limpieza exterior"], ["estado_baterias", "Estado de baterías"], ["estado_cables", "Estado de cables"]].map(([campo, label]) => (
+              {[["limpieza_exterior", "Limpieza exterior"], ["estado_baterias", "Estado de baterías"], ["estado_cables", "Estado de cables"]].map(([campo, label]) => (
                 <div key={campo}>
                   <label className="font-semibold block mb-1">{label}</label>
                   <select
