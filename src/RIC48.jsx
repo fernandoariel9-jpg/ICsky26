@@ -9,7 +9,6 @@ const ETAPAS = [
   "Artefactos",
   "Forma de onda",
   "Segmento ST",
-  "Seguridad eléctrica",
   "Resumen"
 ];
 
@@ -17,6 +16,11 @@ const INSTRUCCION_GENERICA =
   "Procedimiento: configure el simulador según el valor nominal indicado, realice la verificación y registre el resultado obtenido.";
 
 const claveBorrador = (ric01Id) => `preventivo:ric48:${ric01Id}`;
+
+const fechaHoraLocal = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
+};
 
 const crearFrecuencias = () => [
   { nombre: "60 BPM", nominal: 60, incertidumbre: "± 1%", min: 54, max: 66, resultado: "", conforme: null, noAplica: false },
@@ -55,6 +59,11 @@ export default function RIC48({ setVista, personal }) {
   const [guardando, setGuardando] = useState(false);
   const [enviandoDrive, setEnviandoDrive] = useState(false);
   const [ric48Id, setRic48Id] = useState(null);
+  const [estados, setEstados] = useState([]);
+  const [mostrarFinalizar, setMostrarFinalizar] = useState(false);
+  const [estadoFinal, setEstadoFinal] = useState("");
+  const [finalizando, setFinalizando] = useState(false);
+  const [tareaFinalizada, setTareaFinalizada] = useState(false);
 
   const [datos, setDatos] = useState({
     ric01_id: "",
@@ -66,8 +75,7 @@ export default function RIC48({ setVista, personal }) {
     servicio: "",
     sub_servicio: "",
     encargado: "",
-    tecnico: personal?.nombre || "",
-    ric37_id: ""
+    tecnico: personal?.nombre || ""
   });
 
   const [inspecciones, setInspecciones] = useState({
@@ -90,6 +98,13 @@ export default function RIC48({ setVista, personal }) {
   const [segmentoST, setSegmentoST] = useState(() => crearManual(["+0,5 mV", "-0,5 mV"]));
   const [stActual, setStActual] = useState(0);
   const [observaciones, setObservaciones] = useState("");
+
+  useEffect(() => {
+    fetch(API_URL.Estados)
+      .then((r) => r.json())
+      .then((data) => setEstados(Array.isArray(data) ? data : []))
+      .catch((e) => console.error("Error cargando estados:", e));
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -123,7 +138,7 @@ export default function RIC48({ setVista, personal }) {
           const borradorRaw = localStorage.getItem(claveBorrador(ric01Id));
           if (borradorRaw) {
             const borrador = JSON.parse(borradorRaw);
-            if (Number.isInteger(borrador.etapa)) setEtapa(borrador.etapa);
+            if (Number.isInteger(borrador.etapa)) setEtapa(Math.min(borrador.etapa, ETAPAS.length - 1));
             if (borrador.inspecciones) setInspecciones(borrador.inspecciones);
             if (Array.isArray(borrador.frecuencias)) setFrecuencias(borrador.frecuencias);
             if (Number.isInteger(borrador.frecuenciaActual)) setFrecuenciaActual(borrador.frecuenciaActual);
@@ -138,9 +153,6 @@ export default function RIC48({ setVista, personal }) {
             if (Array.isArray(borrador.segmentoST)) setSegmentoST(borrador.segmentoST);
             if (Number.isInteger(borrador.stActual)) setStActual(borrador.stActual);
             if (typeof borrador.observaciones === "string") setObservaciones(borrador.observaciones);
-            if (typeof borrador.ric37_id === "string" || typeof borrador.ric37_id === "number") {
-              setDatos((prev) => ({ ...prev, ric37_id: String(borrador.ric37_id) }));
-            }
           }
         }
       } catch (err) {
@@ -171,11 +183,10 @@ export default function RIC48({ setVista, personal }) {
         formaActual,
         segmentoST,
         stActual,
-        observaciones,
-        ric37_id: datos.ric37_id
+        observaciones
       })
     );
-  }, [borradorCargado, cargando, datos.ric01_id, datos.ric37_id, ric48Id, etapa, inspecciones, frecuencias, frecuenciaActual, amplitudes, amplitudActual, gruposOnda, grupoActual, artefactos, artefactoActual, formasOnda, formaActual, segmentoST, stActual, observaciones]);
+  }, [borradorCargado, cargando, datos.ric01_id, ric48Id, etapa, inspecciones, frecuencias, frecuenciaActual, amplitudes, amplitudActual, gruposOnda, grupoActual, artefactos, artefactoActual, formasOnda, formaActual, segmentoST, stActual, observaciones]);
 
   const resumen = useMemo(() => {
     const inspeccionesEvaluadas = [inspecciones.limpieza_exterior, inspecciones.papel_registro, inspecciones.estado_cables];
@@ -244,6 +255,7 @@ export default function RIC48({ setVista, personal }) {
 
   const guardarRIC48 = async () => {
     if (resumen.resultado === "PENDIENTE") return alert("Complete todas las verificaciones o marque No aplica antes de guardar.");
+    if (ric48Id) return setMostrarFinalizar(!tareaFinalizada);
 
     try {
       setGuardando(true);
@@ -253,7 +265,6 @@ export default function RIC48({ setVista, personal }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...datos,
-          ric37_id: datos.ric37_id || null,
           resultado_general: resumen.resultado,
           observaciones,
           verificador_equipo: "ANALIZADOR DE MONITORES FLUKE PROSIM 8",
@@ -268,13 +279,51 @@ export default function RIC48({ setVista, personal }) {
       if (!respuesta.ok) throw new Error(body.error || "Error guardando RIC48");
       setRic48Id(body.ric48_id);
       if (datos.ric01_id) localStorage.removeItem(claveBorrador(datos.ric01_id));
-      alert(`RIC48 guardado correctamente. ID: ${body.ric48_id}`);
+      setMostrarFinalizar(true);
     } catch (err) {
       console.error(err);
       setError(err.message || "No se pudo guardar RIC48.");
     } finally {
       setGuardando(false);
     }
+  };
+
+  const finalizarTarea = async () => {
+    if (!datos.ric01_id) return setError("No se pudo identificar la tarea a finalizar.");
+    if (!estadoFinal) return alert("Seleccione el estado en que queda el equipo.");
+
+    try {
+      setFinalizando(true);
+      setError("");
+      const respuesta = await fetch(`${API_URL.Ric01}/finalizar/${datos.ric01_id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fecha_fin: fechaHoraLocal(),
+          estado: estadoFinal,
+          numero_serie: datos.numero_serie,
+          usuario: personal?.nombre || datos.tecnico
+        })
+      });
+      const body = await respuesta.json().catch(() => ({}));
+      if (!respuesta.ok) throw new Error(body.error || "No se pudo finalizar la tarea.");
+
+      setTareaFinalizada(true);
+      setMostrarFinalizar(false);
+      localStorage.removeItem("tareaActiva");
+      if (datos.numero_serie) localStorage.setItem("equipoActualizado", datos.numero_serie);
+      alert(`RIC48 guardado y tarea #${datos.ric01_id} finalizada correctamente.`);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "No se pudo finalizar la tarea.");
+    } finally {
+      setFinalizando(false);
+    }
+  };
+
+  const volverAEquipos = () => {
+    if (datos.numero_serie) localStorage.setItem("equipoActualizado", datos.numero_serie);
+    setVista("equipos");
   };
 
   const abrirPDF = () => ric48Id ? window.open(`${API_URL.Ric48}/${ric48Id}/pdf`, "_blank") : alert("Primero debe guardar el RIC48.");
@@ -350,10 +399,10 @@ export default function RIC48({ setVista, personal }) {
         {etapa === 5 && tarjetaManual("6. Forma de onda", formasOnda, formaActual, setFormasOnda, setFormaActual, 6, false)}
         {etapa === 6 && tarjetaManual("7. Desviación de segmento ST", segmentoST, stActual, setSegmentoST, setStActual, 7, true)}
 
-        {etapa === 7 && <div className="bg-white rounded-xl shadow p-4 space-y-4"><h2 className="text-xl font-bold">8. Seguridad eléctrica · RIC 37</h2><p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3">Realice el ensayo de seguridad eléctrica mediante el procedimiento RIC37 y vincule su identificador al mantenimiento.</p><input type="number" value={datos.ric37_id} onChange={(e) => setDatos((prev) => ({ ...prev, ric37_id: e.target.value }))} placeholder="ID RIC37" className="w-full border rounded-xl p-3" /><div className="bg-gray-50 border rounded-xl p-3 text-sm"><b>Verificador principal:</b> ANALIZADOR DE MONITORES FLUKE PROSIM 8 · NS 2496025 · ETYC 27/01/2025 · Vigencia 27/01/2026</div><div className="flex gap-2 mt-6"><button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button><button onClick={cancelar} className="flex-1 bg-red-500 text-white rounded-xl p-3">Cancelar</button><button onClick={() => setEtapa(8)} className="flex-1 bg-blue-600 text-white rounded-xl p-3">Ver resumen →</button></div></div>}
-
-        {etapa === 8 && <div className="bg-white rounded-xl shadow p-4 space-y-4"><h2 className="text-xl font-bold">9. Resumen de la verificación</h2><div className={`border rounded-xl p-4 ${resumen.resultado === "CONFORME" ? "bg-green-50 border-green-400" : resumen.resultado === "NO CONFORME" ? "bg-red-50 border-red-400" : "bg-gray-50"}`}><p className={`font-bold text-lg ${resumen.resultado === "CONFORME" ? "text-green-700" : resumen.resultado === "NO CONFORME" ? "text-red-700" : "text-gray-700"}`}>{resumen.resultado === "CONFORME" ? "✅ VERIFICACIÓN CONFORME" : resumen.resultado === "NO CONFORME" ? "❌ VERIFICACIÓN NO CONFORME" : "⏳ VERIFICACIÓN PENDIENTE"}</p><p className="text-sm mt-2">Conformes: <b>{resumen.conformes}</b> · No conformes: <b>{resumen.noConformes.length + resumen.inspeccionesNC}</b> · No aplica: <b>{resumen.noAplica}</b></p></div>{resumen.noConformes.length > 0 && <div className="bg-red-50 border border-red-300 rounded-xl p-3 text-sm text-red-800"><p className="font-bold mb-2">Determinaciones no conformes</p>{resumen.noConformes.map((item, index) => <p key={`${item.nombre}-${index}`}>• {item.nombre}{item.resultado ? `: ${item.resultado}` : ""}</p>)}</div>}{inspecciones.observaciones?.trim() && <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-3 text-sm"><p className="font-bold mb-1">Observaciones de inspección</p><p className="whitespace-pre-wrap">{inspecciones.observaciones}</p></div>}<label className="font-semibold block">Observaciones generales</label><textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={5} placeholder="Ingrese observaciones generales de la verificación..." className="w-full border rounded-xl p-3" /><div className="flex gap-2"><button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button><button onClick={guardarRIC48} disabled={guardando || resumen.resultado === "PENDIENTE" || !!ric48Id} className="flex-1 bg-green-600 disabled:bg-gray-300 text-white rounded-xl p-3 font-semibold">{guardando ? "Guardando..." : ric48Id ? "Guardado ✓" : "💾 Guardar RIC48"}</button></div>{ric48Id && <div className="grid grid-cols-1 md:grid-cols-2 gap-3"><button onClick={abrirPDF} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-3 font-bold">📄 Ver PDF</button><button onClick={enviarDrive} disabled={enviandoDrive} className="bg-green-700 hover:bg-green-800 disabled:bg-gray-400 text-white rounded-xl p-3 font-bold">{enviandoDrive ? "☁️ Enviando..." : "☁️ Enviar a Drive"}</button><button onClick={() => setVista("equipos")} className="md:col-span-2 bg-gray-600 hover:bg-gray-700 text-white rounded-xl p-3 font-bold">🚪 Salir</button></div>}</div>}
+        {etapa === 7 && <div className="bg-white rounded-xl shadow p-4 space-y-4"><h2 className="text-xl font-bold">8. Resumen de la verificación</h2><div className={`border rounded-xl p-4 ${resumen.resultado === "CONFORME" ? "bg-green-50 border-green-400" : resumen.resultado === "NO CONFORME" ? "bg-red-50 border-red-400" : "bg-gray-50"}`}><p className={`font-bold text-lg ${resumen.resultado === "CONFORME" ? "text-green-700" : resumen.resultado === "NO CONFORME" ? "text-red-700" : "text-gray-700"}`}>{resumen.resultado === "CONFORME" ? "✅ VERIFICACIÓN CONFORME" : resumen.resultado === "NO CONFORME" ? "❌ VERIFICACIÓN NO CONFORME" : "⏳ VERIFICACIÓN PENDIENTE"}</p><p className="text-sm mt-2">Conformes: <b>{resumen.conformes}</b> · No conformes: <b>{resumen.noConformes.length + resumen.inspeccionesNC}</b> · No aplica: <b>{resumen.noAplica}</b></p></div>{resumen.noConformes.length > 0 && <div className="bg-red-50 border border-red-300 rounded-xl p-3 text-sm text-red-800"><p className="font-bold mb-2">Determinaciones no conformes</p>{resumen.noConformes.map((item, index) => <p key={`${item.nombre}-${index}`}>• {item.nombre}{item.resultado ? `: ${item.resultado}` : ""}</p>)}</div>}{inspecciones.observaciones?.trim() && <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-3 text-sm"><p className="font-bold mb-1">Observaciones de inspección</p><p className="whitespace-pre-wrap">{inspecciones.observaciones}</p></div>}<label className="font-semibold block">Observaciones generales</label><textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={5} placeholder="Ingrese observaciones generales de la verificación..." className="w-full border rounded-xl p-3" disabled={Boolean(ric48Id)} />{ric48Id && <div className={`rounded-xl p-3 text-sm font-semibold ${tareaFinalizada ? "bg-green-100 text-green-800" : "bg-blue-50 text-blue-800"}`}>{tareaFinalizada ? `✅ RIC48 #${ric48Id} guardado y tarea finalizada.` : `✅ RIC48 #${ric48Id} guardado. Seleccione el estado final del equipo para cerrar la tarea.`}</div>}<div className="flex flex-wrap gap-2">{!ric48Id && <button onClick={guardarRIC48} disabled={guardando || resumen.resultado === "PENDIENTE"} className="px-4 py-2 bg-green-600 disabled:bg-gray-300 text-white rounded-xl font-semibold">{guardando ? "Guardando..." : "💾 Guardar RIC48"}</button>}<button onClick={abrirPDF} disabled={!ric48Id} className="px-4 py-2 bg-blue-600 text-white rounded-xl disabled:opacity-40">📄 Ver PDF</button><button onClick={enviarDrive} disabled={!ric48Id || enviandoDrive} className="px-4 py-2 bg-green-700 text-white rounded-xl disabled:opacity-40">{enviandoDrive ? "☁️ Enviando..." : "☁️ Enviar a Drive"}</button>{ric48Id && !tareaFinalizada && <button onClick={() => setMostrarFinalizar(true)} className="px-4 py-2 bg-orange-600 text-white rounded-xl font-semibold">Finalizar tarea</button>}</div>{tareaFinalizada && <button onClick={volverAEquipos} className="w-full bg-slate-800 hover:bg-slate-900 text-white rounded-xl p-3 font-bold">← Volver a Equipos</button>}</div>}
       </div>
+
+      {mostrarFinalizar && ric48Id && !tareaFinalizada && <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"><div className="bg-white rounded-2xl shadow-2xl p-5 w-full max-w-sm"><h2 className="text-xl font-bold text-gray-800">¿En qué estado queda el equipo?</h2><p className="text-sm text-gray-600 mt-1 mb-4">El RIC48 ya fue guardado. Al confirmar se finalizará la tarea #{datos.ric01_id}.</p><select value={estadoFinal} onChange={(e) => setEstadoFinal(e.target.value)} className="w-full border rounded-xl p-3 mb-4" disabled={finalizando}><option value="">Seleccionar estado</option>{estados.map((est) => <option key={est.id ?? est.estado} value={est.estado}>{est.estado}</option>)}</select><button onClick={finalizarTarea} disabled={finalizando || !estadoFinal} className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white py-3 rounded-xl font-bold">{finalizando ? "Finalizando..." : "Confirmar y finalizar tarea"}</button></div></div>}
     </div>
   );
 }
