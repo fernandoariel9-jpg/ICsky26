@@ -10,6 +10,11 @@ function formatearFecha(valor) {
   return fecha.toLocaleString("es-AR");
 }
 
+function entero(valor) {
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? Math.trunc(numero) : 0;
+}
+
 const inputClass = "w-full border rounded-xl px-3 py-2";
 const actionButtonClass = "h-10 w-full sm:w-40 px-3 rounded-xl font-semibold inline-flex items-center justify-center whitespace-nowrap";
 const formButtonClass = "h-10 min-w-40 px-4 rounded-xl font-semibold inline-flex items-center justify-center disabled:opacity-50";
@@ -112,7 +117,7 @@ export default function Stock({ setVista, personal }) {
     setError("");
     setMensaje("");
     try {
-      await postJSON(`${API}/items`, { ...nuevoItem, stock_minimo: Number(nuevoItem.stock_minimo || 0) });
+      await postJSON(`${API}/items`, { ...nuevoItem, stock_minimo: entero(nuevoItem.stock_minimo || 0) });
       setNuevoItem({ codigo: "", descripcion: "", categoria: "", unidad: "UNIDAD", stock_minimo: 0 });
       setMostrarAlta(false);
       setMensaje("Artículo creado correctamente");
@@ -150,7 +155,7 @@ export default function Stock({ setVista, personal }) {
       await postJSON(`${API}/entradas`, {
         item_id: Number(entrada.item_id),
         area: entrada.area,
-        cantidad: Number(entrada.cantidad),
+        cantidad: entero(entrada.cantidad),
         personal_id: personal?.id || null,
         personal_nombre: personal?.nombre || null,
         observacion: entrada.observacion
@@ -176,7 +181,7 @@ export default function Stock({ setVista, personal }) {
       await postJSON(`${API}/salidas`, {
         item_id: Number(salida.item_id),
         area: salida.area,
-        cantidad: Number(salida.cantidad),
+        cantidad: entero(salida.cantidad),
         tipo: salida.tipo,
         ric01_id: salida.tipo === "CONSUMO" ? Number(salida.ric01_id) : null,
         personal_id: personal?.id || null,
@@ -203,7 +208,7 @@ export default function Stock({ setVista, personal }) {
     try {
       await postJSON(`${API}/transferencias`, {
         item_id: Number(transferencia.item_id),
-        cantidad: Number(transferencia.cantidad),
+        cantidad: entero(transferencia.cantidad),
         area_origen: transferencia.area_origen,
         area_destino: transferencia.area_destino,
         solicitado_por_id: personal?.id || null,
@@ -244,7 +249,7 @@ export default function Stock({ setVista, personal }) {
 
   const abrirAjuste = (existencia) => {
     setExistenciaAjuste(existencia);
-    setAjuste({ nueva_cantidad: String(existencia.cantidad ?? ""), observacion: "" });
+    setAjuste({ nueva_cantidad: String(entero(existencia.cantidad)), observacion: "" });
   };
 
   const guardarAjuste = async (e) => {
@@ -256,7 +261,7 @@ export default function Stock({ setVista, personal }) {
     try {
       await postJSON(`${API}/existencias/ajustar`, {
         existencia_id: existenciaAjuste.id,
-        nueva_cantidad: Number(ajuste.nueva_cantidad),
+        nueva_cantidad: entero(ajuste.nueva_cantidad),
         personal_id: personal?.id || null,
         personal_nombre: personal?.nombre || null,
         observacion: ajuste.observacion
@@ -324,7 +329,7 @@ export default function Stock({ setVista, personal }) {
           {lista.map((item) => (
             <div key={item.id} className="p-3">
               <div className="font-semibold">{item.codigo ? `${item.codigo} · ` : ""}{item.descripcion}</div>
-              <div className="text-sm text-gray-500">{item.categoria || "Sin categoría"} · {item.unidad} · Mínimo: {item.stock_minimo}</div>
+              <div className="text-sm text-gray-500">{item.categoria || "Sin categoría"} · {item.unidad} · Mínimo: {entero(item.stock_minimo)}</div>
             </div>
           ))}
         </div>
@@ -338,7 +343,7 @@ export default function Stock({ setVista, personal }) {
             <div key={e.id} className="p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
                 <div className="font-semibold">{e.codigo ? `${e.codigo} · ` : ""}{e.descripcion}</div>
-                <div className="text-sm text-gray-500">{e.area} · {e.cantidad} {e.unidad} · Mínimo: {e.stock_minimo}</div>
+                <div className="text-sm text-gray-500">{e.area} · {entero(e.cantidad)} {e.unidad} · Mínimo: {entero(e.stock_minimo)}</div>
                 {e.stock_bajo && <div className="text-sm font-semibold text-red-600">Stock bajo</div>}
               </div>
               {kpiActivo === "existencias" && (
@@ -355,7 +360,7 @@ export default function Stock({ setVista, personal }) {
         {lista.map((t) => (
           <div key={t.id} className="p-3">
             <div className="font-semibold">#{t.id} · {t.codigo ? `${t.codigo} · ` : ""}{t.descripcion}</div>
-            <div className="text-sm text-gray-500">{t.cantidad} {t.unidad} · {t.area_origen} → {t.area_destino}</div>
+            <div className="text-sm text-gray-500">{entero(t.cantidad)} {t.unidad} · {t.area_origen} → {t.area_destino}</div>
             <div className="text-sm text-gray-500">Solicitado por: {t.solicitado_por_nombre || "-"} · {formatearFecha(t.fecha_solicitud)}</div>
           </div>
         ))}
@@ -393,7 +398,7 @@ export default function Stock({ setVista, personal }) {
               {categorias.map((categoria) => <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>)}
             </select>
             <input className={inputClass} placeholder="Unidad" value={nuevoItem.unidad} onChange={(e) => setNuevoItem({ ...nuevoItem, unidad: e.target.value.toUpperCase() })} />
-            <input className={inputClass} type="number" min="0" step="0.01" placeholder="Stock mínimo" value={nuevoItem.stock_minimo} onChange={(e) => setNuevoItem({ ...nuevoItem, stock_minimo: e.target.value })} />
+            <input className={inputClass} type="number" min="0" step="1" placeholder="Stock mínimo" value={nuevoItem.stock_minimo} onChange={(e) => setNuevoItem({ ...nuevoItem, stock_minimo: e.target.value })} />
             <div className="md:col-span-5 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-indigo-600 text-white`}>Guardar artículo</button></div>
           </form>
         )}
@@ -405,7 +410,7 @@ export default function Stock({ setVista, personal }) {
               {items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}
             </select>
             <input className={inputClass} required placeholder="Área" value={entrada.area} onChange={(e) => setEntrada({ ...entrada, area: e.target.value.toUpperCase() })} />
-            <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={entrada.cantidad} onChange={(e) => setEntrada({ ...entrada, cantidad: e.target.value })} />
+            <input className={inputClass} required type="number" min="1" step="1" placeholder="Cantidad" value={entrada.cantidad} onChange={(e) => setEntrada({ ...entrada, cantidad: e.target.value })} />
             <input className={inputClass} placeholder="Observación" value={entrada.observacion} onChange={(e) => setEntrada({ ...entrada, observacion: e.target.value.toUpperCase() })} />
             <div className="md:col-span-4 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-green-600 text-white`}>Registrar entrada</button></div>
           </form>
@@ -418,12 +423,12 @@ export default function Stock({ setVista, personal }) {
               {items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}
             </select>
             <input className={inputClass} required placeholder="Área" value={salida.area} onChange={(e) => setSalida({ ...salida, area: e.target.value.toUpperCase() })} />
-            <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={salida.cantidad} onChange={(e) => setSalida({ ...salida, cantidad: e.target.value })} />
+            <input className={inputClass} required type="number" min="1" step="1" placeholder="Cantidad" value={salida.cantidad} onChange={(e) => setSalida({ ...salida, cantidad: e.target.value })} />
             <select className={inputClass} value={salida.tipo} onChange={(e) => setSalida({ ...salida, tipo: e.target.value, ric01_id: e.target.value === "CONSUMO" ? salida.ric01_id : "" })}>
               <option value="SALIDA">Salida</option>
               <option value="CONSUMO">Consumo</option>
             </select>
-            <input className={inputClass} type="number" min="1" required={salida.tipo === "CONSUMO"} disabled={salida.tipo !== "CONSUMO"} placeholder="RIC01 ID" value={salida.ric01_id} onChange={(e) => setSalida({ ...salida, ric01_id: e.target.value })} />
+            <input className={inputClass} type="number" min="1" step="1" required={salida.tipo === "CONSUMO"} disabled={salida.tipo !== "CONSUMO"} placeholder="RIC01 ID" value={salida.ric01_id} onChange={(e) => setSalida({ ...salida, ric01_id: e.target.value })} />
             <input className={inputClass} placeholder="Observación" value={salida.observacion} onChange={(e) => setSalida({ ...salida, observacion: e.target.value.toUpperCase() })} />
             <div className="md:col-span-6 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-amber-600 text-white`}>Registrar {salida.tipo === "CONSUMO" ? "consumo" : "salida"}</button></div>
           </form>
@@ -435,7 +440,7 @@ export default function Stock({ setVista, personal }) {
               <option value="">Seleccionar artículo</option>
               {items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}
             </select>
-            <input className={inputClass} required type="number" min="0.01" step="0.01" placeholder="Cantidad" value={transferencia.cantidad} onChange={(e) => setTransferencia({ ...transferencia, cantidad: e.target.value })} />
+            <input className={inputClass} required type="number" min="1" step="1" placeholder="Cantidad" value={transferencia.cantidad} onChange={(e) => setTransferencia({ ...transferencia, cantidad: e.target.value })} />
             <select className={inputClass} required value={transferencia.area_origen} onChange={(e) => setTransferencia({ ...transferencia, area_origen: e.target.value })}>
               <option value="">SELECCIONAR ÁREA QUE ENTREGA</option>
               {areas.map((a) => String(a.area || a.nombre || "").trim().toUpperCase()).filter((nombre, index, lista) => nombre && nombre !== transferencia.area_destino && lista.indexOf(nombre) === index).sort().map((nombre) => <option key={nombre} value={nombre}>{nombre}</option>)}
@@ -486,14 +491,14 @@ export default function Stock({ setVista, personal }) {
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Código</th><th className="text-left p-3">Descripción</th><th className="text-left p-3">Categoría</th><th className="text-left p-3">Unidad</th><th className="text-right p-3">Stock mínimo</th><th className="text-center p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead>
-                <tbody>{datos.map((item) => <tr key={item.id} className="border-t"><td className="p-3 font-medium">{item.codigo || "-"}</td><td className="p-3">{item.descripcion}</td><td className="p-3">{item.categoria || "-"}</td><td className="p-3">{item.unidad}</td><td className="p-3 text-right">{item.stock_minimo}</td><td className="p-3 text-center">{item.activo ? "Activo" : "Inactivo"}</td><td className="p-3 text-center"><button onClick={() => eliminarItem(item)} className={`${tableButtonClass} bg-red-600 text-white`}>Eliminar</button></td></tr>)}</tbody>
+                <tbody>{datos.map((item) => <tr key={item.id} className="border-t"><td className="p-3 font-medium">{item.codigo || "-"}</td><td className="p-3">{item.descripcion}</td><td className="p-3">{item.categoria || "-"}</td><td className="p-3">{item.unidad}</td><td className="p-3 text-right">{entero(item.stock_minimo)}</td><td className="p-3 text-center">{item.activo ? "Activo" : "Inactivo"}</td><td className="p-3 text-center"><button onClick={() => eliminarItem(item)} className={`${tableButtonClass} bg-red-600 text-white`}>Eliminar</button></td></tr>)}</tbody>
               </table>
             </div>
           ) : tab === "existencias" ? (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Código</th><th className="text-left p-3">Descripción</th><th className="text-left p-3">Área</th><th className="text-right p-3">Cantidad</th><th className="text-right p-3">Mínimo</th><th className="text-center p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead>
-                <tbody>{datos.map((e) => <tr key={e.id} className="border-t"><td className="p-3 font-medium">{e.codigo || "-"}</td><td className="p-3">{e.descripcion}</td><td className="p-3">{e.area}</td><td className="p-3 text-right font-semibold">{e.cantidad} {e.unidad}</td><td className="p-3 text-right">{e.stock_minimo}</td><td className="p-3 text-center">{e.stock_bajo ? "Stock bajo" : "Normal"}</td><td className="p-3 text-center"><button onClick={() => abrirAjuste(e)} className={`${tableButtonClass} bg-amber-600 text-white`}>Ajustar</button></td></tr>)}</tbody>
+                <tbody>{datos.map((e) => <tr key={e.id} className="border-t"><td className="p-3 font-medium">{e.codigo || "-"}</td><td className="p-3">{e.descripcion}</td><td className="p-3">{e.area}</td><td className="p-3 text-right font-semibold">{entero(e.cantidad)} {e.unidad}</td><td className="p-3 text-right">{entero(e.stock_minimo)}</td><td className="p-3 text-center">{e.stock_bajo ? "Stock bajo" : "Normal"}</td><td className="p-3 text-center"><button onClick={() => abrirAjuste(e)} className={`${tableButtonClass} bg-amber-600 text-white`}>Ajustar</button></td></tr>)}</tbody>
               </table>
             </div>
           ) : tab === "transferencias" ? (
@@ -502,7 +507,7 @@ export default function Stock({ setVista, personal }) {
                 <thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Fecha</th><th className="text-left p-3">Artículo</th><th className="text-right p-3">Cantidad</th><th className="text-left p-3">Origen</th><th className="text-left p-3">Destino</th><th className="text-left p-3">Solicitado por</th><th className="text-left p-3">Estado</th><th className="text-center p-3">Acciones</th></tr></thead>
                 <tbody>{datos.map((t) => {
                   const puedeResolver = t.estado === "PENDIENTE" && String(t.area_origen || "").trim().toUpperCase() === areaPersonal;
-                  return <tr key={t.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(t.fecha_solicitud)}</td><td className="p-3">{t.codigo ? `${t.codigo} · ` : ""}{t.descripcion}</td><td className="p-3 text-right">{t.cantidad} {t.unidad}</td><td className="p-3">{t.area_origen}</td><td className="p-3">{t.area_destino}</td><td className="p-3">{t.solicitado_por_nombre || "-"}</td><td className="p-3 font-semibold">{t.estado}</td><td className="p-3 text-center">{puedeResolver ? <div className="flex gap-2 justify-center"><button onClick={() => resolverTransferencia(t, "APROBAR")} className={`${tableButtonClass} bg-green-600 text-white`}>Aprobar</button><button onClick={() => resolverTransferencia(t, "RECHAZAR")} className={`${tableButtonClass} bg-red-600 text-white`}>Rechazar</button></div> : t.estado === "PENDIENTE" ? <span className="text-xs text-gray-500">Esperando área origen</span> : "-"}</td></tr>;
+                  return <tr key={t.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(t.fecha_solicitud)}</td><td className="p-3">{t.codigo ? `${t.codigo} · ` : ""}{t.descripcion}</td><td className="p-3 text-right">{entero(t.cantidad)} {t.unidad}</td><td className="p-3">{t.area_origen}</td><td className="p-3">{t.area_destino}</td><td className="p-3">{t.solicitado_por_nombre || "-"}</td><td className="p-3 font-semibold">{t.estado}</td><td className="p-3 text-center">{puedeResolver ? <div className="flex gap-2 justify-center"><button onClick={() => resolverTransferencia(t, "APROBAR")} className={`${tableButtonClass} bg-green-600 text-white`}>Aprobar</button><button onClick={() => resolverTransferencia(t, "RECHAZAR")} className={`${tableButtonClass} bg-red-600 text-white`}>Rechazar</button></div> : t.estado === "PENDIENTE" ? <span className="text-xs text-gray-500">Esperando área origen</span> : "-"}</td></tr>;
                 })}</tbody>
               </table>
             </div>
@@ -510,7 +515,7 @@ export default function Stock({ setVista, personal }) {
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Fecha</th><th className="text-left p-3">Tipo</th><th className="text-left p-3">Artículo</th><th className="text-right p-3">Cantidad</th><th className="text-left p-3">Origen</th><th className="text-left p-3">Destino</th><th className="text-left p-3">Personal</th><th className="text-left p-3">Referencia</th><th className="text-left p-3">Observación</th></tr></thead>
-                <tbody>{datos.map((m) => <tr key={m.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(m.fecha)}</td><td className="p-3 font-semibold">{m.tipo}</td><td className="p-3">{m.codigo ? `${m.codigo} · ` : ""}{m.descripcion}</td><td className="p-3 text-right">{m.cantidad} {m.unidad}</td><td className="p-3">{m.area_origen || "-"}</td><td className="p-3">{m.area_destino || "-"}</td><td className="p-3">{m.personal_nombre || "-"}</td><td className="p-3">{m.referencia_tipo && m.referencia_id ? `${m.referencia_tipo} #${m.referencia_id}` : "-"}</td><td className="p-3">{m.observacion || "-"}</td></tr>)}</tbody>
+                <tbody>{datos.map((m) => <tr key={m.id} className="border-t"><td className="p-3 whitespace-nowrap">{formatearFecha(m.fecha)}</td><td className="p-3 font-semibold">{m.tipo}</td><td className="p-3">{m.codigo ? `${m.codigo} · ` : ""}{m.descripcion}</td><td className="p-3 text-right">{entero(m.cantidad)} {m.unidad}</td><td className="p-3">{m.area_origen || "-"}</td><td className="p-3">{m.area_destino || "-"}</td><td className="p-3">{m.personal_nombre || "-"}</td><td className="p-3">{m.referencia_tipo && m.referencia_id ? `${m.referencia_tipo} #${m.referencia_id}` : "-"}</td><td className="p-3">{m.observacion || "-"}</td></tr>)}</tbody>
               </table>
             </div>
           )}
@@ -540,11 +545,11 @@ export default function Stock({ setVista, personal }) {
 
             <div className="bg-gray-50 rounded-xl p-3 mb-4 text-sm">
               <div><strong>Área:</strong> {existenciaAjuste.area}</div>
-              <div><strong>Existencia actual:</strong> {existenciaAjuste.cantidad} {existenciaAjuste.unidad}</div>
+              <div><strong>Existencia actual:</strong> {entero(existenciaAjuste.cantidad)} {existenciaAjuste.unidad}</div>
             </div>
 
             <label className="block text-sm font-semibold mb-1">Nueva cantidad</label>
-            <input className={`${inputClass} mb-3`} type="number" min="0" step="0.01" required value={ajuste.nueva_cantidad} onChange={(e) => setAjuste({ ...ajuste, nueva_cantidad: e.target.value })} />
+            <input className={`${inputClass} mb-3`} type="number" min="0" step="1" required value={ajuste.nueva_cantidad} onChange={(e) => setAjuste({ ...ajuste, nueva_cantidad: e.target.value })} />
 
             <label className="block text-sm font-semibold mb-1">Motivo del ajuste</label>
             <textarea className={`${inputClass} mb-4`} rows="3" required placeholder="Ej.: diferencia detectada en conteo físico" value={ajuste.observacion} onChange={(e) => setAjuste({ ...ajuste, observacion: e.target.value.toUpperCase() })} />
