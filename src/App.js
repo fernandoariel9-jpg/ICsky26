@@ -24,6 +24,7 @@ import InformacionPublica from "./InformacionPublica";
 import PoliticaPrivacidad from "./PoliticaPrivacidad";
 import MonitorIndicadores from "./MonitorIndicadores";
 import EquipoPublico from "./EquipoPublico";
+import EtiquetaQREquipoGlobal from "./EtiquetaQREquipoGlobal";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
@@ -85,6 +86,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <MobileKeyboardSupport />
+      <EtiquetaQREquipoGlobal />
       <Routes>
         <Route path="/informacion" element={<InformacionPublica />} />
         <Route path="/privacidad" element={<PoliticaPrivacidad />} />
