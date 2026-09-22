@@ -14,7 +14,7 @@ function textoPeriodo(periodo) {
   if (periodo === null || periodo === undefined || periodo === "") return "No configurada";
   const numero = Number(periodo);
   if (Number.isFinite(numero)) {
-    return `${numero} ${numero === 1 ? "mes" : "meses"}`;
+    return `${numero} ${numero === 1 ? "día" : "días"}`;
   }
   return String(periodo);
 }
