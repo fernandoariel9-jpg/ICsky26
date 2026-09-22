@@ -23,6 +23,7 @@ import RIC37 from "./RIC37";
 import InformacionPublica from "./InformacionPublica";
 import PoliticaPrivacidad from "./PoliticaPrivacidad";
 import MonitorIndicadores from "./MonitorIndicadores";
+import EquipoPublico from "./EquipoPublico";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
@@ -89,8 +90,9 @@ export default function App() {
         <Route path="/privacidad" element={<PoliticaPrivacidad />} />
         <Route path="/analitica-areas" element={<AnaliticaAreas />} />
         <Route path="/monitor-indicadores" element={<MonitorIndicadores />} />
-        <Route path="/*" element={<Main />} />
+        <Route path="/equipo/:numeroSerie" element={<EquipoPublico />} />
         <Route path="/estado-equipos" element={<ResumenEstados />} />
+        <Route path="/*" element={<Main />} />
       </Routes>
     </BrowserRouter>
   );
