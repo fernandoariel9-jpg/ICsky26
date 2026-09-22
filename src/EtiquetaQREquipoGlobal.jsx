@@ -3,8 +3,8 @@ import { createPortal } from "react-dom";
 import QRCode from "qrcode";
 
 const FRONTEND_PUBLICO = "https://icsky26.onrender.com";
-const ANCHO = 472;  // 40 mm a 300 dpi
-const ALTO = 591;   // 50 mm a 300 dpi
+const ANCHO = 591;  // 50 mm a 300 dpi
+const ALTO = 472;   // 40 mm a 300 dpi
 
 function obtenerSerieDesdeFicha() {
   const botones = Array.from(document.querySelectorAll("button"));
@@ -32,8 +32,8 @@ async function generarEtiqueta(serie) {
   const urlPublica = `${FRONTEND_PUBLICO}/equipo/${encodeURIComponent(serie)}`;
   const qrDataUrl = await QRCode.toDataURL(urlPublica, {
     errorCorrectionLevel: "M",
-    margin: 4,
-    width: 330,
+    margin: 3,
+    width: 250,
     color: { dark: "#000000", light: "#ffffff" }
   });
 
@@ -51,23 +51,35 @@ async function generarEtiqueta(serie) {
   ctx.strokeRect(9, 9, ANCHO - 18, ALTO - 18);
 
   ctx.fillStyle = "black";
-  ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
+  ctx.textAlign = "center";
+  ctx.font = "bold 28px Arial, sans-serif";
+  ctx.fillText("INGENIERÍA CLÍNICA", ANCHO / 2, 34);
+
+  ctx.font = "bold 15px Arial, sans-serif";
+  ctx.fillText("Escanear para información del equipo", ANCHO / 2, 62);
+
+  const qrTam = 245;
+  const qrX = 24;
+  const qrY = 102;
+  ctx.drawImage(qr, qrX, qrY, qrTam, qrTam);
+
+  const textoX = 300;
+  ctx.textAlign = "left";
+
+  ctx.font = "bold 20px Arial, sans-serif";
+  ctx.fillText("EQUIPO", textoX, 135);
+
   ctx.font = "bold 34px Arial, sans-serif";
-  ctx.fillText("INGENIERÍA CLÍNICA", ANCHO / 2, 48);
+  ctx.fillText(`N/S ${serie}`, textoX, 185);
 
-  ctx.font = "bold 17px Arial, sans-serif";
-  ctx.fillText("Escanear para información del equipo", ANCHO / 2, 82);
-
-  const qrTam = 330;
-  ctx.drawImage(qr, (ANCHO - qrTam) / 2, 103, qrTam, qrTam);
-
-  ctx.font = "bold 45px Arial, sans-serif";
-  ctx.fillText(`N/S ${serie}`, ANCHO / 2, 486);
+  ctx.font = "16px Arial, sans-serif";
+  ctx.fillText("Compatible con Sky26", textoX, 235);
+  ctx.fillText("y con cámara del celular", textoX, 263);
 
   ctx.font = "bold 22px Arial, sans-serif";
-  ctx.fillText("Sky26", ANCHO / 2, 536);
+  ctx.fillText("Sky26", textoX, 330);
 
   return canvas.toDataURL("image/png");
 }
@@ -108,7 +120,7 @@ export default function EtiquetaQREquipoGlobal() {
     if (!etiqueta || !serie) return;
     const a = document.createElement("a");
     a.href = etiqueta;
-    a.download = `etiqueta-QR-${serie}-40x50mm.png`;
+    a.download = `etiqueta-QR-${serie}-50x40mm.png`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -118,7 +130,7 @@ export default function EtiquetaQREquipoGlobal() {
     if (!etiqueta) return;
     const ventana = window.open("", "_blank", "noopener,noreferrer");
     if (!ventana) return alert("El navegador bloqueó la ventana de impresión.");
-    ventana.document.write(`<!doctype html><html><head><title>Etiqueta ${serie}</title><style>@page{size:40mm 50mm;margin:0}html,body{margin:0;padding:0;width:40mm;height:50mm}img{display:block;width:40mm;height:50mm}</style></head><body><img src="${etiqueta}" onload="window.print();window.close();"></body></html>`);
+    ventana.document.write(`<!doctype html><html><head><title>Etiqueta ${serie}</title><style>@page{size:50mm 40mm;margin:0}html,body{margin:0;padding:0;width:50mm;height:40mm}img{display:block;width:50mm;height:40mm}</style></head><body><img src="${etiqueta}" onload="window.print();window.close();"></body></html>`);
     ventana.document.close();
   };
 
@@ -129,7 +141,7 @@ export default function EtiquetaQREquipoGlobal() {
       disabled={generando}
       className="bg-slate-800 hover:bg-slate-900 disabled:bg-gray-400 text-white px-4 py-2 rounded-xl w-full mt-2 font-semibold"
     >
-      {generando ? "Generando QR..." : "🏷️ QR del equipo (40 × 50 mm)"}
+      {generando ? "Generando QR..." : "🏷️ QR del equipo (50 × 40 mm)"}
     </button>,
     portal
   ) : null;
@@ -143,13 +155,13 @@ export default function EtiquetaQREquipoGlobal() {
             <div className="flex justify-between items-center mb-3">
               <div>
                 <h2 className="font-bold text-lg">Etiqueta QR del equipo</h2>
-                <p className="text-sm text-gray-500">40 × 50 mm · 300 dpi · N/S {serie}</p>
+                <p className="text-sm text-gray-500">50 × 40 mm · 300 dpi · N/S {serie}</p>
               </div>
               <button onClick={() => setEtiqueta("")} className="text-gray-500 hover:text-red-600 text-xl font-bold">✕</button>
             </div>
 
             <div className="bg-gray-100 p-3 rounded-xl flex justify-center">
-              <img src={etiqueta} alt={`Etiqueta QR ${serie}`} className="w-[240px] h-[300px] object-contain bg-white shadow" />
+              <img src={etiqueta} alt={`Etiqueta QR ${serie}`} className="w-[300px] h-[240px] object-contain bg-white shadow" />
             </div>
 
             <div className="grid grid-cols-2 gap-2 mt-4">
