@@ -49,7 +49,7 @@ const nombreServicios = {
 
 function TarjetaKPI({ titulo, valor, clase }) {
   return (
-    <div className={`rounded-lg border border-white/10 px-2.5 py-1.5 shadow-sm ${clase}`}>
+    <div className={`rounded-lg border border-white/10 px-3 py-2 shadow-sm ${clase}`}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-[9px] 2xl:text-[10px] uppercase tracking-[0.1em] text-white/70 font-semibold leading-none">{titulo}</p>
         <p className="text-xl 2xl:text-2xl font-black leading-none tabular-nums">{valor}</p>
@@ -69,10 +69,10 @@ function TarjetaEquipo({ nombre, estado, Icono, detalle }) {
       : "text-red-400 border-red-500/25 bg-red-500/10";
 
   return (
-    <div className={`h-[56px] 2xl:h-[62px] rounded-lg border px-1.5 py-1 flex flex-col items-center justify-center text-center ${color}`}>
-      <Icono className={`text-lg 2xl:text-xl mb-0.5 shrink-0 ${!activo && !restringido ? "animate-pulse" : ""}`} />
+    <div className={`h-full min-h-0 rounded-lg border px-2 py-1.5 flex flex-col items-center justify-center text-center ${color}`}>
+      <Icono className={`text-xl 2xl:text-2xl mb-1 shrink-0 ${!activo && !restringido ? "animate-pulse" : ""}`} />
       <p className="text-[8px] 2xl:text-[9px] font-bold leading-[1.05] text-white/90 line-clamp-2">{nombre}</p>
-      {detalle && <p className="text-[7px] 2xl:text-[8px] text-white/35 leading-none mt-0.5 line-clamp-1">{detalle}</p>}
+      {detalle && <p className="text-[7px] 2xl:text-[8px] text-white/40 leading-none mt-0.5 line-clamp-1">{detalle}</p>}
     </div>
   );
 }
@@ -221,29 +221,34 @@ export default function MonitorIndicadores() {
     ];
   }, [resumen]);
 
+  const filasEquipos = Math.max(1, Math.ceil(equiposLaterales.length / 2));
+
   return (
     <div className="fixed inset-0 bg-slate-950 text-white overflow-hidden">
       <div className="absolute inset-0 grid grid-cols-[20%_80%] overflow-hidden">
         <aside className="min-w-0 min-h-0 border-r border-white/10 bg-slate-900/95 p-2 flex flex-col overflow-hidden">
-          <div className="flex items-center gap-1.5 mb-1.5 shrink-0">
-            <img src="/logosmall_old.png" alt="Ingeniería Clínica" className="w-7 h-auto shrink-0" />
+          <div className="flex items-center gap-2 mb-2 shrink-0">
+            <img src="/logosmall_old.png" alt="Ingeniería Clínica" className="w-8 h-auto shrink-0" />
             <div className="min-w-0">
               <p className="text-[8px] 2xl:text-[9px] text-cyan-400 uppercase tracking-[0.1em] font-semibold leading-none">Ingeniería Clínica</p>
-              <h1 className="text-xs 2xl:text-sm font-black leading-tight truncate">Estado de equipos</h1>
+              <h1 className="text-sm 2xl:text-base font-black leading-tight truncate">Estado de equipos</h1>
             </div>
           </div>
 
-          <div className="space-y-1 shrink-0">
+          <div className="space-y-1.5 shrink-0">
             <TarjetaKPI titulo="Total equipos" valor={resumen?.total ?? "—"} clase="bg-slate-800" />
             <TarjetaKPI titulo="Activos" valor={resumen?.activos ?? "—"} clase="bg-emerald-700/80" />
             <TarjetaKPI titulo="Fuera de servicio" valor={resumen?.no_activos ?? "—"} clase="bg-red-700/85" />
           </div>
 
-          <div className="mt-1.5 mb-1 shrink-0">
-            <h2 className="text-[8px] 2xl:text-[9px] font-bold uppercase tracking-[0.08em] text-white/50">Equipos y servicios críticos</h2>
+          <div className="mt-2 mb-1.5 shrink-0">
+            <h2 className="text-[9px] 2xl:text-[10px] font-bold uppercase tracking-[0.08em] text-white/55">Equipos y servicios críticos</h2>
           </div>
 
-          <div className="grid grid-cols-2 gap-1 content-start min-h-0 overflow-hidden">
+          <div
+            className="grid grid-cols-2 gap-1.5 flex-1 min-h-0 overflow-hidden"
+            style={{ gridTemplateRows: `repeat(${filasEquipos}, minmax(0, 1fr))` }}
+          >
             {!resumen && !error && (
               <div className="col-span-2 rounded-lg bg-white/5 p-2 text-center text-[9px] text-white/50">Cargando...</div>
             )}
@@ -259,7 +264,7 @@ export default function MonitorIndicadores() {
             ))}
           </div>
 
-          <div className="mt-auto pt-1 border-t border-white/10 text-[7px] 2xl:text-[8px] text-white/30 shrink-0 truncate">
+          <div className="pt-1.5 mt-1.5 border-t border-white/10 text-[7px] 2xl:text-[8px] text-white/30 shrink-0 truncate">
             {error ? (
               <span className="text-red-400">⚠ {error}</span>
             ) : (
