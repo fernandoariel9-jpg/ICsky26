@@ -49,10 +49,10 @@ const nombreServicios = {
 
 function TarjetaKPI({ titulo, valor, clase }) {
   return (
-    <div className={`rounded-2xl border border-white/10 p-4 2xl:p-5 shadow-lg ${clase}`}>
-      <div className="flex items-end justify-between gap-3">
-        <p className="text-sm 2xl:text-base uppercase tracking-[0.16em] text-white/70 font-semibold">{titulo}</p>
-        <p className="text-4xl 2xl:text-5xl font-black leading-none tabular-nums">{valor}</p>
+    <div className={`rounded-xl border border-white/10 px-3 py-2 2xl:px-3.5 2xl:py-2.5 shadow-md ${clase}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] 2xl:text-xs uppercase tracking-[0.12em] text-white/70 font-semibold leading-tight">{titulo}</p>
+        <p className="text-2xl 2xl:text-3xl font-black leading-none tabular-nums">{valor}</p>
       </div>
     </div>
   );
@@ -69,10 +69,10 @@ function TarjetaEquipo({ nombre, estado, Icono, detalle }) {
       : "text-red-400 border-red-500/25 bg-red-500/10";
 
   return (
-    <div className={`min-h-[122px] 2xl:min-h-[148px] rounded-2xl border p-3 2xl:p-4 flex flex-col items-center justify-center text-center ${color}`}>
-      <Icono className={`text-4xl 2xl:text-5xl mb-2 ${!activo && !restringido ? "animate-pulse" : ""}`} />
-      <p className="text-xs 2xl:text-sm font-bold leading-tight text-white/90">{nombre}</p>
-      {detalle && <p className="text-[10px] 2xl:text-xs text-white/45 mt-1">{detalle}</p>}
+    <div className={`h-[74px] 2xl:h-[82px] rounded-xl border px-2 py-1.5 flex flex-col items-center justify-center text-center ${color}`}>
+      <Icono className={`text-2xl 2xl:text-3xl mb-1 ${!activo && !restringido ? "animate-pulse" : ""}`} />
+      <p className="text-[9px] 2xl:text-[10px] font-bold leading-tight text-white/90 line-clamp-2">{nombre}</p>
+      {detalle && <p className="text-[8px] 2xl:text-[9px] text-white/40 mt-0.5 leading-tight line-clamp-1">{detalle}</p>}
     </div>
   );
 }
@@ -174,30 +174,30 @@ export default function MonitorIndicadores() {
   }, [resumen]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white overflow-hidden">
-      <div className="h-screen grid grid-cols-[minmax(360px,31vw)_1fr] 2xl:grid-cols-[minmax(470px,30vw)_1fr]">
-        <aside className="h-screen border-r border-white/10 bg-slate-900/95 p-4 2xl:p-6 flex flex-col overflow-hidden">
-          <div className="flex items-center gap-3 mb-4 2xl:mb-5 shrink-0">
-            <img src="/logosmall_old.png" alt="Ingeniería Clínica" className="w-12 2xl:w-16 h-auto" />
-            <div>
-              <p className="text-xs 2xl:text-sm text-cyan-400 uppercase tracking-[0.18em] font-semibold">Ingeniería Clínica</p>
-              <h1 className="text-lg 2xl:text-2xl font-black leading-tight">Estado de equipos</h1>
+    <div className="h-screen w-screen bg-slate-950 text-white overflow-hidden">
+      <div className="h-full w-full grid grid-cols-[20vw_1fr]">
+        <aside className="h-full min-w-0 border-r border-white/10 bg-slate-900/95 p-2.5 2xl:p-3 flex flex-col overflow-hidden">
+          <div className="flex items-center gap-2 mb-2.5 shrink-0">
+            <img src="/logosmall_old.png" alt="Ingeniería Clínica" className="w-8 2xl:w-9 h-auto" />
+            <div className="min-w-0">
+              <p className="text-[9px] 2xl:text-[10px] text-cyan-400 uppercase tracking-[0.14em] font-semibold leading-tight">Ingeniería Clínica</p>
+              <h1 className="text-sm 2xl:text-base font-black leading-tight truncate">Estado de equipos</h1>
             </div>
           </div>
 
-          <div className="space-y-2 2xl:space-y-3 shrink-0">
+          <div className="space-y-1.5 shrink-0">
             <TarjetaKPI titulo="Total equipos" valor={resumen?.total ?? "—"} clase="bg-slate-800" />
             <TarjetaKPI titulo="Activos" valor={resumen?.activos ?? "—"} clase="bg-emerald-700/80" />
             <TarjetaKPI titulo="Fuera de servicio" valor={resumen?.no_activos ?? "—"} clase="bg-red-700/85" />
           </div>
 
-          <div className="mt-4 2xl:mt-5 mb-2 shrink-0">
-            <h2 className="text-sm 2xl:text-base font-bold uppercase tracking-[0.15em] text-white/60">Equipos y servicios críticos</h2>
+          <div className="mt-2.5 mb-1.5 shrink-0">
+            <h2 className="text-[9px] 2xl:text-[10px] font-bold uppercase tracking-[0.12em] text-white/55">Equipos y servicios críticos</h2>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 2xl:gap-3 overflow-y-auto pr-1 pb-2 content-start">
+          <div className="grid grid-cols-2 gap-1.5 content-start overflow-hidden">
             {!resumen && !error && (
-              <div className="col-span-2 rounded-2xl bg-white/5 p-8 text-center text-white/50">Cargando...</div>
+              <div className="col-span-2 rounded-xl bg-white/5 p-4 text-center text-xs text-white/50">Cargando...</div>
             )}
 
             {equiposLaterales.map((eq, i) => (
@@ -211,20 +211,20 @@ export default function MonitorIndicadores() {
             ))}
           </div>
 
-          <div className="mt-auto pt-3 border-t border-white/10 text-[10px] 2xl:text-xs text-white/35 shrink-0">
+          <div className="mt-auto pt-1.5 border-t border-white/10 text-[8px] 2xl:text-[9px] text-white/30 shrink-0 truncate">
             {error ? (
               <span className="text-red-400">⚠ {error}</span>
             ) : (
               <span>
-                Actualización automática cada 30 s
+                Actualización 30 s
                 {ultimaActualizacion ? ` · ${ultimaActualizacion.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}` : ""}
               </span>
             )}
           </div>
         </aside>
 
-        <main className="h-screen p-6 2xl:p-10 overflow-hidden">
-          <div className="h-full rounded-3xl border border-white/10 bg-slate-900/40 flex items-center justify-center">
+        <main className="h-full min-w-0 p-4 2xl:p-6 overflow-hidden">
+          <div className="h-full rounded-3xl border border-white/10 bg-slate-900/40 flex items-center justify-center overflow-hidden">
             <div className="text-center text-white/30">
               <p className="text-3xl 2xl:text-5xl font-black">Monitor de indicadores</p>
               <p className="text-base 2xl:text-xl mt-3">Área disponible para los próximos indicadores</p>
