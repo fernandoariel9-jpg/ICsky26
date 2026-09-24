@@ -10,6 +10,7 @@ import RIC37 from "./RIC37";
 import RIC39 from "./RIC39";
 import RIC44 from "./RIC44";
 import RIC48 from "./RIC48";
+import RIC56 from "./RIC56";
 import RIC64 from "./RIC64";
 import { API_URL } from "./config";
 
@@ -19,6 +20,16 @@ const normalizar = (texto = "") =>
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLowerCase();
+
+const esRxMovil = (descripcion = "") => {
+  const d = normalizar(descripcion);
+  return (
+    d.includes("rx movil") ||
+    d.includes("rayos x movil") ||
+    d.includes("equipo de rx movil") ||
+    d.includes("equipo rx movil")
+  );
+};
 
 const fechaLocal = () => {
   const d = new Date();
@@ -31,12 +42,14 @@ export default function PanelPersonal({ personal, onLogout }) {
   const [ric29Montado, setRic29Montado] = useState(false);
   const [ric39Montado, setRic39Montado] = useState(false);
   const [ric48Montado, setRic48Montado] = useState(false);
+  const [ric56Montado, setRic56Montado] = useState(false);
   const [ric64Montado, setRic64Montado] = useState(false);
 
   useEffect(() => {
     if (vista === "ric29") setRic29Montado(true);
     if (vista === "ric39") setRic39Montado(true);
     if (vista === "ric48") setRic48Montado(true);
+    if (vista === "ric56") setRic56Montado(true);
     if (vista === "ric64") setRic64Montado(true);
   }, [vista]);
 
@@ -71,6 +84,7 @@ export default function PanelPersonal({ personal, onLogout }) {
     if (descripcionNormalizada.includes("cardiodesfibrilador")) vistaPreventivo = "ric29";
     if (descripcionNormalizada.includes("monitor multiparametrico")) vistaPreventivo = "ric39";
     if (descripcionNormalizada.includes("electrocardiografo")) vistaPreventivo = "ric48";
+    if (esRxMovil(descripcion)) vistaPreventivo = "ric56";
     if (descripcionNormalizada.includes("bano termostatico")) vistaPreventivo = "ric64";
     if (!vistaPreventivo) return false;
 
@@ -107,7 +121,7 @@ export default function PanelPersonal({ personal, onLogout }) {
     return true;
   };
 
-  const iniciarRIC64DesdeFormulario = async (event, boton) => {
+  const iniciarProtocoloDesdeFormulario = async (event, boton) => {
     if (!boton.textContent.includes("Guardar")) return false;
 
     const formulario = boton.closest("div.bg-gray-100");
@@ -120,7 +134,12 @@ export default function PanelPersonal({ personal, onLogout }) {
 
     const contenedor = event.currentTarget;
     const descripcion = leerCampoEquipo(contenedor, "Equipo");
-    if (!normalizar(descripcion).includes("bano termostatico")) return false;
+    const descripcionNormalizada = normalizar(descripcion);
+
+    let vistaProtocolo = "";
+    if (esRxMovil(descripcion)) vistaProtocolo = "ric56";
+    else if (descripcionNormalizada.includes("bano termostatico")) vistaProtocolo = "ric64";
+    else return false;
 
     const marcaModelo = leerCampoEquipo(contenedor, "Marca");
     const numeroSerie = leerCampoEquipo(contenedor, "Serie");
@@ -179,9 +198,9 @@ export default function PanelPersonal({ personal, onLogout }) {
         })
       );
 
-      setVista("ric64");
+      setVista(vistaProtocolo);
     } catch (err) {
-      console.error("Error iniciando RIC64:", err);
+      console.error("Error iniciando protocolo específico:", err);
       alert(err.message || "Error al iniciar el mantenimiento preventivo");
     }
 
@@ -192,7 +211,7 @@ export default function PanelPersonal({ personal, onLogout }) {
     const boton = event.target.closest("button");
     if (!boton) return;
     if (continuarPreventivoDesdeTarjeta(event, boton)) return;
-    await iniciarRIC64DesdeFormulario(event, boton);
+    await iniciarProtocoloDesdeFormulario(event, boton);
   };
 
   return (
@@ -231,6 +250,12 @@ export default function PanelPersonal({ personal, onLogout }) {
       {ric48Montado && (
         <div style={{ display: vista === "ric48" ? "block" : "none" }}>
           <RIC48 setVista={setVista} personal={personal} />
+        </div>
+      )}
+
+      {ric56Montado && (
+        <div style={{ display: vista === "ric56" ? "block" : "none" }}>
+          <RIC56 setVista={setVista} personal={personal} />
         </div>
       )}
 
