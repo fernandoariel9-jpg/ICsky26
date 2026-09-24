@@ -34,6 +34,81 @@ function itemActivo(item) {
   );
 }
 
+function similitudTexto(a, b) {
+  const textoA = normalizarTexto(a).replace(/\s+/g, " ");
+  const textoB = normalizarTexto(b).replace(/\s+/g, " ");
+
+  if (!textoA || !textoB) return 0;
+  if (textoA === textoB) return 1;
+
+  const menor = textoA.length <= textoB.length ? textoA : textoB;
+  const mayor = textoA.length > textoB.length ? textoA : textoB;
+  if (menor.length >= 5 && mayor.includes(menor)) return 0.9;
+  if (menor.length < 4) return 0;
+
+  const pares = (texto) => {
+    const limpio = texto.replace(/\s/g, "");
+    const resultado = [];
+    for (let i = 0; i < limpio.length - 1; i += 1) resultado.push(limpio.slice(i, i + 2));
+    return resultado;
+  };
+
+  const paresA = pares(textoA);
+  const paresB = pares(textoB);
+  if (!paresA.length || !paresB.length) return 0;
+
+  const disponibles = [...paresB];
+  let comunes = 0;
+  paresA.forEach((par) => {
+    const indice = disponibles.indexOf(par);
+    if (indice !== -1) {
+      comunes += 1;
+      disponibles.splice(indice, 1);
+    }
+  });
+
+  return (2 * comunes) / (paresA.length + paresB.length);
+}
+
+function buscarArticulosSimilares(nuevo, lista) {
+  const codigoNuevo = normalizarTexto(nuevo?.codigo);
+  const descripcionNueva = normalizarTexto(nuevo?.descripcion);
+  const categoriaNueva = normalizarTexto(nuevo?.categoria);
+
+  if (!codigoNuevo && descripcionNueva.length < 4) return [];
+
+  return lista
+    .map((item) => {
+      const codigoExistente = normalizarTexto(item.codigo);
+      const descripcionExistente = normalizarTexto(item.descripcion);
+      const categoriaExistente = normalizarTexto(item.categoria);
+
+      const codigoExacto = Boolean(codigoNuevo && codigoExistente && codigoNuevo === codigoExistente);
+      const descripcionExacta = Boolean(descripcionNueva && descripcionExistente && descripcionNueva === descripcionExistente);
+      let similitud = similitudTexto(descripcionNueva, descripcionExistente);
+
+      if (categoriaNueva && categoriaExistente && categoriaNueva === categoriaExistente && similitud >= 0.55) {
+        similitud = Math.min(1, similitud + 0.05);
+      }
+
+      const coincide = codigoExacto || descripcionExacta || similitud >= 0.72;
+      if (!coincide) return null;
+
+      return {
+        ...item,
+        similitud: codigoExacto || descripcionExacta ? 1 : similitud,
+        motivo: codigoExacto
+          ? "Mismo código"
+          : descripcionExacta
+            ? "Misma descripción"
+            : "Descripción similar"
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.similitud - a.similitud)
+    .slice(0, 5);
+}
+
 const inputClass = "w-full border rounded-xl px-3 py-2";
 const actionButtonClass = "h-10 w-full sm:w-40 px-3 rounded-xl font-semibold inline-flex items-center justify-center whitespace-nowrap";
 const formButtonClass = "h-10 min-w-40 px-4 rounded-xl font-semibold inline-flex items-center justify-center disabled:opacity-50";
@@ -69,13 +144,12 @@ export default function Stock({ setVista, personal }) {
   const [nuevoItem, setNuevoItem] = useState({ codigo: "", descripcion: "", categoria: "", unidad: "UNIDAD", stock_minimo: 0 });
   const [entrada, setEntrada] = useState({ item_id: "", area: areaPersonal, cantidad: "", observacion: "" });
   const [salida, setSalida] = useState({ item_id: "", area: areaPersonal, cantidad: "", tipo: "SALIDA", ric01_id: "", observacion: "" });
-  const [transferencia, setTransferencia] = useState({
-    item_id: "",
-    cantidad: "",
-    area_origen: "",
-    area_destino: areaPersonal,
-    observacion: ""
-  });
+  const [transferencia, setTransferencia] = useState({ item_id: "", cantidad: "", area_origen: "", area_destino: areaPersonal, observacion: "" });
+
+  const similaresNuevoItem = useMemo(
+    () => buscarArticulosSimilares(nuevoItem, items),
+    [nuevoItem.codigo, nuevoItem.descripcion, nuevoItem.categoria, items]
+  );
 
   const cargarDatos = async () => {
     setCargando(true);
@@ -90,17 +164,10 @@ export default function Stock({ setVista, personal }) {
         fetch(`${API}/transferencias`, { cache: "no-store" })
       ]);
 
-      if (!rCategorias.ok || !rAreas.ok || !rItems.ok || !rExistencias.ok || !rMovimientos.ok || !rTransferencias.ok) {
-        throw new Error("No se pudo obtener la información de stock");
-      }
+      if (!rCategorias.ok || !rAreas.ok || !rItems.ok || !rExistencias.ok || !rMovimientos.ok || !rTransferencias.ok) throw new Error("No se pudo obtener la información de stock");
 
       const [dCategorias, dAreas, dItems, dExistencias, dMovimientos, dTransferencias] = await Promise.all([
-        rCategorias.json(),
-        rAreas.json(),
-        rItems.json(),
-        rExistencias.json(),
-        rMovimientos.json(),
-        rTransferencias.json()
+        rCategorias.json(), rAreas.json(), rItems.json(), rExistencias.json(), rMovimientos.json(), rTransferencias.json()
       ]);
 
       setCategorias(Array.isArray(dCategorias) ? dCategorias : []);
@@ -117,16 +184,10 @@ export default function Stock({ setVista, personal }) {
     }
   };
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
+  useEffect(() => { cargarDatos(); }, []);
 
   const postJSON = async (url, body, method = "POST") => {
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
+    const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "Error al guardar");
     return data;
@@ -134,9 +195,20 @@ export default function Stock({ setVista, personal }) {
 
   const crearItem = async (e) => {
     e.preventDefault();
-    setGuardando(true);
     setError("");
     setMensaje("");
+
+    if (similaresNuevoItem.length > 0) {
+      const detalle = similaresNuevoItem
+        .map((item) => `${item.codigo ? `${item.codigo} · ` : ""}${item.descripcion} (${item.motivo})`)
+        .join("\n");
+      const continuar = window.confirm(
+        `⚠ Se encontraron artículos similares:\n\n${detalle}\n\n¿Desea guardar el nuevo artículo de todas maneras?`
+      );
+      if (!continuar) return;
+    }
+
+    setGuardando(true);
     try {
       await postJSON(`${API}/items`, { ...nuevoItem, stock_minimo: entero(nuevoItem.stock_minimo || 0) });
       setNuevoItem({ codigo: "", descripcion: "", categoria: "", unidad: "UNIDAD", stock_minimo: 0 });
@@ -154,159 +226,69 @@ export default function Stock({ setVista, personal }) {
   const eliminarItem = async (item) => {
     const nombre = `${item.codigo ? `${item.codigo} · ` : ""}${item.descripcion}`;
     if (!window.confirm(`¿ELIMINAR DEFINITIVAMENTE ${nombre}?`)) return;
-    setError("");
-    setMensaje("");
+    setError(""); setMensaje("");
     try {
       const res = await fetch(`${API}/items/${item.id}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "No se pudo eliminar el artículo");
       setMensaje("Artículo eliminado correctamente");
       await cargarDatos();
-    } catch (e) {
-      setError(e.message);
-    }
+    } catch (e) { setError(e.message); }
   };
 
   const registrarEntrada = async (e) => {
-    e.preventDefault();
-    setGuardando(true);
-    setError("");
-    setMensaje("");
+    e.preventDefault(); setGuardando(true); setError(""); setMensaje("");
     try {
-      await postJSON(`${API}/entradas`, {
-        item_id: Number(entrada.item_id),
-        area: entrada.area,
-        cantidad: entero(entrada.cantidad),
-        personal_id: personal?.id || null,
-        personal_nombre: personal?.nombre || null,
-        observacion: entrada.observacion
-      });
+      await postJSON(`${API}/entradas`, { item_id: Number(entrada.item_id), area: entrada.area, cantidad: entero(entrada.cantidad), personal_id: personal?.id || null, personal_nombre: personal?.nombre || null, observacion: entrada.observacion });
       setEntrada({ item_id: "", area: areaPersonal, cantidad: "", observacion: "" });
-      setBusquedaEntrada("");
-      setMostrarEntrada(false);
-      setMensaje("Entrada registrada correctamente");
-      await cargarDatos();
-      setTab("existencias");
-    } catch (e2) {
-      setError(e2.message);
-    } finally {
-      setGuardando(false);
-    }
+      setBusquedaEntrada(""); setMostrarEntrada(false); setMensaje("Entrada registrada correctamente");
+      await cargarDatos(); setTab("existencias");
+    } catch (e2) { setError(e2.message); } finally { setGuardando(false); }
   };
 
   const registrarSalida = async (e) => {
-    e.preventDefault();
-    setGuardando(true);
-    setError("");
-    setMensaje("");
+    e.preventDefault(); setGuardando(true); setError(""); setMensaje("");
     try {
-      await postJSON(`${API}/salidas`, {
-        item_id: Number(salida.item_id),
-        area: salida.area,
-        cantidad: entero(salida.cantidad),
-        tipo: salida.tipo,
-        ric01_id: salida.tipo === "CONSUMO" ? Number(salida.ric01_id) : null,
-        personal_id: personal?.id || null,
-        personal_nombre: personal?.nombre || null,
-        observacion: salida.observacion
-      });
+      await postJSON(`${API}/salidas`, { item_id: Number(salida.item_id), area: salida.area, cantidad: entero(salida.cantidad), tipo: salida.tipo, ric01_id: salida.tipo === "CONSUMO" ? Number(salida.ric01_id) : null, personal_id: personal?.id || null, personal_nombre: personal?.nombre || null, observacion: salida.observacion });
       setSalida({ item_id: "", area: areaPersonal, cantidad: "", tipo: "SALIDA", ric01_id: "", observacion: "" });
-      setBusquedaSalida("");
-      setMostrarSalida(false);
-      setMensaje(salida.tipo === "CONSUMO" ? "Consumo registrado correctamente" : "Salida registrada correctamente");
-      await cargarDatos();
-      setTab("movimientos");
-    } catch (e2) {
-      setError(e2.message);
-    } finally {
-      setGuardando(false);
-    }
+      setBusquedaSalida(""); setMostrarSalida(false); setMensaje(salida.tipo === "CONSUMO" ? "Consumo registrado correctamente" : "Salida registrada correctamente");
+      await cargarDatos(); setTab("movimientos");
+    } catch (e2) { setError(e2.message); } finally { setGuardando(false); }
   };
 
   const solicitarTransferencia = async (e) => {
-    e.preventDefault();
-    setGuardando(true);
-    setError("");
-    setMensaje("");
+    e.preventDefault(); setGuardando(true); setError(""); setMensaje("");
     try {
-      await postJSON(`${API}/transferencias`, {
-        item_id: Number(transferencia.item_id),
-        cantidad: entero(transferencia.cantidad),
-        area_origen: transferencia.area_origen,
-        area_destino: transferencia.area_destino,
-        solicitado_por_id: personal?.id || null,
-        solicitado_por_nombre: personal?.nombre || null,
-        observacion: transferencia.observacion
-      });
+      await postJSON(`${API}/transferencias`, { item_id: Number(transferencia.item_id), cantidad: entero(transferencia.cantidad), area_origen: transferencia.area_origen, area_destino: transferencia.area_destino, solicitado_por_id: personal?.id || null, solicitado_por_nombre: personal?.nombre || null, observacion: transferencia.observacion });
       setTransferencia({ item_id: "", cantidad: "", area_origen: "", area_destino: areaPersonal, observacion: "" });
-      setMostrarTransferencia(false);
-      setMensaje("Transferencia solicitada correctamente");
-      await cargarDatos();
-      setTab("transferencias");
-    } catch (e2) {
-      setError(e2.message);
-    } finally {
-      setGuardando(false);
-    }
+      setMostrarTransferencia(false); setMensaje("Transferencia solicitada correctamente"); await cargarDatos(); setTab("transferencias");
+    } catch (e2) { setError(e2.message); } finally { setGuardando(false); }
   };
 
   const resolverTransferencia = async (t, accion) => {
     const verbo = accion === "APROBAR" ? "APROBAR" : "RECHAZAR";
     if (!window.confirm(`¿${verbo} TRANSFERENCIA #${t.id}?`)) return;
-    setError("");
-    setMensaje("");
+    setError(""); setMensaje("");
     try {
-      await postJSON(`${API}/transferencias/${t.id}/resolver`, {
-        accion,
-        aprobado_por_id: personal?.id || null,
-        aprobado_por_nombre: personal?.nombre || null,
-        aprobado_por_area: areaPersonal
-      }, "PUT");
-      setMensaje(accion === "APROBAR" ? "Transferencia aprobada" : "Transferencia rechazada");
-      await cargarDatos();
-      setTab("transferencias");
-    } catch (e) {
-      setError(e.message);
-    }
+      await postJSON(`${API}/transferencias/${t.id}/resolver`, { accion, aprobado_por_id: personal?.id || null, aprobado_por_nombre: personal?.nombre || null, aprobado_por_area: areaPersonal }, "PUT");
+      setMensaje(accion === "APROBAR" ? "Transferencia aprobada" : "Transferencia rechazada"); await cargarDatos(); setTab("transferencias");
+    } catch (e) { setError(e.message); }
   };
 
-  const abrirAjuste = (existencia) => {
-    setExistenciaAjuste(existencia);
-    setAjuste({ nueva_cantidad: String(entero(existencia.cantidad)), observacion: "" });
-  };
+  const abrirAjuste = (existencia) => { setExistenciaAjuste(existencia); setAjuste({ nueva_cantidad: String(entero(existencia.cantidad)), observacion: "" }); };
 
   const guardarAjuste = async (e) => {
-    e.preventDefault();
-    if (!existenciaAjuste) return;
-    setGuardando(true);
-    setError("");
-    setMensaje("");
+    e.preventDefault(); if (!existenciaAjuste) return; setGuardando(true); setError(""); setMensaje("");
     try {
-      await postJSON(`${API}/existencias/ajustar`, {
-        existencia_id: existenciaAjuste.id,
-        nueva_cantidad: entero(ajuste.nueva_cantidad),
-        personal_id: personal?.id || null,
-        personal_nombre: personal?.nombre || null,
-        observacion: ajuste.observacion
-      }, "PUT");
-      setExistenciaAjuste(null);
-      setAjuste({ nueva_cantidad: "", observacion: "" });
-      setMensaje("Ajuste de stock registrado correctamente");
-      await cargarDatos();
-      setKpiActivo("existencias");
-    } catch (e2) {
-      setError(e2.message);
-    } finally {
-      setGuardando(false);
-    }
+      await postJSON(`${API}/existencias/ajustar`, { existencia_id: existenciaAjuste.id, nueva_cantidad: entero(ajuste.nueva_cantidad), personal_id: personal?.id || null, personal_nombre: personal?.nombre || null, observacion: ajuste.observacion }, "PUT");
+      setExistenciaAjuste(null); setAjuste({ nueva_cantidad: "", observacion: "" }); setMensaje("Ajuste de stock registrado correctamente"); await cargarDatos(); setKpiActivo("existencias");
+    } catch (e2) { setError(e2.message); } finally { setGuardando(false); }
   };
 
   const filtrar = (lista) => {
     const texto = normalizarTexto(busqueda);
     if (!texto) return lista;
-    return lista.filter((fila) =>
-      Object.values(fila || {}).some((valor) => normalizarTexto(valor).includes(texto))
-    );
+    return lista.filter((fila) => Object.values(fila || {}).some((valor) => normalizarTexto(valor).includes(texto)));
   };
 
   const filtrarItems = (texto) => {
@@ -314,35 +296,16 @@ export default function Stock({ setVista, personal }) {
     return items.filter((item) => {
       if (!itemActivo(item)) return false;
       if (!termino) return true;
-
-      const contenido = normalizarTexto([
-        item.codigo,
-        item.descripcion,
-        item.categoria,
-        item.unidad
-      ].filter(Boolean).join(" "));
-
+      const contenido = normalizarTexto([item.codigo, item.descripcion, item.categoria, item.unidad].filter(Boolean).join(" "));
       return contenido.includes(termino);
     });
   };
 
   const itemsEntrada = useMemo(() => filtrarItems(busquedaEntrada), [items, busquedaEntrada]);
   const itemsSalida = useMemo(() => filtrarItems(busquedaSalida), [items, busquedaSalida]);
-
-  const existenciasArea = useMemo(
-    () => existencias.filter((e) => String(e.area || "").trim().toUpperCase() === areaPersonal),
-    [existencias, areaPersonal]
-  );
-
-  const stockBajoArea = useMemo(
-    () => existenciasArea.filter((e) => e.stock_bajo),
-    [existenciasArea]
-  );
-
-  const transferenciasPendientes = useMemo(
-    () => transferencias.filter((t) => t.estado === "PENDIENTE"),
-    [transferencias]
-  );
+  const existenciasArea = useMemo(() => existencias.filter((e) => String(e.area || "").trim().toUpperCase() === areaPersonal), [existencias, areaPersonal]);
+  const stockBajoArea = useMemo(() => existenciasArea.filter((e) => e.stock_bajo), [existenciasArea]);
+  const transferenciasPendientes = useMemo(() => transferencias.filter((t) => t.estado === "PENDIENTE"), [transferencias]);
 
   const datos = useMemo(() => {
     if (tab === "catalogo") return filtrar(items);
@@ -357,23 +320,14 @@ export default function Stock({ setVista, personal }) {
     bajo: { titulo: "Stock bajo", lista: stockBajoArea },
     transferencias: { titulo: "Transferencias pendientes", lista: transferenciasPendientes }
   };
-
   const kpiSeleccionado = kpiActivo ? kpiConfig[kpiActivo] : null;
 
   const renderListaKpi = () => {
     if (!kpiSeleccionado) return null;
     const lista = kpiSeleccionado.lista;
-
     if (lista.length === 0) return <div className="p-6 text-center text-gray-500">No hay registros para mostrar.</div>;
-
-    if (kpiActivo === "articulos") {
-      return <div className="divide-y">{lista.map((item) => <div key={item.id} className="p-3"><div className="font-semibold">{item.codigo ? `${item.codigo} · ` : ""}{item.descripcion}</div><div className="text-sm text-gray-500">{item.categoria || "Sin categoría"} · {item.unidad} · Mínimo: {entero(item.stock_minimo)}</div></div>)}</div>;
-    }
-
-    if (kpiActivo === "existencias" || kpiActivo === "bajo") {
-      return <div className="divide-y">{lista.map((e) => <div key={e.id} className="p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"><div><div className="font-semibold">{e.codigo ? `${e.codigo} · ` : ""}{e.descripcion}</div><div className="text-sm text-gray-500">{e.area} · {entero(e.cantidad)} {e.unidad} · Mínimo: {entero(e.stock_minimo)}</div>{e.stock_bajo && <div className="text-sm font-semibold text-red-600">Stock bajo</div>}</div>{kpiActivo === "existencias" && <button onClick={() => abrirAjuste(e)} className="px-3 py-2 rounded-lg bg-amber-600 text-white font-semibold">Ajustar</button>}</div>)}</div>;
-    }
-
+    if (kpiActivo === "articulos") return <div className="divide-y">{lista.map((item) => <div key={item.id} className="p-3"><div className="font-semibold">{item.codigo ? `${item.codigo} · ` : ""}{item.descripcion}</div><div className="text-sm text-gray-500">{item.categoria || "Sin categoría"} · {item.unidad} · Mínimo: {entero(item.stock_minimo)}</div></div>)}</div>;
+    if (kpiActivo === "existencias" || kpiActivo === "bajo") return <div className="divide-y">{lista.map((e) => <div key={e.id} className="p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"><div><div className="font-semibold">{e.codigo ? `${e.codigo} · ` : ""}{e.descripcion}</div><div className="text-sm text-gray-500">{e.area} · {entero(e.cantidad)} {e.unidad} · Mínimo: {entero(e.stock_minimo)}</div>{e.stock_bajo && <div className="text-sm font-semibold text-red-600">Stock bajo</div>}</div>{kpiActivo === "existencias" && <button onClick={() => abrirAjuste(e)} className="px-3 py-2 rounded-lg bg-amber-600 text-white font-semibold">Ajustar</button>}</div>)}</div>;
     return <div className="divide-y">{lista.map((t) => <div key={t.id} className="p-3"><div className="font-semibold">#{t.id} · {t.codigo ? `${t.codigo} · ` : ""}{t.descripcion}</div><div className="text-sm text-gray-500">{entero(t.cantidad)} {t.unidad} · {t.area_origen} → {t.area_destino}</div><div className="text-sm text-gray-500">Solicitado por: {t.solicitado_por_nombre || "-"} · {formatearFecha(t.fecha_solicitud)}</div></div>)}</div>;
   };
 
@@ -402,6 +356,22 @@ export default function Stock({ setVista, personal }) {
             <select className={inputClass} required value={nuevoItem.categoria} onChange={(e) => setNuevoItem({ ...nuevoItem, categoria: e.target.value })}><option value="">SELECCIONAR CATEGORÍA</option>{categorias.map((categoria) => <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>)}</select>
             <input className={inputClass} placeholder="Unidad" value={nuevoItem.unidad} onChange={(e) => setNuevoItem({ ...nuevoItem, unidad: e.target.value.toUpperCase() })} />
             <input className={inputClass} type="number" min="0" step="1" placeholder="Stock mínimo" value={nuevoItem.stock_minimo} onChange={(e) => setNuevoItem({ ...nuevoItem, stock_minimo: e.target.value })} />
+
+            {similaresNuevoItem.length > 0 && (
+              <div className="md:col-span-5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-amber-900">
+                <div className="font-bold mb-2">⚠ Posibles artículos duplicados o similares</div>
+                <div className="space-y-1">
+                  {similaresNuevoItem.map((item) => (
+                    <div key={item.id} className="text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 border-t border-amber-200 first:border-t-0 pt-1 first:pt-0">
+                      <span><strong>{item.codigo || "SIN CÓDIGO"}</strong> · {item.descripcion}{item.categoria ? ` · ${item.categoria}` : ""}</span>
+                      <span className="font-semibold whitespace-nowrap">{item.motivo} · {Math.round(item.similitud * 100)}%</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-xs mt-2">Revise estos artículos antes de crear uno nuevo. Si continúa, se pedirá confirmación.</div>
+              </div>
+            )}
+
             <div className="md:col-span-5 flex justify-end"><button disabled={guardando} className={`${formButtonClass} bg-indigo-600 text-white`}>Guardar artículo</button></div>
           </form>
         )}
@@ -409,10 +379,7 @@ export default function Stock({ setVista, personal }) {
         {mostrarEntrada && (
           <form onSubmit={registrarEntrada} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-4 gap-3">
             <input className={`${inputClass} md:col-span-4`} placeholder="Buscar artículo por código, descripción o categoría..." value={busquedaEntrada} onChange={(e) => { setBusquedaEntrada(e.target.value); setEntrada({ ...entrada, item_id: "" }); }} />
-            <select className={inputClass} required value={entrada.item_id} onChange={(e) => setEntrada({ ...entrada, item_id: e.target.value })}>
-              <option value="">{itemsEntrada.length ? "Seleccionar artículo" : "Sin coincidencias"}</option>
-              {itemsEntrada.map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}{i.categoria ? ` · ${i.categoria}` : ""}</option>)}
-            </select>
+            <select className={inputClass} required value={entrada.item_id} onChange={(e) => setEntrada({ ...entrada, item_id: e.target.value })}><option value="">{itemsEntrada.length ? "Seleccionar artículo" : "Sin coincidencias"}</option>{itemsEntrada.map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}{i.categoria ? ` · ${i.categoria}` : ""}</option>)}</select>
             <input className={inputClass} required placeholder="Área" value={entrada.area} onChange={(e) => setEntrada({ ...entrada, area: e.target.value.toUpperCase() })} />
             <input className={inputClass} required type="number" min="1" step="1" placeholder="Cantidad" value={entrada.cantidad} onChange={(e) => setEntrada({ ...entrada, cantidad: e.target.value })} />
             <input className={inputClass} placeholder="Observación" value={entrada.observacion} onChange={(e) => setEntrada({ ...entrada, observacion: e.target.value.toUpperCase() })} />
@@ -423,10 +390,7 @@ export default function Stock({ setVista, personal }) {
         {mostrarSalida && (
           <form onSubmit={registrarSalida} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-6 gap-3">
             <input className={`${inputClass} md:col-span-6`} placeholder="Buscar artículo por código, descripción o categoría..." value={busquedaSalida} onChange={(e) => { setBusquedaSalida(e.target.value); setSalida({ ...salida, item_id: "" }); }} />
-            <select className={inputClass} required value={salida.item_id} onChange={(e) => setSalida({ ...salida, item_id: e.target.value })}>
-              <option value="">{itemsSalida.length ? "Seleccionar artículo" : "Sin coincidencias"}</option>
-              {itemsSalida.map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}{i.categoria ? ` · ${i.categoria}` : ""}</option>)}
-            </select>
+            <select className={inputClass} required value={salida.item_id} onChange={(e) => setSalida({ ...salida, item_id: e.target.value })}><option value="">{itemsSalida.length ? "Seleccionar artículo" : "Sin coincidencias"}</option>{itemsSalida.map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}{i.categoria ? ` · ${i.categoria}` : ""}</option>)}</select>
             <input className={inputClass} required placeholder="Área" value={salida.area} onChange={(e) => setSalida({ ...salida, area: e.target.value.toUpperCase() })} />
             <input className={inputClass} required type="number" min="1" step="1" placeholder="Cantidad" value={salida.cantidad} onChange={(e) => setSalida({ ...salida, cantidad: e.target.value })} />
             <select className={inputClass} value={salida.tipo} onChange={(e) => setSalida({ ...salida, tipo: e.target.value, ric01_id: e.target.value === "CONSUMO" ? salida.ric01_id : "" })}><option value="SALIDA">Salida</option><option value="CONSUMO">Consumo</option></select>
