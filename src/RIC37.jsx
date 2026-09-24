@@ -284,7 +284,7 @@ export default function RIC37({ setVista, personal }) {
                   <h3 className="font-bold mb-3">{item.numero}. {item.nombre}</h3>
                   <label className="font-semibold block mb-2">Medición</label>
                   <input type="text" value={item.medicion} disabled={item.noAplica} onChange={e => cambiarMedicionDeterminacion(index, e.target.value)} className={`w-full border rounded-xl p-3 text-lg ${item.conforme === true ? "bg-green-100 border-green-500" : item.conforme === false ? "bg-red-100 border-red-500" : ""}`} />
-                  <p className="text-sm mt-2">Rango de aceptación: <b>≤ {item.rango}µA</b></p>
+                  <p className="text-sm mt-2">Rango de aceptación: <b>≤ {item.rango}</b></p>
                   <div className="flex items-center justify-between mt-4 gap-3">
                     <div className="flex gap-2">
                       <button type="button" disabled={item.noAplica} onClick={() => cambiarDeterminacion(index, "conforme", true)} className={`px-3 py-2 rounded-xl ${item.conforme === true ? "bg-green-600 text-white" : "bg-gray-200"}`}>Conforme</button>
