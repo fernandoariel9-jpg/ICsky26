@@ -15,6 +15,25 @@ function entero(valor) {
   return Number.isFinite(numero) ? Math.trunc(numero) : 0;
 }
 
+function normalizarTexto(valor = "") {
+  return String(valor ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function itemActivo(item) {
+  const valor = item?.activo;
+  return !(
+    valor === false ||
+    valor === 0 ||
+    valor === "0" ||
+    normalizarTexto(valor) === "false" ||
+    normalizarTexto(valor) === "inactivo"
+  );
+}
+
 const inputClass = "w-full border rounded-xl px-3 py-2";
 const actionButtonClass = "h-10 w-full sm:w-40 px-3 rounded-xl font-semibold inline-flex items-center justify-center whitespace-nowrap";
 const formButtonClass = "h-10 min-w-40 px-4 rounded-xl font-semibold inline-flex items-center justify-center disabled:opacity-50";
@@ -283,18 +302,27 @@ export default function Stock({ setVista, personal }) {
   };
 
   const filtrar = (lista) => {
-    const texto = busqueda.trim().toLowerCase();
+    const texto = normalizarTexto(busqueda);
     if (!texto) return lista;
-    return lista.filter((fila) => Object.values(fila || {}).some((valor) => String(valor ?? "").toLowerCase().includes(texto)));
+    return lista.filter((fila) =>
+      Object.values(fila || {}).some((valor) => normalizarTexto(valor).includes(texto))
+    );
   };
 
   const filtrarItems = (texto) => {
-    const termino = String(texto || "").trim().toLowerCase();
-    return items.filter((i) => {
-      if (!i.activo) return false;
+    const termino = normalizarTexto(texto);
+    return items.filter((item) => {
+      if (!itemActivo(item)) return false;
       if (!termino) return true;
-      return [i.codigo, i.descripcion, i.categoria]
-        .some((valor) => String(valor || "").toLowerCase().includes(termino));
+
+      const contenido = normalizarTexto([
+        item.codigo,
+        item.descripcion,
+        item.categoria,
+        item.unidad
+      ].filter(Boolean).join(" "));
+
+      return contenido.includes(termino);
     });
   };
 
@@ -380,7 +408,7 @@ export default function Stock({ setVista, personal }) {
 
         {mostrarEntrada && (
           <form onSubmit={registrarEntrada} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-4 gap-3">
-            <input className={`${inputClass} md:col-span-4`} placeholder="Buscar artículo por código, descripción o categoría..." value={busquedaEntrada} onChange={(e) => { setBusquedaEntrada(e.target.value.toUpperCase()); setEntrada({ ...entrada, item_id: "" }); }} />
+            <input className={`${inputClass} md:col-span-4`} placeholder="Buscar artículo por código, descripción o categoría..." value={busquedaEntrada} onChange={(e) => { setBusquedaEntrada(e.target.value); setEntrada({ ...entrada, item_id: "" }); }} />
             <select className={inputClass} required value={entrada.item_id} onChange={(e) => setEntrada({ ...entrada, item_id: e.target.value })}>
               <option value="">{itemsEntrada.length ? "Seleccionar artículo" : "Sin coincidencias"}</option>
               {itemsEntrada.map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}{i.categoria ? ` · ${i.categoria}` : ""}</option>)}
@@ -394,7 +422,7 @@ export default function Stock({ setVista, personal }) {
 
         {mostrarSalida && (
           <form onSubmit={registrarSalida} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-6 gap-3">
-            <input className={`${inputClass} md:col-span-6`} placeholder="Buscar artículo por código, descripción o categoría..." value={busquedaSalida} onChange={(e) => { setBusquedaSalida(e.target.value.toUpperCase()); setSalida({ ...salida, item_id: "" }); }} />
+            <input className={`${inputClass} md:col-span-6`} placeholder="Buscar artículo por código, descripción o categoría..." value={busquedaSalida} onChange={(e) => { setBusquedaSalida(e.target.value); setSalida({ ...salida, item_id: "" }); }} />
             <select className={inputClass} required value={salida.item_id} onChange={(e) => setSalida({ ...salida, item_id: e.target.value })}>
               <option value="">{itemsSalida.length ? "Seleccionar artículo" : "Sin coincidencias"}</option>
               {itemsSalida.map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}{i.categoria ? ` · ${i.categoria}` : ""}</option>)}
@@ -410,7 +438,7 @@ export default function Stock({ setVista, personal }) {
 
         {mostrarTransferencia && (
           <form onSubmit={solicitarTransferencia} className="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-5 gap-3">
-            <select className={inputClass} required value={transferencia.item_id} onChange={(e) => setTransferencia({ ...transferencia, item_id: e.target.value })}><option value="">Seleccionar artículo</option>{items.filter((i) => i.activo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}</select>
+            <select className={inputClass} required value={transferencia.item_id} onChange={(e) => setTransferencia({ ...transferencia, item_id: e.target.value })}><option value="">Seleccionar artículo</option>{items.filter(itemActivo).map((i) => <option key={i.id} value={i.id}>{i.codigo ? `${i.codigo} · ` : ""}{i.descripcion}</option>)}</select>
             <input className={inputClass} required type="number" min="1" step="1" placeholder="Cantidad" value={transferencia.cantidad} onChange={(e) => setTransferencia({ ...transferencia, cantidad: e.target.value })} />
             <select className={inputClass} required value={transferencia.area_origen} onChange={(e) => setTransferencia({ ...transferencia, area_origen: e.target.value })}><option value="">SELECCIONAR ÁREA QUE ENTREGA</option>{areas.map((a) => String(a.area || a.nombre || "").trim().toUpperCase()).filter((nombre, index, lista) => nombre && nombre !== transferencia.area_destino && lista.indexOf(nombre) === index).sort().map((nombre) => <option key={nombre} value={nombre}>{nombre}</option>)}</select>
             <input className={`${inputClass} bg-gray-100`} readOnly value={transferencia.area_destino} placeholder="Área solicitante" title="Área destino: área del técnico que solicita" />
@@ -430,7 +458,7 @@ export default function Stock({ setVista, personal }) {
         <div className="bg-white rounded-2xl shadow p-4 mb-5">
           <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">{[["catalogo", "Catálogo"], ["existencias", "Existencias"], ["movimientos", "Movimientos"], ["transferencias", "Transferencias"]].map(([valor, etiqueta]) => <button key={valor} onClick={() => setTab(valor)} className={`h-10 w-full sm:w-36 px-3 rounded-xl font-semibold inline-flex items-center justify-center ${tab === valor ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>{etiqueta}</button>)}</div>
-            <input value={busqueda} onChange={(e) => setBusqueda(e.target.value.toUpperCase())} placeholder="Buscar..." className="w-full lg:w-80 border rounded-xl px-4 py-2" />
+            <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar..." className="w-full lg:w-80 border rounded-xl px-4 py-2" />
           </div>
         </div>
 
