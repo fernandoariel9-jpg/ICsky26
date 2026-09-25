@@ -80,6 +80,17 @@ export default function RIC56({ setVista, personal }) {
   const [enviandoDrive, setEnviandoDrive] = useState(false);
   const [ric56Id, setRic56Id] = useState(null);
   const [error, setError] = useState("");
+  const [estados, setEstados] = useState([]);
+  const [mostrarFinalizar, setMostrarFinalizar] = useState(false);
+  const [estadoFinal, setEstadoFinal] = useState("");
+  const [finalizando, setFinalizando] = useState(false);
+
+  useEffect(() => {
+    fetch(API_URL.Estados)
+      .then((r) => r.json())
+      .then((d) => setEstados(Array.isArray(d) ? d : []))
+      .catch((err) => console.error("Error cargando estados:", err));
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -245,10 +256,46 @@ export default function RIC56({ setVista, personal }) {
       setRic56Id(data.ric56_id);
       localStorage.removeItem(claveBorrador(datos.ric01_id));
       alert("Mantenimiento preventivo guardado correctamente ✅");
+      setMostrarFinalizar(true);
     } catch (e) {
       setError(e.message || "Error guardando RIC56");
     } finally {
       setGuardando(false);
+    }
+  };
+
+  const finalizarMantenimiento = async () => {
+    if (!estadoFinal) {
+      alert("Seleccione el estado final del equipo.");
+      return;
+    }
+
+    try {
+      setFinalizando(true);
+
+      const res = await fetch(`${API_URL.Ric01}/finalizar/${datos.ric01_id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fecha_fin: fechaHoraLocal(),
+          estado: estadoFinal,
+          numero_serie: datos.numero_serie,
+          usuario: datos.tecnico
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "No se pudo finalizar el mantenimiento");
+
+      setMostrarFinalizar(false);
+      localStorage.removeItem("tareaActiva");
+      localStorage.setItem("equipoActualizado", datos.numero_serie);
+      alert("✅ Mantenimiento finalizado correctamente");
+    } catch (error) {
+      console.error("Error finalizando RIC56:", error);
+      alert(error.message || "No se pudo finalizar el mantenimiento.");
+    } finally {
+      setFinalizando(false);
     }
   };
 
@@ -519,6 +566,46 @@ export default function RIC56({ setVista, personal }) {
           </div>
         )}
       </div>
+
+      {mostrarFinalizar && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-5">
+            <h2 className="text-lg font-bold mb-2">Finalizar mantenimiento</h2>
+            <p className="text-sm text-gray-600 mb-4">¿En qué estado queda el equipo?</p>
+
+            <select
+              className="w-full border rounded-xl p-3 mb-4"
+              value={estadoFinal}
+              onChange={(e) => setEstadoFinal(e.target.value)}
+            >
+              <option value="">Seleccionar estado</option>
+              {estados.map((e, i) => {
+                const valor = e.estado || e.nombre || e;
+                return <option key={`${valor}-${i}`} value={valor}>{valor}</option>;
+              })}
+            </select>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setMostrarFinalizar(false)}
+                className="flex-1 bg-gray-500 text-white rounded-xl p-3"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={finalizarMantenimiento}
+                disabled={finalizando || !estadoFinal}
+                className="flex-1 bg-green-600 disabled:bg-gray-300 text-white rounded-xl p-3"
+              >
+                {finalizando ? "Finalizando..." : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
