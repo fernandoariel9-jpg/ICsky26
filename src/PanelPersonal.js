@@ -22,12 +22,19 @@ const normalizar = (texto = "") =>
     .toLowerCase();
 
 const esRxMovil = (descripcion = "") => {
-  const d = normalizar(descripcion);
+  const d = normalizar(descripcion)
+    .replace(/[-_/]+/g, " ")
+    .replace(/\s+/g, " ");
+
   return (
     d.includes("rx movil") ||
     d.includes("rayos x movil") ||
     d.includes("equipo de rx movil") ||
-    d.includes("equipo rx movil")
+    d.includes("equipo rx movil") ||
+    d.includes("equipo de rayos x movil") ||
+    d.includes("equipo rayos x movil") ||
+    d.includes("rx portatil") ||
+    d.includes("rayos x portatil")
   );
 };
 
@@ -186,6 +193,7 @@ export default function PanelPersonal({ personal, onLogout }) {
         "tareaActiva",
         JSON.stringify({
           ...data,
+          ric01_id: data.ric01_id || data.id,
           tipo_mantenimiento: "Preventivo",
           descripcion,
           marca_modelo: marcaModelo,
