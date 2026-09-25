@@ -201,11 +201,40 @@ export default function RIC56({ setVista, personal }) {
     setVista("equipos");
   };
 
-  const cancelar = () => {
-    const confirmar = window.confirm("¿Desea cancelar el mantenimiento? Se perderán los datos ingresados del RIC56.");
+  const cancelar = async () => {
+    const confirmar = window.confirm(
+      "¿Desea cancelar el mantenimiento? Se eliminará la tarea creada y se perderán todos los datos ingresados."
+    );
+
     if (!confirmar) return;
-    if (datos.ric01_id) localStorage.removeItem(claveBorrador(datos.ric01_id));
-    setVista("equipos");
+
+    try {
+      const tareaRaw = localStorage.getItem("tareaActiva");
+      const tarea = tareaRaw ? JSON.parse(tareaRaw) : null;
+      const tareaId = tarea?.id || tarea?.ric01_id || datos.ric01_id;
+
+      if (tareaId && !ric56Id) {
+        const res = await fetch(`${API_URL.Ric01}/${tareaId}/cancelar-preventivo`, {
+          method: "DELETE"
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          throw new Error(data.error || "No se pudo eliminar la tarea creada.");
+        }
+      }
+
+      if (datos.ric01_id) {
+        localStorage.removeItem(claveBorrador(datos.ric01_id));
+      }
+
+      localStorage.removeItem("tareaActiva");
+      setVista("equipos");
+    } catch (error) {
+      console.error("Error cancelando RIC56:", error);
+      alert(error.message || "No se pudo cancelar el mantenimiento.");
+    }
   };
 
   const guardar = async () => {
