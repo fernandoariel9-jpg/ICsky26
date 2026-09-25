@@ -80,18 +80,6 @@ export default function RIC56({ setVista, personal }) {
   const [enviandoDrive, setEnviandoDrive] = useState(false);
   const [ric56Id, setRic56Id] = useState(null);
   const [error, setError] = useState("");
-  const [estados, setEstados] = useState([]);
-  const [mostrarFinalizar, setMostrarFinalizar] = useState(false);
-  const [estadoFinal, setEstadoFinal] = useState("");
-  const [finalizando, setFinalizando] = useState(false);
-  const [tareaFinalizada, setTareaFinalizada] = useState(false);
-
-  useEffect(() => {
-    fetch(API_URL.Estados)
-      .then((r) => r.json())
-      .then((d) => setEstados(Array.isArray(d) ? d : []))
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     (async () => {
@@ -158,9 +146,7 @@ export default function RIC56({ setVista, personal }) {
   }, [puntos]);
 
   const puntoActual = puntos[indiceActual];
-  const progreso = etapa === 1
-    ? 100
-    : ((indiceActual + 1) / puntos.length) * 100;
+  const progreso = etapa === 1 ? 100 : ((indiceActual + 1) / puntos.length) * 100;
 
   const cambiarEstado = (estado) => {
     setPuntos((prev) => prev.map((p, i) =>
@@ -213,22 +199,16 @@ export default function RIC56({ setVista, personal }) {
       const tarea = tareaRaw ? JSON.parse(tareaRaw) : null;
       const tareaId = tarea?.id || tarea?.ric01_id || datos.ric01_id;
 
-      if (tareaId && !ric56Id) {
+      if (tareaId) {
         const res = await fetch(`${API_URL.Ric01}/${tareaId}/cancelar-preventivo`, {
           method: "DELETE"
         });
 
         const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          throw new Error(data.error || "No se pudo eliminar la tarea creada.");
-        }
+        if (!res.ok) throw new Error(data.error || "No se pudo eliminar la tarea creada.");
       }
 
-      if (datos.ric01_id) {
-        localStorage.removeItem(claveBorrador(datos.ric01_id));
-      }
-
+      if (datos.ric01_id) localStorage.removeItem(claveBorrador(datos.ric01_id));
       localStorage.removeItem("tareaActiva");
       setVista("equipos");
     } catch (error) {
@@ -240,6 +220,7 @@ export default function RIC56({ setVista, personal }) {
   const guardar = async () => {
     if (resumen.pendientes) return alert("Complete todos los puntos de verificación.");
     if (!enUso) return alert("Indique si el equipo se encuentra en uso.");
+    if (ric56Id) return;
 
     setGuardando(true);
     setError("");
@@ -263,7 +244,6 @@ export default function RIC56({ setVista, personal }) {
 
       setRic56Id(data.ric56_id);
       localStorage.removeItem(claveBorrador(datos.ric01_id));
-      setMostrarFinalizar(true);
       alert("Mantenimiento preventivo guardado correctamente ✅");
     } catch (e) {
       setError(e.message || "Error guardando RIC56");
@@ -282,44 +262,22 @@ export default function RIC56({ setVista, personal }) {
     setEnviandoDrive(true);
 
     try {
-      const r = await fetch(`${API_URL.Ric56}/${ric56Id}/drive`, { method: "POST" });
+      const r = await fetch(`${API_URL.Ric56}/${ric56Id}/drive`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "No se pudo enviar a Drive");
-      alert("✅ PDF enviado a Google Drive");
+
+      alert(
+        d?.carpeta?.nombre
+          ? `✅ PDF enviado a Google Drive\n\nCarpeta: ${d.carpeta.nombre}`
+          : "✅ PDF enviado a Google Drive"
+      );
     } catch (e) {
       alert(e.message || "Error enviando RIC56 a Drive");
     } finally {
       setEnviandoDrive(false);
-    }
-  };
-
-  const finalizar = async () => {
-    if (!estadoFinal) return alert("Seleccione el estado final del equipo.");
-    setFinalizando(true);
-
-    try {
-      const r = await fetch(`${API_URL.Ric01}/finalizar/${datos.ric01_id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fecha_fin: fechaHoraLocal(),
-          estado: estadoFinal,
-          numero_serie: datos.numero_serie,
-          usuario: datos.tecnico
-        })
-      });
-
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(d.error || "No se pudo finalizar el mantenimiento");
-
-      setTareaFinalizada(true);
-      setMostrarFinalizar(false);
-      localStorage.removeItem("tareaActiva");
-      localStorage.setItem("equipoActualizado", datos.numero_serie);
-    } catch (e) {
-      alert(e.message || "Error finalizando mantenimiento");
-    } finally {
-      setFinalizando(false);
     }
   };
 
@@ -454,7 +412,7 @@ export default function RIC56({ setVista, personal }) {
                 disabled={!puntoActual.estado}
                 className="flex-1 bg-blue-600 disabled:bg-gray-300 text-white rounded-xl p-3"
               >
-                {indiceActual === puntos.length - 1 ? "Resumen →" : "Aceptar →"}
+                {indiceActual === puntos.length - 1 ? "Ver resumen →" : "Aceptar →"}
               </button>
             </div>
           </div>
@@ -462,18 +420,35 @@ export default function RIC56({ setVista, personal }) {
 
         {etapa === 1 && (
           <div className="bg-white rounded-xl shadow p-4">
-            <h2 className="text-xl font-bold mb-2">2. Resumen</h2>
+            <h2 className="text-xl font-bold mb-4">2. Resumen del mantenimiento</h2>
 
-            <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
-              Revise los resultados antes de guardar el protocolo.
-            </p>
+            {resumen.noConformes.length === 0 ? (
+              <div className="bg-green-100 text-green-800 rounded-xl p-4 mb-5">
+                <p className="font-bold text-lg">✅ MANTENIMIENTO CONFORME</p>
+                <p className="text-sm mt-1">
+                  Todos los puntos verificados se encuentran conformes o fueron indicados como no aplicables.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-red-100 text-red-800 rounded-xl p-4 mb-5">
+                <p className="font-bold text-lg mb-3">❌ MANTENIMIENTO NO CONFORME</p>
 
-            <div className={`rounded-xl p-4 mb-4 text-center ${resumen.resultado === "CONFORME" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-              <p className="text-sm font-semibold">Resultado general</p>
-              <p className="text-2xl font-bold">{resumen.resultado}</p>
-            </div>
+                <div className="space-y-3">
+                  {resumen.noConformes.map((item) => (
+                    <div key={item.orden} className="bg-white rounded-lg p-3">
+                      <p className="font-bold">Verificación funcional</p>
+                      <p><b>Punto:</b> {item.nombre}</p>
+                      <p><b>Resultado:</b> No conforme</p>
+                      {item.observaciones?.trim() && (
+                        <p className="mt-1"><b>Observaciones:</b> {item.observaciones}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-            <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+            <div className="grid grid-cols-3 gap-2 mb-5 text-center">
               <div className="bg-green-50 border border-green-200 rounded-xl p-3">
                 <p className="text-xs text-gray-500">Conformes</p>
                 <p className="text-xl font-bold text-green-700">{resumen.conformes}</p>
@@ -488,99 +463,62 @@ export default function RIC56({ setVista, personal }) {
               </div>
             </div>
 
-            <div className="space-y-2 mb-5">
-              {puntos.map((p) => (
-                <div key={p.orden} className="border rounded-xl p-3 flex justify-between items-center gap-3">
-                  <span className="text-sm font-semibold">{p.orden}. {p.nombre}</span>
-                  <span className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${
-                    p.estado === "CONFORME"
-                      ? "bg-green-100 text-green-700"
-                      : p.estado === "NO CONFORME"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-gray-200 text-gray-700"
-                  }`}>
-                    {p.estado}
-                  </span>
-                </div>
-              ))}
+            <label className="font-semibold block mb-2">Observaciones generales</label>
+            <textarea
+              value={observaciones}
+              onChange={(e) => setObservaciones(e.target.value)}
+              rows={5}
+              placeholder="Ingrese aquí las observaciones del mantenimiento..."
+              className="w-full border rounded-xl p-3"
+            />
+
+            <div className="flex gap-2 mt-6">
+              <button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button>
+              <button onClick={cancelar} className="flex-1 bg-red-500 text-white rounded-xl p-3">Cancelar</button>
             </div>
 
-            <div className="mb-5">
-              <label className="font-semibold block mb-2">Observaciones generales</label>
-              <textarea
-                rows={4}
-                value={observaciones}
-                onChange={(e) => setObservaciones(e.target.value)}
-                placeholder="Ingrese observaciones generales..."
-                className="w-full border rounded-xl p-3"
-              />
-            </div>
+            <button
+              disabled={guardando || Boolean(ric56Id)}
+              onClick={guardar}
+              className="w-full bg-green-600 disabled:bg-gray-400 text-white rounded-xl p-3 mt-3 font-bold"
+            >
+              {guardando
+                ? "Guardando..."
+                : ric56Id
+                  ? "✅ Preventivo guardado"
+                  : "💾 Guardar preventivo"}
+            </button>
 
-            {!ric56Id ? (
-              <div className="flex gap-2 mt-6">
-                <button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button>
-                <button onClick={cancelar} className="flex-1 bg-red-500 text-white rounded-xl p-3">Cancelar</button>
+            {ric56Id && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                 <button
-                  onClick={guardar}
-                  disabled={guardando}
-                  className="flex-1 bg-green-600 disabled:bg-gray-300 text-white rounded-xl p-3"
+                  onClick={abrirPDF}
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-3 font-bold"
                 >
-                  {guardando ? "Guardando..." : "Guardar"}
+                  📄 Ver / Descargar PDF
                 </button>
-              </div>
-            ) : (
-              <div className="space-y-2 mt-6">
-                <button onClick={abrirPDF} className="w-full bg-red-600 text-white rounded-xl p-3">📄 Ver PDF</button>
+
+                <button
+                  onClick={() => setVista("equipos")}
+                  className="bg-gray-600 hover:bg-gray-700 text-white rounded-xl p-3 font-bold"
+                >
+                  🚪 Salir
+                </button>
+
                 <button
                   onClick={enviarDrive}
                   disabled={enviandoDrive}
-                  className="w-full bg-blue-600 disabled:bg-gray-300 text-white rounded-xl p-3"
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-xl p-3 mt-3 font-bold"
                 >
-                  {enviandoDrive ? "Enviando..." : "☁️ Enviar a Google Drive"}
+                  {enviandoDrive
+                    ? "☁️ Enviando a Google Drive..."
+                    : "☁️ Enviar a Google Drive"}
                 </button>
-                {!tareaFinalizada && (
-                  <button onClick={() => setMostrarFinalizar(true)} className="w-full bg-green-600 text-white rounded-xl p-3">✅ Finalizar mantenimiento</button>
-                )}
-                {tareaFinalizada && (
-                  <button onClick={() => setVista("equipos")} className="w-full bg-gray-500 text-white rounded-xl p-3">← Volver a Equipos</button>
-                )}
               </div>
             )}
           </div>
         )}
       </div>
-
-      {mostrarFinalizar && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-5">
-            <h2 className="text-lg font-bold mb-2">Finalizar mantenimiento</h2>
-            <p className="text-sm text-gray-600 mb-4">¿En qué estado queda el equipo?</p>
-
-            <select
-              className="w-full border rounded-xl p-3 mb-4"
-              value={estadoFinal}
-              onChange={(e) => setEstadoFinal(e.target.value)}
-            >
-              <option value="">Seleccionar estado</option>
-              {estados.map((e, i) => {
-                const valor = e.estado || e.nombre || e;
-                return <option key={`${valor}-${i}`} value={valor}>{valor}</option>;
-              })}
-            </select>
-
-            <div className="flex gap-2">
-              <button onClick={() => setMostrarFinalizar(false)} className="flex-1 bg-gray-500 text-white rounded-xl p-3">Cancelar</button>
-              <button
-                onClick={finalizar}
-                disabled={finalizando}
-                className="flex-1 bg-green-600 disabled:bg-gray-300 text-white rounded-xl p-3"
-              >
-                {finalizando ? "Finalizando..." : "Confirmar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
