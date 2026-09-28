@@ -35,6 +35,18 @@ export const PROTOCOLOS_MANTENIMIENTO = [
     ]
   },
   {
+    codigo: "RIC59",
+    tipo: "preventivo",
+    vista: "ric59",
+    descripciones: [
+      "ecografo",
+      "ecografo portatil",
+      "ecografo movil",
+      "ultrasonido",
+      "ultrasonido portatil"
+    ]
+  },
+  {
     codigo: "RIC64",
     tipo: "preventivo",
     vista: "ric64",
