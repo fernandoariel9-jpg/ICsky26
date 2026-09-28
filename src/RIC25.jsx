@@ -321,11 +321,9 @@ export default function RIC25({ setVista }) {
   };
 
   const TablaMediciones = ({ titulo, datos }) => (
-    <section className="bg-white border rounded-xl shadow-sm overflow-hidden">
-      <div className="px-4 py-3 border-b bg-gray-50">
-        <h2 className="font-bold text-gray-800">{titulo}</h2>
-      </div>
-      <div className="overflow-x-auto">
+    <div className="bg-white rounded-xl shadow p-4">
+      <h2 className="text-xl font-bold mb-2">{titulo}</h2>
+      <div className="overflow-x-auto rounded-xl border">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-600">
             <tr>
@@ -352,56 +350,56 @@ export default function RIC25({ setVista }) {
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
   );
 
   return (
-    <div className="p-4 max-w-5xl mx-auto space-y-4">
-      <div className="bg-white border rounded-2xl shadow p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">RIC25 · Respiradores</h1>
-            <p className="text-sm text-gray-500">Captura automática desde IMT Analytics CITREX H5</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="sticky top-0 z-50 bg-white shadow">
+        <div className="max-w-xl mx-auto p-3">
+          <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <p className="font-bold">RIC25 - Verificación de Respiradores</p>
+            <span>Captura CITREX</span>
+            <span>1 / 1</span>
           </div>
-          <button
-            onClick={() => setVista("tareas")}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-xl"
-          >
-            ✕
-          </button>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-blue-600 h-2 rounded-full w-full" />
+          </div>
         </div>
+      </div>
 
-        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm">
-          <strong>Conexión:</strong> CITREX H5 → Sky26 Agent → Render → RIC25
-          <p className="mt-1 text-gray-600">
-            El equipo puede capturar mediciones desde PC, tablet o celular mientras el agente esté enviando datos.
+      <div className="p-4 max-w-xl mx-auto pb-10 space-y-4">
+        <div className="bg-white rounded-xl shadow p-4">
+          <h2 className="text-xl font-bold mb-2">1. Conexión con CITREX H5</h2>
+
+          <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
+            Configure la conexión con el analizador CITREX H5 y verifique que Sky26 Agent pueda comunicarse correctamente con el equipo.
           </p>
-        </div>
 
-        <div className="mt-4 bg-gray-50 border rounded-xl p-3">
-          <div className="flex flex-col md:flex-row md:items-end gap-2">
-            <div className="flex-1">
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                IP del CITREX H5
-              </label>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={citrexIp}
-                onChange={(e) => setCitrexIp(e.target.value)}
-                placeholder="Ej.: 192.168.1.33"
-                className="w-full border rounded-xl px-3 py-2 font-mono"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Se utilizará http://IP:8080/request. La IP queda guardada en Sky26 Agent.
-              </p>
-            </div>
+          <div className="bg-gray-100 rounded-xl p-3 mb-4 text-center">
+            <p className="text-sm text-gray-500">Conexión de medición</p>
+            <p className="font-bold text-gray-800 mt-1">CITREX H5 → Sky26 Agent → Render → RIC25</p>
+          </div>
 
+          <label className="font-semibold block mb-2">IP del CITREX H5</label>
+          <input
+            type="text"
+            inputMode="decimal"
+            value={citrexIp}
+            onChange={(e) => setCitrexIp(e.target.value)}
+            placeholder="Ej.: 192.168.1.33"
+            className="w-full border rounded-xl p-3 font-mono"
+          />
+          <p className="text-xs text-gray-500 mt-2">
+            Se utilizará http://IP:8080/request. La IP queda guardada en Sky26 Agent.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
             <button
               type="button"
               onClick={guardarIpCitrex}
               disabled={guardandoIp}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-xl font-semibold"
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-xl p-3 font-semibold"
             >
               {guardandoIp ? "Guardando..." : "💾 Guardar IP"}
             </button>
@@ -410,140 +408,151 @@ export default function RIC25({ setVista }) {
               type="button"
               onClick={probarConexionCitrex}
               disabled={probandoCitrex}
-              className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-xl font-semibold"
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-xl p-3 font-semibold"
             >
               {probandoCitrex ? "Probando..." : "🔌 Probar conexión"}
             </button>
           </div>
 
           {estadoAgente && (
-            <div className="mt-3 bg-green-50 border border-green-200 text-green-700 rounded-lg p-2 text-sm">
+            <div className="mt-4 bg-green-100 text-green-800 rounded-xl p-3 text-sm">
               {estadoAgente}
             </div>
           )}
 
           {errorAgente && (
-            <div className="mt-3 bg-red-50 border border-red-200 text-red-700 rounded-lg p-2 text-sm">
-              {errorAgente}
+            <div className="mt-4 bg-red-100 text-red-700 rounded-xl p-3 text-sm">
+              ⚠️ {errorAgente}
+            </div>
+          )}
+
+          <button
+            onClick={capturarCitrex}
+            disabled={capturando}
+            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-xl p-3 mt-5 font-bold"
+          >
+            {capturando ? "Capturando..." : "📡 Capturar CITREX"}
+          </button>
+
+          {error && (
+            <div className="mt-4 bg-red-100 text-red-700 rounded-xl p-3 text-sm whitespace-pre-wrap">
+              ⚠️ {error}
+            </div>
+          )}
+
+          {ultimaCaptura && (
+            <div className="mt-4 bg-green-100 text-green-800 rounded-xl p-3 text-sm">
+              ✅ Captura recibida correctamente · {ultimaCaptura.toLocaleTimeString("es-AR")}
             </div>
           )}
         </div>
 
-        <div className="mt-4">
-          <button
-            onClick={capturarCitrex}
-            disabled={capturando}
-            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-5 py-2 rounded-xl font-bold"
-          >
-            {capturando ? "Capturando..." : "📡 Capturar CITREX"}
-          </button>
-        </div>
+        <div className="bg-white rounded-xl shadow p-4">
+          <h2 className="text-xl font-bold mb-2">2. Punto de ensayo 1</h2>
 
-        {error && (
-          <div className="mt-3 bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700 whitespace-pre-wrap">
-            {error}
-          </div>
-        )}
+          <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">
+            Verificación de los parámetros programados y los valores medidos por el CITREX H5.
+          </p>
 
-        {ultimaCaptura && (
-          <div className="mt-3 bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-700">
-            ✅ Captura recibida correctamente · {ultimaCaptura.toLocaleTimeString("es-AR")}
-          </div>
-        )}
-      </div>
-
-      <section className="bg-white border rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b bg-gray-50">
-          <h2 className="font-bold text-gray-900">Punto de ensayo 1</h2>
-          <p className="text-sm text-gray-500">Verificación de parámetros programados y medidos</p>
-        </div>
-
-        <div className="p-4 grid grid-cols-2 md:grid-cols-5 gap-3">
-          <div className="bg-gray-50 border rounded-xl p-3">
-            <div className="text-xs text-gray-500">Modo ventilatorio</div>
-            <div className="font-bold text-gray-900 mt-1">{PUNTO_ENSAYO_1.modo}</div>
-          </div>
-          <div className="bg-gray-50 border rounded-xl p-3">
-            <div className="text-xs text-gray-500">Volumen corriente</div>
-            <div className="font-bold text-gray-900 mt-1">500 ml</div>
-          </div>
-          <div className="bg-gray-50 border rounded-xl p-3">
-            <div className="text-xs text-gray-500">Frecuencia respiratoria</div>
-            <div className="font-bold text-gray-900 mt-1">12 resp/min</div>
-          </div>
-          <div className="bg-gray-50 border rounded-xl p-3">
-            <div className="text-xs text-gray-500">PEEP</div>
-            <div className="font-bold text-gray-900 mt-1">5 cmH₂O</div>
-          </div>
-          <div className="bg-gray-50 border rounded-xl p-3">
-            <div className="text-xs text-gray-500">FiO₂</div>
-            <div className="font-bold text-gray-900 mt-1">21 %</div>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto border-t">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                <th className="text-left px-3 py-2">Parámetro</th>
-                <th className="text-right px-3 py-2">Programado</th>
-                <th className="text-right px-3 py-2">Medido</th>
-                <th className="text-right px-3 py-2">Diferencia</th>
-              </tr>
-            </thead>
-            <tbody>
-              {medicionesPunto1.map((fila) => (
-                <tr key={fila.parametro} className="border-t">
-                  <td className="px-3 py-2 font-semibold text-gray-800">{fila.parametro}</td>
-                  <td className="px-3 py-2 text-right">
-                    {fila.programado == null ? "—" : mostrarNumero(fila.programado, fila.unidad)}
-                  </td>
-                  <td className="px-3 py-2 text-right font-semibold">
-                    {mostrarNumero(fila.medido, fila.unidad)}
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    {fila.diferencia == null
-                      ? "—"
-                      : `${fila.diferencia > 0 ? "+" : ""}${fila.diferencia} ${fila.unidad}`}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="px-4 py-3 border-t bg-amber-50 text-xs text-amber-800">
-          La PEEP y la presión pico recibidas en mbar se convierten automáticamente a cmH₂O para mostrarlas en la misma unidad utilizada en el ensayo.
-        </div>
-      </section>
-
-      {destacados.length > 0 && (
-        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-          {destacados.map((m) => (
-            <div key={m.id} className="bg-white border rounded-xl p-3 text-center shadow-sm">
-              <div className="text-xs text-gray-500">{m.nombre}</div>
-              <div className="mt-1 text-lg font-bold text-gray-800">
-                {m.valor == null ? "--" : m.valor}
-              </div>
-              <div className="text-[10px] text-gray-400">{m.unidad}</div>
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="bg-gray-100 rounded-xl p-3 text-center">
+              <p className="text-xs text-gray-500">Modo ventilatorio</p>
+              <p className="font-bold mt-1">{PUNTO_ENSAYO_1.modo}</p>
             </div>
-          ))}
-        </section>
-      )}
+            <div className="bg-gray-100 rounded-xl p-3 text-center">
+              <p className="text-xs text-gray-500">Volumen corriente</p>
+              <p className="font-bold mt-1">500 ml</p>
+            </div>
+            <div className="bg-gray-100 rounded-xl p-3 text-center">
+              <p className="text-xs text-gray-500">Frecuencia respiratoria</p>
+              <p className="font-bold mt-1">12 resp/min</p>
+            </div>
+            <div className="bg-gray-100 rounded-xl p-3 text-center">
+              <p className="text-xs text-gray-500">PEEP</p>
+              <p className="font-bold mt-1">5 cmH₂O</p>
+            </div>
+            <div className="col-span-2 bg-gray-100 rounded-xl p-3 text-center">
+              <p className="text-xs text-gray-500">FiO₂</p>
+              <p className="font-bold mt-1">21 %</p>
+            </div>
+          </div>
 
-      {generales.length > 0 && (
-        <TablaMediciones titulo="Valores de medición" datos={generales} />
-      )}
+          <div className="overflow-x-auto rounded-xl border">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-600">
+                <tr>
+                  <th className="text-left px-3 py-2">Parámetro</th>
+                  <th className="text-right px-3 py-2">Programado</th>
+                  <th className="text-right px-3 py-2">Medido</th>
+                  <th className="text-right px-3 py-2">Diferencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                {medicionesPunto1.map((fila) => (
+                  <tr key={fila.parametro} className="border-t">
+                    <td className="px-3 py-2 font-semibold text-gray-800">{fila.parametro}</td>
+                    <td className="px-3 py-2 text-right">
+                      {fila.programado == null ? "—" : mostrarNumero(fila.programado, fila.unidad)}
+                    </td>
+                    <td className="px-3 py-2 text-right font-semibold">
+                      {mostrarNumero(fila.medido, fila.unidad)}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      {fila.diferencia == null
+                        ? "—"
+                        : `${fila.diferencia > 0 ? "+" : ""}${fila.diferencia} ${fila.unidad}`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-      {respiratorias.length > 0 && (
-        <TablaMediciones titulo="Valores respiratorios" datos={respiratorias} />
-      )}
-
-      {Object.keys(mediciones).length === 0 && (
-        <div className="bg-gray-50 border border-dashed rounded-xl p-6 text-center text-gray-500">
-          Todavía no hay datos capturados. Mantenga Sky26 Agent ejecutándose en la PC conectada al CITREX y presione “Capturar CITREX”.
+          <p className="text-xs text-gray-500 bg-gray-50 rounded-lg p-3 mt-4">
+            La PEEP y la presión pico recibidas en mbar se convierten automáticamente a cmH₂O para mostrarlas en la misma unidad utilizada en el ensayo.
+          </p>
         </div>
-      )}
+
+        {destacados.length > 0 && (
+          <div className="bg-white rounded-xl shadow p-4">
+            <h2 className="text-xl font-bold mb-4">Parámetros destacados</h2>
+            <div className="grid grid-cols-2 gap-2">
+              {destacados.map((m) => (
+                <div key={m.id} className="bg-gray-100 rounded-xl p-3 text-center">
+                  <p className="text-xs text-gray-500">{m.nombre}</p>
+                  <p className="text-xl font-bold text-gray-800 mt-1">
+                    {m.valor == null ? "--" : m.valor}
+                  </p>
+                  <p className="text-xs text-gray-500">{m.unidad}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {generales.length > 0 && (
+          <TablaMediciones titulo="Valores de medición" datos={generales} />
+        )}
+
+        {respiratorias.length > 0 && (
+          <TablaMediciones titulo="Valores respiratorios" datos={respiratorias} />
+        )}
+
+        {Object.keys(mediciones).length === 0 && (
+          <div className="bg-white rounded-xl shadow p-4">
+            <div className="bg-gray-50 rounded-lg p-4 text-center text-sm text-gray-500">
+              Todavía no hay datos capturados. Mantenga Sky26 Agent ejecutándose en la PC conectada al CITREX y presione “Capturar CITREX”.
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={() => setVista("tareas")}
+          className="w-full bg-gray-500 hover:bg-gray-600 text-white rounded-xl p-3 font-semibold"
+        >
+          ← Volver
+        </button>
+      </div>
     </div>
   );
 }
