@@ -9,6 +9,8 @@ import QrReader from "react-qr-scanner";
 const API_TAREAS = API_URL.Tareas;
 const API_EQUIPO_PUBLICO = "https://sky26.onrender.com/equipos/publico";
 
+const normalizarIdentidad = (valor = "") => String(valor || "").trim().toLowerCase();
+
 export default function FormularioUsuario({ usuario, onLogout }) {
   const [tareas, setTareas] = useState([]);
   const [modalImagen, setModalImagen] = useState(null);
@@ -30,13 +32,27 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     try {
       if (!usuario) return;
 
-      const userIdentifier = typeof usuario === "string" ? usuario : usuario.mail || usuario.nombre;
+      const mailUsuario = typeof usuario === "object" ? usuario?.mail : "";
+      const userIdentifier = typeof usuario === "string" ? usuario : mailUsuario || usuario.nombre;
 
       const res = await fetch(`${API_TAREAS}?usuario=${encodeURIComponent(userIdentifier)}`);
       if (!res.ok) throw new Error("Error HTTP " + res.status);
 
       const data = await res.json();
-      setTareas(data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
+
+      // Si conocemos el mail, la identidad del usuario es el mail, no el nombre.
+      // Esto evita que dos usuarios homónimos vean las tareas del otro.
+      const tareasPropias = mailUsuario
+        ? data.filter((t) => {
+            const mail = normalizarIdentidad(mailUsuario);
+            return (
+              normalizarIdentidad(t.usuario) === mail ||
+              normalizarIdentidad(t.solicitado_por) === mail
+            );
+          })
+        : data;
+
+      setTareas(tareasPropias.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
     } catch (err) {
       console.error(err);
       toast.error("Error al cargar tareas ❌");
@@ -144,7 +160,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     if (!nuevaTarea.trim()) return toast.error("Ingrese una descripción de tarea");
     if (!usuario) return toast.error("Usuario no disponible");
 
-    const userIdentifier = typeof usuario === "string" ? usuario : usuario.nombre || usuario.mail || String(usuario);
+    // El mail es el identificador único. El nombre queda solo para presentación.
+    const userIdentifier = typeof usuario === "string" ? usuario : usuario.mail || usuario.nombre || String(usuario);
     const areaValor = usuario?.area ?? null;
     const servicioValor = usuario?.servicio ?? null;
     const subservicioValor = usuario?.subservicio ?? null;
@@ -218,221 +235,91 @@ export default function FormularioUsuario({ usuario, onLogout }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(tarea),
         });
-      } catch {
-        toast.error("❌ No se pudieron enviar algunas tareas");
+      } catch (error) {
+        console.error("Error enviando tarea pendiente:", error);
         return;
       }
     }
 
     localStorage.removeItem("tareasPendientes");
-    toast.success("✅ Tareas pendientes enviadas");
     fetchTareas();
-  };
-
-  const handleScan = async (data) => {
-    if (!data) return;
-
-    const contenido = String(data.text || data).trim();
-    if (!contenido) return;
-
-    try {
-      const url = new URL(contenido);
-      const match = url.pathname.match(/\/equipo\/([^/?#]+)/i);
-
-      if (match?.[1]) {
-        const numeroSerie = decodeURIComponent(match[1]);
-        const res = await fetch(`${API_EQUIPO_PUBLICO}/${encodeURIComponent(numeroSerie)}`, { cache: "no-store" });
-        const equipo = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          throw new Error(equipo.error || "No se pudo consultar el equipo");
-        }
-
-        setNuevaTarea(
-          `Solicitud automática de asistencia para: ${equipo.descripcion || "Equipo"} - ${equipo.marca_modelo || ""} - N/S ${equipo.numero_serie || numeroSerie} - ${equipo.servicio || ""}`
-        );
-        toast.success("QR leído ✅ Tarea generada automáticamente");
-        setShowQR(false);
-        return;
-      }
-    } catch (errorURL) {
-      // Si no es una URL válida, seguimos intentando con el formato JSON anterior.
-    }
-
-    let qrData;
-    try {
-      qrData = JSON.parse(contenido);
-    } catch {
-      qrData = { info: contenido };
-    }
-
-    setNuevaTarea(
-      `Solicitud automática de asistencia para: ${qrData.marca || qrData.marca_modelo || qrData.info || "Equipo"} - ${qrData.numeroSerie || qrData.numero_serie || ""} - ${qrData.servicio || ""}`
-    );
-    toast.success("QR leído ✅ Tarea generada automáticamente");
-    setShowQR(false);
-  };
-
-  const handleError = (err) => {
-    console.error(err);
-    toast.error("Error al leer QR ❌");
   };
 
   const pendientes = tareas.filter((t) => !t.solucion && !t.fin);
   const enProceso = tareas.filter((t) => t.solucion && !t.fin);
   const finalizadas = tareas.filter((t) => t.fin);
-
-  const tareasFiltradas = filtro === "pendientes" ? pendientes : filtro === "enProceso" ? enProceso : finalizadas;
+  const tareasVisibles = filtro === "pendientes" ? pendientes : filtro === "enProceso" ? enProceso : finalizadas;
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <img src="/logosmall_old.png" alt="Logo" className="mx-auto mb-4 w-12 h-auto" />
-      <h1 className="text-2xl font-bold mb-4 text-center">
-        📌 Pedidos de tareas de{" "}
-        <span className="text-blue-700">{typeof usuario === "string" ? usuario : usuario?.nombre || usuario?.mail || "Usuario"}</span>
-      </h1>
-
-      <p className="flex space-x-2 mb-4 justify-center">
-        <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">🔄 Actualizar lista</button>
-        <button onClick={onLogout} className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm">Cerrar sesión</button>
-      </p>
-
-      <p className="flex space-x-2 mb-4 justify-center">
-        <button type="button" onClick={() => setShowQR(!showQR)} className="bg-purple-500 text-white px-3 py-1 rounded-xl my-2">
-          {showQR ? "Cerrar lector QR" : "Solicitar asistencia mediante QR"}
-        </button>
-      </p>
-
-      {showQR && (
-        <div className="mt-4">
-          <QrReader
-            constraints={{ video: { facingMode: { exact: "environment" } } }}
-            delay={300}
-            style={{ width: "100%" }}
-            onError={handleError}
-            onScan={handleScan}
-          />
-        </div>
-      )}
-
-      <div className="flex justify-center space-x-2 mb-4">
-        <button onClick={() => setFiltro("pendientes")} className={`px-3 py-1 rounded-xl ${filtro === "pendientes" ? "bg-yellow-400 text-white" : "bg-gray-200 text-gray-700"}`}>🕓 Pendientes ({pendientes.length})</button>
-        <button onClick={() => setFiltro("enProceso")} className={`px-3 py-1 rounded-xl ${filtro === "enProceso" ? "bg-blue-400 text-white" : "bg-gray-200 text-gray-700"}`}>🧩 En proceso ({enProceso.length})</button>
-        <button onClick={() => setFiltro("finalizadas")} className={`px-3 py-1 rounded-xl ${filtro === "finalizadas" ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700"}`}>✅ Finalizadas ({finalizadas.length})</button>
-      </div>
-
-      <form onSubmit={handleCrearTarea} className="mb-6 bg-gray-50 p-4 rounded-xl shadow space-y-3">
-        <textarea className="w-full p-2 border rounded" placeholder="Descripción de la nueva tarea..." value={nuevaTarea} onChange={(e) => setNuevaTarea(e.target.value)} required />
-        <label className="bg-green-200 px-3 py-2 rounded cursor-pointer inline-block">
-          Subir imagen
-          <input type="file" accept="image/*" onChange={handleImagenChange} className="hidden" />
-        </label>
-
-        {previewImagen && (
-          <div className="mt-2 relative inline-block">
-            <img src={previewImagen} alt="preview" className="w-24 h-24 object-cover rounded shadow" />
-            <button type="button" onClick={quitarImagen} className="absolute top-0 right-0 bg-red-600 text-white rounded-full px-1 text-xs">❌</button>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white rounded-2xl shadow p-4 mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">Mis tareas</h1>
+            <p className="text-sm text-gray-500">{typeof usuario === "object" ? usuario?.nombre || usuario?.mail : usuario}</p>
           </div>
-        )}
+          {onLogout && <button onClick={onLogout} className="bg-gray-600 text-white px-4 py-2 rounded-xl">Cerrar sesión</button>}
+        </div>
 
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-xl" disabled={loading}>{loading ? "Enviando..." : "Enviar pedido"}</button>
-      </form>
+        <form onSubmit={handleCrearTarea} className="bg-white rounded-2xl shadow p-4 mb-4">
+          <textarea value={nuevaTarea} onChange={(e) => setNuevaTarea(e.target.value)} placeholder="Describa la tarea o inconveniente..." className="w-full border rounded-xl p-3" rows={4} />
+          <div className="mt-3 flex flex-wrap gap-2">
+            <label className="bg-blue-600 text-white px-4 py-2 rounded-xl cursor-pointer">
+              📷 Agregar imagen
+              <input type="file" accept="image/*" capture="environment" onChange={handleImagenChange} className="hidden" />
+            </label>
+            {previewImagen && <button type="button" onClick={quitarImagen} className="bg-red-500 text-white px-4 py-2 rounded-xl">Quitar imagen</button>}
+            <button type="submit" disabled={loading} className="ml-auto bg-green-600 disabled:bg-gray-400 text-white px-5 py-2 rounded-xl font-semibold">{loading ? "Guardando..." : "Crear tarea"}</button>
+          </div>
+          {previewImagen && <img src={previewImagen} alt="Vista previa" className="mt-3 max-h-56 rounded-xl border cursor-pointer" onClick={() => abrirModal(previewImagen)} />}
+        </form>
 
-      {loading ? (
-        <div className="flex justify-center items-center py-8"><div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>
-      ) : (
-        <ul className="space-y-3">
-          {tareasFiltradas.length === 0 && <p className="text-center text-gray-500 italic">No hay tareas en esta categoría.</p>}
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <button onClick={() => setFiltro("pendientes")} className={`rounded-xl p-3 font-semibold ${filtro === "pendientes" ? "bg-red-600 text-white" : "bg-white shadow"}`}>Pendientes ({pendientes.length})</button>
+          <button onClick={() => setFiltro("enProceso")} className={`rounded-xl p-3 font-semibold ${filtro === "enProceso" ? "bg-yellow-500 text-white" : "bg-white shadow"}`}>En proceso ({enProceso.length})</button>
+          <button onClick={() => setFiltro("finalizadas")} className={`rounded-xl p-3 font-semibold ${filtro === "finalizadas" ? "bg-green-600 text-white" : "bg-white shadow"}`}>Finalizadas ({finalizadas.length})</button>
+        </div>
 
-          {tareasFiltradas.map((t) => (
-            <motion.li key={t.id} className="p-3 rounded-xl shadow bg-white" whileHover={{ scale: 1.02 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-              <div className="flex items-center space-x-3">
-                {t.imagen && (
-                  <img src={`data:image/jpeg;base64,${t.imagen}`} alt="Foto" className="w-14 h-14 rounded-lg object-cover cursor-pointer" onClick={() => abrirModal(`data:image/jpeg;base64,${t.imagen}`)} />
-                )}
+        <div className="space-y-3">
+          {tareasVisibles.map((t) => (
+            <motion.div key={t.id} layout className="bg-white rounded-2xl shadow p-4">
+              <div className="flex justify-between items-start gap-3">
                 <div>
-                  <p className="font-semibold">#{t.id} — {t.usuario}: {t.tarea}</p>
-                  <p className="text-sm text-gray-700 mt-1">🏢 Área: <span className="font-medium">{t.area || "—"}</span></p>
-                  <p className="text-sm text-gray-700">🧰 Servicio: <span className="font-medium">{t.servicio || "—"}</span></p>
-
-                  {t.subservicio && <p className="text-sm text-gray-700">🧩 Subservicio: <span className="font-medium">{t.subservicio}</span></p>}
-                  {t.descripcion && <p className="text-sm text-green-600 mt-1">🔧 Equipo: {t.descripcion}</p>}
-                  {t.marca_modelo && <p className="text-sm text-green-600 mt-1">🔧 Equipo: {t.marca_modelo}</p>}
-                  {t.numero_serie && <p className="text-sm text-green-600 mt-1">🔧 N/S: {t.numero_serie}</p>}
-                  {t.asignado && <p className="text-sm text-gray-700 mt-1">👷‍♂️ Asignado a: <span className="font-semibold">{t.asignado}</span></p>}
-                  {t.fecha && <p className="text-sm text-gray-600 mt-1">📅 Iniciado el {formatTimestamp(t.fecha)}</p>}
-
-                  {t.solucion && (
-                    <div className="mt-2 bg-gray-100 rounded p-2">
-                      <p className="text-sm font-semibold mb-1">💡 Historial de solución</p>
-                      <ul className="text-sm space-y-1 list-disc list-inside">
-                        {t.solucion.split("\n").filter((l) => l.trim()).map((linea, idx) => <li key={idx} className="text-gray-700">{linea}</li>)}
-                      </ul>
-                    </div>
-                  )}
-
-                  {t.fecha_comp && <p className="text-xs text-gray-500 mt-1">⏰ Solucionado el {formatTimestamp(t.fecha_comp)}</p>}
-
-                  {t.observacion && (
-                    <div className="mt-2 bg-blue-50 border border-blue-200 rounded p-2">
-                      <p className="text-sm font-semibold mb-1 text-blue-700">📝 Procesos administrativos</p>
-                      <ul className="text-sm space-y-1 list-disc list-inside">
-                        {t.observacion.split("\n").filter((l) => l.trim()).map((linea, idx) => <li key={idx} className="text-gray-700">{linea}</li>)}
-                      </ul>
-                    </div>
-                  )}
-
-                  {t.fecha_fin && <p className="text-xs text-gray-500 mt-1">⏰ Finalizado el {formatTimestamp(t.fecha_fin)}</p>}
-
-                  <div className="mt-3 space-x-2">
-                    {filtro === "pendientes" && (
-                      <button
-                        onClick={async () => {
-                          const nuevaDescripcion = prompt("Editar tarea:", t.tarea);
-                          if (!nuevaDescripcion || !nuevaDescripcion.trim()) return;
-
-                          try {
-                            const res = await fetch(`${API_TAREAS}/${t.id}/editar`, {
-                              method: "PUT",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ tarea: nuevaDescripcion }),
-                            });
-
-                            if (!res.ok) throw new Error("Error HTTP " + res.status);
-                            const tareaActualizada = await res.json();
-                            setTareas((prev) => prev.map((task) => task.id === t.id ? tareaActualizada : task));
-                            toast.success("✏️ Tarea actualizada correctamente");
-                          } catch (err) {
-                            console.error(err);
-                            toast.error("❌ Error al actualizar la tarea");
-                          }
-                        }}
-                        className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
-                      >
-                        ✏️ Editar tarea
-                      </button>
-                    )}
-
-                    {filtro === "enProceso" && !t.fin && (
-                      <button onClick={() => handleFinalizar(t.id)} className="bg-green-600 text-white px-3 py-1 rounded text-sm">✅ Finalizar</button>
-                    )}
-                  </div>
+                  <p className="text-xs text-gray-500">Tarea #{t.id}</p>
+                  <p className="font-bold text-gray-800">{t.tarea}</p>
                 </div>
+                <span className={`text-xs font-bold px-2 py-1 rounded-full ${t.fin ? "bg-green-100 text-green-700" : t.solucion ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>{t.fin ? "FINALIZADA" : t.solucion ? "EN PROCESO" : "PENDIENTE"}</span>
               </div>
-            </motion.li>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-1 mt-3 text-sm text-gray-600">
+                <p><b>Área:</b> {t.area || "-"}</p>
+                <p><b>Servicio:</b> {t.servicio || "-"}</p>
+                <p><b>Subservicio:</b> {t.subservicio || "-"}</p>
+                <p><b>Asignado:</b> {t.asignado || "-"}</p>
+                <p><b>Fecha:</b> {formatTimestamp(t.fecha)}</p>
+                {t.fecha_comp && <p><b>Completada:</b> {formatTimestamp(t.fecha_comp)}</p>}
+                {t.fecha_fin && <p><b>Finalizada:</b> {formatTimestamp(t.fecha_fin)}</p>}
+              </div>
+
+              {t.solucion && <div className="mt-3 bg-green-50 rounded-xl p-3"><b>Solución</b><p className="whitespace-pre-wrap mt-1">{t.solucion}</p></div>}
+              {t.observacion && <div className="mt-3 bg-blue-50 rounded-xl p-3"><b>Observación</b><p className="whitespace-pre-wrap mt-1">{t.observacion}</p></div>}
+              {t.imagen && <button type="button" onClick={() => abrirModal(`data:image/jpeg;base64,${t.imagen}`)} className="mt-3 bg-blue-600 text-white px-3 py-2 rounded-xl">Ver imagen</button>}
+              {!t.fin && t.solucion && <button type="button" onClick={() => handleFinalizar(t.id)} className="mt-3 w-full bg-green-600 text-white p-3 rounded-xl font-semibold">Finalizar tarea</button>}
+            </motion.div>
           ))}
-        </ul>
-      )}
+
+          {tareasVisibles.length === 0 && <div className="bg-white rounded-xl shadow p-6 text-center text-gray-500">No hay tareas en esta sección.</div>}
+        </div>
+      </div>
 
       <AnimatePresence>
         {modalImagen && (
-          <motion.div key="modal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50" onClick={cerrarModal}>
-            <motion.img src={modalImagen} alt="Ampliada" initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }} className="max-w-full max-h-full rounded-xl shadow-lg" onClick={(e) => e.stopPropagation()} />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={cerrarModal}>
+            <motion.img initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} src={modalImagen} alt="Imagen ampliada" className="max-w-full max-h-[90vh] rounded-xl" />
           </motion.div>
         )}
       </AnimatePresence>
-
-      <ToastContainer position="bottom-right" autoClose={2000} />
     </div>
   );
 }
