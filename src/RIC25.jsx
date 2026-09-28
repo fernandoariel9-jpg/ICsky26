@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const URL_SNAPSHOT = "https://sky26.onrender.com/api/ric29/agent/snapshot";
+const URL_AGENTE_LOCAL = "http://127.0.0.1:8787";
 
 const UNIDADES = {
   lPerMin: "l/min",
@@ -110,6 +111,104 @@ export default function RIC25({ setVista }) {
   const [capturando, setCapturando] = useState(false);
   const [error, setError] = useState("");
   const [ultimaCaptura, setUltimaCaptura] = useState(null);
+  const [citrexIp, setCitrexIp] = useState("");
+  const [guardandoIp, setGuardandoIp] = useState(false);
+  const [probandoCitrex, setProbandoCitrex] = useState(false);
+  const [estadoAgente, setEstadoAgente] = useState("");
+  const [errorAgente, setErrorAgente] = useState("");
+
+  useEffect(() => {
+    const cargarConfiguracionCitrex = async () => {
+      try {
+        setErrorAgente("");
+        const res = await fetch(`${URL_AGENTE_LOCAL}/config/citrex`, {
+          cache: "no-store",
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || "No se pudo consultar el agente local.");
+        setCitrexIp(data.ip || "");
+        setEstadoAgente(`Agente conectado · ${data.url || data.ip}`);
+      } catch (err) {
+        setEstadoAgente("");
+        setErrorAgente(
+          "No se pudo conectar con Sky26 Agent local. Verifique que el agent.js configurable esté ejecutándose en esta PC."
+        );
+      }
+    };
+
+    cargarConfiguracionCitrex();
+  }, []);
+
+  const guardarIpCitrex = async () => {
+    const ip = citrexIp.trim();
+    if (!ip) return setErrorAgente("Ingrese la IP del CITREX.");
+
+    try {
+      setGuardandoIp(true);
+      setErrorAgente("");
+      setEstadoAgente("");
+
+      const res = await fetch(`${URL_AGENTE_LOCAL}/config/citrex`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ip }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "No se pudo guardar la IP del CITREX.");
+      }
+
+      setCitrexIp(data.ip || ip);
+      setEstadoAgente(`✅ IP guardada · ${data.url || ip}`);
+    } catch (err) {
+      setErrorAgente(
+        err.message || "No se pudo comunicar con Sky26 Agent para cambiar la IP."
+      );
+    } finally {
+      setGuardandoIp(false);
+    }
+  };
+
+  const probarConexionCitrex = async () => {
+    try {
+      setProbandoCitrex(true);
+      setErrorAgente("");
+      setEstadoAgente("");
+
+      const res = await fetch(`${URL_AGENTE_LOCAL}/citrex`, {
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        let mensaje = `CITREX respondió HTTP ${res.status}`;
+        try {
+          const data = await res.json();
+          mensaje = data?.detalle || data?.error || mensaje;
+        } catch {}
+        throw new Error(mensaje);
+      }
+
+      const texto = await res.text();
+      let datos;
+      try {
+        datos = JSON.parse(texto);
+      } catch {
+        datos = null;
+      }
+
+      const cantidad = Array.isArray(datos) ? datos.length : null;
+      setEstadoAgente(
+        cantidad == null
+          ? "✅ CITREX respondió correctamente."
+          : `✅ CITREX conectado · ${cantidad} mediciones recibidas.`
+      );
+    } catch (err) {
+      setErrorAgente(`No se pudo conectar al CITREX: ${err.message}`);
+    } finally {
+      setProbandoCitrex(false);
+    }
+  };
 
   const respiratorias = useMemo(
     () => Object.values(mediciones).filter((m) => m.respiratorio),
@@ -277,6 +376,57 @@ export default function RIC25({ setVista }) {
           <p className="mt-1 text-gray-600">
             El equipo puede capturar mediciones desde PC, tablet o celular mientras el agente esté enviando datos.
           </p>
+        </div>
+
+        <div className="mt-4 bg-gray-50 border rounded-xl p-3">
+          <div className="flex flex-col md:flex-row md:items-end gap-2">
+            <div className="flex-1">
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                IP del CITREX H5
+              </label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={citrexIp}
+                onChange={(e) => setCitrexIp(e.target.value)}
+                placeholder="Ej.: 192.168.1.33"
+                className="w-full border rounded-xl px-3 py-2 font-mono"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Se utilizará http://IP:8080/request. La IP queda guardada en Sky26 Agent.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={guardarIpCitrex}
+              disabled={guardandoIp}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-xl font-semibold"
+            >
+              {guardandoIp ? "Guardando..." : "💾 Guardar IP"}
+            </button>
+
+            <button
+              type="button"
+              onClick={probarConexionCitrex}
+              disabled={probandoCitrex}
+              className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-xl font-semibold"
+            >
+              {probandoCitrex ? "Probando..." : "🔌 Probar conexión"}
+            </button>
+          </div>
+
+          {estadoAgente && (
+            <div className="mt-3 bg-green-50 border border-green-200 text-green-700 rounded-lg p-2 text-sm">
+              {estadoAgente}
+            </div>
+          )}
+
+          {errorAgente && (
+            <div className="mt-3 bg-red-50 border border-red-200 text-red-700 rounded-lg p-2 text-sm">
+              {errorAgente}
+            </div>
+          )}
         </div>
 
         <div className="mt-4">
