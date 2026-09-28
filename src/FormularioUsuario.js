@@ -36,7 +36,16 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       if (!res.ok) throw new Error("Error HTTP " + res.status);
 
       const data = await res.json();
-      setTareas(data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
+      const mailUsuario = typeof usuario === "object" ? String(usuario?.mail || "").trim().toLowerCase() : "";
+      const tareasPropias = mailUsuario
+        ? data.filter((t) => {
+            const creador = String(t.usuario || "").trim().toLowerCase();
+            const solicitadoPor = String(t.solicitado_por || "").trim().toLowerCase();
+            return creador === mailUsuario || solicitadoPor === mailUsuario;
+          })
+        : data;
+
+      setTareas(tareasPropias.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
     } catch (err) {
       console.error(err);
       toast.error("Error al cargar tareas ❌");
