@@ -11,6 +11,7 @@ import RIC39 from "./RIC39";
 import RIC44 from "./RIC44";
 import RIC48 from "./RIC48";
 import RIC56 from "./RIC56";
+import RIC59 from "./RIC59";
 import RIC64 from "./RIC64";
 import { API_URL } from "./config";
 
@@ -38,6 +39,20 @@ const esRxMovil = (descripcion = "") => {
   );
 };
 
+const esEcografo = (descripcion = "") => {
+  const d = normalizar(descripcion)
+    .replace(/[-_/]+/g, " ")
+    .replace(/\s+/g, " ");
+
+  return (
+    d.includes("ecografo") ||
+    d.includes("ecografo portatil") ||
+    d.includes("ecografo movil") ||
+    d.includes("ultrasonido") ||
+    d.includes("ultrasonido portatil")
+  );
+};
+
 const fechaLocal = () => {
   const d = new Date();
   d.setSeconds(0, 0);
@@ -50,6 +65,7 @@ export default function PanelPersonal({ personal, onLogout }) {
   const [ric39Montado, setRic39Montado] = useState(false);
   const [ric48Montado, setRic48Montado] = useState(false);
   const [ric56Montado, setRic56Montado] = useState(false);
+  const [ric59Montado, setRic59Montado] = useState(false);
   const [ric64Montado, setRic64Montado] = useState(false);
 
   useEffect(() => {
@@ -57,6 +73,7 @@ export default function PanelPersonal({ personal, onLogout }) {
     if (vista === "ric39") setRic39Montado(true);
     if (vista === "ric48") setRic48Montado(true);
     if (vista === "ric56") setRic56Montado(true);
+    if (vista === "ric59") setRic59Montado(true);
     if (vista === "ric64") setRic64Montado(true);
   }, [vista]);
 
@@ -92,6 +109,7 @@ export default function PanelPersonal({ personal, onLogout }) {
     if (descripcionNormalizada.includes("monitor multiparametrico")) vistaPreventivo = "ric39";
     if (descripcionNormalizada.includes("electrocardiografo")) vistaPreventivo = "ric48";
     if (esRxMovil(descripcion)) vistaPreventivo = "ric56";
+    if (esEcografo(descripcion)) vistaPreventivo = "ric59";
     if (descripcionNormalizada.includes("bano termostatico")) vistaPreventivo = "ric64";
     if (!vistaPreventivo) return false;
 
@@ -145,6 +163,7 @@ export default function PanelPersonal({ personal, onLogout }) {
 
     let vistaProtocolo = "";
     if (esRxMovil(descripcion)) vistaProtocolo = "ric56";
+    else if (esEcografo(descripcion)) vistaProtocolo = "ric59";
     else if (descripcionNormalizada.includes("bano termostatico")) vistaProtocolo = "ric64";
     else return false;
 
@@ -264,6 +283,12 @@ export default function PanelPersonal({ personal, onLogout }) {
       {ric56Montado && (
         <div style={{ display: vista === "ric56" ? "block" : "none" }}>
           <RIC56 setVista={setVista} personal={personal} />
+        </div>
+      )}
+
+      {ric59Montado && (
+        <div style={{ display: vista === "ric59" ? "block" : "none" }}>
+          <RIC59 setVista={setVista} personal={personal} />
         </div>
       )}
 
