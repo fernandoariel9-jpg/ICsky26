@@ -278,6 +278,7 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
             onSalir={() => setVista("equipos")}
             onDrive={enviarDrive}
             enviandoDrive={enviandoDrive}
+            personal={personal}
           />
         )}
       </ProtocoloLayout>
