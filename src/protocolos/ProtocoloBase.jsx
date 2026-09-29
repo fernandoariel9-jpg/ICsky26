@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "../config";
+import RepuestosRIC from "./RepuestosRIC";
 
 export const fechaHoraLocalProtocolo = () => {
   const d = new Date();
@@ -230,7 +231,7 @@ export function BotonesNavegacion({ onVolver, onCancelar, onContinuar, continuar
   );
 }
 
-export function ResumenMantenimiento({ noConformes = [], mensajeConforme, renderNoConforme, contadores, observaciones, setObservaciones, onVolver, onCancelar, onGuardar, guardando, guardado, onPDF, onSalir, onDrive, enviandoDrive }) {
+export function ResumenMantenimiento({ noConformes = [], mensajeConforme, renderNoConforme, contadores, observaciones, setObservaciones, onVolver, onCancelar, onGuardar, guardando, guardado, onPDF, onSalir, onDrive, enviandoDrive, personal }) {
   return (
     <TarjetaEtapa titulo="2. Resumen del mantenimiento">
       {noConformes.length === 0 ? (
@@ -278,6 +279,8 @@ export function ResumenMantenimiento({ noConformes = [], mensajeConforme, render
       />
 
       <BotonesNavegacion onVolver={onVolver} onCancelar={onCancelar} />
+
+      {!guardado && <RepuestosRIC personal={personal} />}
 
       <button
         disabled={guardando || guardado}
