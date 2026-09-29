@@ -4,6 +4,7 @@ import Equipos from "./Equipos";
 import SeleccionEquipo from "./SeleccionEquipo";
 import NuevoEquipo from "./NuevoEquipo";
 import Stock from "./Stock";
+import RIC10 from "./RIC10";
 import RIC25 from "./RIC25";
 import RIC29 from "./RIC29";
 import RIC37 from "./RIC37";
@@ -54,6 +55,19 @@ const esEcografo = (descripcion = "") => {
   );
 };
 
+const esHemodialisis = (descripcion = "") => {
+  const d = normalizar(descripcion)
+    .replace(/[-_/]+/g, " ")
+    .replace(/\s+/g, " ");
+
+  return (
+    d.includes("maquina de hemodialisis") ||
+    d.includes("maquina hemodialisis") ||
+    d.includes("equipo de hemodialisis") ||
+    d.includes("hemodialisis")
+  );
+};
+
 const fechaLocal = () => {
   const d = new Date();
   d.setSeconds(0, 0);
@@ -62,6 +76,7 @@ const fechaLocal = () => {
 
 export default function PanelPersonal({ personal, onLogout }) {
   const [vista, setVista] = useState("tareas");
+  const [ric10Montado, setRic10Montado] = useState(false);
   const [ric29Montado, setRic29Montado] = useState(false);
   const [ric39Montado, setRic39Montado] = useState(false);
   const [ric48Montado, setRic48Montado] = useState(false);
@@ -70,6 +85,7 @@ export default function PanelPersonal({ personal, onLogout }) {
   const [ric64Montado, setRic64Montado] = useState(false);
 
   useEffect(() => {
+    if (vista === "ric10") setRic10Montado(true);
     if (vista === "ric29") setRic29Montado(true);
     if (vista === "ric39") setRic39Montado(true);
     if (vista === "ric48") setRic48Montado(true);
@@ -106,6 +122,7 @@ export default function PanelPersonal({ personal, onLogout }) {
     const descripcionNormalizada = normalizar(descripcion);
 
     let vistaPreventivo = "";
+    if (esHemodialisis(descripcion)) vistaPreventivo = "ric10";
     if (descripcionNormalizada.includes("cardiodesfibrilador")) vistaPreventivo = "ric29";
     if (descripcionNormalizada.includes("monitor multiparametrico")) vistaPreventivo = "ric39";
     if (descripcionNormalizada.includes("electrocardiografo")) vistaPreventivo = "ric48";
@@ -163,7 +180,8 @@ export default function PanelPersonal({ personal, onLogout }) {
     const descripcionNormalizada = normalizar(descripcion);
 
     let vistaProtocolo = "";
-    if (esRxMovil(descripcion)) vistaProtocolo = "ric56";
+    if (esHemodialisis(descripcion)) vistaProtocolo = "ric10";
+    else if (esRxMovil(descripcion)) vistaProtocolo = "ric56";
     else if (esEcografo(descripcion)) vistaProtocolo = "ric59";
     else if (descripcionNormalizada.includes("bano termostatico")) vistaProtocolo = "ric64";
     else return false;
@@ -258,6 +276,12 @@ export default function PanelPersonal({ personal, onLogout }) {
       {vista === "nuevoEquipo" && <NuevoEquipo setVista={setVista} />}
       {vista === "stock" && <Stock setVista={setVista} personal={personal} />}
       {vista === "ric25" && <RIC25 setVista={setVista} personal={personal} />}
+
+      {ric10Montado && (
+        <div style={{ display: vista === "ric10" ? "block" : "none" }}>
+          <RIC10 setVista={setVista} personal={personal} />
+        </div>
+      )}
 
       {ric29Montado && (
         <div style={{ display: vista === "ric29" ? "block" : "none" }}>
