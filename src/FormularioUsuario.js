@@ -7,6 +7,7 @@ import { API_URL } from "./config";
 import QrReader from "react-qr-scanner";
 
 const API_TAREAS = API_URL.Tareas;
+const API_TAREAS_USUARIO = `${API_URL.Ric29}/tareas-usuario`;
 const API_EQUIPO_PUBLICO = "https://sky26.onrender.com/equipos/publico";
 
 export default function FormularioUsuario({ usuario, onLogout }) {
@@ -30,22 +31,21 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     try {
       if (!usuario) return;
 
-      const userIdentifier = typeof usuario === "string" ? usuario : usuario.mail || usuario.nombre;
+      const mailUsuario = typeof usuario === "object" ? String(usuario?.mail || "").trim() : "";
+      const nombreUsuario = typeof usuario === "object" ? String(usuario?.nombre || "").trim() : String(usuario || "").trim();
 
-      const res = await fetch(`${API_TAREAS}?usuario=${encodeURIComponent(userIdentifier)}`);
+      const url = mailUsuario
+        ? `${API_TAREAS_USUARIO}?mail=${encodeURIComponent(mailUsuario)}`
+        : `${API_TAREAS}?usuario=${encodeURIComponent(nombreUsuario)}`;
+
+      const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) throw new Error("Error HTTP " + res.status);
 
       const data = await res.json();
-      const mailUsuario = typeof usuario === "object" ? String(usuario?.mail || "").trim().toLowerCase() : "";
-      const tareasPropias = mailUsuario
-        ? data.filter((t) => {
-            const creador = String(t.usuario || "").trim().toLowerCase();
-            const solicitadoPor = String(t.solicitado_por || "").trim().toLowerCase();
-            return creador === mailUsuario || solicitadoPor === mailUsuario;
-          })
-        : data;
 
-      setTareas(tareasPropias.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
+      // El backend resuelve la identidad por mail y mantiene compatibilidad
+      // con las tareas históricas que solo guardaban el nombre del usuario.
+      setTareas((Array.isArray(data) ? data : []).sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
     } catch (err) {
       console.error(err);
       toast.error("Error al cargar tareas ❌");
@@ -153,14 +153,18 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     if (!nuevaTarea.trim()) return toast.error("Ingrese una descripción de tarea");
     if (!usuario) return toast.error("Usuario no disponible");
 
-    const userIdentifier = typeof usuario === "string" ? usuario : usuario.mail || usuario.nombre || String(usuario);
+    const nombreUsuario = typeof usuario === "string" ? usuario : usuario.nombre || String(usuario);
+    const mailUsuario = typeof usuario === "object" ? String(usuario?.mail || "").trim() : "";
     const areaValor = usuario?.area ?? null;
     const servicioValor = usuario?.servicio ?? null;
     const subservicioValor = usuario?.subservicio ?? null;
     const fecha = getFechaLocal();
 
     const bodyToSend = {
-      usuario: userIdentifier,
+      usuario: nombreUsuario,
+      usuario_nombre: nombreUsuario,
+      usuario_mail: mailUsuario,
+      solicitado_por: mailUsuario,
       tarea: nuevaTarea,
       area: areaValor,
       servicio: servicioValor,
@@ -174,7 +178,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
     try {
       if (!navigator.onLine) throw new Error("offline");
 
-      const res = await fetch(API_TAREAS, {
+      const endpoint = mailUsuario ? API_TAREAS_USUARIO : API_TAREAS;
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bodyToSend),
@@ -222,11 +227,13 @@ export default function FormularioUsuario({ usuario, onLogout }) {
 
     for (const tarea of pendientes) {
       try {
-        await fetch(API_TAREAS, {
+        const endpoint = tarea.usuario_mail || tarea.solicitado_por ? API_TAREAS_USUARIO : API_TAREAS;
+        const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(tarea),
         });
+        if (!res.ok) throw new Error("Error HTTP " + res.status);
       } catch {
         toast.error("❌ No se pudieron enviar algunas tareas");
         return;
