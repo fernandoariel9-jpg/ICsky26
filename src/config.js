@@ -21,6 +21,7 @@ export const API_URL = {
   BuscarEquipo: `${API_BASE_URL}/buscar-equipo`,
   BuscarEquipos: `${API_BASE_URL}/buscar-equipos`,
   Ric01: `${API_BASE_URL}/ric01`,
+  Ric10: `${API_BASE_URL}/api/ric39/ric10`,
   Ric29: `${API_BASE_URL}/api/ric29`,
   Ric39: `${API_BASE_URL}/api/ric39`,
   Ric48: `${API_BASE_URL}/api/ric39/ric48`,
