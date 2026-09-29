@@ -28,7 +28,9 @@ const CHECKS = [
   "3-H Revisión de restrictores de flujo",
   "3-I Filtro de desgasificación",
   "4 Verificar estado de válvula 84, cambiar si es necesario",
+  "Verificar estado operativo",
   "6 Verificar tensiones de la fuente (5V, 12V, 24V, 20V)",
+  "7 Verificar y calibrar flujos",
   "8 Verificar tensión del detector de fuga de sangre (5V)",
   "13 Verificar volúmenes de bomba de concentrado y bicarbonato",
   "14 Verificar test"
