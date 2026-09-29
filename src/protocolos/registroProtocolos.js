@@ -2,6 +2,17 @@ import { normalizarTextoProtocolo } from "./ProtocoloBase";
 
 export const PROTOCOLOS_MANTENIMIENTO = [
   {
+    codigo: "RIC10",
+    tipo: "preventivo",
+    vista: "ric10",
+    descripciones: [
+      "maquina de hemodialisis",
+      "maquina hemodialisis",
+      "equipo de hemodialisis",
+      "hemodialisis"
+    ]
+  },
+  {
     codigo: "RIC29",
     tipo: "preventivo",
     vista: "ric29",
