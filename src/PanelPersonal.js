@@ -13,6 +13,7 @@ import RIC48 from "./RIC48";
 import RIC56 from "./RIC56";
 import RIC59 from "./RIC59";
 import RIC64 from "./RIC64";
+import RepuestosRICPortal from "./protocolos/RepuestosRICPortal";
 import { API_URL } from "./config";
 
 const normalizar = (texto = "") =>
@@ -297,6 +298,8 @@ export default function PanelPersonal({ personal, onLogout }) {
           <RIC64 setVista={setVista} personal={personal} />
         </div>
       )}
+
+      <RepuestosRICPortal vista={vista} personal={personal} />
     </>
   );
 }
