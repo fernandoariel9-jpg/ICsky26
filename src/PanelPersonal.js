@@ -14,6 +14,7 @@ import RIC48 from "./RIC48";
 import RIC56 from "./RIC56";
 import RIC59 from "./RIC59";
 import RIC64 from "./RIC64";
+import RIC71 from "./RIC71";
 import RepuestosRICPortal from "./protocolos/RepuestosRICPortal";
 import { API_URL } from "./config";
 
@@ -68,6 +69,18 @@ const esHemodialisis = (descripcion = "") => {
   );
 };
 
+const esDetectorFetal = (descripcion = "") => {
+  const d = normalizar(descripcion)
+    .replace(/[-_/]+/g, " ")
+    .replace(/\s+/g, " ");
+
+  return (
+    d.includes("detector fetal") ||
+    d.includes("monitor fetal") ||
+    d.includes("doppler fetal")
+  );
+};
+
 const fechaLocal = () => {
   const d = new Date();
   d.setSeconds(0, 0);
@@ -83,6 +96,7 @@ export default function PanelPersonal({ personal, onLogout }) {
   const [ric56Montado, setRic56Montado] = useState(false);
   const [ric59Montado, setRic59Montado] = useState(false);
   const [ric64Montado, setRic64Montado] = useState(false);
+  const [ric71Montado, setRic71Montado] = useState(false);
 
   useEffect(() => {
     if (vista === "ric10") setRic10Montado(true);
@@ -92,6 +106,7 @@ export default function PanelPersonal({ personal, onLogout }) {
     if (vista === "ric56") setRic56Montado(true);
     if (vista === "ric59") setRic59Montado(true);
     if (vista === "ric64") setRic64Montado(true);
+    if (vista === "ric71") setRic71Montado(true);
   }, [vista]);
 
   const leerCampoEquipo = (contenedor, etiqueta) => {
@@ -129,6 +144,7 @@ export default function PanelPersonal({ personal, onLogout }) {
     if (esRxMovil(descripcion)) vistaPreventivo = "ric56";
     if (esEcografo(descripcion)) vistaPreventivo = "ric59";
     if (descripcionNormalizada.includes("bano termostatico")) vistaPreventivo = "ric64";
+    if (esDetectorFetal(descripcion)) vistaPreventivo = "ric71";
     if (!vistaPreventivo) return false;
 
     const numeroSerie = leerCampoEquipo(contenedor, "Serie");
@@ -184,6 +200,7 @@ export default function PanelPersonal({ personal, onLogout }) {
     else if (esRxMovil(descripcion)) vistaProtocolo = "ric56";
     else if (esEcografo(descripcion)) vistaProtocolo = "ric59";
     else if (descripcionNormalizada.includes("bano termostatico")) vistaProtocolo = "ric64";
+    else if (esDetectorFetal(descripcion)) vistaProtocolo = "ric71";
     else return false;
 
     const marcaModelo = leerCampoEquipo(contenedor, "Marca");
@@ -320,6 +337,12 @@ export default function PanelPersonal({ personal, onLogout }) {
       {ric64Montado && (
         <div style={{ display: vista === "ric64" ? "block" : "none" }}>
           <RIC64 setVista={setVista} personal={personal} />
+        </div>
+      )}
+
+      {ric71Montado && (
+        <div style={{ display: vista === "ric71" ? "block" : "none" }}>
+          <RIC71 setVista={setVista} personal={personal} />
         </div>
       )}
 
