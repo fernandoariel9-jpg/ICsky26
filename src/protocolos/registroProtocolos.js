@@ -62,6 +62,16 @@ export const PROTOCOLOS_MANTENIMIENTO = [
     tipo: "preventivo",
     vista: "ric64",
     descripciones: ["bano termostatico"]
+  },
+  {
+    codigo: "RIC71",
+    tipo: "preventivo",
+    vista: "ric71",
+    descripciones: [
+      "detector fetal",
+      "monitor fetal",
+      "doppler fetal"
+    ]
   }
 ];
 
