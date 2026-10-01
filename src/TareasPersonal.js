@@ -48,6 +48,7 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   const [estados, setEstados] = useState([]);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState("");
   const [tareaFinalizar, setTareaFinalizar] = useState(null);
+  const [actualizandoLista, setActualizandoLista] = useState(false);
   
   const cargarEquipoDesdeTarea = (tarea) => {
   localStorage.setItem("tareaActiva", JSON.stringify(tarea));
@@ -166,8 +167,10 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
   }
 
   const fetchTareas = async () => {
+    if (!personal?.area) return;
+
     try {
-      if (!personal?.area) return;
+      setActualizandoLista(true);
       const res = await fetch(
   `${API_TAREAS}/${encodeURIComponent(personal.area)}?personal=${encodeURIComponent(personal.nombre)}`,
   {
@@ -182,6 +185,8 @@ export default function TareasPersonal({ personal, onLogout, setVista }) {
     } catch (err) {
       console.error("Error al cargar tareas:", err);
       toast.error("Error al cargar tareas ❌");
+    } finally {
+      setActualizandoLista(false);
     }
   };
 
@@ -683,8 +688,19 @@ if (busqueda.trim()) {
       </h1>
 
       <div className="flex space-x-2 mb-4 justify-center">
-        <button onClick={fetchTareas} className="bg-blue-400 text-white px-3 py-1 rounded-xl text-sm">
-          🔄 Actualizar lista
+        <button
+          onClick={fetchTareas}
+          disabled={actualizandoLista}
+          className="bg-blue-400 disabled:bg-blue-300 text-white px-3 py-1 rounded-xl text-sm flex items-center gap-2 disabled:cursor-wait"
+        >
+          {actualizandoLista ? (
+            <>
+              <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Actualizando...
+            </>
+          ) : (
+            <>🔄 Actualizar lista</>
+          )}
         </button>
         <div className="relative">
           <button
