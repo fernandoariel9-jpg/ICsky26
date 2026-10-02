@@ -45,14 +45,65 @@ export default function Equipos({ setVista, personal }) {
   const [mostrarRepuestos, setMostrarRepuestos] = useState(false);
   const [mantenimientoRepuestos, setMantenimientoRepuestos] = useState(null);
   const [existenciasRepuestos, setExistenciasRepuestos] = useState([]);
+  const [todasExistenciasRepuestos, setTodasExistenciasRepuestos] = useState([]);
+  const [busquedaRepuestos, setBusquedaRepuestos] = useState("");
   const [cargandoRepuestos, setCargandoRepuestos] = useState(false);
   const [guardandoRepuestos, setGuardandoRepuestos] = useState(false);
   const [repuestoItemId, setRepuestoItemId] = useState("");
   const [repuestoCantidad, setRepuestoCantidad] = useState("");
   const [repuestosSeleccionados, setRepuestosSeleccionados] = useState([]);
   const [errorRepuestos, setErrorRepuestos] = useState("");
+  const [transferenciaRepuesto, setTransferenciaRepuesto] = useState(null);
+  const [cantidadTransferenciaRepuesto, setCantidadTransferenciaRepuesto] = useState("");
+  const [observacionTransferenciaRepuesto, setObservacionTransferenciaRepuesto] = useState("");
+  const [solicitandoTransferenciaRepuesto, setSolicitandoTransferenciaRepuesto] = useState(false);
+  const [mensajeTransferenciaRepuesto, setMensajeTransferenciaRepuesto] = useState("");
 
   const areaPersonal = String(personal?.area || "").trim().toUpperCase();
+
+  const normalizarBusquedaStock = (valor = "") =>
+    String(valor ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+
+  const existenciasRepuestosFiltradas = (() => {
+    const q = normalizarBusquedaStock(busquedaRepuestos);
+    if (!q) return existenciasRepuestos;
+
+    return existenciasRepuestos.filter((e) =>
+      normalizarBusquedaStock([
+        e.codigo,
+        e.descripcion,
+        e.categoria,
+        e.unidad
+      ].filter(Boolean).join(" ")).includes(q)
+    );
+  })();
+
+  const existenciasRepuestosOtrasAreas = (() => {
+    const q = normalizarBusquedaStock(busquedaRepuestos);
+    if (!q) return [];
+
+    return todasExistenciasRepuestos
+      .filter((e) => String(e.area || "").trim().toUpperCase() !== areaPersonal)
+      .filter((e) => Number(e.cantidad || 0) > 0)
+      .filter((e) =>
+        normalizarBusquedaStock([
+          e.codigo,
+          e.descripcion,
+          e.categoria,
+          e.unidad,
+          e.area
+        ].filter(Boolean).join(" ")).includes(q)
+      )
+      .sort((a, b) => {
+        const porDescripcion = String(a.descripcion || "").localeCompare(String(b.descripcion || ""), "es");
+        if (porDescripcion !== 0) return porDescripcion;
+        return String(a.area || "").localeCompare(String(b.area || ""), "es");
+      });
+  })();
 
   useEffect(() => { fetchEstados(); }, []);
 
@@ -337,15 +388,25 @@ export default function Equipos({ setVista, personal }) {
     setMostrarFinalizar(true);
   };
 
-  const cerrarRepuestos = () => {
-    if (guardandoRepuestos) return;
+  const limpiarTransferenciaRepuesto = () => {
+    setTransferenciaRepuesto(null);
+    setCantidadTransferenciaRepuesto("");
+    setObservacionTransferenciaRepuesto("");
+  };
+
+  const cerrarRepuestos = (forzar = false) => {
+    if ((guardandoRepuestos || solicitandoTransferenciaRepuesto) && !forzar) return;
     setMostrarRepuestos(false);
     setMantenimientoRepuestos(null);
     setExistenciasRepuestos([]);
+    setTodasExistenciasRepuestos([]);
+    setBusquedaRepuestos("");
     setRepuestoItemId("");
     setRepuestoCantidad("");
     setRepuestosSeleccionados([]);
     setErrorRepuestos("");
+    setMensajeTransferenciaRepuesto("");
+    limpiarTransferenciaRepuesto();
   };
 
   const abrirRepuestos = async (mantenimiento) => {
@@ -356,7 +417,10 @@ export default function Equipos({ setVista, personal }) {
     setRepuestoItemId("");
     setRepuestoCantidad("");
     setRepuestosSeleccionados([]);
+    setBusquedaRepuestos("");
     setErrorRepuestos("");
+    setMensajeTransferenciaRepuesto("");
+    limpiarTransferenciaRepuesto();
     setMostrarRepuestos(true);
     setCargandoRepuestos(true);
 
@@ -364,7 +428,10 @@ export default function Equipos({ setVista, personal }) {
       const res = await fetch(`${STOCK_API}/existencias`, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No se pudieron obtener las existencias");
-      const disponibles = (Array.isArray(data) ? data : [])
+      const lista = Array.isArray(data) ? data : [];
+      setTodasExistenciasRepuestos(lista);
+
+      const disponibles = lista
         .filter((e) => String(e.area || "").trim().toUpperCase() === areaPersonal)
         .filter((e) => Number(e.cantidad || 0) > 0)
         .sort((a, b) => String(a.descripcion || "").localeCompare(String(b.descripcion || ""), "es"));
@@ -422,12 +489,68 @@ export default function Equipos({ setVista, personal }) {
         registrados += 1;
       }
       alert(`✅ ${registrados} repuesto(s) registrado(s) en el mantenimiento #${mantenimientoRepuestos.id}`);
-      cerrarRepuestos();
+      cerrarRepuestos(true);
     } catch (err) {
       console.error("Error registrando repuestos:", err);
       setErrorRepuestos(err.message || "No se pudieron registrar los repuestos");
     } finally {
       setGuardandoRepuestos(false);
+    }
+  };
+
+
+  const solicitarTransferenciaDesdeMantenimiento = async () => {
+    if (!transferenciaRepuesto) return setErrorRepuestos("Seleccione un repuesto de otra área.");
+
+    const cantidad = Number(cantidadTransferenciaRepuesto);
+    const disponible = Number(transferenciaRepuesto.cantidad || 0);
+
+    if (!Number.isInteger(cantidad) || cantidad <= 0) {
+      return setErrorRepuestos("La cantidad a transferir debe ser un número entero mayor que cero.");
+    }
+
+    if (cantidad > disponible) {
+      return setErrorRepuestos(
+        `Stock insuficiente en ${transferenciaRepuesto.area}. Disponible: ${disponible} ${transferenciaRepuesto.unidad || ""}`
+      );
+    }
+
+    try {
+      setSolicitandoTransferenciaRepuesto(true);
+      setErrorRepuestos("");
+      setMensajeTransferenciaRepuesto("");
+
+      const res = await fetch(`${STOCK_API}/transferencias`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          item_id: Number(transferenciaRepuesto.item_id || transferenciaRepuesto.id),
+          cantidad,
+          area_origen: String(transferenciaRepuesto.area || "").trim().toUpperCase(),
+          area_destino: areaPersonal,
+          solicitado_por_id: personal?.id || null,
+          solicitado_por_nombre: personal?.nombre || null,
+          observacion: [
+            observacionTransferenciaRepuesto.trim(),
+            mantenimientoRepuestos?.id
+              ? `SOLICITADO DESDE MANTENIMIENTO #${mantenimientoRepuestos.id}`
+              : ""
+          ].filter(Boolean).join(" - ")
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "No se pudo solicitar la transferencia.");
+
+      setMensajeTransferenciaRepuesto(
+        `✅ Transferencia solicitada a ${transferenciaRepuesto.area}. Queda pendiente de aprobación por el área origen.`
+      );
+      limpiarTransferenciaRepuesto();
+    } catch (err) {
+      console.error("Error solicitando transferencia desde mantenimiento:", err);
+      setErrorRepuestos(err.message || "No se pudo solicitar la transferencia.");
+    } finally {
+      setSolicitandoTransferenciaRepuesto(false);
     }
   };
 
@@ -562,7 +685,273 @@ export default function Equipos({ setVista, personal }) {
 
       {mostrarFinalizar && mantenimientoParaFinalizar && <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"><div className="bg-white p-5 rounded-xl shadow-xl w-96 max-w-full"><h2 className="text-lg font-bold mb-2">Finalizar mantenimiento #{mantenimientoParaFinalizar.id}</h2><p className="mb-4 text-sm"><strong>Tipo:</strong> {mantenimientoParaFinalizar.tipo_mantenimiento || "Sin especificar"}</p>{Array.isArray(equipo?.mantenimientos_abiertos) && equipo.mantenimientos_abiertos.filter((m) => m.id !== mantenimientoParaFinalizar.id).length > 0 ? <div className="bg-yellow-50 border border-yellow-300 rounded p-3 mb-4 text-sm"><p className="font-semibold">⚠️ El equipo tiene otros mantenimientos abiertos.</p><p>Se cerrará únicamente este mantenimiento y el equipo conservará su estado actual: <strong>{equipo.estado}</strong>.</p></div> : <><p className="mb-2">¿En qué estado queda el equipo?</p><select value={estadoFinal} onChange={(e) => setEstadoFinal(e.target.value)} className="w-full border p-2 rounded mb-4"><option value="">Seleccionar estado</option>{estados.map((est) => <option key={est.id} value={est.estado}>{est.estado}</option>)}</select></>}<div className="flex gap-2"><button onClick={() => { setMostrarFinalizar(false); setEstadoFinal(""); setMantenimientoParaFinalizar(null); }} className="flex-1 bg-gray-500 text-white py-2 rounded">Cancelar</button><button onClick={finalizarMantenimiento} className="flex-1 bg-green-600 text-white py-2 rounded">Confirmar</button></div></div></div>}
 
-      {mostrarRepuestos && mantenimientoRepuestos && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3"><div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-4"><div className="flex items-start justify-between gap-3 mb-3"><div><h2 className="text-lg font-bold text-gray-800">🔩 Repuestos del mantenimiento #{mantenimientoRepuestos.id}</h2><p className="text-sm text-gray-600">{equipo?.descripcion} · Serie {equipo?.numero_serie}</p><p className="text-xs text-gray-500">Stock disponible en {areaPersonal || "área sin definir"}</p></div><button onClick={cerrarRepuestos} disabled={guardandoRepuestos} className="text-gray-500 hover:text-red-600 font-bold text-xl disabled:opacity-50">✕</button></div>{errorRepuestos && <div className="mb-3 bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">{errorRepuestos}</div>}{cargandoRepuestos ? <div className="py-8 text-center text-gray-500">Cargando repuestos...</div> : existenciasRepuestos.length === 0 ? <div className="py-6 text-center text-gray-500 bg-gray-50 rounded-xl">No hay repuestos con stock disponible en {areaPersonal}.</div> : <><div className="grid grid-cols-1 sm:grid-cols-[1fr_110px] gap-2"><select value={repuestoItemId} onChange={(e) => setRepuestoItemId(e.target.value)} className="w-full border rounded-xl px-3 py-2"><option value="">Seleccionar repuesto</option>{existenciasRepuestos.map((r) => { const id = r.item_id || r.id; return <option key={`${id}-${r.area}`} value={id}>{r.codigo ? `${r.codigo} · ` : ""}{r.descripcion} — {r.cantidad} {r.unidad}</option>; })}</select><input type="number" min="0.01" step="0.01" value={repuestoCantidad} onChange={(e) => setRepuestoCantidad(e.target.value)} placeholder="Cantidad" className="w-full border rounded-xl px-3 py-2" /></div><button onClick={agregarRepuesto} className="mt-2 w-full bg-cyan-700 hover:bg-cyan-800 text-white font-semibold py-2 rounded-xl">＋ Agregar repuesto</button></>}{repuestosSeleccionados.length > 0 && <div className="mt-4"><p className="font-bold text-gray-800 mb-2">Repuestos a utilizar ({repuestosSeleccionados.length})</p><div className="space-y-2">{repuestosSeleccionados.map((r) => <div key={r.item_id} className="border rounded-xl p-3 flex items-center justify-between gap-3"><div className="min-w-0"><p className="font-semibold text-sm truncate">{r.codigo ? `${r.codigo} · ` : ""}{r.descripcion}</p><p className="text-sm text-gray-600">Cantidad: <strong>{r.cantidad} {r.unidad}</strong></p><p className="text-xs text-gray-500">Disponible: {r.disponible} {r.unidad}</p></div><button onClick={() => quitarRepuesto(r.item_id)} disabled={guardandoRepuestos} className="shrink-0 bg-red-600 text-white px-3 py-2 rounded-xl text-sm disabled:opacity-50">Quitar</button></div>)}</div></div>}<div className="grid grid-cols-2 gap-2 mt-4"><button onClick={cerrarRepuestos} disabled={guardandoRepuestos} className="bg-gray-500 text-white py-2 rounded-xl disabled:opacity-50">Cancelar</button><button onClick={confirmarRepuestos} disabled={guardandoRepuestos || repuestosSeleccionados.length === 0} className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl font-semibold disabled:bg-gray-300">{guardandoRepuestos ? "Registrando..." : "Confirmar consumo"}</button></div></div></div>}
+      {mostrarRepuestos && mantenimientoRepuestos && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-4">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">
+                  🔩 Repuestos del mantenimiento #{mantenimientoRepuestos.id}
+                </h2>
+                <p className="text-sm text-gray-600">
+                  {equipo?.descripcion} · Serie {equipo?.numero_serie}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Stock disponible en {areaPersonal || "área sin definir"}
+                </p>
+              </div>
+              <button
+                onClick={cerrarRepuestos}
+                disabled={guardandoRepuestos || solicitandoTransferenciaRepuesto}
+                className="text-gray-500 hover:text-red-600 font-bold text-xl disabled:opacity-50"
+              >
+                ✕
+              </button>
+            </div>
+
+            {errorRepuestos && (
+              <div className="mb-3 bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">
+                {errorRepuestos}
+              </div>
+            )}
+
+            {cargandoRepuestos ? (
+              <div className="py-8 text-center text-gray-500">Cargando repuestos...</div>
+            ) : (
+              <>
+                <div className="mb-3">
+                  <label className="block text-sm font-semibold mb-1">Buscar repuesto</label>
+                  <input
+                    type="text"
+                    value={busquedaRepuestos}
+                    onChange={(e) => {
+                      setBusquedaRepuestos(e.target.value);
+                      setRepuestoItemId("");
+                      limpiarTransferenciaRepuesto();
+                      setMensajeTransferenciaRepuesto("");
+                    }}
+                    placeholder="Código, descripción o categoría..."
+                    className="w-full border rounded-xl px-3 py-2"
+                    autoFocus
+                  />
+                </div>
+
+                {mensajeTransferenciaRepuesto && (
+                  <div className="mb-3 bg-green-50 border border-green-200 text-green-800 rounded-xl p-3 text-sm">
+                    {mensajeTransferenciaRepuesto}
+                  </div>
+                )}
+
+                {existenciasRepuestos.length === 0 ? (
+                  <div className="py-4 text-center text-gray-500 bg-gray-50 rounded-xl">
+                    No hay repuestos con stock disponible en {areaPersonal}.
+                  </div>
+                ) : existenciasRepuestosFiltradas.length === 0 ? (
+                  <div className="py-4 text-center text-gray-500 bg-gray-50 rounded-xl">
+                    No se encontraron coincidencias con stock propio en {areaPersonal}.
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_110px] gap-2">
+                      <select
+                        value={repuestoItemId}
+                        onChange={(e) => setRepuestoItemId(e.target.value)}
+                        className="w-full border rounded-xl px-3 py-2"
+                      >
+                        <option value="">Seleccionar repuesto</option>
+                        {existenciasRepuestosFiltradas.map((r) => {
+                          const id = r.item_id || r.id;
+                          return (
+                            <option key={`${id}-${r.area}`} value={id}>
+                              {r.codigo ? `${r.codigo} · ` : ""}
+                              {r.descripcion} — {r.cantidad} {r.unidad}
+                            </option>
+                          );
+                        })}
+                      </select>
+
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={repuestoCantidad}
+                        onChange={(e) => setRepuestoCantidad(e.target.value)}
+                        placeholder="Cantidad"
+                        className="w-full border rounded-xl px-3 py-2"
+                      />
+                    </div>
+
+                    <button
+                      onClick={agregarRepuesto}
+                      className="mt-2 w-full bg-cyan-700 hover:bg-cyan-800 text-white font-semibold py-2 rounded-xl"
+                    >
+                      ＋ Agregar repuesto
+                    </button>
+                  </>
+                )}
+
+                {busquedaRepuestos.trim() && (
+                  <div className="mt-5 border-t pt-4">
+                    <div className="mb-2">
+                      <p className="font-bold text-gray-800">🔄 Stock disponible en otras áreas</p>
+                      <p className="text-xs text-gray-500">
+                        Si tu área no dispone del repuesto, podés solicitar una transferencia desde este mantenimiento.
+                      </p>
+                    </div>
+
+                    {existenciasRepuestosOtrasAreas.length === 0 ? (
+                      <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-500 text-center">
+                        No hay coincidencias disponibles en otras áreas.
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-52 overflow-y-auto">
+                        {existenciasRepuestosOtrasAreas.map((r) => {
+                          const id = Number(r.item_id || r.id);
+                          const seleccionada =
+                            transferenciaRepuesto &&
+                            Number(transferenciaRepuesto.item_id || transferenciaRepuesto.id) === id &&
+                            String(transferenciaRepuesto.area || "") === String(r.area || "");
+
+                          return (
+                            <div
+                              key={`${id}-${r.area}`}
+                              className={`border rounded-xl p-3 ${seleccionada ? "border-purple-500 bg-purple-50" : "bg-white"}`}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="font-semibold text-sm">
+                                    {r.codigo ? `${r.codigo} · ` : ""}
+                                    {r.descripcion}
+                                  </p>
+                                  <p className="text-xs text-gray-600 mt-1">
+                                    Área: <strong>{r.area}</strong> · Disponible:{" "}
+                                    <strong>{r.cantidad} {r.unidad}</strong>
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setTransferenciaRepuesto(r);
+                                    setCantidadTransferenciaRepuesto("");
+                                    setObservacionTransferenciaRepuesto("");
+                                    setErrorRepuestos("");
+                                  }}
+                                  className="shrink-0 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-xl text-xs font-semibold"
+                                >
+                                  Solicitar
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {transferenciaRepuesto && (
+                      <div className="mt-3 border border-purple-300 bg-purple-50 rounded-xl p-3">
+                        <p className="font-bold text-purple-900 text-sm">
+                          Solicitar desde {transferenciaRepuesto.area}
+                        </p>
+                        <p className="text-sm text-gray-700 mt-1">
+                          {transferenciaRepuesto.codigo ? `${transferenciaRepuesto.codigo} · ` : ""}
+                          {transferenciaRepuesto.descripcion}
+                        </p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={cantidadTransferenciaRepuesto}
+                            onChange={(e) => setCantidadTransferenciaRepuesto(e.target.value)}
+                            placeholder="Cantidad"
+                            className="w-full border rounded-xl px-3 py-2 bg-white"
+                          />
+                          <input
+                            type="text"
+                            value={observacionTransferenciaRepuesto}
+                            onChange={(e) => setObservacionTransferenciaRepuesto(e.target.value)}
+                            placeholder="Observación opcional"
+                            className="w-full border rounded-xl px-3 py-2 bg-white"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 mt-3">
+                          <button
+                            type="button"
+                            onClick={limpiarTransferenciaRepuesto}
+                            disabled={solicitandoTransferenciaRepuesto}
+                            className="bg-gray-500 text-white py-2 rounded-xl disabled:opacity-50"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={solicitarTransferenciaDesdeMantenimiento}
+                            disabled={solicitandoTransferenciaRepuesto || !cantidadTransferenciaRepuesto}
+                            className="bg-purple-700 hover:bg-purple-800 text-white py-2 rounded-xl font-semibold disabled:bg-gray-300"
+                          >
+                            {solicitandoTransferenciaRepuesto ? "Solicitando..." : "Confirmar solicitud"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {repuestosSeleccionados.length > 0 && (
+              <div className="mt-4">
+                <p className="font-bold text-gray-800 mb-2">
+                  Repuestos a utilizar ({repuestosSeleccionados.length})
+                </p>
+                <div className="space-y-2">
+                  {repuestosSeleccionados.map((r) => (
+                    <div key={r.item_id} className="border rounded-xl p-3 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm truncate">
+                          {r.codigo ? `${r.codigo} · ` : ""}{r.descripcion}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Cantidad: <strong>{r.cantidad} {r.unidad}</strong>
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Disponible: {r.disponible} {r.unidad}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => quitarRepuesto(r.item_id)}
+                        disabled={guardandoRepuestos || solicitandoTransferenciaRepuesto}
+                        className="shrink-0 bg-red-600 text-white px-3 py-2 rounded-xl text-sm disabled:opacity-50"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <button
+                onClick={cerrarRepuestos}
+                disabled={guardandoRepuestos || solicitandoTransferenciaRepuesto}
+                className="bg-gray-500 text-white py-2 rounded-xl disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarRepuestos}
+                disabled={guardandoRepuestos || solicitandoTransferenciaRepuesto || repuestosSeleccionados.length === 0}
+                className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl font-semibold disabled:bg-gray-300"
+              >
+                {guardandoRepuestos ? "Registrando..." : "Confirmar consumo"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <button onClick={() => setVista("tareas")} className="bg-gray-400 text-white px-4 py-2 rounded-xl w-full mt-4">← Volver</button>
       <input ref={inputImagenRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={subirImagen} />
