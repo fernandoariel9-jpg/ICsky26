@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { API_URL } from "./config";
+import { RIC37_CONTEXTO_PREVENTIVO_KEY } from "./protocolos/RIC37Preventivo";
 
 export default function RIC37({ setVista, personal }) {
   const etapas = ["Clasificación", "Mediciones", "Determinaciones", "Partes aplicables", "Resumen"];
@@ -8,6 +9,7 @@ export default function RIC37({ setVista, personal }) {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   const [ric37Id, setRic37Id] = useState(null);
+  const [contextoPreventivo, setContextoPreventivo] = useState(null);
 
   const [datos, setDatos] = useState({
     ric01_id: "", equipo_id: "", numero_serie: "", descripcion: "",
@@ -39,6 +41,19 @@ export default function RIC37({ setVista, personal }) {
         if (!tareaGuardada) throw new Error("No existe un mantenimiento activo.");
 
         const tarea = JSON.parse(tareaGuardada);
+
+        try {
+          const contextoRaw = localStorage.getItem(RIC37_CONTEXTO_PREVENTIVO_KEY);
+          const contexto = contextoRaw ? JSON.parse(contextoRaw) : null;
+          if (contexto && Number(contexto.ric01_id) === Number(tarea.ric01_id || tarea.id)) {
+            setContextoPreventivo(contexto);
+          } else {
+            setContextoPreventivo(null);
+          }
+        } catch {
+          setContextoPreventivo(null);
+        }
+
         let equipo = null;
 
         if (tarea.numero_serie) {
@@ -125,7 +140,13 @@ export default function RIC37({ setVista, personal }) {
   const validarPartesAplicables = () => medicionesPartesAplicables.every(item => item.noAplica || (item.medicion !== "" && item.conforme !== null));
 
   const volver = () => {
-    if (etapa === 0) return setVista("equipos");
+    if (etapa === 0) {
+      if (contextoPreventivo?.vista) {
+        localStorage.removeItem(RIC37_CONTEXTO_PREVENTIVO_KEY);
+        return setVista(contextoPreventivo.vista);
+      }
+      return setVista("equipos");
+    }
     setEtapa(prev => prev - 1);
   };
 
@@ -181,8 +202,17 @@ export default function RIC37({ setVista, personal }) {
       const data = await respuesta.json();
       if (!respuesta.ok) throw new Error(data.error || "Error guardando RIC37");
 
-      setRic37Id(data.ric37_id || data.id || null);
+      const idGuardado = data.ric37_id || data.id || null;
+      setRic37Id(idGuardado);
       alert("RIC37 guardado correctamente ✅");
+
+      if (contextoPreventivo?.vista) {
+        window.dispatchEvent(new CustomEvent("ric37-actualizado", {
+          detail: { ric01Id: Number(datos.ric01_id), ric37Id: idGuardado }
+        }));
+        localStorage.removeItem(RIC37_CONTEXTO_PREVENTIVO_KEY);
+        setVista(contextoPreventivo.vista);
+      }
     } catch (err) {
       console.error("ERROR GUARDANDO RIC37:", err);
       setError(err.message || "No se pudo guardar el RIC37.");
@@ -192,7 +222,13 @@ export default function RIC37({ setVista, personal }) {
     }
   };
 
-  const salir = () => setVista("equipos");
+  const salir = () => {
+    if (contextoPreventivo?.vista) {
+      localStorage.removeItem(RIC37_CONTEXTO_PREVENTIVO_KEY);
+      return setVista(contextoPreventivo.vista);
+    }
+    setVista("equipos");
+  };
   const progreso = ((etapa + 1) / etapas.length) * 100;
 
   if (cargando) return <div className="p-6 text-center"><p className="text-lg">⏳ Cargando datos del equipo...</p></div>;
