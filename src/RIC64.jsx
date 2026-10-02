@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
+import { BloqueRIC37Preventivo, useRIC37Preventivo } from "./protocolos/RIC37Preventivo";
 
 const ETAPAS = ["Inspecciones previas", "Control de temperatura", "Resumen"];
 const INSTRUCCION_GENERICA = "Procedimiento: configure el baño en la temperatura de trabajo, espere su estabilización y registre los valores indicados. El rango de aceptación se calcula automáticamente como ±5% de la temperatura seteada.";
@@ -95,6 +96,12 @@ export default function RIC64({ setVista, personal }) {
 
   const [temperaturas, setTemperaturas] = useState(crearTemperaturas);
   const [observaciones, setObservaciones] = useState("");
+
+  const seguridadElectrica = useRIC37Preventivo({
+    codigo: "RIC64",
+    ric01Id: datos.ric01_id,
+    setVista
+  });
 
   useEffect(() => {
     (async () => {
@@ -258,6 +265,8 @@ export default function RIC64({ setVista, personal }) {
       return alert("Complete todas las verificaciones antes de guardar RIC64.");
     }
 
+    if (!seguridadElectrica.validarAntesDeGuardar()) return;
+
     try {
       setGuardando(true);
       setError("");
@@ -268,7 +277,7 @@ export default function RIC64({ setVista, personal }) {
         body: JSON.stringify({
           ...datos,
           resultado_general: resumen.resultado,
-          observaciones,
+          observaciones: seguridadElectrica.agregarAObservaciones(observaciones),
           verificador_equipo: "MULTIMETRO FLUKE 87V",
           verificador_numero_serie: "14020306",
           verificador_certificado: "CEMEC 54126/25",
@@ -553,6 +562,8 @@ export default function RIC64({ setVista, personal }) {
               placeholder="Observaciones generales"
               className="w-full border rounded-xl p-3 min-h-24"
             />
+
+            <BloqueRIC37Preventivo control={seguridadElectrica} />
 
             <div className="flex flex-wrap gap-2">
               <button
