@@ -9,6 +9,7 @@ import {
   useProtocoloBase
 } from "./protocolos/ProtocoloBase";
 import RepuestosRIC from "./protocolos/RepuestosRIC";
+import { BloqueRIC37Preventivo, useRIC37Preventivo } from "./protocolos/RIC37Preventivo";
 
 const ETAPAS = ["Mantenimiento", "Estado operativo", "Resumen"];
 const claveBorrador = (id) => `preventivo:ric10:${id}`;
@@ -95,6 +96,12 @@ export default function RIC10({ setVista, personal }) {
   const [guardando, setGuardando] = useState(false);
   const [enviandoDrive, setEnviandoDrive] = useState(false);
   const [ric10Id, setRic10Id] = useState(null);
+
+  const seguridadElectrica = useRIC37Preventivo({
+    codigo: "RIC10",
+    ric01Id: datos.ric01_id,
+    setVista
+  });
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -190,6 +197,7 @@ export default function RIC10({ setVista, personal }) {
 
   const guardar = async () => {
     if (resumen.pendientes) return alert("Complete todas las verificaciones antes de guardar RIC10.");
+    if (!seguridadElectrica.validarAntesDeGuardar()) return;
     if (ric10Id) return;
     try {
       setGuardando(true);
@@ -201,7 +209,7 @@ export default function RIC10({ setVista, personal }) {
           ...datos,
           fecha: fechaHoraLocalProtocolo(),
           resultado_general: resumen.resultado,
-          observaciones,
+          observaciones: seguridadElectrica.agregarAObservaciones(observaciones),
           verificador_equipo: "MULTIMETRO FLUKE 87V",
           verificador_numero_serie: "14020306",
           verificador_certificado: "CEMEC 54126/25",
@@ -346,6 +354,7 @@ export default function RIC10({ setVista, personal }) {
             <textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={5} className="w-full border rounded-xl p-3" placeholder="Observaciones del mantenimiento" />
 
             <BotonesNavegacion onVolver={volver} onCancelar={cancelar} />
+            {!ric10Id && <BloqueRIC37Preventivo control={seguridadElectrica} />}
             {!ric10Id && <RepuestosRIC personal={personal} />}
 
             <button onClick={guardar} disabled={guardando || Boolean(ric10Id)} className="w-full bg-green-600 disabled:bg-gray-400 text-white rounded-xl p-3 mt-3 font-bold">
