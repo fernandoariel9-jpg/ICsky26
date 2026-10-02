@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
+import { BloqueRIC37Preventivo, useRIC37Preventivo } from "./protocolos/RIC37Preventivo";
 
 const ETAPAS = ["Aceptación visual", "Normal", "Hipertenso", "Bradicardia", "Resumen"];
 const INSTRUCCION_GENERICA = "Procedimiento: configure el simulador según el valor nominal indicado, realice la medición y registre el valor obtenido.";
@@ -122,6 +123,12 @@ export default function RIC39({ setVista, personal }) {
   const [enviandoDrive, setEnviandoDrive] = useState(false);
   const [error, setError] = useState("");
   const [ric39Id, setRic39Id] = useState(null);
+
+  const seguridadElectrica = useRIC37Preventivo({
+    codigo: "RIC39",
+    ric01Id: datos.ric01_id,
+    setVista
+  });
   const [borradorCargado, setBorradorCargado] = useState(false);
   const [estados, setEstados] = useState([]);
   const [mostrarFinalizar, setMostrarFinalizar] = useState(false);
@@ -231,6 +238,7 @@ export default function RIC39({ setVista, personal }) {
 
   const guardar = async () => {
     if (resumen.resultado === "PENDIENTE") return alert("Complete todas las mediciones o marque No aplica.");
+    if (!seguridadElectrica.validarAntesDeGuardar()) return;
     if (ric39Id) return setMostrarFinalizar(!tareaFinalizada);
 
     const obsFinal = [
@@ -238,6 +246,8 @@ export default function RIC39({ setVista, personal }) {
       resumen.inspNC.length ? `Inspecciones no conformes: ${resumen.inspNC.join(", ")}` : "",
       observaciones
     ].filter(Boolean).join(" | ");
+
+    const obsConRIC37 = seguridadElectrica.agregarAObservaciones(obsFinal);
 
     try {
       setGuardando(true);
@@ -248,7 +258,7 @@ export default function RIC39({ setVista, personal }) {
         body: JSON.stringify({
           ...datos,
           resultado_general: resumen.resultado,
-          observaciones: obsFinal,
+          observaciones: obsConRIC37,
           verificador_equipo: "ANALIZADOR DE MONITORES FLUKE PROSIM 8",
           verificador_numero_serie: "2496025",
           verificador_etyc: "2025-01-27",
@@ -480,6 +490,8 @@ export default function RIC39({ setVista, personal }) {
                   : `✅ RIC39 #${ric39Id} guardado. Seleccione el estado final del equipo para cerrar la tarea.`}
               </div>
             )}
+
+            <BloqueRIC37Preventivo control={seguridadElectrica} />
 
             <div className="flex flex-wrap gap-2">
               {!ric39Id && (
