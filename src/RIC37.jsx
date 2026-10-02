@@ -83,10 +83,18 @@ export default function RIC37({ setVista, personal }) {
     cargarDatos();
   }, [personal]);
 
+  const numeroDecimal = (valor) => {
+    if (valor === null || valor === undefined || String(valor).trim() === "") return null;
+    const normalizado = String(valor).trim().replace(/,/g, ".");
+    const numero = Number(normalizado);
+    return Number.isFinite(numero) ? numero : null;
+  };
+
   const calcularConformidad = (medicion, rango) => {
-    if (medicion === "" || medicion === null || medicion === undefined) return null;
-    const valor = Number(String(medicion).replace(",", "."));
-    return Number.isNaN(valor) ? null : valor <= rango;
+    const valor = numeroDecimal(medicion);
+    const limite = numeroDecimal(rango);
+    if (valor === null || limite === null) return null;
+    return valor <= limite;
   };
 
   const cambiarDeterminacion = (index, campo, valor) => {
@@ -136,8 +144,13 @@ export default function RIC37({ setVista, personal }) {
     return resultados;
   };
 
-  const validarDeterminaciones = () => determinaciones.every(item => item.noAplica || (item.medicion !== "" && item.conforme !== null));
-  const validarPartesAplicables = () => medicionesPartesAplicables.every(item => item.noAplica || (item.medicion !== "" && item.conforme !== null));
+  const validarDeterminaciones = () => determinaciones.every(
+    item => item.noAplica || (numeroDecimal(item.medicion) !== null && item.conforme !== null)
+  );
+
+  const validarPartesAplicables = () => medicionesPartesAplicables.every(
+    item => item.noAplica || (numeroDecimal(item.medicion) !== null && item.conforme !== null)
+  );
 
   const volver = () => {
     if (etapa === 0) {
@@ -185,11 +198,18 @@ export default function RIC37({ setVista, personal }) {
         tecnico: datos.tecnico,
         clase,
         tipo_proteccion: tipoProteccion,
-        medicion_tension: medicionTension,
-        medicion_corriente: medicionCorriente,
+        medicion_tension: numeroDecimal(medicionTension),
+        medicion_corriente: numeroDecimal(medicionCorriente),
         indicaciones,
-        determinaciones,
-        mediciones_partes_aplicables: medicionesPartesAplicables,
+        determinaciones: determinaciones.map(item => ({
+          ...item,
+          medicion: item.noAplica ? null : numeroDecimal(item.medicion),
+          rango: numeroDecimal(item.rango)
+        })),
+        mediciones_partes_aplicables: medicionesPartesAplicables.map(item => ({
+          ...item,
+          medicion: item.noAplica ? null : numeroDecimal(item.medicion)
+        })),
         resultado_general: noConformes.length === 0 ? "CONFORME" : "NO CONFORME",
         observaciones
       };
@@ -300,8 +320,8 @@ export default function RIC37({ setVista, personal }) {
             <h2 className="text-xl font-bold mb-2">2. Mediciones</h2>
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">Registrar las mediciones generales realizadas durante el ensayo de seguridad eléctrica.</p>
             <div className="grid grid-cols-2 gap-4">
-              <div><label className="font-semibold block mb-2">MEDICIÓN DE TENSIÓN</label><input type="text" value={medicionTension} onChange={e => setMedicionTension(e.target.value)} className="w-full border rounded-xl p-3 text-lg" /></div>
-              <div><label className="font-semibold block mb-2">MEDICIÓN DE CORRIENTE</label><input type="text" value={medicionCorriente} onChange={e => setMedicionCorriente(e.target.value)} className="w-full border rounded-xl p-3 text-lg" /></div>
+              <div><label className="font-semibold block mb-2">MEDICIÓN DE TENSIÓN</label><input type="text" inputMode="decimal" value={medicionTension} onChange={e => setMedicionTension(e.target.value)} placeholder="Ej. 220,5 o 220.5" className="w-full border rounded-xl p-3 text-lg" /></div>
+              <div><label className="font-semibold block mb-2">MEDICIÓN DE CORRIENTE</label><input type="text" inputMode="decimal" value={medicionCorriente} onChange={e => setMedicionCorriente(e.target.value)} placeholder="Ej. 0,25 o 0.25" className="w-full border rounded-xl p-3 text-lg" /></div>
             </div>
             <div className="flex gap-2 mt-6">
               <button onClick={volver} className="flex-1 bg-gray-500 text-white rounded-xl p-3">← Volver</button>
@@ -319,7 +339,7 @@ export default function RIC37({ setVista, personal }) {
                 <div key={item.numero} className="border rounded-xl p-4">
                   <h3 className="font-bold mb-3">{item.numero}. {item.nombre}</h3>
                   <label className="font-semibold block mb-2">Medición</label>
-                  <input type="text" value={item.medicion} disabled={item.noAplica} onChange={e => cambiarMedicionDeterminacion(index, e.target.value)} className={`w-full border rounded-xl p-3 text-lg ${item.conforme === true ? "bg-green-100 border-green-500" : item.conforme === false ? "bg-red-100 border-red-500" : ""}`} />
+                  <input type="text" inputMode="decimal" value={item.medicion} disabled={item.noAplica} onChange={e => cambiarMedicionDeterminacion(index, e.target.value)} placeholder="Use coma o punto decimal" className={`w-full border rounded-xl p-3 text-lg ${item.conforme === true ? "bg-green-100 border-green-500" : item.conforme === false ? "bg-red-100 border-red-500" : ""}`} />
                   <p className="text-sm mt-2">Rango de aceptación: <b>≤ {item.rango}</b></p>
                   <div className="flex items-center justify-between mt-4 gap-3">
                     <div className="flex gap-2">
@@ -344,7 +364,7 @@ export default function RIC37({ setVista, personal }) {
                 <div key={item.id} className="border rounded-xl p-4">
                   <div className="flex justify-between items-center mb-3"><h3 className="font-bold">Medición {index + 1}</h3>{medicionesPartesAplicables.length > 1 && <button type="button" onClick={() => eliminarMedicionPartes(item.id)} className="text-red-600 text-sm font-semibold">Eliminar</button>}</div>
                   <label className="font-semibold block mb-2">Medición</label>
-                  <input type="text" value={item.medicion} disabled={item.noAplica} onChange={e => cambiarMedicionPartes(item.id, "medicion", e.target.value)} className={`w-full border rounded-xl p-3 text-lg ${item.conforme === true ? "bg-green-100 border-green-500" : item.conforme === false ? "bg-red-100 border-red-500" : ""}`} />
+                  <input type="text" inputMode="decimal" value={item.medicion} disabled={item.noAplica} onChange={e => cambiarMedicionPartes(item.id, "medicion", e.target.value)} placeholder="Use coma o punto decimal" className={`w-full border rounded-xl p-3 text-lg ${item.conforme === true ? "bg-green-100 border-green-500" : item.conforme === false ? "bg-red-100 border-red-500" : ""}`} />
                   <p className="text-sm mt-2">Rango de aceptación: <b>≤ 50 µA</b></p>
                   <label className="font-semibold block mt-4 mb-2">Observaciones</label>
                   <textarea value={item.observaciones} onChange={e => cambiarMedicionPartes(item.id, "observaciones", e.target.value)} className="w-full border rounded-xl p-3" rows={3} placeholder="Observaciones de esta medición..." />
