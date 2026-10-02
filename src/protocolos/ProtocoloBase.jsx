@@ -231,7 +231,7 @@ export function BotonesNavegacion({ onVolver, onCancelar, onContinuar, continuar
   );
 }
 
-export function ResumenMantenimiento({ noConformes = [], mensajeConforme, renderNoConforme, contadores, observaciones, setObservaciones, onVolver, onCancelar, onGuardar, guardando, guardado, onPDF, onSalir, onDrive, enviandoDrive, personal }) {
+export function ResumenMantenimiento({ noConformes = [], mensajeConforme, renderNoConforme, contadores, observaciones, setObservaciones, onVolver, onCancelar, onGuardar, guardando, guardado, onPDF, onSalir, onDrive, enviandoDrive, personal, antesDeGuardar = null }) {
   return (
     <TarjetaEtapa titulo="2. Resumen del mantenimiento">
       {noConformes.length === 0 ? (
@@ -279,6 +279,8 @@ export function ResumenMantenimiento({ noConformes = [], mensajeConforme, render
       />
 
       <BotonesNavegacion onVolver={onVolver} onCancelar={onCancelar} />
+
+      {!guardado && antesDeGuardar}
 
       {!guardado && <RepuestosRIC personal={personal} />}
 
