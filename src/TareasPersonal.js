@@ -691,16 +691,9 @@ if (busqueda.trim()) {
         <button
           onClick={fetchTareas}
           disabled={actualizandoLista}
-          className="bg-blue-400 disabled:bg-blue-300 text-white px-3 py-1 rounded-xl text-sm flex items-center gap-2 disabled:cursor-wait"
+          className="bg-blue-400 disabled:bg-blue-300 text-white px-3 py-1 rounded-xl text-sm disabled:cursor-wait"
         >
-          {actualizandoLista ? (
-            <>
-              <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Actualizando...
-            </>
-          ) : (
-            <>🔄 Actualizar lista</>
-          )}
+          🔄 Actualizar lista
         </button>
         <div className="relative">
           <button
@@ -959,7 +952,12 @@ if (busqueda.trim()) {
         </button>
       </div>
 
-      <ul className="space-y-3">
+      {actualizandoLista ? (
+        <div className="flex justify-center items-center py-8">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : (
+        <ul className="space-y-3">
         {tareasFiltradas.length === 0 && (
           <p className="text-center text-gray-500 italic">No hay tareas en esta categoría.</p>
         )}
@@ -1295,7 +1293,8 @@ if (busqueda.trim()) {
             </li>
           );
         })}
-      </ul>
+        </ul>
+      )}
 
       {imagenAmpliada && (
         <div
