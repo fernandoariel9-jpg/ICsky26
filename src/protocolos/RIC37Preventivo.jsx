@@ -184,6 +184,27 @@ export function BloqueRIC37Preventivo({ control }) {
     );
   }
 
+  if (noAplica && motivoNoAplica.trim()) {
+    return (
+      <div className="mt-4 rounded-xl border border-gray-300 bg-gray-50 p-4">
+        <p className="font-bold text-gray-800">☑ RIC37 - No aplica</p>
+        <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
+          {motivoNoAplica.trim()}
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setNoAplica(false);
+            setMotivoNoAplica("");
+          }}
+          className="mt-3 text-sm text-blue-700 underline"
+        >
+          Cambiar decisión
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className={`mt-4 rounded-xl border p-4 ${mostrarAviso ? "border-amber-400 bg-amber-50" : "border-blue-200 bg-blue-50"}`}>
       <div className="flex items-start justify-between gap-3">
