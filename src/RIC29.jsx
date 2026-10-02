@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { API_URL } from "./config";
+import { BloqueRIC37Preventivo, useRIC37Preventivo } from "./protocolos/RIC37Preventivo";
 
 // =====================================================
 // INDICADOR DE CONEXIÓN ELÉCTRICA
@@ -102,6 +103,12 @@ export default function RIC29({ setVista, personal }) {
   // =====================================================
 
   const [observaciones, setObservaciones] = useState("");
+
+  const seguridadElectrica = useRIC37Preventivo({
+    codigo: "RIC29",
+    ric01Id: datos.ric01_id,
+    setVista
+  });
 
   // =====================================================
   // 1 - INSPECCIONES
@@ -1237,6 +1244,8 @@ const volver = () => {
 
   const guardarPreventivo = async () => {
 
+    if (!seguridadElectrica.validarAntesDeGuardar()) return;
+
     const noConformes =
       obtenerNoConformes();
 
@@ -1282,7 +1291,7 @@ const volver = () => {
             ? "CONFORME"
             : "NO CONFORME",
 
-        observaciones,
+        observaciones: seguridadElectrica.agregarAObservaciones(observaciones),
 
         // -----------------------------------------
         // INSPECCIONES
@@ -2734,6 +2743,8 @@ localStorage.removeItem(
               </button>
 
             </div>
+
+            <BloqueRIC37Preventivo control={seguridadElectrica} />
 
             <button
               disabled={guardando}
