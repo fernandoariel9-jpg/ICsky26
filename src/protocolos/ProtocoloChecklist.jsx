@@ -8,6 +8,7 @@ import {
   fechaHoraLocalProtocolo,
   useProtocoloBase
 } from "./ProtocoloBase";
+import { BloqueRIC37Preventivo, useRIC37Preventivo } from "./RIC37Preventivo";
 
 function BotonEstado({ activo, tipo, onClick }) {
   const clases = tipo === "CONFORME"
@@ -72,6 +73,12 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
   const [enviandoDrive, setEnviandoDrive] = useState(false);
   const [protocoloId, setProtocoloId] = useState(null);
   const [errorLocal, setErrorLocal] = useState("");
+
+  const seguridadElectrica = useRIC37Preventivo({
+    codigo,
+    ric01Id: datos.ric01_id,
+    setVista
+  });
 
   useEffect(() => {
     setPuntos(crearPuntos());
@@ -138,6 +145,7 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
   const guardar = async () => {
     if (resumen.pendientes) return alert("Complete todos los puntos de verificación.");
     if (requiereEnUso && !enUso) return alert("Indique si el equipo se encuentra en uso.");
+    if (!seguridadElectrica.validarAntesDeGuardar()) return;
     if (protocoloId) return;
 
     setGuardando(true);
@@ -151,7 +159,7 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
           fecha: fechaHoraLocalProtocolo(),
           ...(requiereEnUso ? { en_uso: enUso === "SI" } : {}),
           resultado_general: resumen.resultado,
-          observaciones,
+          observaciones: seguridadElectrica.agregarAObservaciones(observaciones),
           verificaciones: puntos
         })
       });
@@ -279,6 +287,7 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
             onDrive={enviarDrive}
             enviandoDrive={enviandoDrive}
             personal={personal}
+            antesDeGuardar={<BloqueRIC37Preventivo control={seguridadElectrica} />}
           />
         )}
       </ProtocoloLayout>
