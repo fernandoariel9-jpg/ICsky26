@@ -1011,6 +1011,7 @@ if (busqueda.trim()) {
                       tarea={t}
                       areaStock={personal?.area}
                       etiqueta="🔩 Usar repuestos"
+                      compacto
                       onRegistrado={fetchTareas}
                     />
                   )}
