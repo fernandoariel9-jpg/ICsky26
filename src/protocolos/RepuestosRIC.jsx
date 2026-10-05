@@ -12,7 +12,7 @@ function leerTareaActiva() {
   }
 }
 
-export default function RepuestosRIC({ personal }) {
+export default function RepuestosRIC({ personal, tarea: tareaProp = null, areaStock = "", onRegistrado = null, etiqueta = "🔩 Agregar repuestos del stock" }) {
   const [abierto, setAbierto] = useState(false);
   const [existencias, setExistencias] = useState([]);
   const [todasExistencias, setTodasExistencias] = useState([]);
@@ -37,9 +37,12 @@ export default function RepuestosRIC({ personal }) {
       .toLowerCase()
       .trim();
 
-  const tarea = useMemo(() => leerTareaActiva(), [abierto]);
+  const tarea = useMemo(
+    () => tareaProp || leerTareaActiva(),
+    [tareaProp, abierto]
+  );
   const ric01Id = tarea?.ric01_id || tarea?.id || null;
-  const area = String(tarea?.area || personal?.area || "").trim().toUpperCase();
+  const area = String(areaStock || personal?.area || tarea?.area || "").trim().toUpperCase();
   const personalNombre = personal?.nombre || tarea?.asignado || tarea?.usuario || "";
   const personalId = personal?.id || null;
 
@@ -99,9 +102,9 @@ export default function RepuestosRIC({ personal }) {
   };
 
   const abrir = async () => {
-    const actual = leerTareaActiva();
+    const actual = tareaProp || leerTareaActiva();
     const id = actual?.ric01_id || actual?.id;
-    const areaActual = String(actual?.area || personal?.area || "").trim().toUpperCase();
+    const areaActual = String(areaStock || personal?.area || actual?.area || "").trim().toUpperCase();
 
     if (!id) {
       alert("No se encontró la tarea de mantenimiento activa.");
@@ -216,7 +219,7 @@ export default function RepuestosRIC({ personal }) {
             ric01_id: Number(ric01Id),
             personal_id: personalId,
             personal_nombre: personalNombre || null,
-            observacion: `REPUESTO UTILIZADO EN RIC / MANTENIMIENTO #${ric01Id}`,
+            observacion: `REPUESTO UTILIZADO EN TAREA / MANTENIMIENTO #${ric01Id}`,
           }),
         });
 
@@ -232,7 +235,10 @@ export default function RepuestosRIC({ personal }) {
       }
 
       setRegistrados((n) => n + registradosAhora);
-      alert(`✅ ${registradosAhora} repuesto(s) registrado(s) en el mantenimiento #${ric01Id}`);
+      alert(`✅ ${registradosAhora} repuesto(s) registrado(s) en la tarea / mantenimiento #${ric01Id}`);
+      if (typeof onRegistrado === "function") {
+        await onRegistrado({ ric01Id: Number(ric01Id), cantidad: registradosAhora });
+      }
       cerrar(true);
     } catch (err) {
       console.error("Error registrando repuestos desde RIC:", err);
@@ -275,7 +281,7 @@ export default function RepuestosRIC({ personal }) {
           solicitado_por_nombre: personalNombre || null,
           observacion: [
             observacionTransferencia.trim(),
-            ric01Id ? `SOLICITADO DESDE MANTENIMIENTO #${ric01Id}` : ""
+            ric01Id ? `SOLICITADO DESDE TAREA / MANTENIMIENTO #${ric01Id}` : ""
           ].filter(Boolean).join(" - ")
         })
       });
@@ -302,7 +308,7 @@ export default function RepuestosRIC({ personal }) {
         onClick={abrir}
         className="w-full bg-cyan-700 hover:bg-cyan-800 text-white rounded-xl p-3 mt-3 font-bold"
       >
-        🔩 Agregar repuestos del stock{registrados > 0 ? ` (${registrados})` : ""}
+        {etiqueta}{registrados > 0 ? ` (${registrados})` : ""}
       </button>
 
       {abierto && (
@@ -311,7 +317,7 @@ export default function RepuestosRIC({ personal }) {
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">🔩 Repuestos utilizados</h2>
-                <p className="text-sm text-gray-600">Mantenimiento #{ric01Id}</p>
+                <p className="text-sm text-gray-600">Tarea / mantenimiento #{ric01Id}</p>
                 <p className="text-xs text-gray-500">Stock disponible en {area || "área sin definir"}</p>
               </div>
               <button
