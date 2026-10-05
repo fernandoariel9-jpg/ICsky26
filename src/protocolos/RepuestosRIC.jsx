@@ -12,7 +12,7 @@ function leerTareaActiva() {
   }
 }
 
-export default function RepuestosRIC({ personal, tarea: tareaProp = null, areaStock = "", onRegistrado = null, etiqueta = "🔩 Agregar repuestos del stock" }) {
+export default function RepuestosRIC({ personal, tarea: tareaProp = null, areaStock = "", onRegistrado = null, etiqueta = "🔩 Agregar repuestos del stock", compacto = false }) {
   const [abierto, setAbierto] = useState(false);
   const [existencias, setExistencias] = useState([]);
   const [todasExistencias, setTodasExistencias] = useState([]);
@@ -306,7 +306,10 @@ export default function RepuestosRIC({ personal, tarea: tareaProp = null, areaSt
       <button
         type="button"
         onClick={abrir}
-        className="w-full bg-cyan-700 hover:bg-cyan-800 text-white rounded-xl p-3 mt-3 font-bold"
+        className={compacto
+          ? "bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-1 rounded text-sm mt-2"
+          : "w-full bg-cyan-700 hover:bg-cyan-800 text-white rounded-xl p-3 mt-3 font-bold"
+        }
       >
         {etiqueta}{registrados > 0 ? ` (${registrados})` : ""}
       </button>
