@@ -9,6 +9,7 @@ import { FaWhatsapp } from "react-icons/fa";
 import { FaSearch } from "react-icons/fa";
 import GuardiasServicios from "./GuardiasServicios";
 import ResumenEstados from "./ResumenEstados";
+import RepuestosRIC from "./protocolos/RepuestosRIC";
 
 const API_TAREAS = API_URL.Tareas;
 const API_AREAS = API_URL.Areas;
@@ -1003,6 +1004,16 @@ if (busqueda.trim()) {
                   {t.descripcion && <p className="text-sm text-green-600 mt-1">🔧 Equipo: {t.descripcion}</p>}
                   {t.marca_modelo && <p className="text-sm text-green-600 mt-1">🔧 Marca: {t.marca_modelo}</p>}
                   {t.numero_serie && <p className="text-sm text-green-600 mt-1">🔧 N/S: {t.numero_serie}</p>}
+
+                  {!t.numero_serie && !t.fin && (
+                    <RepuestosRIC
+                      personal={personal}
+                      tarea={t}
+                      areaStock={personal?.area}
+                      etiqueta="🔩 Usar repuestos"
+                      onRegistrado={fetchTareas}
+                    />
+                  )}
 
                   {t.numero_serie && !t.fin && (!t.diagnostico || t.diagnostico.trim() === "") && (
                     <button
