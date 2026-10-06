@@ -532,19 +532,32 @@ setVista("equipos");
           Período entre mantenimientos preventivos (días)
         </label>
 
-        <input
-          type="number"
-          min="1"
-          step="1"
-          value={periodo}
-          onChange={(e) => setPeriodo(e.target.value)}
-          placeholder="Ej.: 180"
-          className="w-full border rounded p-2"
-        />
+        {modoEdicion && equipoEditar?.periodo ? (
+          <>
+            <div className="w-full border rounded p-2 bg-gray-100 text-gray-700">
+              {equipoEditar.periodo} días
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Período preventivo actualmente asignado al equipo.
+            </p>
+          </>
+        ) : (
+          <>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={periodo}
+              onChange={(e) => setPeriodo(e.target.value)}
+              placeholder="Ej.: 180"
+              className="w-full border rounded p-2"
+            />
 
-        <p className="text-xs text-gray-500 mt-1">
-          Cantidad de días entre mantenimientos preventivos. Puede dejarse vacío si no corresponde.
-        </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Cantidad de días entre mantenimientos preventivos. Puede dejarse vacío si no corresponde.
+            </p>
+          </>
+        )}
       </div>
 
       {/* Estado */}
