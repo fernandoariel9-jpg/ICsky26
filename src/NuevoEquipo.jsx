@@ -12,6 +12,7 @@ export default function NuevoEquipo({ setVista }) {
   const [numeroSerie, setNumeroSerie] = useState("");
 
   const [estado, setEstado] = useState("Activo");
+  const [periodo, setPeriodo] = useState("");
 
   const [imagen, setImagen] = useState(null);
 
@@ -62,6 +63,11 @@ useEffect(() => {
       setDescripcion(equipo.descripcion || "");
       setMarcaModelo(equipo.marca_modelo || "");
       setEstado(equipo.estado || "Activo");
+      setPeriodo(
+        equipo.periodo === null || equipo.periodo === undefined
+          ? ""
+          : String(equipo.periodo)
+      );
       setImagen(equipo.imagen || null);
 
     } catch (error) {
@@ -171,6 +177,16 @@ useEffect(() => {
     return;
   }
 
+  const periodoNumerico = periodo === "" ? null : Number(periodo);
+
+  if (
+    periodoNumerico !== null &&
+    (!Number.isInteger(periodoNumerico) || periodoNumerico <= 0)
+  ) {
+    alert("El período debe ser una cantidad de días entera mayor que cero.");
+    return;
+  }
+
   try {
 
     const datos = {
@@ -181,7 +197,7 @@ useEffect(() => {
       sub_servicio: subServicio,
       encargado,
       area,
-      periodo: equipoEditar?.periodo || null,
+      periodo: periodoNumerico,
       ultimo_mant: equipoEditar?.ultimo_mant || null,
       fecha_alta: equipoEditar?.fecha_alta || null,
       fecha_baja: equipoEditar?.fecha_baja || null,
@@ -507,6 +523,28 @@ setVista("equipos");
           readOnly
           className="w-full border rounded p-2 bg-gray-100"
         />
+      </div>
+
+      {/* Período de mantenimiento preventivo */}
+
+      <div>
+        <label className="block font-semibold mb-1">
+          Período entre mantenimientos preventivos (días)
+        </label>
+
+        <input
+          type="number"
+          min="1"
+          step="1"
+          value={periodo}
+          onChange={(e) => setPeriodo(e.target.value)}
+          placeholder="Ej.: 180"
+          className="w-full border rounded p-2"
+        />
+
+        <p className="text-xs text-gray-500 mt-1">
+          Cantidad de días entre mantenimientos preventivos. Puede dejarse vacío si no corresponde.
+        </p>
       </div>
 
       {/* Estado */}
