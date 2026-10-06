@@ -119,10 +119,8 @@ export default function Equipos({ setVista, personal }) {
     if (equipoActualizado) {
       localStorage.removeItem("equipoActualizado");
       buscarEquipo(equipoActualizado);
-      return;
     }
-    if (serie) buscarEquipo();
-  }, [serie]);
+  }, []);
 
   const fetchEstados = async () => {
     try {
@@ -616,9 +614,50 @@ export default function Equipos({ setVista, personal }) {
 
   const handleTipoChange = (value) => { setTipoMantenimiento(value); if (value === "Correctivo") cargarDiagnosticos(); };
 
-  const buscarCoincidencias = async (texto) => {
-    if (!texto.trim()) { setCoincidencias([]); return; }
-    try { const res = await fetch(`${API_URL.Base}/buscar-equipos?q=${encodeURIComponent(texto)}`); if (!res.ok) throw new Error("Error buscando equipos"); setCoincidencias(await res.json()); } catch (err) { console.error(err); setCoincidencias([]); }
+  const buscarCoincidencias = async (texto = serie) => {
+    const termino = String(texto || "").trim();
+
+    if (!termino) {
+      setCoincidencias([]);
+      setEquipo(null);
+      setError("Ingrese un número de serie o parte del mismo.");
+      return;
+    }
+
+    try {
+      setError("");
+      const res = await fetch(
+        `${API_URL.Base}/buscar-equipos?q=${encodeURIComponent(termino)}`
+      );
+      if (!res.ok) throw new Error("Error buscando equipos");
+
+      const data = await res.json();
+      const lista = Array.isArray(data) ? data : [];
+
+      const exacto = lista.find(
+        (item) =>
+          String(item.numero_serie || "").trim().toLowerCase() ===
+          termino.toLowerCase()
+      );
+
+      if (exacto) {
+        setCoincidencias([]);
+        await buscarEquipo(exacto.numero_serie);
+        return;
+      }
+
+      setEquipo(null);
+      setCoincidencias(lista);
+
+      if (lista.length === 0) {
+        setError("No se encontraron equipos.");
+      }
+    } catch (err) {
+      console.error(err);
+      setEquipo(null);
+      setCoincidencias([]);
+      setError("No se pudo realizar la búsqueda.");
+    }
   };
 
   const buscarEquipo = async (serieBuscar = serie) => {
@@ -653,8 +692,23 @@ export default function Equipos({ setVista, personal }) {
       <button onClick={() => setMostrarPorServicio(true)} className="w-full mb-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow">📋 Ver equipos por servicio</button>
       {mostrarPorServicio && <EquiposPorServicio personal={personal} buscarEquipo={buscarEquipo} onCerrar={() => setMostrarPorServicio(false)} setVista={setVista} />}
       <h1 className="text-xl font-bold mb-4">🔧 Búsqueda de Equipos</h1>
-      <div className="flex items-center gap-2"><input type="text" value={serie} onChange={(e) => { const valor = e.target.value; setSerie(valor); buscarCoincidencias(valor); }} placeholder="Buscar equipo..." className="flex-1 border rounded px-3 py-2" /></div>
-      <div className="flex gap-2"><button onClick={() => buscarEquipo()} className="flex-1 bg-green-600 text-white px-4 py-2 rounded-xl">🔍 Buscar</button><button onClick={() => setVista("nuevoEquipo")} className="bg-blue-600 text-white px-4 py-2 rounded-xl">➕ Nuevo</button></div>
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={serie}
+          onChange={(e) => {
+            setSerie(e.target.value);
+            setCoincidencias([]);
+            setError("");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") buscarCoincidencias();
+          }}
+          placeholder="Número de serie completo o parcial..."
+          className="flex-1 border rounded px-3 py-2"
+        />
+      </div>
+      <div className="flex gap-2"><button onClick={() => buscarCoincidencias()} className="flex-1 bg-green-600 text-white px-4 py-2 rounded-xl">🔍 Buscar</button><button onClick={() => setVista("nuevoEquipo")} className="bg-blue-600 text-white px-4 py-2 rounded-xl">➕ Nuevo</button></div>
       {localStorage.getItem("tareaActiva") && <div className="bg-yellow-100 p-2 rounded mb-3">🔧 Iniciando mantenimiento desde tarea</div>}
       {coincidencias.length > 0 && <div className="border rounded bg-white shadow max-h-64 overflow-y-auto mt-1">{coincidencias.map((item) => <div key={item.id} onClick={() => { setSerie(item.numero_serie); setCoincidencias([]); buscarEquipo(item.numero_serie); }} className="p-2 border-b cursor-pointer hover:bg-blue-100"><div className="font-semibold">{item.descripcion}</div><div className="text-sm text-gray-600">{item.marca_modelo}</div><div className="text-sm">Serie: <b>{item.numero_serie}</b></div><div className="text-xs text-gray-500">{item.servicio}</div></div>)}</div>}
 
