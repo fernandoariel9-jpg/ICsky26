@@ -13,6 +13,7 @@ export default function NuevoEquipo({ setVista }) {
 
   const [estado, setEstado] = useState("Activo");
   const [periodo, setPeriodo] = useState("");
+  const [fechaAlta, setFechaAlta] = useState("");
 
   const [imagen, setImagen] = useState(null);
 
@@ -67,6 +68,11 @@ useEffect(() => {
         equipo.periodo === null || equipo.periodo === undefined
           ? ""
           : String(equipo.periodo)
+      );
+      setFechaAlta(
+        equipo.fecha_alta
+          ? String(equipo.fecha_alta).slice(0, 10)
+          : ""
       );
       setImagen(equipo.imagen || null);
 
@@ -199,7 +205,7 @@ useEffect(() => {
       area,
       periodo: periodoNumerico,
       ultimo_mant: equipoEditar?.ultimo_mant || null,
-      fecha_alta: equipoEditar?.fecha_alta || null,
+      fecha_alta: fechaAlta || null,
       fecha_baja: equipoEditar?.fecha_baja || null,
       estado,
       imagen
@@ -558,6 +564,25 @@ setVista("equipos");
             </p>
           </>
         )}
+      </div>
+
+      {/* Fecha de alta */}
+
+      <div>
+        <label className="block font-semibold mb-1">
+          Fecha de alta
+        </label>
+
+        <input
+          type="date"
+          value={fechaAlta}
+          onChange={(e) => setFechaAlta(e.target.value)}
+          className="w-full border rounded p-2"
+        />
+
+        <p className="text-xs text-gray-500 mt-1">
+          Fecha de incorporación del equipo.
+        </p>
       </div>
 
       {/* Estado */}
