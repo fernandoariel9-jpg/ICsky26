@@ -10,6 +10,7 @@ export default function RIC37({ setVista, personal }) {
   const [error, setError] = useState("");
   const [ric37Id, setRic37Id] = useState(null);
   const [contextoPreventivo, setContextoPreventivo] = useState(null);
+  const [tareaGeneradaRIC37, setTareaGeneradaRIC37] = useState(false);
 
   const [datos, setDatos] = useState({
     ric01_id: "", equipo_id: "", numero_serie: "", descripcion: "",
@@ -41,6 +42,11 @@ export default function RIC37({ setVista, personal }) {
         if (!tareaGuardada) throw new Error("No existe un mantenimiento activo.");
 
         const tarea = JSON.parse(tareaGuardada);
+
+        setTareaGeneradaRIC37(
+          Boolean(tarea.origen_ric37) ||
+          String(tarea.tarea || "").trim().toLowerCase().startsWith("ric37 - seguridad eléctrica")
+        );
 
         try {
           const contextoRaw = localStorage.getItem(RIC37_CONTEXTO_PREVENTIVO_KEY);
@@ -224,7 +230,31 @@ export default function RIC37({ setVista, personal }) {
 
       const idGuardado = data.ric37_id || data.id || null;
       setRic37Id(idGuardado);
-      alert("RIC37 guardado correctamente ✅");
+
+      if (tareaGeneradaRIC37 && !contextoPreventivo?.vista) {
+        const finalizar = await fetch(
+          `${API_URL.Tareas}/finalizar/${datos.ric01_id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({})
+          }
+        );
+
+        const finData = await finalizar.json().catch(() => ({}));
+
+        if (!finalizar.ok) {
+          throw new Error(
+            finData.error ||
+            "RIC37 fue guardado, pero no se pudo finalizar la tarea asociada."
+          );
+        }
+
+        localStorage.removeItem("tareaActiva");
+        alert("RIC37 guardado y tarea finalizada correctamente ✅");
+      } else {
+        alert("RIC37 guardado correctamente ✅");
+      }
 
       if (contextoPreventivo?.vista) {
         window.dispatchEvent(new CustomEvent("ric37-actualizado", {
