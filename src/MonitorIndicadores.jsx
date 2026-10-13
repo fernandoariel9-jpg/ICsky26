@@ -79,6 +79,12 @@ function TarjetaEquipo({ nombre, estado, Icono, detalle }) {
 
 export default function MonitorIndicadores() {
   const [resumen, setResumen] = useState(null);
+  const [resumenTareas, setResumenTareas] = useState({
+    total: 0,
+    pendientes: 0,
+    enProceso: 0,
+    finalizadas: 0
+  });
   const [error, setError] = useState("");
   const [ultimaActualizacion, setUltimaActualizacion] = useState(null);
 
@@ -141,21 +147,41 @@ export default function MonitorIndicadores() {
       }
 
       try {
-        const res = await fetch(API_URL.DashboardResumen, {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store"
-        });
+        const [resEquipos, resTareas] = await Promise.all([
+          fetch(API_URL.DashboardResumen, {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store"
+          }),
+          fetch(`${API_URL.Tareas}?panel=true`, {
+            cache: "no-store"
+          })
+        ]);
 
-        if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
-        const data = await res.json();
+        if (!resEquipos.ok) throw new Error(`Error equipos HTTP ${resEquipos.status}`);
+        if (!resTareas.ok) throw new Error(`Error tareas HTTP ${resTareas.status}`);
+
+        const [dataEquipos, dataTareas] = await Promise.all([
+          resEquipos.json(),
+          resTareas.json()
+        ]);
+
         if (!activo) return;
-        setResumen(data);
+
+        const tareas = Array.isArray(dataTareas) ? dataTareas : [];
+
+        setResumen(dataEquipos);
+        setResumenTareas({
+          total: tareas.length,
+          pendientes: tareas.filter((t) => !t.solucion && !t.fin).length,
+          enProceso: tareas.filter((t) => t.solucion && !t.fin).length,
+          finalizadas: tareas.filter((t) => t.fin).length
+        });
         setError("");
         setUltimaActualizacion(new Date());
       } catch (e) {
         if (!activo) return;
         console.error("Error cargando monitor de indicadores:", e);
-        setError("No se pudo actualizar el estado de los equipos");
+        setError("No se pudo actualizar el monitor de indicadores");
       }
     };
 
@@ -277,10 +303,52 @@ export default function MonitorIndicadores() {
         </aside>
 
         <main className="min-w-0 min-h-0 p-3 2xl:p-4 overflow-hidden">
-          <div className="h-full w-full rounded-2xl border border-white/10 bg-slate-900/40 flex items-center justify-center overflow-hidden">
-            <div className="text-center text-white/30">
-              <p className="text-3xl 2xl:text-5xl font-black">Monitor de indicadores</p>
-              <p className="text-base 2xl:text-xl mt-3">Área disponible para los próximos indicadores</p>
+          <div className="h-full w-full rounded-2xl border border-white/10 bg-slate-900/40 p-4 2xl:p-6 overflow-hidden">
+            <div className="mb-4">
+              <p className="text-[10px] 2xl:text-xs text-cyan-400 uppercase tracking-[0.14em] font-semibold">
+                Gestión de tareas
+              </p>
+              <h2 className="text-xl 2xl:text-2xl font-black mt-1">
+                Indicadores de mantenimiento
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-2 2xl:grid-cols-4 gap-3 2xl:gap-4">
+              <div className="rounded-xl border border-blue-400/20 bg-blue-500/10 p-4 2xl:p-5">
+                <p className="text-xs 2xl:text-sm uppercase tracking-wide text-blue-200/70 font-semibold">
+                  Total de tareas
+                </p>
+                <p className="text-4xl 2xl:text-6xl font-black mt-2 tabular-nums">
+                  {resumenTareas.total}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 p-4 2xl:p-5">
+                <p className="text-xs 2xl:text-sm uppercase tracking-wide text-amber-200/70 font-semibold">
+                  Pendientes
+                </p>
+                <p className="text-4xl 2xl:text-6xl font-black mt-2 tabular-nums text-amber-300">
+                  {resumenTareas.pendientes}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-cyan-400/20 bg-cyan-500/10 p-4 2xl:p-5">
+                <p className="text-xs 2xl:text-sm uppercase tracking-wide text-cyan-200/70 font-semibold">
+                  En proceso
+                </p>
+                <p className="text-4xl 2xl:text-6xl font-black mt-2 tabular-nums text-cyan-300">
+                  {resumenTareas.enProceso}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4 2xl:p-5">
+                <p className="text-xs 2xl:text-sm uppercase tracking-wide text-emerald-200/70 font-semibold">
+                  Finalizadas
+                </p>
+                <p className="text-4xl 2xl:text-6xl font-black mt-2 tabular-nums text-emerald-300">
+                  {resumenTareas.finalizadas}
+                </p>
+              </div>
             </div>
           </div>
         </main>
