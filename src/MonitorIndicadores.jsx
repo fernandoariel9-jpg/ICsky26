@@ -305,7 +305,7 @@ export default function MonitorIndicadores() {
         <main className="min-w-0 min-h-0 p-2 2xl:p-3 overflow-hidden">
           <div className="h-full w-full overflow-hidden">
             <div className="mb-1.5">
-              <h2 className="text-[10px] 2xl:text-xs font-bold uppercase tracking-[0.08em] text-white/60">
+              <h2 className="text-sm 2xl:text-base font-black leading-tight">
                 Indicadores de tareas de mantenimiento
               </h2>
             </div>
