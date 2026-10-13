@@ -302,53 +302,29 @@ export default function MonitorIndicadores() {
           </div>
         </aside>
 
-        <main className="min-w-0 min-h-0 p-3 2xl:p-4 overflow-hidden">
-          <div className="h-full w-full rounded-2xl border border-white/10 bg-slate-900/40 p-4 2xl:p-6 overflow-hidden">
-            <div className="mb-4">
-              <p className="text-[10px] 2xl:text-xs text-cyan-400 uppercase tracking-[0.14em] font-semibold">
-                Gestión de tareas
-              </p>
-              <h2 className="text-xl 2xl:text-2xl font-black mt-1">
-                Indicadores de mantenimiento
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-2 2xl:grid-cols-4 gap-3 2xl:gap-4">
-              <div className="rounded-xl border border-blue-400/20 bg-blue-500/10 p-4 2xl:p-5">
-                <p className="text-xs 2xl:text-sm uppercase tracking-wide text-blue-200/70 font-semibold">
-                  Total de tareas
-                </p>
-                <p className="text-4xl 2xl:text-6xl font-black mt-2 tabular-nums">
-                  {resumenTareas.total}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 p-4 2xl:p-5">
-                <p className="text-xs 2xl:text-sm uppercase tracking-wide text-amber-200/70 font-semibold">
-                  Pendientes
-                </p>
-                <p className="text-4xl 2xl:text-6xl font-black mt-2 tabular-nums text-amber-300">
-                  {resumenTareas.pendientes}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-cyan-400/20 bg-cyan-500/10 p-4 2xl:p-5">
-                <p className="text-xs 2xl:text-sm uppercase tracking-wide text-cyan-200/70 font-semibold">
-                  En proceso
-                </p>
-                <p className="text-4xl 2xl:text-6xl font-black mt-2 tabular-nums text-cyan-300">
-                  {resumenTareas.enProceso}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4 2xl:p-5">
-                <p className="text-xs 2xl:text-sm uppercase tracking-wide text-emerald-200/70 font-semibold">
-                  Finalizadas
-                </p>
-                <p className="text-4xl 2xl:text-6xl font-black mt-2 tabular-nums text-emerald-300">
-                  {resumenTareas.finalizadas}
-                </p>
-              </div>
+        <main className="min-w-0 min-h-0 p-2 2xl:p-3 overflow-hidden">
+          <div className="h-full w-full overflow-hidden">
+            <div className="grid grid-cols-4 gap-1.5 2xl:gap-2">
+              <TarjetaKPI
+                titulo="Total tareas"
+                valor={resumenTareas.total}
+                clase="bg-blue-700/80"
+              />
+              <TarjetaKPI
+                titulo="Pendientes"
+                valor={resumenTareas.pendientes}
+                clase="bg-amber-700/80"
+              />
+              <TarjetaKPI
+                titulo="En proceso"
+                valor={resumenTareas.enProceso}
+                clase="bg-cyan-700/80"
+              />
+              <TarjetaKPI
+                titulo="Finalizadas"
+                valor={resumenTareas.finalizadas}
+                clase="bg-emerald-700/80"
+              />
             </div>
           </div>
         </main>
