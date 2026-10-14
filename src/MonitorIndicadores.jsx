@@ -47,13 +47,18 @@ const nombreServicios = {
   gastroenterologia: "Gastroenterología"
 };
 
-function TarjetaKPI({ titulo, valor, clase }) {
+function TarjetaKPI({ titulo, valor, clase, formula = "" }) {
   return (
     <div className={`rounded-lg border border-white/10 px-3 py-2 shadow-sm ${clase}`}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-[9px] 2xl:text-[10px] uppercase tracking-[0.1em] text-white/70 font-semibold leading-none">{titulo}</p>
         <p className="text-xl 2xl:text-2xl font-black leading-none tabular-nums">{valor}</p>
       </div>
+      {formula && (
+        <p className="mt-1.5 text-[7px] 2xl:text-[8px] leading-tight text-white/55">
+          {formula}
+        </p>
+      )}
     </div>
   );
 }
@@ -352,6 +357,7 @@ export default function MonitorIndicadores() {
                     ? `${indicadoresPreventivos.cobertura_preventiva}%`
                     : "—"}
                   clase="bg-indigo-700/80"
+                  formula="Equipos con período preventivo / Total de equipos vigentes × 100"
                 />
                 <TarjetaKPI
                   titulo="Cumplimiento preventivo"
@@ -359,6 +365,7 @@ export default function MonitorIndicadores() {
                     ? `${indicadoresPreventivos.cumplimiento_preventivo}%`
                     : "—"}
                   clase="bg-violet-700/80"
+                  formula="Preventivos en término / Equipos cubiertos con fecha calculable × 100"
                 />
                 <TarjetaKPI
                   titulo="Equipos operativos"
@@ -366,6 +373,7 @@ export default function MonitorIndicadores() {
                     ? `${indicadoresPreventivos.equipos_operativos}%`
                     : "—"}
                   clase="bg-emerald-700/80"
+                  formula="Equipos Activo o Activo restringido / Total de equipos vigentes × 100"
                 />
               </div>
             </div>
