@@ -332,6 +332,36 @@ export default function MonitorIndicadores() {
                 clase="bg-emerald-700/80"
               />
             </div>
+
+            <div className="mt-3 2xl:mt-4">
+              <h2 className="text-sm 2xl:text-base font-black leading-tight mb-1.5">
+                Indicadores de mantenimiento preventivo
+              </h2>
+
+              <div className="grid grid-cols-3 gap-1.5 2xl:gap-2">
+                <TarjetaKPI
+                  titulo="Cobertura preventiva"
+                  valor={resumen?.indicadores_preventivos
+                    ? `${resumen.indicadores_preventivos.cobertura_preventiva}%`
+                    : "—"}
+                  clase="bg-indigo-700/80"
+                />
+                <TarjetaKPI
+                  titulo="Cumplimiento preventivo"
+                  valor={resumen?.indicadores_preventivos
+                    ? `${resumen.indicadores_preventivos.cumplimiento_preventivo}%`
+                    : "—"}
+                  clase="bg-violet-700/80"
+                />
+                <TarjetaKPI
+                  titulo="Equipos operativos"
+                  valor={resumen?.indicadores_preventivos
+                    ? `${resumen.indicadores_preventivos.equipos_operativos}%`
+                    : "—"}
+                  clase="bg-emerald-700/80"
+                />
+              </div>
+            </div>
           </div>
         </main>
       </div>
