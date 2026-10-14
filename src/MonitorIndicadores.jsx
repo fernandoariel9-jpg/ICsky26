@@ -79,6 +79,7 @@ function TarjetaEquipo({ nombre, estado, Icono, detalle }) {
 
 export default function MonitorIndicadores() {
   const [resumen, setResumen] = useState(null);
+  const [indicadoresPreventivos, setIndicadoresPreventivos] = useState(null);
   const [resumenTareas, setResumenTareas] = useState({
     total: 0,
     pendientes: 0,
@@ -147,22 +148,27 @@ export default function MonitorIndicadores() {
       }
 
       try {
-        const [resEquipos, resTareas] = await Promise.all([
+        const [resEquipos, resTareas, resIndicadores] = await Promise.all([
           fetch(API_URL.DashboardResumen, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store"
           }),
           fetch(`${API_URL.Tareas}?panel=true`, {
             cache: "no-store"
+          }),
+          fetch(`${API_URL.Base}/api/indicadores/preventivos`, {
+            cache: "no-store"
           })
         ]);
 
         if (!resEquipos.ok) throw new Error(`Error equipos HTTP ${resEquipos.status}`);
         if (!resTareas.ok) throw new Error(`Error tareas HTTP ${resTareas.status}`);
+        if (!resIndicadores.ok) throw new Error(`Error indicadores HTTP ${resIndicadores.status}`);
 
-        const [dataEquipos, dataTareas] = await Promise.all([
+        const [dataEquipos, dataTareas, dataIndicadores] = await Promise.all([
           resEquipos.json(),
-          resTareas.json()
+          resTareas.json(),
+          resIndicadores.json()
         ]);
 
         if (!activo) return;
@@ -170,6 +176,7 @@ export default function MonitorIndicadores() {
         const tareas = Array.isArray(dataTareas) ? dataTareas : [];
 
         setResumen(dataEquipos);
+        setIndicadoresPreventivos(dataIndicadores);
         setResumenTareas({
           total: tareas.length,
           pendientes: tareas.filter((t) => !t.solucion && !t.fin).length,
@@ -341,22 +348,22 @@ export default function MonitorIndicadores() {
               <div className="grid grid-cols-3 gap-1.5 2xl:gap-2">
                 <TarjetaKPI
                   titulo="Cobertura preventiva"
-                  valor={resumen?.indicadores_preventivos
-                    ? `${resumen.indicadores_preventivos.cobertura_preventiva}%`
+                  valor={indicadoresPreventivos
+                    ? `${indicadoresPreventivos.cobertura_preventiva}%`
                     : "—"}
                   clase="bg-indigo-700/80"
                 />
                 <TarjetaKPI
                   titulo="Cumplimiento preventivo"
-                  valor={resumen?.indicadores_preventivos
-                    ? `${resumen.indicadores_preventivos.cumplimiento_preventivo}%`
+                  valor={indicadoresPreventivos
+                    ? `${indicadoresPreventivos.cumplimiento_preventivo}%`
                     : "—"}
                   clase="bg-violet-700/80"
                 />
                 <TarjetaKPI
                   titulo="Equipos operativos"
-                  valor={resumen?.indicadores_preventivos
-                    ? `${resumen.indicadores_preventivos.equipos_operativos}%`
+                  valor={indicadoresPreventivos
+                    ? `${indicadoresPreventivos.equipos_operativos}%`
                     : "—"}
                   clase="bg-emerald-700/80"
                 />
