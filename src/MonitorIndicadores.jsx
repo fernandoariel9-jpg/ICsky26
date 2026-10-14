@@ -350,7 +350,16 @@ export default function MonitorIndicadores() {
                 Indicadores de mantenimiento preventivo
               </h2>
 
-              <div className="grid grid-cols-3 gap-1.5 2xl:gap-2">
+              <div className="grid grid-cols-4 gap-1.5 2xl:gap-2">
+                <TarjetaKPI
+                  titulo="Equipos con cobertura"
+                  valor={indicadoresPreventivos?.detalle
+                    ? indicadoresPreventivos.detalle.cubiertos
+                    : "—"}
+                  clase="bg-slate-700/80"
+                  formula="Cantidad de equipos vigentes con período preventivo asignado"
+                />
+
                 <TarjetaKPI
                   titulo="Cobertura preventiva"
                   valor={indicadoresPreventivos
