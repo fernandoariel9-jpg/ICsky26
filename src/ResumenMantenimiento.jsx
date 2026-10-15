@@ -32,14 +32,19 @@ export default function ResumenMantenimiento({ mantenimiento, onCerrar }) {
 
   if (!mantenimiento) return null;
 
-  const ric29 = mantenimiento.ric29 || null;
-  const ric39 = mantenimiento.ric39 || null;
+  const protocolosDisponibles = [
+    { codigo: "RIC10", datos: mantenimiento.ric10, endpoint: API_URL.Ric10 },
+    { codigo: "RIC29", datos: mantenimiento.ric29, endpoint: API_URL.Ric29 },
+    { codigo: "RIC39", datos: mantenimiento.ric39, endpoint: API_URL.Ric39 },
+    { codigo: "RIC48", datos: mantenimiento.ric48, endpoint: API_URL.Ric48 },
+    { codigo: "RIC56", datos: mantenimiento.ric56, endpoint: API_URL.Ric56 },
+    { codigo: "RIC59", datos: mantenimiento.ric59, endpoint: API_URL.Ric59 },
+    { codigo: "RIC64", datos: mantenimiento.ric64, endpoint: API_URL.Ric64 },
+    { codigo: "RIC71", datos: mantenimiento.ric71, endpoint: API_URL.Ric71 }
+  ];
 
-  const protocolo = ric39
-    ? { codigo: "RIC39", datos: ric39, endpoint: API_URL.Ric39 }
-    : ric29
-      ? { codigo: "RIC29", datos: ric29, endpoint: API_URL.Ric29 }
-      : null;
+  const protocolo =
+    protocolosDisponibles.find((item) => item.datos?.id) || null;
 
   const datosProtocolo = protocolo?.datos || null;
   const resultado = String(datosProtocolo?.resultado_general || "").trim().toUpperCase();
