@@ -33,30 +33,39 @@ export default function ResumenMantenimiento({ mantenimiento, onCerrar }) {
   if (!mantenimiento) return null;
 
   const ric29 = mantenimiento.ric29 || null;
-  const resultado = String(ric29?.resultado_general || "").trim().toUpperCase();
+  const ric39 = mantenimiento.ric39 || null;
+
+  const protocolo = ric39
+    ? { codigo: "RIC39", datos: ric39, endpoint: API_URL.Ric39 }
+    : ric29
+      ? { codigo: "RIC29", datos: ric29, endpoint: API_URL.Ric29 }
+      : null;
+
+  const datosProtocolo = protocolo?.datos || null;
+  const resultado = String(datosProtocolo?.resultado_general || "").trim().toUpperCase();
   const tieneResultado = Boolean(resultado);
   const esConforme = resultado === "CONFORME";
-  const observacionesRIC29 = String(ric29?.observaciones || "").trim();
+  const observacionesProtocolo = String(datosProtocolo?.observaciones || "").trim();
 
   const abrirPDF = () => {
-    if (!ric29?.id) {
-      alert("Este mantenimiento preventivo no tiene un RIC29 asociado.");
+    if (!protocolo?.datos?.id) {
+      alert("Este mantenimiento preventivo no tiene un protocolo asociado.");
       return;
     }
 
-    window.open(`${API_URL.Ric29}/${ric29.id}/pdf`, "_blank");
+    window.open(`${protocolo.endpoint}/${protocolo.datos.id}/pdf`, "_blank");
   };
 
   const reenviarDrive = async () => {
-    if (!ric29?.id) {
-      alert("Este mantenimiento preventivo no tiene un RIC29 asociado.");
+    if (!protocolo?.datos?.id) {
+      alert("Este mantenimiento preventivo no tiene un protocolo asociado.");
       return;
     }
 
     try {
       setEnviandoDrive(true);
 
-      const res = await fetch(`${API_URL.Ric29}/${ric29.id}/drive`, {
+      const res = await fetch(`${protocolo.endpoint}/${protocolo.datos.id}/drive`, {
         method: "POST",
       });
 
@@ -68,7 +77,7 @@ export default function ResumenMantenimiento({ mantenimiento, onCerrar }) {
 
       alert("✅ PDF reenviado correctamente a Google Drive");
     } catch (error) {
-      console.error("Error reenviando RIC29 a Drive:", error);
+      console.error(`Error reenviando ${protocolo?.codigo || "protocolo"} a Drive:`, error);
       alert(error.message || "No se pudo reenviar el PDF a Google Drive");
     } finally {
       setEnviandoDrive(false);
@@ -103,7 +112,7 @@ export default function ResumenMantenimiento({ mantenimiento, onCerrar }) {
             </div>
           </section>
 
-          {ric29 && (
+          {protocolo && (
             <section className="bg-gray-50 border rounded-xl p-4 shadow-sm">
               <h3 className="text-lg font-bold text-gray-800 mb-3">Resultado del preventivo</h3>
 
@@ -122,10 +131,14 @@ export default function ResumenMantenimiento({ mantenimiento, onCerrar }) {
                 )}
               </div>
 
-              {observacionesRIC29 && (
+              <p className="text-sm text-gray-500 mt-2">
+                Protocolo asociado: <strong>{protocolo.codigo}</strong>
+              </p>
+
+              {observacionesProtocolo && (
                 <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3">
                   <strong>📝 Observaciones del protocolo</strong>
-                  <p className="mt-2 whitespace-pre-wrap text-sm">{observacionesRIC29}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm">{observacionesProtocolo}</p>
                 </div>
               )}
 
@@ -148,9 +161,9 @@ export default function ResumenMantenimiento({ mantenimiento, onCerrar }) {
             </section>
           )}
 
-          {!ric29 && (
+          {!protocolo && (
             <section className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm text-yellow-800">
-              Este mantenimiento preventivo no tiene un RIC29 asociado.
+              Este mantenimiento preventivo no tiene un protocolo asociado.
             </section>
           )}
 
