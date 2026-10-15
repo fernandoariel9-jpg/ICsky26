@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TareasPersonal from "./TareasPersonal";
 import Equipos from "./Equipos";
 import SeleccionEquipo from "./SeleccionEquipo";
@@ -88,6 +88,7 @@ const fechaLocal = () => {
 };
 
 export default function PanelPersonal({ personal, onLogout }) {
+  const iniciandoPreventivoRef = useRef(false);
   const [vista, setVista] = useState("tareas");
   const [ric10Montado, setRic10Montado] = useState(false);
   const [ric29Montado, setRic29Montado] = useState(false);
@@ -213,10 +214,15 @@ export default function PanelPersonal({ personal, onLogout }) {
     event.preventDefault();
     event.stopPropagation();
 
+    if (iniciandoPreventivoRef.current) return true;
+
     if (!servicio || !subServicio) {
       alert("⚠️ No se puede iniciar el mantenimiento.\n\nEl equipo debe tener asignados Servicio y Subservicio.");
       return true;
     }
+
+    iniciandoPreventivoRef.current = true;
+    boton.disabled = true;
 
     try {
       const respuesta = await fetch(API_URL.Ric01, {
@@ -265,6 +271,9 @@ export default function PanelPersonal({ personal, onLogout }) {
     } catch (err) {
       console.error("Error iniciando protocolo específico:", err);
       alert(err.message || "Error al iniciar el mantenimiento preventivo");
+    } finally {
+      iniciandoPreventivoRef.current = false;
+      boton.disabled = false;
     }
 
     return true;
