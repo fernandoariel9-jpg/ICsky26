@@ -20,7 +20,7 @@ import {
   MdMedicalServices
 } from "react-icons/md";
 import { GiElectric } from "react-icons/gi";
-import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LabelList } from "recharts";
 
 const iconosEquipos = {
   RESONADOR: FaBrain,
@@ -269,6 +269,21 @@ export default function MonitorIndicadores() {
 
   const filasEquipos = Math.max(1, Math.ceil(equiposLaterales.length / 2));
 
+  const edadEquiposConPorcentaje = useMemo(() => {
+    const total = edadEquipos.reduce(
+      (acum, item) => acum + Number(item.cantidad || 0),
+      0
+    );
+
+    return edadEquipos.map((item) => ({
+      ...item,
+      porcentaje:
+        total > 0
+          ? Number(((Number(item.cantidad || 0) / total) * 100).toFixed(1))
+          : 0
+    }));
+  }, [edadEquipos]);
+
   return (
     <div className="fixed inset-0 bg-slate-950 text-white overflow-hidden">
       <div className="absolute inset-0 grid grid-cols-[20%_80%] overflow-hidden">
@@ -410,7 +425,7 @@ export default function MonitorIndicadores() {
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={edadEquipos}>
+                    <BarChart data={edadEquiposConPorcentaje}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                       <XAxis
                         dataKey="rango"
@@ -422,7 +437,15 @@ export default function MonitorIndicadores() {
                         tick={{ fill: "rgba(255,255,255,0.7)", fontSize: 10 }}
                       />
                       <Tooltip
-                        formatter={(value) => [value, "Equipos"]}
+                        formatter={(value, name, props) => {
+                          if (name === "Equipos") {
+                            return [
+                              `${value} equipos (${props?.payload?.porcentaje ?? 0}%)`,
+                              "Equipos"
+                            ];
+                          }
+                          return [value, name];
+                        }}
                         labelFormatter={(label) => `${label} años`}
                         contentStyle={{
                           background: "rgba(15,23,42,0.96)",
@@ -431,7 +454,16 @@ export default function MonitorIndicadores() {
                           color: "#fff"
                         }}
                       />
-                      <Bar dataKey="cantidad" name="Equipos" fill="currentColor" radius={[4, 4, 0, 0]} className="text-cyan-500" />
+                      <Bar dataKey="cantidad" name="Equipos" fill="currentColor" radius={[4, 4, 0, 0]} className="text-cyan-500">
+                        <LabelList
+                          dataKey="porcentaje"
+                          position="top"
+                          formatter={(value) => `${value}%`}
+                          fill="rgba(255,255,255,0.9)"
+                          fontSize={10}
+                          fontWeight={700}
+                        />
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 )}
