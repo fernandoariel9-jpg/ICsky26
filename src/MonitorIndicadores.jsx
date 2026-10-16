@@ -20,6 +20,7 @@ import {
   MdMedicalServices
 } from "react-icons/md";
 import { GiElectric } from "react-icons/gi";
+import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 
 const iconosEquipos = {
   RESONADOR: FaBrain,
@@ -85,6 +86,7 @@ function TarjetaEquipo({ nombre, estado, Icono, detalle }) {
 export default function MonitorIndicadores() {
   const [resumen, setResumen] = useState(null);
   const [indicadoresPreventivos, setIndicadoresPreventivos] = useState(null);
+  const [edadEquipos, setEdadEquipos] = useState([]);
   const [resumenTareas, setResumenTareas] = useState({
     total: 0,
     pendientes: 0,
@@ -153,7 +155,7 @@ export default function MonitorIndicadores() {
       }
 
       try {
-        const [resEquipos, resTareas, resIndicadores] = await Promise.all([
+        const [resEquipos, resTareas, resIndicadores, resEdadEquipos] = await Promise.all([
           fetch(API_URL.DashboardResumen, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store"
@@ -163,17 +165,22 @@ export default function MonitorIndicadores() {
           }),
           fetch(`${API_URL.Base}/api/indicadores/preventivos`, {
             cache: "no-store"
+          }),
+          fetch(`${API_URL.Base}/api/indicadores/edad-equipos`, {
+            cache: "no-store"
           })
         ]);
 
         if (!resEquipos.ok) throw new Error(`Error equipos HTTP ${resEquipos.status}`);
         if (!resTareas.ok) throw new Error(`Error tareas HTTP ${resTareas.status}`);
         if (!resIndicadores.ok) throw new Error(`Error indicadores HTTP ${resIndicadores.status}`);
+        if (!resEdadEquipos.ok) throw new Error(`Error edad equipos HTTP ${resEdadEquipos.status}`);
 
-        const [dataEquipos, dataTareas, dataIndicadores] = await Promise.all([
+        const [dataEquipos, dataTareas, dataIndicadores, dataEdadEquipos] = await Promise.all([
           resEquipos.json(),
           resTareas.json(),
-          resIndicadores.json()
+          resIndicadores.json(),
+          resEdadEquipos.json()
         ]);
 
         if (!activo) return;
@@ -182,6 +189,7 @@ export default function MonitorIndicadores() {
 
         setResumen(dataEquipos);
         setIndicadoresPreventivos(dataIndicadores);
+        setEdadEquipos(Array.isArray(dataEdadEquipos?.grupos) ? dataEdadEquipos.grupos : []);
         setResumenTareas({
           total: tareas.length,
           pendientes: tareas.filter((t) => !t.solucion && !t.fin).length,
@@ -384,6 +392,49 @@ export default function MonitorIndicadores() {
                   clase="bg-emerald-700/80"
                   formula="Equipos Activo o Activo restringido / Total de equipos vigentes × 100"
                 />
+              </div>
+            </div>
+
+            <div className="mt-3 2xl:mt-4">
+              <h2 className="text-sm 2xl:text-base font-black leading-tight mb-1">
+                Envejecimiento del parque tecnológico
+              </h2>
+              <p className="text-[8px] 2xl:text-[9px] text-white/50 mb-2">
+                Edad de los equipos vigentes agrupada cada 5 años según fecha de alta
+              </p>
+
+              <div className="h-[210px] 2xl:h-[250px] rounded-lg border border-white/10 bg-slate-900/70 p-2">
+                {edadEquipos.length === 0 ? (
+                  <div className="h-full flex items-center justify-center text-xs text-white/40">
+                    Sin datos suficientes de fecha de alta
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={edadEquipos}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                      <XAxis
+                        dataKey="rango"
+                        tick={{ fill: "rgba(255,255,255,0.7)", fontSize: 10 }}
+                        label={{ value: "Edad (años)", position: "insideBottom", offset: -2, fill: "rgba(255,255,255,0.5)", fontSize: 9 }}
+                      />
+                      <YAxis
+                        allowDecimals={false}
+                        tick={{ fill: "rgba(255,255,255,0.7)", fontSize: 10 }}
+                      />
+                      <Tooltip
+                        formatter={(value) => [value, "Equipos"]}
+                        labelFormatter={(label) => `${label} años`}
+                        contentStyle={{
+                          background: "rgba(15,23,42,0.96)",
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          borderRadius: 8,
+                          color: "#fff"
+                        }}
+                      />
+                      <Bar dataKey="cantidad" name="Equipos" fill="currentColor" radius={[4, 4, 0, 0]} className="text-cyan-500" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
           </div>
