@@ -128,9 +128,69 @@ export default function EtiquetaQREquipoGlobal() {
 
   const imprimir = () => {
     if (!etiqueta) return;
-    const ventana = window.open("", "_blank", "noopener,noreferrer");
-    if (!ventana) return alert("El navegador bloqueó la ventana de impresión.");
-    ventana.document.write(`<!doctype html><html><head><title>Etiqueta ${serie}</title><style>@page{size:50mm 40mm;margin:0}html,body{margin:0;padding:0;width:50mm;height:40mm}img{display:block;width:50mm;height:40mm}</style></head><body><img src="${etiqueta}" onload="window.print();window.close();"></body></html>`);
+
+    const ventana = window.open("", "_blank", "width=700,height=600");
+
+    if (!ventana) {
+      alert("El navegador bloqueó la ventana de impresión. Habilite las ventanas emergentes para Sky26.");
+      return;
+    }
+
+    ventana.document.open();
+    ventana.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <title>Etiqueta ${serie}</title>
+          <style>
+            @page {
+              size: 50mm 40mm;
+              margin: 0;
+            }
+
+            html,
+            body {
+              margin: 0;
+              padding: 0;
+              width: 50mm;
+              height: 40mm;
+              background: white;
+              overflow: hidden;
+            }
+
+            img {
+              display: block;
+              width: 50mm;
+              height: 40mm;
+              object-fit: contain;
+            }
+          </style>
+        </head>
+        <body>
+          <img id="etiqueta-print" src="${etiqueta}" alt="Etiqueta QR ${serie}" />
+          <script>
+            const imagen = document.getElementById("etiqueta-print");
+
+            const abrirImpresion = () => {
+              window.focus();
+              setTimeout(() => {
+                window.print();
+              }, 150);
+            };
+
+            if (imagen.complete) {
+              abrirImpresion();
+            } else {
+              imagen.onload = abrirImpresion;
+            }
+
+            window.onafterprint = () => {
+              window.close();
+            };
+          <\/script>
+        </body>
+      </html>
+    `);
     ventana.document.close();
   };
 
