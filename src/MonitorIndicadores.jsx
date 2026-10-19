@@ -87,6 +87,10 @@ export default function MonitorIndicadores() {
   const [resumen, setResumen] = useState(null);
   const [indicadoresPreventivos, setIndicadoresPreventivos] = useState(null);
   const [edadEquipos, setEdadEquipos] = useState([]);
+  const [detalleEdadEquipos, setDetalleEdadEquipos] = useState([]);
+  const [rangoEdadSeleccionado, setRangoEdadSeleccionado] = useState(null);
+  const [criterioEdad, setCriterioEdad] = useState("familia");
+  const [grupoEdadSeleccionado, setGrupoEdadSeleccionado] = useState(null);
   const [resumenTareas, setResumenTareas] = useState({
     total: 0,
     pendientes: 0,
@@ -190,6 +194,7 @@ export default function MonitorIndicadores() {
         setResumen(dataEquipos);
         setIndicadoresPreventivos(dataIndicadores);
         setEdadEquipos(Array.isArray(dataEdadEquipos?.grupos) ? dataEdadEquipos.grupos : []);
+        setDetalleEdadEquipos(Array.isArray(dataEdadEquipos?.equipos) ? dataEdadEquipos.equipos : []);
         setResumenTareas({
           total: tareas.length,
           pendientes: tareas.filter((t) => !t.solucion && !t.fin).length,
@@ -283,6 +288,61 @@ export default function MonitorIndicadores() {
           : 0
     }));
   }, [edadEquipos]);
+
+  const equiposDelRango = useMemo(() => {
+    if (!rangoEdadSeleccionado) return [];
+    return detalleEdadEquipos
+      .filter((equipo) => equipo.rango === rangoEdadSeleccionado)
+      .sort((a, b) => Number(b.edad || 0) - Number(a.edad || 0));
+  }, [detalleEdadEquipos, rangoEdadSeleccionado]);
+
+  const gruposEdad = useMemo(() => {
+    const campo =
+      criterioEdad === "familia"
+        ? "descripcion"
+        : criterioEdad === "marca"
+          ? "marca_modelo"
+          : "servicio";
+
+    const mapa = new Map();
+
+    for (const equipo of equiposDelRango) {
+      const nombre = String(equipo[campo] || "").trim() ||
+        (criterioEdad === "familia"
+          ? "SIN FAMILIA"
+          : criterioEdad === "marca"
+            ? "SIN MARCA / MODELO"
+            : "SIN SERVICIO");
+
+      if (!mapa.has(nombre)) mapa.set(nombre, []);
+      mapa.get(nombre).push(equipo);
+    }
+
+    const total = equiposDelRango.length;
+
+    return [...mapa.entries()]
+      .map(([nombre, equipos]) => ({
+        nombre,
+        cantidad: equipos.length,
+        porcentaje: total > 0
+          ? Number(((equipos.length / total) * 100).toFixed(1))
+          : 0,
+        equipos
+      }))
+      .sort((a, b) => b.cantidad - a.cantidad || a.nombre.localeCompare(b.nombre, "es"));
+  }, [equiposDelRango, criterioEdad]);
+
+  const abrirDetalleEdad = (rango) => {
+    if (!rango) return;
+    setRangoEdadSeleccionado(rango);
+    setCriterioEdad("familia");
+    setGrupoEdadSeleccionado(null);
+  };
+
+  const cerrarDetalleEdad = () => {
+    setRangoEdadSeleccionado(null);
+    setGrupoEdadSeleccionado(null);
+  };
 
   return (
     <div className="fixed inset-0 bg-slate-950 text-white overflow-hidden">
@@ -454,7 +514,14 @@ export default function MonitorIndicadores() {
                           color: "#fff"
                         }}
                       />
-                      <Bar dataKey="cantidad" name="Equipos" fill="currentColor" radius={[4, 4, 0, 0]} className="text-cyan-500">
+                      <Bar
+                        dataKey="cantidad"
+                        name="Equipos"
+                        fill="currentColor"
+                        radius={[4, 4, 0, 0]}
+                        className="text-cyan-500 cursor-pointer"
+                        onClick={(data) => abrirDetalleEdad(data?.rango)}
+                      >
                         <LabelList
                           dataKey="porcentaje"
                           position="top"
@@ -472,6 +539,151 @@ export default function MonitorIndicadores() {
           </div>
         </main>
       </div>
+
+      {rangoEdadSeleccionado && (
+        <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4">
+          <div className="w-full max-w-6xl max-h-[90vh] bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="flex items-start justify-between gap-4 px-5 py-4 border-b border-white/10 bg-slate-800/80">
+              <div>
+                <h2 className="text-lg 2xl:text-xl font-black">
+                  Envejecimiento tecnológico · {rangoEdadSeleccionado} años
+                </h2>
+                <p className="text-xs text-white/50 mt-1">
+                  {equiposDelRango.length} equipos en este rango de antigüedad
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={cerrarDetalleEdad}
+                className="text-white/60 hover:text-white text-xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-76px)]">
+              <div className="flex flex-wrap gap-2 mb-4">
+                {[
+                  ["familia", "Familia de equipos"],
+                  ["marca", "Marca / modelo"],
+                  ["servicio", "Servicio"]
+                ].map(([valor, etiqueta]) => (
+                  <button
+                    key={valor}
+                    type="button"
+                    onClick={() => {
+                      setCriterioEdad(valor);
+                      setGrupoEdadSeleccionado(null);
+                    }}
+                    className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
+                      criterioEdad === valor
+                        ? "bg-cyan-600 border-cyan-400 text-white"
+                        : "bg-slate-800 border-white/10 text-white/65 hover:bg-slate-700"
+                    }`}
+                  >
+                    {etiqueta}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-[42%_58%] gap-4">
+                <div className="space-y-2">
+                  {gruposEdad.map((grupo) => {
+                    const seleccionado = grupoEdadSeleccionado === grupo.nombre;
+
+                    return (
+                      <button
+                        key={grupo.nombre}
+                        type="button"
+                        onClick={() =>
+                          setGrupoEdadSeleccionado(
+                            seleccionado ? null : grupo.nombre
+                          )
+                        }
+                        className={`w-full text-left rounded-xl border p-3 transition ${
+                          seleccionado
+                            ? "bg-cyan-950/70 border-cyan-500"
+                            : "bg-slate-800/80 border-white/10 hover:border-white/25"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="font-semibold text-sm truncate">
+                            {grupo.nombre}
+                          </span>
+                          <span className="shrink-0 text-lg font-black tabular-nums">
+                            {grupo.cantidad}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between mt-1 text-[10px] text-white/50">
+                          <span>{grupo.porcentaje}% del rango</span>
+                          <span>{seleccionado ? "Ocultar equipos" : "Ver equipos"}</span>
+                        </div>
+                        <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                          <div
+                            className="h-full bg-cyan-500 rounded-full"
+                            style={{ width: `${grupo.porcentaje}%` }}
+                          />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-slate-950/60 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-white/10">
+                    <h3 className="font-bold text-sm">
+                      {grupoEdadSeleccionado
+                        ? grupoEdadSeleccionado
+                        : "Equipos del rango"}
+                    </h3>
+                    <p className="text-[10px] text-white/45 mt-0.5">
+                      {grupoEdadSeleccionado
+                        ? "Detalle de los equipos pertenecientes al grupo seleccionado"
+                        : "Seleccione un grupo a la izquierda para filtrar el detalle"}
+                    </p>
+                  </div>
+
+                  <div className="max-h-[55vh] overflow-y-auto divide-y divide-white/5">
+                    {(grupoEdadSeleccionado
+                      ? gruposEdad.find((g) => g.nombre === grupoEdadSeleccionado)?.equipos || []
+                      : equiposDelRango
+                    ).map((equipo) => (
+                      <div key={equipo.id} className="px-4 py-3 text-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="font-bold text-white/90 truncate">
+                              {equipo.descripcion || "Sin descripción"}
+                            </p>
+                            <p className="text-xs text-white/55 mt-0.5">
+                              {equipo.marca_modelo || "Sin marca / modelo"}
+                            </p>
+                          </div>
+                          <span className="shrink-0 px-2 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 text-xs font-bold">
+                            {equipo.edad} años
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-[10px] text-white/45">
+                          <span>Serie: <b className="text-white/70">{equipo.numero_serie || "-"}</b></span>
+                          <span>Estado: <b className="text-white/70">{equipo.estado || "-"}</b></span>
+                          <span>Servicio: <b className="text-white/70">{equipo.servicio || "-"}</b></span>
+                          <span>Área: <b className="text-white/70">{equipo.area || "-"}</b></span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {equiposDelRango.length === 0 && (
+                      <div className="p-8 text-center text-white/40 text-sm">
+                        No hay equipos para este rango.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
