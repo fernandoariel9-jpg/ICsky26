@@ -667,6 +667,7 @@ export default function MonitorIndicadores() {
                           <span>Serie: <b className="text-white/70">{equipo.numero_serie || "-"}</b></span>
                           <span>Estado: <b className="text-white/70">{equipo.estado || "-"}</b></span>
                           <span>Servicio: <b className="text-white/70">{equipo.servicio || "-"}</b></span>
+                          <span>Subservicio: <b className="text-white/70">{equipo.sub_servicio || "-"}</b></span>
                           <span>Área: <b className="text-white/70">{equipo.area || "-"}</b></span>
                         </div>
                       </div>
