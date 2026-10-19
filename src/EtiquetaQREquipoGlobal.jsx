@@ -57,7 +57,7 @@ async function generarEtiqueta(serie) {
   ctx.font = "bold 31px Arial, sans-serif";
   ctx.fillText("INGENIERÍA CLÍNICA", ANCHO / 2, 33);
 
-  ctx.font = "bold 17px Arial, sans-serif";
+  ctx.font = "bold 22px Arial, sans-serif";
   ctx.fillText("Escanear para información del equipo", ANCHO / 2, 64);
 
   const qrTam = 275;
