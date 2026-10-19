@@ -54,32 +54,32 @@ async function generarEtiqueta(serie) {
   ctx.textBaseline = "middle";
 
   ctx.textAlign = "center";
-  ctx.font = "bold 28px Arial, sans-serif";
-  ctx.fillText("INGENIERÍA CLÍNICA", ANCHO / 2, 34);
+  ctx.font = "bold 31px Arial, sans-serif";
+  ctx.fillText("INGENIERÍA CLÍNICA", ANCHO / 2, 33);
 
-  ctx.font = "bold 15px Arial, sans-serif";
-  ctx.fillText("Escanear para información del equipo", ANCHO / 2, 62);
+  ctx.font = "bold 17px Arial, sans-serif";
+  ctx.fillText("Escanear para información del equipo", ANCHO / 2, 64);
 
-  const qrTam = 245;
-  const qrX = 24;
-  const qrY = 102;
+  const qrTam = 275;
+  const qrX = 16;
+  const qrY = 88;
   ctx.drawImage(qr, qrX, qrY, qrTam, qrTam);
 
-  const textoX = 300;
+  const textoX = 312;
   ctx.textAlign = "left";
 
-  ctx.font = "bold 20px Arial, sans-serif";
-  ctx.fillText("EQUIPO", textoX, 135);
+  ctx.font = "bold 24px Arial, sans-serif";
+  ctx.fillText("EQUIPO", textoX, 125);
 
-  ctx.font = "bold 34px Arial, sans-serif";
-  ctx.fillText(`N/S ${serie}`, textoX, 185);
+  ctx.font = "bold 38px Arial, sans-serif";
+  ctx.fillText(`N/S ${serie}`, textoX, 180);
 
-  ctx.font = "16px Arial, sans-serif";
+  ctx.font = "18px Arial, sans-serif";
   ctx.fillText("Compatible con Sky26", textoX, 235);
-  ctx.fillText("y con cámara del celular", textoX, 263);
+  ctx.fillText("y con cámara del celular", textoX, 266);
 
-  ctx.font = "bold 22px Arial, sans-serif";
-  ctx.fillText("Sky26", textoX, 330);
+  ctx.font = "bold 26px Arial, sans-serif";
+  ctx.fillText("Sky26", textoX, 333);
 
   return canvas.toDataURL("image/png");
 }
@@ -161,7 +161,7 @@ export default function EtiquetaQREquipoGlobal() {
             </div>
 
             <div className="bg-gray-100 p-3 rounded-xl flex justify-center">
-              <img src={etiqueta} alt={`Etiqueta QR ${serie}`} className="w-[300px] h-[240px] object-contain bg-white shadow" />
+              <img src={etiqueta} alt={`Etiqueta QR ${serie}`} className="w-[340px] h-[272px] object-contain bg-white shadow" />
             </div>
 
             <div className="grid grid-cols-2 gap-2 mt-4">
