@@ -71,8 +71,17 @@ async function generarEtiqueta(serie) {
   ctx.font = "bold 24px Arial, sans-serif";
   ctx.fillText("EQUIPO", textoX, 125);
 
-  ctx.font = "bold 38px Arial, sans-serif";
-  ctx.fillText(`N/S ${serie}`, textoX, 180);
+  const textoSerie = String(serie || "").trim();
+  const anchoDisponibleSerie = ANCHO - textoX - 24;
+  let tamSerie = 38;
+
+  while (tamSerie > 18) {
+    ctx.font = `bold ${tamSerie}px Arial, sans-serif`;
+    if (ctx.measureText(textoSerie).width <= anchoDisponibleSerie) break;
+    tamSerie -= 2;
+  }
+
+  ctx.fillText(textoSerie, textoX, 180);
 
   ctx.font = "18px Arial, sans-serif";
   ctx.fillText("Compatible con Sky26", textoX, 235);
@@ -215,7 +224,7 @@ export default function EtiquetaQREquipoGlobal() {
             <div className="flex justify-between items-center mb-3">
               <div>
                 <h2 className="font-bold text-lg">Etiqueta QR del equipo</h2>
-                <p className="text-sm text-gray-500">50 × 40 mm · 300 dpi · N/S {serie}</p>
+                <p className="text-sm text-gray-500">50 × 40 mm · 300 dpi · {serie}</p>
               </div>
               <button onClick={() => setEtiqueta("")} className="text-gray-500 hover:text-red-600 text-xl font-bold">✕</button>
             </div>
