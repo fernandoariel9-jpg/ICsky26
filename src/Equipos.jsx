@@ -175,14 +175,48 @@ export default function Equipos({ setVista, personal }) {
   const cargarEquiposVencidos = async () => {
     try {
       setCargandoVencidos(true);
-      const res = await fetch(`${API_URL.EquiposMantenimientoVencido}?area=${encodeURIComponent(personal?.area || "")}`);
-      if (!res.ok) throw new Error("Error al obtener equipos vencidos");
-      const data = await res.json();
+      const [resVencidos, resTodosEquipos] = await Promise.all([
+        fetch(`${API_URL.EquiposMantenimientoVencido}?area=${encodeURIComponent(personal?.area || "")}`),
+        fetch(API_URL.Equipos)
+      ]);
 
-      const equiposVigentes = (Array.isArray(data.equipos) ? data.equipos : []).filter((equipo) => {
-        const estado = String(equipo.estado || "").trim().toUpperCase();
-        return !["DE BAJA", "OBSOLETO", "OBSOLETOS"].includes(estado);
-      });
+      if (!resVencidos.ok) throw new Error("Error al obtener equipos vencidos");
+      if (!resTodosEquipos.ok) throw new Error("Error al obtener estado de equipos");
+
+      const [data, todosEquipos] = await Promise.all([
+        resVencidos.json(),
+        resTodosEquipos.json()
+      ]);
+
+      const mapaEstadosPorId = new Map(
+        (Array.isArray(todosEquipos) ? todosEquipos : []).map((equipo) => [
+          Number(equipo.id),
+          String(equipo.estado || "").trim().toUpperCase()
+        ])
+      );
+
+      const mapaEstadosPorSerie = new Map(
+        (Array.isArray(todosEquipos) ? todosEquipos : []).map((equipo) => [
+          String(equipo.numero_serie || "").trim().toUpperCase(),
+          String(equipo.estado || "").trim().toUpperCase()
+        ])
+      );
+
+      const estadosExcluidos = new Set(["DE BAJA", "OBSOLETO", "OBSOLETOS"]);
+
+      const equiposVigentes = (Array.isArray(data.equipos) ? data.equipos : [])
+        .map((equipo) => {
+          const estado =
+            mapaEstadosPorId.get(Number(equipo.id)) ||
+            mapaEstadosPorSerie.get(String(equipo.numero_serie || "").trim().toUpperCase()) ||
+            "";
+
+          return {
+            ...equipo,
+            estado
+          };
+        })
+        .filter((equipo) => !estadosExcluidos.has(equipo.estado));
 
       setEquiposVencidos(equiposVigentes);
       setCantidadVencidos(equiposVigentes.length);
