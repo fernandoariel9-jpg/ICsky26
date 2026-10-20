@@ -178,8 +178,14 @@ export default function Equipos({ setVista, personal }) {
       const res = await fetch(`${API_URL.EquiposMantenimientoVencido}?area=${encodeURIComponent(personal?.area || "")}`);
       if (!res.ok) throw new Error("Error al obtener equipos vencidos");
       const data = await res.json();
-      setEquiposVencidos(data.equipos);
-      setCantidadVencidos(data.total);
+
+      const equiposVigentes = (Array.isArray(data.equipos) ? data.equipos : []).filter((equipo) => {
+        const estado = String(equipo.estado || "").trim().toUpperCase();
+        return !["DE BAJA", "OBSOLETO", "OBSOLETOS"].includes(estado);
+      });
+
+      setEquiposVencidos(equiposVigentes);
+      setCantidadVencidos(equiposVigentes.length);
       setMostrarVencidos(true);
     } catch (e) {
       console.error("Error equipos vencidos:", e);
