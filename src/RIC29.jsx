@@ -1155,7 +1155,7 @@ const volver = () => {
           resultados.push({
 
             etapa:
-              "Estado de batería",
+              "Estado de batería - Tiempo de carga a máxima energia",
 
             medicion:
               `Medición ${m.numero_medicion}`,
@@ -1164,7 +1164,7 @@ const volver = () => {
               m.resultado,
 
             rango:
-              "< 15"
+              "< 15 segundos"
 
           });
 
