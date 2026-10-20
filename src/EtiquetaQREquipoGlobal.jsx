@@ -3,8 +3,11 @@ import { createPortal } from "react-dom";
 import QRCode from "qrcode";
 
 const FRONTEND_PUBLICO = "https://icsky26.onrender.com";
-const ANCHO = 591;  // 50 mm a 300 dpi
-const ALTO = 472;   // 40 mm a 300 dpi
+const ESCALA_IMPRESION = 2;
+const ANCHO_LOGICO = 591;  // referencia de diseño
+const ALTO_LOGICO = 472;
+const ANCHO = ANCHO_LOGICO * ESCALA_IMPRESION; // 50 mm a ~600 dpi
+const ALTO = ALTO_LOGICO * ESCALA_IMPRESION;   // 40 mm a ~600 dpi
 
 function obtenerSerieDesdeFicha() {
   const botones = Array.from(document.querySelectorAll("button"));
@@ -33,7 +36,7 @@ async function generarEtiqueta(serie) {
   const qrDataUrl = await QRCode.toDataURL(urlPublica, {
     errorCorrectionLevel: "M",
     margin: 3,
-    width: 250,
+    width: 550,
     color: { dark: "#000000", light: "#ffffff" }
   });
 
@@ -43,22 +46,26 @@ async function generarEtiqueta(serie) {
   canvas.height = ALTO;
   const ctx = canvas.getContext("2d");
 
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.scale(ESCALA_IMPRESION, ESCALA_IMPRESION);
+
   ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, ANCHO, ALTO);
+  ctx.fillRect(0, 0, ANCHO_LOGICO, ALTO_LOGICO);
 
   ctx.strokeStyle = "black";
   ctx.lineWidth = 5;
-  ctx.strokeRect(9, 9, ANCHO - 18, ALTO - 18);
+  ctx.strokeRect(9, 9, ANCHO_LOGICO - 18, ALTO_LOGICO - 18);
 
   ctx.fillStyle = "black";
   ctx.textBaseline = "middle";
 
   ctx.textAlign = "center";
   ctx.font = "bold 31px Arial, sans-serif";
-  ctx.fillText("INGENIERÍA CLÍNICA", ANCHO / 2, 33);
+  ctx.fillText("INGENIERÍA CLÍNICA", ANCHO_LOGICO / 2, 33);
 
   ctx.font = "bold 22px Arial, sans-serif";
-  ctx.fillText("Escanear para información del equipo", ANCHO / 2, 64);
+  ctx.fillText("Escanear para información del equipo", ANCHO_LOGICO / 2, 64);
 
   const qrTam = 275;
   const qrX = 16;
@@ -72,7 +79,7 @@ async function generarEtiqueta(serie) {
   ctx.fillText("EQUIPO", textoX, 125);
 
   const textoSerie = String(serie || "").trim();
-  const anchoDisponibleSerie = ANCHO - textoX - 24;
+  const anchoDisponibleSerie = ANCHO_LOGICO - textoX - 24;
   let tamSerie = 38;
 
   while (tamSerie > 18) {
@@ -224,7 +231,7 @@ export default function EtiquetaQREquipoGlobal() {
             <div className="flex justify-between items-center mb-3">
               <div>
                 <h2 className="font-bold text-lg">Etiqueta QR del equipo</h2>
-                <p className="text-sm text-gray-500">50 × 40 mm · 300 dpi · {serie}</p>
+                <p className="text-sm text-gray-500">50 × 40 mm · alta definición · {serie}</p>
               </div>
               <button onClick={() => setEtiqueta("")} className="text-gray-500 hover:text-red-600 text-xl font-bold">✕</button>
             </div>
