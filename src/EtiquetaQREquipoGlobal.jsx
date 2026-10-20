@@ -168,17 +168,25 @@ export default function EtiquetaQREquipoGlobal() {
             body {
               margin: 0;
               padding: 0;
-              width: 50mm;
-              height: 40mm;
+              width: 100%;
+              height: 100%;
               background: white;
               overflow: hidden;
             }
 
+            body {
+              position: relative;
+            }
+
             img {
+              position: fixed;
+              inset: 0;
               display: block;
-              width: 50mm;
-              height: 40mm;
-              object-fit: contain;
+              width: 49.8mm;
+              height: 39.8mm;
+              object-fit: fill;
+              margin: 0;
+              padding: 0;
             }
           </style>
         </head>
