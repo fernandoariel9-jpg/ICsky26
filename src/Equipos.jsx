@@ -158,11 +158,19 @@ export default function Equipos({ setVista, personal }) {
   const cargarEquiposProximos = async () => {
     try {
       setCargandoProximos(true);
-      const res = await fetch(`${API_URL.EquiposMantenimientoProximo}?area=${encodeURIComponent(personal?.area || "")}`);
+
+      const res = await fetch(
+        `${API_URL.Base}/api/indicadores/mantenimientos-programados?area=${encodeURIComponent(personal?.area || "")}`,
+        { cache: "no-store" }
+      );
+
       if (!res.ok) throw new Error("Error al obtener equipos próximos");
+
       const data = await res.json();
-      setEquiposProximos(data.equipos);
-      setCantidadProximos(data.total);
+      const proximos = Array.isArray(data.proximos) ? data.proximos : [];
+
+      setEquiposProximos(proximos);
+      setCantidadProximos(proximos.length);
       setMostrarProximos(true);
     } catch (e) {
       console.error("Error equipos próximos:", e);
@@ -175,51 +183,19 @@ export default function Equipos({ setVista, personal }) {
   const cargarEquiposVencidos = async () => {
     try {
       setCargandoVencidos(true);
-      const [resVencidos, resTodosEquipos] = await Promise.all([
-        fetch(`${API_URL.EquiposMantenimientoVencido}?area=${encodeURIComponent(personal?.area || "")}`),
-        fetch(API_URL.Equipos)
-      ]);
 
-      if (!resVencidos.ok) throw new Error("Error al obtener equipos vencidos");
-      if (!resTodosEquipos.ok) throw new Error("Error al obtener estado de equipos");
-
-      const [data, todosEquipos] = await Promise.all([
-        resVencidos.json(),
-        resTodosEquipos.json()
-      ]);
-
-      const mapaEstadosPorId = new Map(
-        (Array.isArray(todosEquipos) ? todosEquipos : []).map((equipo) => [
-          Number(equipo.id),
-          String(equipo.estado || "").trim().toUpperCase()
-        ])
+      const res = await fetch(
+        `${API_URL.Base}/api/indicadores/mantenimientos-programados?area=${encodeURIComponent(personal?.area || "")}`,
+        { cache: "no-store" }
       );
 
-      const mapaEstadosPorSerie = new Map(
-        (Array.isArray(todosEquipos) ? todosEquipos : []).map((equipo) => [
-          String(equipo.numero_serie || "").trim().toUpperCase(),
-          String(equipo.estado || "").trim().toUpperCase()
-        ])
-      );
+      if (!res.ok) throw new Error("Error al obtener equipos vencidos");
 
-      const estadosExcluidos = new Set(["DE BAJA", "OBSOLETO", "OBSOLETOS"]);
+      const data = await res.json();
+      const vencidos = Array.isArray(data.vencidos) ? data.vencidos : [];
 
-      const equiposVigentes = (Array.isArray(data.equipos) ? data.equipos : [])
-        .map((equipo) => {
-          const estado =
-            mapaEstadosPorId.get(Number(equipo.id)) ||
-            mapaEstadosPorSerie.get(String(equipo.numero_serie || "").trim().toUpperCase()) ||
-            "";
-
-          return {
-            ...equipo,
-            estado
-          };
-        })
-        .filter((equipo) => !estadosExcluidos.has(equipo.estado));
-
-      setEquiposVencidos(equiposVigentes);
-      setCantidadVencidos(equiposVigentes.length);
+      setEquiposVencidos(vencidos);
+      setCantidadVencidos(vencidos.length);
       setMostrarVencidos(true);
     } catch (e) {
       console.error("Error equipos vencidos:", e);
