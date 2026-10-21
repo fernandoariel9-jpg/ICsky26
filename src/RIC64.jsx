@@ -1,3 +1,4 @@
+import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
 import { BloqueRIC37Preventivo, useRIC37Preventivo } from "./protocolos/RIC37Preventivo";
@@ -111,7 +112,8 @@ export default function RIC64({ setVista, personal }) {
     estadoFinal,
     setEstadoFinal,
     finalizando,
-    finalizarMantenimiento
+    finalizarMantenimiento,
+    finalizado
   } = useFinalizacionRIC({
     codigo: "RIC64",
     datos,
@@ -606,6 +608,7 @@ export default function RIC64({ setVista, personal }) {
               </button>
             </div>
 
+            <CorrectivoDerivado codigo="RIC64" datos={datos} personal={personal} resultado={resumen.resultado} noConformes={resumen.noConformes} observaciones={observaciones} guardado={Boolean(ric64Id)} finalizado={finalizado} setVista={setVista} />
             <button onClick={volver} className="w-full bg-gray-500 text-white rounded-xl p-3">← Volver</button>
           </div>
         )}
