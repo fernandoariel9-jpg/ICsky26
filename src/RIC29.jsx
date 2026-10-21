@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { API_URL } from "./config";
 import { BloqueRIC37Preventivo, useRIC37Preventivo } from "./protocolos/RIC37Preventivo";
+import { ModalEstadoFinal, useFinalizacionRIC } from "./protocolos/ProtocoloBase";
 
 // =====================================================
 // INDICADOR DE CONEXIÓN ELÉCTRICA
@@ -53,6 +54,15 @@ const IndicadorRed = ({ conectado }) => {
 
       </div>
 
+      <ModalEstadoFinal
+        abierto={mostrarEstadoFinal}
+        estados={estados}
+        estadoFinal={estadoFinal}
+        setEstadoFinal={setEstadoFinal}
+        finalizando={finalizando}
+        onCerrar={() => setMostrarEstadoFinal(false)}
+        onConfirmar={finalizarMantenimiento}
+      />
     </div>
   );
 };
@@ -108,6 +118,20 @@ export default function RIC29({ setVista, personal }) {
     codigo: "RIC29",
     ric01Id: datos.ric01_id,
     setVista
+  });
+
+  const {
+    estados,
+    mostrarEstadoFinal,
+    setMostrarEstadoFinal,
+    estadoFinal,
+    setEstadoFinal,
+    finalizando,
+    finalizarMantenimiento
+  } = useFinalizacionRIC({
+    codigo: "RIC29",
+    datos,
+    personal
   });
 
   // =====================================================
@@ -1522,13 +1546,7 @@ console.log(
   "RIC29 creado con ID:",
   data.ric29_id
 );
-      alert(
-  "Mantenimiento preventivo guardado correctamente ✅"
-);
-
-localStorage.removeItem(
-  "tareaActiva"
-);
+      setMostrarEstadoFinal(true);
 
     } catch (err) {
 
@@ -2747,7 +2765,7 @@ localStorage.removeItem(
             <BloqueRIC37Preventivo control={seguridadElectrica} />
 
             <button
-              disabled={guardando}
+              disabled={guardando || !!ric29Id}
               onClick={guardarPreventivo}
               className="w-full bg-green-600 disabled:bg-gray-400 text-white rounded-xl p-3 mt-3 font-bold"
             >
