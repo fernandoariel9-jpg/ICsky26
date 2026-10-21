@@ -127,6 +127,7 @@ export function useProtocoloBase({ codigo, personal, defaultDescripcion = "" }) 
       if (!res.ok) throw new Error(data.error || "No se pudo finalizar el mantenimiento");
 
       setMostrarEstadoFinal(false);
+      setFinalizado(true);
       localStorage.removeItem("tareaActiva");
       localStorage.setItem("equipoActualizado", datos.numero_serie);
       alert("✅ Mantenimiento finalizado correctamente");
@@ -156,6 +157,7 @@ export function useProtocoloBase({ codigo, personal, defaultDescripcion = "" }) 
 }
 
 export function useFinalizacionRIC({ codigo, datos, personal }) {
+  const [finalizado, setFinalizado] = useState(false);
   const [estados, setEstados] = useState([]);
   const [mostrarEstadoFinal, setMostrarEstadoFinal] = useState(false);
   const [estadoFinal, setEstadoFinal] = useState("");
@@ -221,6 +223,7 @@ export function useFinalizacionRIC({ codigo, datos, personal }) {
     estadoFinal,
     setEstadoFinal,
     finalizando,
+    finalizado,
     finalizarMantenimiento
   };
 }
