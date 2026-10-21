@@ -1,3 +1,4 @@
+import CorrectivoDerivado from "./CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
 import {
   BotonesNavegacion,
@@ -60,6 +61,7 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
     setEstadoFinal,
     finalizando,
     cancelarPreventivo,
+    finalizado,
     finalizarMantenimiento
   } = useProtocoloBase({ codigo, personal, defaultDescripcion });
 
@@ -288,6 +290,7 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
             enviandoDrive={enviandoDrive}
             personal={personal}
             antesDeGuardar={<BloqueRIC37Preventivo control={seguridadElectrica} />}
+            despuesDeGuardar={<CorrectivoDerivado codigo={codigo} datos={datos} personal={personal} resultado={resumen.resultado} noConformes={resumen.noConformes} observaciones={[observaciones, ...puntos.map(p => p.observaciones)].filter(Boolean).join("\n")} guardado={Boolean(protocoloId)} finalizado={finalizado} setVista={setVista} />}
           />
         )}
       </ProtocoloLayout>
