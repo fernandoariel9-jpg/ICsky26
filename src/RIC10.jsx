@@ -1,3 +1,4 @@
+import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
 import {
@@ -83,7 +84,7 @@ export default function RIC10({ setVista, personal }) {
     datos, cargandoBase, errorBase, estados,
     mostrarEstadoFinal, setMostrarEstadoFinal,
     estadoFinal, setEstadoFinal, finalizando,
-    cancelarPreventivo, finalizarMantenimiento
+    cancelarPreventivo, finalizarMantenimiento, finalizado
   } = useProtocoloBase({ codigo: "RIC10", personal, defaultDescripcion: "MAQUINA DE HEMODIALISIS" });
 
   const [etapa, setEtapa] = useState(0);
@@ -353,6 +354,7 @@ export default function RIC10({ setVista, personal }) {
             <label className="font-semibold block mb-2">Observaciones generales</label>
             <textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={5} className="w-full border rounded-xl p-3" placeholder="Observaciones del mantenimiento" />
 
+            <CorrectivoDerivado codigo="RIC10" datos={datos} personal={personal} resultado={resumen.resultado} noConformes={resumen.noConformes} observaciones={observaciones} guardado={Boolean(ric10Id)} finalizado={finalizado} setVista={setVista} />
             <BotonesNavegacion onVolver={volver} onCancelar={cancelar} />
             {!ric10Id && <BloqueRIC37Preventivo control={seguridadElectrica} />}
             {!ric10Id && <RepuestosRIC personal={personal} />}
