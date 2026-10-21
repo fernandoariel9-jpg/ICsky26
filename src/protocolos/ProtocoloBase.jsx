@@ -33,6 +33,7 @@ export function useProtocoloBase({ codigo, personal, defaultDescripcion = "" }) 
   const [mostrarEstadoFinal, setMostrarEstadoFinal] = useState(false);
   const [estadoFinal, setEstadoFinal] = useState("");
   const [finalizando, setFinalizando] = useState(false);
+  const [finalizado, setFinalizado] = useState(false);
 
   useEffect(() => {
     fetch(API_URL.Estados)
@@ -151,6 +152,7 @@ export function useProtocoloBase({ codigo, personal, defaultDescripcion = "" }) 
     estadoFinal,
     setEstadoFinal,
     finalizando,
+    finalizado,
     cancelarPreventivo,
     finalizarMantenimiento
   };
