@@ -1,3 +1,4 @@
+import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
 import {
@@ -80,7 +81,8 @@ export default function RIC71({ setVista, personal }) {
     setEstadoFinal,
     finalizando,
     cancelarPreventivo,
-    finalizarMantenimiento
+    finalizarMantenimiento,
+    finalizado
   } = useProtocoloBase({
     codigo: "RIC71",
     personal,
@@ -444,6 +446,7 @@ export default function RIC71({ setVista, personal }) {
               placeholder="Observaciones del mantenimiento"
             />
 
+            <CorrectivoDerivado codigo="RIC71" datos={datos} personal={personal} resultado={resumen.resultado} noConformes={resumen.noConformes} observaciones={observaciones} guardado={Boolean(ric71Id)} finalizado={finalizado} setVista={setVista} />
             <BotonesNavegacion onVolver={volver} onCancelar={cancelar} />
 
             {!ric71Id && <RepuestosRIC personal={personal} />}
