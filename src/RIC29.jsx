@@ -54,15 +54,6 @@ const IndicadorRed = ({ conectado }) => {
 
       </div>
 
-      <ModalEstadoFinal
-        abierto={mostrarEstadoFinal}
-        estados={estados}
-        estadoFinal={estadoFinal}
-        setEstadoFinal={setEstadoFinal}
-        finalizando={finalizando}
-        onCerrar={() => setMostrarEstadoFinal(false)}
-        onConfirmar={finalizarMantenimiento}
-      />
     </div>
   );
 };
@@ -2826,6 +2817,15 @@ console.log(
 
       </div>
 
+      <ModalEstadoFinal
+        abierto={mostrarEstadoFinal}
+        estados={estados}
+        estadoFinal={estadoFinal}
+        setEstadoFinal={setEstadoFinal}
+        finalizando={finalizando}
+        onCerrar={() => setMostrarEstadoFinal(false)}
+        onConfirmar={finalizarMantenimiento}
+      />
     </div>
   );
 }
