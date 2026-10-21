@@ -2817,6 +2817,7 @@ console.log(
 
       </div>
 
+      {/* Modal de cierre del RIC29: debe permanecer dentro del componente principal */}
       <ModalEstadoFinal
         abierto={mostrarEstadoFinal}
         estados={estados}
