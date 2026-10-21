@@ -306,7 +306,7 @@ export function BotonesNavegacion({ onVolver, onCancelar, onContinuar, continuar
   );
 }
 
-export function ResumenMantenimiento({ noConformes = [], mensajeConforme, renderNoConforme, contadores, observaciones, setObservaciones, onVolver, onCancelar, onGuardar, guardando, guardado, onPDF, onSalir, onDrive, enviandoDrive, personal, antesDeGuardar = null }) {
+export function ResumenMantenimiento({ noConformes = [], mensajeConforme, renderNoConforme, contadores, observaciones, setObservaciones, onVolver, onCancelar, onGuardar, guardando, guardado, onPDF, onSalir, onDrive, enviandoDrive, personal, antesDeGuardar = null, despuesDeGuardar = null }) {
   return (
     <TarjetaEtapa titulo="2. Resumen del mantenimiento">
       {noConformes.length === 0 ? (
@@ -366,6 +366,8 @@ export function ResumenMantenimiento({ noConformes = [], mensajeConforme, render
       >
         {guardando ? "Guardando..." : guardado ? "✅ Preventivo guardado" : "💾 Guardar preventivo"}
       </button>
+
+      {despuesDeGuardar}
 
       {guardado && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
