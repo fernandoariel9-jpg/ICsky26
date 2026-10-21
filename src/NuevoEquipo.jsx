@@ -1,3 +1,4 @@
+import { fechaISO } from "./utils/fechas";
 import { useState, useEffect, useRef } from "react";
 import { API_URL } from "./config";
 
@@ -71,7 +72,7 @@ useEffect(() => {
       );
       setFechaAlta(
         equipo.fecha_alta
-          ? String(equipo.fecha_alta).slice(0, 10)
+          ? fechaISO(equipo.fecha_alta)
           : ""
       );
       setImagen(equipo.imagen || null);
