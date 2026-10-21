@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { API_URL } from "./config";
 import { RIC37_CONTEXTO_PREVENTIVO_KEY } from "./protocolos/RIC37Preventivo";
+import { ModalEstadoFinal, useFinalizacionRIC } from "./protocolos/ProtocoloBase";
 
 export default function RIC37({ setVista, personal }) {
   const etapas = ["Clasificación", "Mediciones", "Determinaciones", "Partes aplicables", "Resumen"];
@@ -34,6 +35,20 @@ export default function RIC37({ setVista, personal }) {
   const [medicionesPartesAplicables, setMedicionesPartesAplicables] = useState([
     { id: Date.now(), medicion: "", observaciones: "", conforme: null, noAplica: false }
   ]);
+
+  const {
+    estados,
+    mostrarEstadoFinal,
+    setMostrarEstadoFinal,
+    estadoFinal,
+    setEstadoFinal,
+    finalizando,
+    finalizarMantenimiento
+  } = useFinalizacionRIC({
+    codigo: "RIC37",
+    datos,
+    personal
+  });
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -231,37 +246,15 @@ export default function RIC37({ setVista, personal }) {
       const idGuardado = data.ric37_id || data.id || null;
       setRic37Id(idGuardado);
 
-      if (tareaGeneradaRIC37 && !contextoPreventivo?.vista) {
-        const finalizar = await fetch(
-          `${API_URL.Tareas}/finalizar/${datos.ric01_id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({})
-          }
-        );
-
-        const finData = await finalizar.json().catch(() => ({}));
-
-        if (!finalizar.ok) {
-          throw new Error(
-            finData.error ||
-            "RIC37 fue guardado, pero no se pudo finalizar la tarea asociada."
-          );
-        }
-
-        localStorage.removeItem("tareaActiva");
-        alert("RIC37 guardado y tarea finalizada correctamente ✅");
-      } else {
-        alert("RIC37 guardado correctamente ✅");
-      }
-
       if (contextoPreventivo?.vista) {
+        alert("RIC37 guardado correctamente ✅");
         window.dispatchEvent(new CustomEvent("ric37-actualizado", {
           detail: { ric01Id: Number(datos.ric01_id), ric37Id: idGuardado }
         }));
         localStorage.removeItem(RIC37_CONTEXTO_PREVENTIVO_KEY);
         setVista(contextoPreventivo.vista);
+      } else {
+        setMostrarEstadoFinal(true);
       }
     } catch (err) {
       console.error("ERROR GUARDANDO RIC37:", err);
@@ -438,6 +431,15 @@ export default function RIC37({ setVista, personal }) {
           </div>
         )}
       </div>
+      <ModalEstadoFinal
+        abierto={mostrarEstadoFinal}
+        estados={estados}
+        estadoFinal={estadoFinal}
+        setEstadoFinal={setEstadoFinal}
+        finalizando={finalizando}
+        onCerrar={() => setMostrarEstadoFinal(false)}
+        onConfirmar={finalizarMantenimiento}
+      />
     </div>
   );
 }
