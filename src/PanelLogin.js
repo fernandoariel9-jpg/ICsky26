@@ -1417,10 +1417,17 @@ const handleAreaClick = (areaName) => {
 
 // ---------- Wrapper ----------
 export default function Panel() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(
+    () => sessionStorage.getItem("sky26_sesion_supervision") === "true"
+  );
   const [vista, setVista] = useState("panel");
+  const ingresar = (autorizado) => {
+    if (autorizado) sessionStorage.setItem("sky26_sesion_supervision", "true");
+    else sessionStorage.removeItem("sky26_sesion_supervision");
+    setLoggedIn(Boolean(autorizado));
+  };
 
-  if (!loggedIn) return <PanelLogin onLogin={setLoggedIn} />;
+  if (!loggedIn) return <PanelLogin onLogin={ingresar} />;
 
   if (vista === "usuario")
     return (
