@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
 import { BloqueRIC37Preventivo, useRIC37Preventivo } from "./protocolos/RIC37Preventivo";
+import { ModalEstadoFinal, useFinalizacionRIC } from "./protocolos/ProtocoloBase";
 
 const ETAPAS = ["Inspecciones previas", "Control de temperatura", "Resumen"];
 const INSTRUCCION_GENERICA = "Procedimiento: configure el baño en la temperatura de trabajo, espere su estabilización y registre los valores indicados. El rango de aceptación se calcula automáticamente como ±5% de la temperatura seteada.";
@@ -101,6 +102,20 @@ export default function RIC64({ setVista, personal }) {
     codigo: "RIC64",
     ric01Id: datos.ric01_id,
     setVista
+  });
+
+  const {
+    estados,
+    mostrarEstadoFinal,
+    setMostrarEstadoFinal,
+    estadoFinal,
+    setEstadoFinal,
+    finalizando,
+    finalizarMantenimiento
+  } = useFinalizacionRIC({
+    codigo: "RIC64",
+    datos,
+    personal
   });
 
   useEffect(() => {
@@ -292,7 +307,7 @@ export default function RIC64({ setVista, personal }) {
 
       setRic64Id(body.ric64_id);
       if (datos.ric01_id) localStorage.removeItem(claveBorrador(datos.ric01_id));
-      alert(`RIC64 guardado correctamente. ID: ${body.ric64_id}`);
+      setMostrarEstadoFinal(true);
     } catch (err) {
       setError(err.message || "No se pudo guardar RIC64.");
     } finally {
@@ -568,7 +583,7 @@ export default function RIC64({ setVista, personal }) {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={guardar}
-                disabled={guardando || resumen.resultado === "PENDIENTE"}
+                disabled={guardando || !!ric64Id || resumen.resultado === "PENDIENTE"}
                 className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold disabled:opacity-40"
               >
                 {guardando ? "Guardando..." : "Guardar RIC64"}
@@ -595,6 +610,15 @@ export default function RIC64({ setVista, personal }) {
           </div>
         )}
       </div>
+      <ModalEstadoFinal
+        abierto={mostrarEstadoFinal}
+        estados={estados}
+        estadoFinal={estadoFinal}
+        setEstadoFinal={setEstadoFinal}
+        finalizando={finalizando}
+        onCerrar={() => setMostrarEstadoFinal(false)}
+        onConfirmar={finalizarMantenimiento}
+      />
     </div>
   );
 }
