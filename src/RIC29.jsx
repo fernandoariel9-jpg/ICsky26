@@ -1,3 +1,4 @@
+import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useState, useEffect } from "react";
 import { API_URL } from "./config";
 import { BloqueRIC37Preventivo, useRIC37Preventivo } from "./protocolos/RIC37Preventivo";
@@ -118,7 +119,8 @@ export default function RIC29({ setVista, personal }) {
     estadoFinal,
     setEstadoFinal,
     finalizando,
-    finalizarMantenimiento
+    finalizarMantenimiento,
+    finalizado
   } = useFinalizacionRIC({
     codigo: "RIC29",
     datos,
@@ -2767,6 +2769,7 @@ console.log(
 
             </button>
 
+            <CorrectivoDerivado codigo="RIC29" datos={datos} personal={personal} resultado={obtenerNoConformes().length ? "NO CONFORME" : "CONFORME"} noConformes={obtenerNoConformes()} observaciones={[observaciones, observacionesInspecciones].filter(Boolean).join('\n')} guardado={Boolean(ric29Id)} finalizado={finalizado} setVista={setVista} />
             {ric29Id && (
 
   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
