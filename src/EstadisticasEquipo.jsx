@@ -1,3 +1,4 @@
+import { fechaCalendario, mostrarFecha } from "./utils/fechas";
 import React from "react";
 import {
   CartesianGrid,
@@ -55,20 +56,13 @@ export default function EstadisticasEquipo({ equipo, className = "" }) {
 
   const tmfDias = equipo.tmf?.dias ?? null;
   const fechaAlta = equipo.equipo?.fecha_alta ?? equipo.fecha_alta ?? null;
-  const fechaAltaDate = fechaAlta ? new Date(fechaAlta) : null;
+  const fechaAltaDate = fechaCalendario(fechaAlta);
   const tieneFechaAlta = Boolean(
     fechaAltaDate && !Number.isNaN(fechaAltaDate.getTime())
   );
   const tieneIngresosTmf = correctivos > 0;
 
-  const fechaAltaFormateada = tieneFechaAlta
-    ? new Intl.DateTimeFormat("es-AR", {
-        timeZone: "America/Argentina/Buenos_Aires",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }).format(fechaAltaDate)
-    : "Sin datos";
+  const fechaAltaFormateada = mostrarFecha(fechaAlta, "Sin datos");
 
   const diasTotalesDesdeAlta = tieneFechaAlta
     ? Math.max(
