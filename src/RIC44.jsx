@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { API_URL } from "./config";
 import EstadisticasEquipo from "./EstadisticasEquipo";
+import { ModalEstadoFinal, useFinalizacionRIC } from "./protocolos/ProtocoloBase";
 
 const CRITERIOS = [
   "Criterio de fábrica",
@@ -23,7 +24,28 @@ export default function RIC44({ setVista, personal }) {
   const [observaciones, setObservaciones] = useState("");
   const [imagen, setImagen] = useState("");
   const [estadisticasExtra, setEstadisticasExtra] = useState({ dias_fuera_servicio: 0, equipos_similares: 0 });
+  const [ric44Id, setRic44Id] = useState(null);
   const inputFoto = useRef(null);
+
+  const datosFinalizacion = {
+    ric01_id: equipo?.ric01_id || equipo?.mantenimiento_id || "",
+    numero_serie: equipo?.numero_serie || "",
+    tecnico: personal?.nombre || ""
+  };
+
+  const {
+    estados,
+    mostrarEstadoFinal,
+    setMostrarEstadoFinal,
+    estadoFinal,
+    setEstadoFinal,
+    finalizando,
+    finalizarMantenimiento
+  } = useFinalizacionRIC({
+    codigo: "RIC44",
+    datos: datosFinalizacion,
+    personal
+  });
 
   useEffect(() => { cargarDatos(); }, [personal]);
 
@@ -43,7 +65,10 @@ export default function RIC44({ setVista, personal }) {
       }
 
       datosEquipo = datosEquipo || tarea;
-      setEquipo(datosEquipo);
+      setEquipo({
+        ...datosEquipo,
+        ric01_id: tarea.ric01_id || tarea.id || datosEquipo.ric01_id || datosEquipo.mantenimiento_id || null
+      });
       setImagen(datosEquipo.imagen || "");
       await cargarEstadisticasExtra(datosEquipo);
     } catch (err) {
@@ -114,8 +139,10 @@ export default function RIC44({ setVista, personal }) {
       const data = await respuesta.json();
       if (!respuesta.ok) throw new Error(data.error || "Error guardando RIC44");
 
-      alert("RIC44 guardado correctamente ✅");
-      localStorage.setItem("ric44Id", String(data.ric44_id || data.id || ""));
+      const idGuardado = data.ric44_id || data.id || "";
+      setRic44Id(idGuardado || null);
+      localStorage.setItem("ric44Id", String(idGuardado));
+      setMostrarEstadoFinal(true);
     } catch (err) {
       console.error("ERROR GUARDANDO RIC44:", err);
       setError(err.message || "No se pudo guardar el RIC44.");
@@ -200,9 +227,18 @@ export default function RIC44({ setVista, personal }) {
         </section>
 
         {error && <div className="bg-red-100 text-red-700 p-3 rounded-xl text-sm">⚠️ {error}</div>}
-        <button onClick={guardar} disabled={guardando} className="w-full bg-green-600 disabled:bg-gray-400 text-white font-bold py-3 rounded-xl shadow">{guardando ? "Guardando RIC44..." : "💾 Guardar RIC44"}</button>
+        <button onClick={guardar} disabled={guardando || !!ric44Id} className="w-full bg-green-600 disabled:bg-gray-400 text-white font-bold py-3 rounded-xl shadow">{guardando ? "Guardando RIC44..." : ric44Id ? "✅ RIC44 guardado" : "💾 Guardar RIC44"}</button>
         <button onClick={() => setVista("equipos")} className="w-full bg-gray-500 text-white font-semibold py-2.5 rounded-xl text-sm">← Volver a equipos</button>
       </div>
+      <ModalEstadoFinal
+        abierto={mostrarEstadoFinal}
+        estados={estados}
+        estadoFinal={estadoFinal}
+        setEstadoFinal={setEstadoFinal}
+        finalizando={finalizando}
+        onCerrar={() => setMostrarEstadoFinal(false)}
+        onConfirmar={finalizarMantenimiento}
+      />
     </div>
   );
 }
