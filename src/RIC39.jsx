@@ -1,3 +1,4 @@
+import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
 import { BloqueRIC37Preventivo, useRIC37Preventivo } from "./protocolos/RIC37Preventivo";
@@ -491,6 +492,7 @@ export default function RIC39({ setVista, personal }) {
               </div>
             )}
 
+            <CorrectivoDerivado codigo="RIC39" datos={datos} personal={personal} resultado={resumen.resultado} noConformes={resumen.noConformes} observaciones={[observaciones, inspecciones?.observaciones].filter(Boolean).join("\n")} guardado={Boolean(ric39Id)} finalizado={tareaFinalizada} setVista={setVista} />
             <BloqueRIC37Preventivo control={seguridadElectrica} />
 
             <div className="flex flex-wrap gap-2">
