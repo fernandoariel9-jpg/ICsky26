@@ -155,6 +155,76 @@ export function useProtocoloBase({ codigo, personal, defaultDescripcion = "" }) 
   };
 }
 
+export function useFinalizacionRIC({ codigo, datos, personal }) {
+  const [estados, setEstados] = useState([]);
+  const [mostrarEstadoFinal, setMostrarEstadoFinal] = useState(false);
+  const [estadoFinal, setEstadoFinal] = useState("");
+  const [finalizando, setFinalizando] = useState(false);
+
+  useEffect(() => {
+    fetch(API_URL.Estados)
+      .then((r) => r.json())
+      .then((d) => setEstados(Array.isArray(d) ? d : []))
+      .catch((err) => console.error(`Error cargando estados ${codigo}:`, err));
+  }, [codigo]);
+
+  const finalizarMantenimiento = async () => {
+    if (!datos?.ric01_id) {
+      alert("No se pudo identificar la tarea asociada.");
+      return false;
+    }
+
+    if (!estadoFinal) {
+      alert("Seleccione el estado final del equipo.");
+      return false;
+    }
+
+    try {
+      setFinalizando(true);
+
+      const res = await fetch(`${API_URL.Ric01}/finalizar/${datos.ric01_id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fecha_fin: fechaHoraLocalProtocolo(),
+          estado: estadoFinal,
+          numero_serie: datos.numero_serie,
+          usuario: personal?.nombre || datos.tecnico || ""
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "No se pudo finalizar el mantenimiento");
+
+      setMostrarEstadoFinal(false);
+      localStorage.removeItem("tareaActiva");
+
+      if (datos.numero_serie) {
+        localStorage.setItem("equipoActualizado", datos.numero_serie);
+      }
+
+      alert(`✅ ${codigo} guardado y tarea finalizada correctamente`);
+      return true;
+    } catch (err) {
+      console.error(`Error finalizando ${codigo}:`, err);
+      alert(err.message || "No se pudo finalizar el mantenimiento.");
+      return false;
+    } finally {
+      setFinalizando(false);
+    }
+  };
+
+  return {
+    estados,
+    mostrarEstadoFinal,
+    setMostrarEstadoFinal,
+    estadoFinal,
+    setEstadoFinal,
+    finalizando,
+    finalizarMantenimiento
+  };
+}
+
 export function ProtocoloLayout({ codigo, tituloCorto, etapas, etapa, progreso, datos, error, children }) {
   return (
     <div className="min-h-screen bg-gray-50">
