@@ -29,16 +29,42 @@ import BusquedaEquiposEstable from "./BusquedaEquiposEstable";
 
 const API_URL = "https://sky26.onrender.com/tareas";
 
+function leerSesion(clave) {
+  try {
+    const guardado = sessionStorage.getItem(clave);
+    return guardado ? JSON.parse(guardado) : null;
+  } catch {
+    sessionStorage.removeItem(clave);
+    return null;
+  }
+}
+
 function Main() {
   const [modo, setModo] = useState("menu");
-  const [usuario, setUsuario] = useState(null);
-  const [personal, setPersonal] = useState(null);
+  const [usuario, setUsuario] = useState(() => leerSesion("sky26_sesion_usuario"));
+  const [personal, setPersonal] = useState(() => leerSesion("sky26_sesion_personal"));
+
+  const iniciarUsuario = (datos) => {
+    sessionStorage.removeItem("sky26_sesion_personal");
+    sessionStorage.setItem("sky26_sesion_usuario", JSON.stringify(datos));
+    setPersonal(null);
+    setUsuario(datos);
+  };
+
+  const iniciarPersonal = (datos) => {
+    sessionStorage.removeItem("sky26_sesion_usuario");
+    sessionStorage.setItem("sky26_sesion_personal", JSON.stringify(datos));
+    setUsuario(null);
+    setPersonal(datos);
+  };
 
   useEffect(() => {
     window.setModoGlobal = setModo;
   }, [setModo]);
 
   const handleLogout = () => {
+    sessionStorage.removeItem("sky26_sesion_usuario");
+    sessionStorage.removeItem("sky26_sesion_personal");
     setUsuario(null);
     setPersonal(null);
     setModo("menu");
@@ -71,10 +97,10 @@ function Main() {
     );
   }
 
-  if (modo === "loginUsuario") return <UsuarioLogin onLogin={(u) => setUsuario(u)} switchToRegister={() => setModo("registroUsuario")} switchToMenu={() => setModo("menu")} />;
-  if (modo === "registroUsuario") return <RegistroUsuario onRegister={(u) => setUsuario(u)} switchToLogin={() => setModo("loginUsuario")} />;
-  if (modo === "loginPersonal") return <LoginPersonal onLogin={(p) => setPersonal(p)} switchToRegister={() => setModo("registroPersonal")} switchToMenu={() => setModo("menu")} />;
-  if (modo === "registroPersonal") return <RegistroPersonal onRegister={(p) => setPersonal(p)} switchToLogin={() => setModo("loginPersonal")} />;
+  if (modo === "loginUsuario") return <UsuarioLogin onLogin={iniciarUsuario} switchToRegister={() => setModo("registroUsuario")} switchToMenu={() => setModo("menu")} />;
+  if (modo === "registroUsuario") return <RegistroUsuario onRegister={iniciarUsuario} switchToLogin={() => setModo("loginUsuario")} />;
+  if (modo === "loginPersonal") return <LoginPersonal onLogin={iniciarPersonal} switchToRegister={() => setModo("registroPersonal")} switchToMenu={() => setModo("menu")} />;
+  if (modo === "registroPersonal") return <RegistroPersonal onRegister={iniciarPersonal} switchToLogin={() => setModo("loginPersonal")} />;
 
   if (modo === "supervision") {
     return <SupervisionWrapper />;
