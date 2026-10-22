@@ -578,6 +578,22 @@ export default function Equipos({ setVista, personal }) {
       alert("⚠️ No se puede iniciar el mantenimiento.\n\nEl equipo debe tener asignados Servicio y Subservicio.");
       return;
     }
+    // Avisar antes de crear un preventivo sin protocolo RIC asociado.
+    // La tarea se crea normalmente si el técnico confirma.
+    if (
+      !mantenimientoEnEdicion?.id &&
+      tipoMantenimiento?.trim().toLowerCase() === "preventivo" &&
+      !obtenerProtocoloMantenimiento(tipoMantenimiento, equipo?.descripcion)
+    ) {
+      const confirmar = window.confirm(
+        "⚠️ Este equipo no tiene un protocolo RIC asociado.\\n\\n" +
+        "Se iniciará y guardará la tarea de mantenimiento preventivo, " +
+        "pero no se abrirá ningún formulario RIC.\\n\\n" +
+        "¿Desea continuar?"
+      );
+      if (!confirmar) return;
+    }
+
     guardandoMantenimientoRef.current = true;
     setGuardandoMantenimiento(true);
 
