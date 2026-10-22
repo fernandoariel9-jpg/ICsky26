@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { API_URL } from "./config";
 import EstadisticasEquipo from "./EstadisticasEquipo";
-import { ModalEstadoFinal, useFinalizacionRIC } from "./protocolos/ProtocoloBase";
 
 const CRITERIOS = [
   "Criterio de fábrica",
@@ -26,26 +25,6 @@ export default function RIC44({ setVista, personal }) {
   const [estadisticasExtra, setEstadisticasExtra] = useState({ dias_fuera_servicio: 0, equipos_similares: 0 });
   const [ric44Id, setRic44Id] = useState(null);
   const inputFoto = useRef(null);
-
-  const datosFinalizacion = {
-    ric01_id: equipo?.ric01_id || equipo?.mantenimiento_id || "",
-    numero_serie: equipo?.numero_serie || "",
-    tecnico: personal?.nombre || ""
-  };
-
-  const {
-    estados,
-    mostrarEstadoFinal,
-    setMostrarEstadoFinal,
-    estadoFinal,
-    setEstadoFinal,
-    finalizando,
-    finalizarMantenimiento
-  } = useFinalizacionRIC({
-    codigo: "RIC44",
-    datos: datosFinalizacion,
-    personal
-  });
 
   useEffect(() => { cargarDatos(); }, [personal]);
 
@@ -142,7 +121,10 @@ export default function RIC44({ setVista, personal }) {
       const idGuardado = data.ric44_id || data.id || "";
       setRic44Id(idGuardado || null);
       localStorage.setItem("ric44Id", String(idGuardado));
-      setMostrarEstadoFinal(true);
+      localStorage.setItem("equipoActualizado", equipo.numero_serie);
+      localStorage.removeItem("tareaActiva");
+      alert("RIC44 guardado. El equipo fue marcado como Obsoleto.");
+      setVista("equipos");
     } catch (err) {
       console.error("ERROR GUARDANDO RIC44:", err);
       setError(err.message || "No se pudo guardar el RIC44.");
@@ -230,15 +212,6 @@ export default function RIC44({ setVista, personal }) {
         <button onClick={guardar} disabled={guardando || !!ric44Id} className="w-full bg-green-600 disabled:bg-gray-400 text-white font-bold py-3 rounded-xl shadow">{guardando ? "Guardando RIC44..." : ric44Id ? "✅ RIC44 guardado" : "💾 Guardar RIC44"}</button>
         <button onClick={() => setVista("equipos")} className="w-full bg-gray-500 text-white font-semibold py-2.5 rounded-xl text-sm">← Volver a equipos</button>
       </div>
-      <ModalEstadoFinal
-        abierto={mostrarEstadoFinal}
-        estados={estados}
-        estadoFinal={estadoFinal}
-        setEstadoFinal={setEstadoFinal}
-        finalizando={finalizando}
-        onCerrar={() => setMostrarEstadoFinal(false)}
-        onConfirmar={finalizarMantenimiento}
-      />
     </div>
   );
 }
