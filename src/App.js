@@ -65,6 +65,7 @@ function Main() {
   const handleLogout = () => {
     sessionStorage.removeItem("sky26_sesion_usuario");
     sessionStorage.removeItem("sky26_sesion_personal");
+    sessionStorage.removeItem("sky26_vista_personal");
     setUsuario(null);
     setPersonal(null);
     setModo("menu");
