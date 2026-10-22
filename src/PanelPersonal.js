@@ -89,7 +89,19 @@ const fechaLocal = () => {
 
 export default function PanelPersonal({ personal, onLogout }) {
   const iniciandoPreventivoRef = useRef(false);
-  const [vista, setVista] = useState("tareas");
+  const vistasPermitidas = [
+    "tareas", "equipos", "seleccionarEquipo", "nuevoEquipo", "stock",
+    "ric10", "ric25", "ric29", "ric37", "ric39", "ric44", "ric48",
+    "ric56", "ric59", "ric64", "ric71"
+  ];
+  const [vista, setVista] = useState(() => {
+    const guardada = sessionStorage.getItem("sky26_vista_personal");
+    return vistasPermitidas.includes(guardada) ? guardada : "tareas";
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem("sky26_vista_personal", vista);
+  }, [vista]);
   const [ric10Montado, setRic10Montado] = useState(false);
   const [ric29Montado, setRic29Montado] = useState(false);
   const [ric39Montado, setRic39Montado] = useState(false);
