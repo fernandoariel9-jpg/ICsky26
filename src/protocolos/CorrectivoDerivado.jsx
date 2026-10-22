@@ -1,3 +1,4 @@
+import { vincularCorrectivoRIC } from "./apiPreventivos";
 import { useRef, useState } from "react";
 import { API_URL } from "../config";
 
@@ -12,7 +13,8 @@ export default function CorrectivoDerivado({
   noConformes = [],
   guardado = false,
   finalizado = false,
-  setVista
+  setVista,
+  antesDeCrear
 }) {
   const enviandoRef = useRef(false);
   const [enviando, setEnviando] = useState(false);
@@ -53,6 +55,7 @@ export default function CorrectivoDerivado({
       textoObservaciones ? `Observaciones:\n${textoObservaciones}` : ""
     ].filter(Boolean).join("\n\n");
     try {
+      if (antesDeCrear) await antesDeCrear();
       const res = await fetch(API_URL.Ric01, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,6 +81,13 @@ export default function CorrectivoDerivado({
       if (!res.ok) throw new Error(body.error || "No se pudo crear la tarea correctiva.");
       const id = body.ric01_id || body.id;
       if (!id) throw new Error("El servidor no devolvió el ID del correctivo. Verifique las tareas antes de volver a intentar.");
+      try {
+        await vincularCorrectivoRIC(origenId, id, codigo, fallas);
+      } catch (error) {
+        alert(`Se creó el correctivo #${id}, pero no se pudo registrar el vínculo en PostgreSQL: ${error.message}. No cree otro; comunique este número para reparar la vinculación.`);
+        localStorage.setItem(clave, String(id));
+        return;
+      }
       localStorage.setItem(clave, String(id));
       localStorage.setItem(`preventivo-origen:${id}`, JSON.stringify({ ric01_id: origenId, codigo, numero_serie: datos.numero_serie }));
       localStorage.setItem("tareaActiva", JSON.stringify({
