@@ -278,6 +278,7 @@ export default function RIC29({ setVista, personal }) {
         if (b.sincronismo) setSincronismo(b.sincronismo);
         if (b.monitorizacion) setMonitorizacion(b.monitorizacion);
         if (typeof b.observaciones === "string") setObservaciones(b.observaciones);
+        if (typeof b.observacionesInspecciones === "string") setObservacionesInspecciones(b.observacionesInspecciones);
       }
     } catch (error) {
       console.error("No se pudo recuperar el borrador RIC29:", error);
@@ -289,11 +290,11 @@ export default function RIC29({ setVista, personal }) {
     if (!borradorRecuperado || !datos.ric01_id || ric29Id) return;
     localStorage.setItem(claveBorradorRIC29(datos.ric01_id), JSON.stringify({
       etapa, inspecciones, energia, energiaActual, carga, bateria,
-      bateriaActual, sincronismo, monitorizacion, observaciones
+      bateriaActual, sincronismo, monitorizacion, observaciones, observacionesInspecciones
     }));
   }, [borradorRecuperado, datos.ric01_id, ric29Id, etapa, inspecciones,
     energia, energiaActual, carga, bateria, bateriaActual, sincronismo,
-    monitorizacion, observaciones]);
+    monitorizacion, observaciones, observacionesInspecciones]);
 
   // =====================================================
   // CARGAR DATOS DEL EQUIPO
