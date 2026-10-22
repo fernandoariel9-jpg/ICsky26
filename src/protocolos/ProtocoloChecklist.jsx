@@ -1,3 +1,4 @@
+import { recuperarAvanceRIC, guardarAvanceRIC } from "./apiPreventivos";
 import CorrectivoDerivado from "./CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -88,22 +89,38 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
 
   useEffect(() => {
     if (!datos.ric01_id || borradorCargado) return;
-    try {
-      const raw = localStorage.getItem(claveBorrador(datos.ric01_id));
-      if (raw) {
-        const b = JSON.parse(raw);
-        if (Array.isArray(b.puntos)) setPuntos(b.puntos);
-        if (typeof b.enUso === "string") setEnUso(b.enUso);
-        if (typeof b.observaciones === "string") setObservaciones(b.observaciones);
-        if (Number.isInteger(b.indiceActual)) setIndiceActual(b.indiceActual);
-        if (Number.isInteger(b.etapa)) setEtapa(Math.min(b.etapa, etapas.length - 1));
+    let cancelado = false;
+    (async () => {
+      try {
+        const remoto = await recuperarAvanceRIC(datos.ric01_id);
+        if (cancelado) return;
+        if (remoto && remoto.codigo_ric !== codigo) {
+          throw new Error("El avance guardado corresponde a otro protocolo RIC.");
+        }
+        const local = localStorage.getItem(claveBorrador(datos.ric01_id));
+        const b = remoto?.datos || (local ? JSON.parse(local) : null);
+        if (b) {
+          if (Array.isArray(b.puntos)) setPuntos(b.puntos);
+          if (typeof b.enUso === "string") setEnUso(b.enUso);
+          if (typeof b.observaciones === "string") setObservaciones(b.observaciones);
+          if (Number.isInteger(b.indiceActual)) setIndiceActual(b.indiceActual);
+          if (Number.isInteger(b.etapa)) setEtapa(Math.min(b.etapa, etapas.length - 1));
+        }
+      } catch (err) {
+        if (!cancelado) setErrorLocal("No se pudo recuperar el avance desde PostgreSQL: " + err.message);
+        return;
       }
-    } catch (err) {
-      console.error(`Error cargando borrador ${codigo}:`, err);
-    } finally {
-      setBorradorCargado(true);
-    }
+      if (!cancelado) setBorradorCargado(true);
+    })();
+    return () => { cancelado = true; };
   }, [datos.ric01_id, borradorCargado, codigo]);
+
+  const guardarAvance = async () => {
+    if (!borradorCargado || !datos.ric01_id) throw new Error("Todavía no se cargó el preventivo.");
+    await guardarAvanceRIC(datos.ric01_id, codigo, {
+      etapa, indiceActual, puntos, enUso, observaciones
+    });
+  };
 
   useEffect(() => {
     if (!borradorCargado || !datos.ric01_id || protocoloId) return;
@@ -112,6 +129,15 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
       JSON.stringify({ etapa, indiceActual, puntos, enUso, observaciones })
     );
   }, [borradorCargado, datos.ric01_id, protocoloId, etapa, indiceActual, puntos, enUso, observaciones]);
+
+  const guardarAvanceManual = async () => {
+    try {
+      await guardarAvance();
+      alert("✅ Avance del RIC guardado en PostgreSQL. El preventivo sigue abierto.");
+    } catch (err) {
+      alert(err.message || "No se pudo guardar el avance.");
+    }
+  };
 
   const resumen = useMemo(() => {
     const pendientes = puntos.filter((p) => !p.estado).length;
@@ -290,7 +316,8 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
             enviandoDrive={enviandoDrive}
             personal={personal}
             antesDeGuardar={<BloqueRIC37Preventivo control={seguridadElectrica} />}
-            despuesDeGuardar={<CorrectivoDerivado codigo={codigo} datos={datos} personal={personal} resultado={resumen.resultado} noConformes={resumen.noConformes} observaciones={[observaciones, ...puntos.map(p => p.observaciones)].filter(Boolean).join("\n")} guardado={Boolean(protocoloId)} finalizado={finalizado} setVista={setVista} />}
+            antesDeGuardar={<button type="button" onClick={guardarAvanceManual} className="w-full bg-indigo-600 text-white rounded-xl p-3 mb-3 font-bold">💾 Guardar avance sin finalizar preventivo</button>}
+            despuesDeGuardar={<CorrectivoDerivado codigo={codigo} datos={datos} personal={personal} resultado={resumen.resultado} noConformes={resumen.noConformes} observaciones={[observaciones, ...puntos.map(p => p.observaciones)].filter(Boolean).join("\n")} guardado={Boolean(protocoloId)} finalizado={finalizado} setVista={setVista} antesDeCrear={guardarAvance} />}
           />
         )}
       </ProtocoloLayout>
