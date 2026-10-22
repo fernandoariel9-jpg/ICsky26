@@ -311,6 +311,53 @@ export default function Equipos({ setVista, personal }) {
     ) || null;
   };
 
+  const retomarPreventivoConRIC = async (m) => {
+    const origenId = String(m?.id || "");
+    if (!origenId || !equipo?.numero_serie) return;
+
+    const vistasRIC = {
+      RIC10: "ric10", RIC29: "ric29", RIC39: "ric39",
+      RIC48: "ric48", RIC56: "ric56", RIC59: "ric59",
+      RIC64: "ric64", RIC71: "ric71"
+    };
+    try {
+      let codigo = "";
+      const respuesta = await fetch(API_URL.Ric01, { cache: "no-store" });
+      if (respuesta.ok) {
+        const tareas = await respuesta.json();
+        const lista = Array.isArray(tareas) ? tareas : (tareas.tareas || []);
+        const derivada = lista.find((t) =>
+          String(t.numero_serie || "") === String(equipo.numero_serie) &&
+          String(t.tipo_mantenimiento || "").toLowerCase() === "correctivo" &&
+          String(t.diagnostico || "").includes(`mantenimiento preventivo #${origenId}.`)
+        );
+        const match = String(derivada?.diagnostico || "").match(/Correctivo originado en (RIC\d+)/i);
+        codigo = match?.[1]?.toUpperCase() || "";
+      }
+      if (!codigo) {
+        const disponibles = Object.keys(vistasRIC).filter((ric) =>
+          localStorage.getItem(`correctivo-derivado:${ric}:${origenId}`)
+        );
+        if (disponibles.length === 1) codigo = disponibles[0];
+      }
+      if (!vistasRIC[codigo]) {
+        alert("No se encontró un RIC asociado a este preventivo. Verifique que el correctivo derivado se haya registrado.");
+        return;
+      }
+      localStorage.setItem("tareaActiva", JSON.stringify({
+        ...m, id: m.id, ric01_id: m.id,
+        equipo_id: equipo.id, numero_serie: equipo.numero_serie,
+        descripcion: equipo.descripcion, marca_modelo: equipo.marca_modelo,
+        area: equipo.area, servicio: equipo.servicio,
+        sub_servicio: equipo.sub_servicio,
+        tipo_mantenimiento: "Preventivo"
+      }));
+      setVista(vistasRIC[codigo]);
+    } catch (error) {
+      alert(error.message || "No se pudo retomar el protocolo.");
+    }
+  };
+
   const abrirRIC37 = async () => {
     if (!equipo) return alert("Primero seleccione un equipo.");
     if (!equipo.servicio || !equipo.sub_servicio) {
@@ -770,7 +817,7 @@ export default function Equipos({ setVista, personal }) {
         <button onClick={abrirRIC44} className="px-4 py-2 rounded-xl w-full mt-2 bg-orange-600 hover:bg-orange-700 text-white">♻️ RIC44 - Obsolescencia</button>
 
         {equipo.estado?.toLowerCase() !== "activo" && equipo.mantenimiento_id && <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2 text-sm"><p>🔧 Mantenimiento abierto #{equipo.mantenimiento_id}</p>{equipo.tipo_mantenimiento && <p>Tipo: {equipo.tipo_mantenimiento}</p>}{equipo.diagnostico && <p>Diagnóstico: {equipo.diagnostico}</p>}</div>}
-        {Array.isArray(equipo.mantenimientos_abiertos) && equipo.mantenimientos_abiertos.length > 0 && <div className="mt-3"><p className="font-bold text-gray-800 mb-2">🔧 Mantenimientos abiertos ({equipo.mantenimientos_abiertos.length})</p><div className="space-y-2">{equipo.mantenimientos_abiertos.map((m) => <div key={m.id} className="border border-yellow-300 bg-yellow-50 rounded-xl p-3 text-sm"><div className="flex justify-between items-center"><strong>Mantenimiento #{m.id}</strong><span className="text-orange-600 font-semibold">ABIERTO</span></div><p><strong>Tipo:</strong> {m.tipo_mantenimiento || "Sin especificar"}</p>{String(m.diagnostico || "").toUpperCase().includes("RIC37") && <p className="mt-1 font-semibold text-blue-800">⚡ Correctivo generado por RIC37 - Seguridad eléctrica</p>}{m.diagnostico && <p><strong>Diagnóstico:</strong> {m.diagnostico}</p>}{m.fecha && <p><strong>Inicio:</strong> {formatTimestamp(m.fecha)}</p>}{m.asignado && <p><strong>Técnico:</strong> {m.asignado}</p>}<div className="grid grid-cols-2 gap-2 mt-2"><button onClick={() => continuarMantenimientoAbierto(m)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-xl font-semibold">🔧 Continuar</button><button onClick={() => abrirFinalizarMantenimiento(m)} className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-xl font-semibold">✅ Finalizar</button><button onClick={() => abrirRepuestos(m)} className="col-span-2 bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-2 rounded-xl font-semibold">🔩 Usar repuestos</button></div></div>)}</div></div>}
+        {Array.isArray(equipo.mantenimientos_abiertos) && equipo.mantenimientos_abiertos.length > 0 && <div className="mt-3"><p className="font-bold text-gray-800 mb-2">🔧 Mantenimientos abiertos ({equipo.mantenimientos_abiertos.length})</p><div className="space-y-2">{equipo.mantenimientos_abiertos.map((m) => <div key={m.id} className="border border-yellow-300 bg-yellow-50 rounded-xl p-3 text-sm"><div className="flex justify-between items-center"><strong>Mantenimiento #{m.id}</strong><span className="text-orange-600 font-semibold">ABIERTO</span></div><p><strong>Tipo:</strong> {m.tipo_mantenimiento || "Sin especificar"}</p>{String(m.diagnostico || "").toUpperCase().includes("RIC37") && <p className="mt-1 font-semibold text-blue-800">⚡ Correctivo generado por RIC37 - Seguridad eléctrica</p>}{m.diagnostico && <p><strong>Diagnóstico:</strong> {m.diagnostico}</p>}{m.fecha && <p><strong>Inicio:</strong> {formatTimestamp(m.fecha)}</p>}{m.asignado && <p><strong>Técnico:</strong> {m.asignado}</p>}{String(m.tipo_mantenimiento || "").toLowerCase() === "preventivo" && <button onClick={() => retomarPreventivoConRIC(m)} className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl font-semibold">↩️ Retomar RIC preventivo original</button>}<div className="grid grid-cols-2 gap-2 mt-2"><button onClick={() => continuarMantenimientoAbierto(m)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-xl font-semibold">🔧 Continuar</button><button onClick={() => abrirFinalizarMantenimiento(m)} className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-xl font-semibold">✅ Finalizar</button><button onClick={() => abrirRepuestos(m)} className="col-span-2 bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-2 rounded-xl font-semibold">🔩 Usar repuestos</button></div></div>)}</div></div>}
       </div>}
 
       {error && <p className="text-red-500 mt-3">{error}</p>}
