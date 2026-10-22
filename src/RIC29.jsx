@@ -258,6 +258,43 @@ export default function RIC29({ setVista, personal }) {
     }
   });
 
+  // Recuperar el avance de RIC29 al regresar desde otra tarea.
+  const [borradorRecuperado, setBorradorRecuperado] = useState(false);
+  const claveBorradorRIC29 = (id) => `preventivo:ric29:${id}`;
+
+  useEffect(() => {
+    if (!datos.ric01_id || borradorRecuperado) return;
+    try {
+      const raw = localStorage.getItem(claveBorradorRIC29(datos.ric01_id));
+      if (raw) {
+        const b = JSON.parse(raw);
+        if (Number.isInteger(b.etapa)) setEtapa(b.etapa);
+        if (b.inspecciones) setInspecciones(b.inspecciones);
+        if (b.energia) setEnergia(b.energia);
+        if (Number.isInteger(b.energiaActual)) setEnergiaActual(b.energiaActual);
+        if (b.carga) setCarga(b.carga);
+        if (b.bateria) setBateria(b.bateria);
+        if (Number.isInteger(b.bateriaActual)) setBateriaActual(b.bateriaActual);
+        if (b.sincronismo) setSincronismo(b.sincronismo);
+        if (b.monitorizacion) setMonitorizacion(b.monitorizacion);
+        if (typeof b.observaciones === "string") setObservaciones(b.observaciones);
+      }
+    } catch (error) {
+      console.error("No se pudo recuperar el borrador RIC29:", error);
+    }
+    setBorradorRecuperado(true);
+  }, [datos.ric01_id, borradorRecuperado]);
+
+  useEffect(() => {
+    if (!borradorRecuperado || !datos.ric01_id || ric29Id) return;
+    localStorage.setItem(claveBorradorRIC29(datos.ric01_id), JSON.stringify({
+      etapa, inspecciones, energia, energiaActual, carga, bateria,
+      bateriaActual, sincronismo, monitorizacion, observaciones
+    }));
+  }, [borradorRecuperado, datos.ric01_id, ric29Id, etapa, inspecciones,
+    energia, energiaActual, carga, bateria, bateriaActual, sincronismo,
+    monitorizacion, observaciones]);
+
   // =====================================================
   // CARGAR DATOS DEL EQUIPO
   // =====================================================
