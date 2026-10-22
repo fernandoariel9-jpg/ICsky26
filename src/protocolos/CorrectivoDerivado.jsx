@@ -28,21 +28,19 @@ export default function CorrectivoDerivado({
     .filter(Boolean);
   const textoObservaciones = String(observaciones || "").trim();
   const requiereCorrectivo = String(resultado || "").toUpperCase().includes("NO CONFORME") ||
-    fallas.length > 0 || Boolean(textoObservaciones);
+    fallas.length > 0;
   const origenId = datos?.ric01_id || datos?.id;
   const clave = `correctivo-derivado:${codigo}:${origenId}`;
 
   if (!requiereCorrectivo || !origenId) return null;
 
   const iniciar = async () => {
-    if (!guardado) return alert("Guarde primero el protocolo preventivo.");
-    if (!finalizado) return alert("Finalice primero el mantenimiento preventivo y luego inicie el correctivo.");
     if (enviandoRef.current || creado) return;
     const existente = localStorage.getItem(clave);
     if (existente) {
       return alert(`Ya se generó un correctivo desde este mantenimiento: tarea #${existente}.`);
     }
-    if (!window.confirm(`¿Crear una tarea correctiva para el equipo ${datos.numero_serie} a partir de ${codigo}?`)) return;
+    if (!window.confirm(`¿Iniciar un correctivo vinculado a ${codigo} (preventivo #${origenId})?\n\nEl preventivo quedará ABIERTO. Su avance se conservará para retomarlo después de resolver la falla.`)) return;
 
     enviandoRef.current = true;
     setEnviando(true);
@@ -81,12 +79,14 @@ export default function CorrectivoDerivado({
       const id = body.ric01_id || body.id;
       if (!id) throw new Error("El servidor no devolvió el ID del correctivo. Verifique las tareas antes de volver a intentar.");
       localStorage.setItem(clave, String(id));
+      localStorage.setItem(`preventivo-origen:${id}`, JSON.stringify({ ric01_id: origenId, codigo, numero_serie: datos.numero_serie }));
       localStorage.setItem("tareaActiva", JSON.stringify({
         ...body, id, ric01_id: id, equipo_id: datos.equipo_id,
         numero_serie: datos.numero_serie, descripcion: datos.descripcion,
         marca_modelo: datos.marca_modelo, area: datos.area || personal?.area || "",
         servicio: datos.servicio, sub_servicio: datos.sub_servicio || datos.subservicio,
-        tipo_mantenimiento: "Correctivo", diagnostico, asignado: personal?.nombre || ""
+        tipo_mantenimiento: "Correctivo", diagnostico, asignado: personal?.nombre || "",
+        preventivo_origen_id: origenId, preventivo_origen_ric: codigo
       }));
       if (datos.numero_serie) localStorage.setItem("equipoActualizado", datos.numero_serie);
       setCreado(true);
@@ -103,13 +103,12 @@ export default function CorrectivoDerivado({
     <div className="border border-amber-300 bg-amber-50 rounded-xl p-4 mt-4 space-y-2">
       <p className="text-amber-900 font-bold">🔧 Se detectaron observaciones o no conformidades</p>
       <p className="text-sm text-amber-800">Puede iniciar un correctivo vinculado al preventivo #{origenId} sin modificar el informe original.</p>
-      <button type="button" disabled={enviando || creado || !guardado || !finalizado}
+      <button type="button" disabled={enviando || creado}
         onClick={iniciar}
         className="w-full rounded-xl bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white p-3 font-bold">
         {enviando ? "Creando correctivo..." : "🔧 Iniciar mantenimiento correctivo"}
       </button>
-      {!guardado && <p className="text-xs text-amber-800">Primero guarde el protocolo.</p>}
-      {guardado && !finalizado && <p className="text-xs text-amber-800">Primero finalice el mantenimiento preventivo.</p>}
+      <p className="text-xs text-amber-800">El preventivo seguirá abierto. Guarde su informe final al regresar del correctivo.</p>
     </div>
   );
 }
