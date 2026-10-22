@@ -315,8 +315,11 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
             onDrive={enviarDrive}
             enviandoDrive={enviandoDrive}
             personal={personal}
-            antesDeGuardar={<BloqueRIC37Preventivo control={seguridadElectrica} />}
-            antesDeGuardar={<button type="button" onClick={guardarAvanceManual} className="w-full bg-indigo-600 text-white rounded-xl p-3 mb-3 font-bold">💾 Guardar avance sin finalizar preventivo</button>}
+            antesDeGuardar={<>
+              <BloqueRIC37Preventivo control={seguridadElectrica} />
+              <button type="button" onClick={guardarAvanceManual} className="w-full bg-indigo-600 text-white rounded-xl p-3 mb-3 font-bold">💾 Guardar avance sin finalizar preventivo</button>
+            </>}
+
             despuesDeGuardar={<CorrectivoDerivado codigo={codigo} datos={datos} personal={personal} resultado={resumen.resultado} noConformes={resumen.noConformes} observaciones={[observaciones, ...puntos.map(p => p.observaciones)].filter(Boolean).join("\n")} guardado={Boolean(protocoloId)} finalizado={finalizado} setVista={setVista} antesDeCrear={guardarAvance} />}
           />
         )}
