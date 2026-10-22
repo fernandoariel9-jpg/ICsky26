@@ -325,7 +325,7 @@ export default function Equipos({ setVista, personal }) {
           usuario: personal?.nombre || "",
           fecha: getFechaLocal(),
           tarea: `RIC37 - Seguridad eléctrica - ${equipo.descripcion} ${equipo.marca_modelo || ""} - Serie: ${equipo.numero_serie}`,
-          diagnostico: "",
+          diagnostico: "RIC37 - Seguridad eléctrica",
           tipo_mantenimiento: "Correctivo",
           descripcion: equipo.descripcion,
           marca_modelo: equipo.marca_modelo,
@@ -358,7 +358,7 @@ export default function Equipos({ setVista, personal }) {
         servicio: equipo.servicio,
         sub_servicio: equipo.sub_servicio,
         tipo_mantenimiento: "Correctivo",
-        diagnostico: "",
+        diagnostico: "RIC37 - Seguridad eléctrica",
         asignado: personal?.nombre || "",
         origen_ric37: true
       }));
@@ -770,7 +770,7 @@ export default function Equipos({ setVista, personal }) {
         <button onClick={abrirRIC44} className="px-4 py-2 rounded-xl w-full mt-2 bg-orange-600 hover:bg-orange-700 text-white">♻️ RIC44 - Obsolescencia</button>
 
         {equipo.estado?.toLowerCase() !== "activo" && equipo.mantenimiento_id && <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2 text-sm"><p>🔧 Mantenimiento abierto #{equipo.mantenimiento_id}</p>{equipo.tipo_mantenimiento && <p>Tipo: {equipo.tipo_mantenimiento}</p>}{equipo.diagnostico && <p>Diagnóstico: {equipo.diagnostico}</p>}</div>}
-        {Array.isArray(equipo.mantenimientos_abiertos) && equipo.mantenimientos_abiertos.length > 0 && <div className="mt-3"><p className="font-bold text-gray-800 mb-2">🔧 Mantenimientos abiertos ({equipo.mantenimientos_abiertos.length})</p><div className="space-y-2">{equipo.mantenimientos_abiertos.map((m) => <div key={m.id} className="border border-yellow-300 bg-yellow-50 rounded-xl p-3 text-sm"><div className="flex justify-between items-center"><strong>Mantenimiento #{m.id}</strong><span className="text-orange-600 font-semibold">ABIERTO</span></div><p><strong>Tipo:</strong> {m.tipo_mantenimiento || "Sin especificar"}</p>{m.diagnostico && <p><strong>Diagnóstico:</strong> {m.diagnostico}</p>}{m.fecha && <p><strong>Inicio:</strong> {formatTimestamp(m.fecha)}</p>}{m.asignado && <p><strong>Técnico:</strong> {m.asignado}</p>}<div className="grid grid-cols-2 gap-2 mt-2"><button onClick={() => continuarMantenimientoAbierto(m)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-xl font-semibold">🔧 Continuar</button><button onClick={() => abrirFinalizarMantenimiento(m)} className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-xl font-semibold">✅ Finalizar</button><button onClick={() => abrirRepuestos(m)} className="col-span-2 bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-2 rounded-xl font-semibold">🔩 Usar repuestos</button></div></div>)}</div></div>}
+        {Array.isArray(equipo.mantenimientos_abiertos) && equipo.mantenimientos_abiertos.length > 0 && <div className="mt-3"><p className="font-bold text-gray-800 mb-2">🔧 Mantenimientos abiertos ({equipo.mantenimientos_abiertos.length})</p><div className="space-y-2">{equipo.mantenimientos_abiertos.map((m) => <div key={m.id} className="border border-yellow-300 bg-yellow-50 rounded-xl p-3 text-sm"><div className="flex justify-between items-center"><strong>Mantenimiento #{m.id}</strong><span className="text-orange-600 font-semibold">ABIERTO</span></div><p><strong>Tipo:</strong> {m.tipo_mantenimiento || "Sin especificar"}</p>{String(m.diagnostico || "").toUpperCase().includes("RIC37") && <p className="mt-1 font-semibold text-blue-800">⚡ Correctivo generado por RIC37 - Seguridad eléctrica</p>}{m.diagnostico && <p><strong>Diagnóstico:</strong> {m.diagnostico}</p>}{m.fecha && <p><strong>Inicio:</strong> {formatTimestamp(m.fecha)}</p>}{m.asignado && <p><strong>Técnico:</strong> {m.asignado}</p>}<div className="grid grid-cols-2 gap-2 mt-2"><button onClick={() => continuarMantenimientoAbierto(m)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-xl font-semibold">🔧 Continuar</button><button onClick={() => abrirFinalizarMantenimiento(m)} className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-xl font-semibold">✅ Finalizar</button><button onClick={() => abrirRepuestos(m)} className="col-span-2 bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-2 rounded-xl font-semibold">🔩 Usar repuestos</button></div></div>)}</div></div>}
       </div>}
 
       {error && <p className="text-red-500 mt-3">{error}</p>}
