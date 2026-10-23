@@ -1,3 +1,4 @@
+import NavegacionResumenRIC from "./protocolos/NavegacionResumenRIC";
 import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
@@ -464,7 +465,7 @@ export default function RIC39({ setVista, personal }) {
 
         {etapa === 4 && (
           <div className="bg-white rounded-xl shadow p-4 space-y-4">
-            <h2 className="text-xl font-bold">Resumen</h2>
+            <h2 className="text-xl font-bold">Resumen</h2><NavegacionResumenRIC etapas={ETAPAS.slice(0, -1)} irAEtapa={setEtapa} deshabilitado={Boolean(ric39Id)} />
             <div className={`border rounded-xl p-3 ${resumen.resultado === "CONFORME" ? "bg-green-50 border-green-400" : resumen.resultado === "NO CONFORME" ? "bg-red-50 border-red-400" : "bg-gray-50"}`}>
               <div className={`font-bold ${resumen.resultado === "CONFORME" ? "text-green-700" : resumen.resultado === "NO CONFORME" ? "text-red-700" : "text-gray-600"}`}>{resumen.resultado}</div>
               <div className="text-xs mt-1">Conformes: <b>{resumen.conformes}</b> · No conformes: <b>{resumen.noConformes.length}</b> · No aplica: <b>{resumen.noAplica}</b></div>
