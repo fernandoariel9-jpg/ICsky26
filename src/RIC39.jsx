@@ -379,6 +379,10 @@ export default function RIC39({ setVista, personal }) {
     <div className="min-h-screen bg-gray-50">
       <div className="sticky top-0 z-50 bg-white shadow">
         <div className="max-w-xl mx-auto p-3">
+          <div className="flex gap-2 mb-2">
+            <button type="button" onClick={guardarAvanceManual} disabled={!borradorCargado || Boolean(ric39Id)} className="flex-1 rounded-lg bg-indigo-600 disabled:bg-gray-300 text-white text-sm font-semibold px-3 py-2">💾 Guardar avance</button>
+            <button type="button" onClick={cancelarConEliminacion} disabled={!datos.ric01_id || Boolean(ric39Id) || tareaFinalizada} className="rounded-lg bg-red-600 disabled:bg-gray-300 text-white text-sm font-semibold px-3 py-2">Cancelar mantenimiento</button>
+          </div>
           <div className="flex justify-between text-xs text-gray-500 mb-1">
             <p className="font-bold">RIC39 - MP Monitores Multiparamétricos</p>
             <span>{ETAPAS[etapa]}</span>
