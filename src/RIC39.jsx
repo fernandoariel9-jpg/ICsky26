@@ -1,3 +1,5 @@
+import { recuperarBorradorRIC, guardarBorradorRIC } from "./protocolos/MotorRIC";
+import { cancelarPreventivoRIC } from "./protocolos/apiPreventivos";
 import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
@@ -171,9 +173,10 @@ export default function RIC39({ setVista, personal }) {
         }));
 
         if (ric01Id) {
-          const borradorRaw = localStorage.getItem(claveBorrador(ric01Id));
-          if (borradorRaw) {
-            const borrador = JSON.parse(borradorRaw);
+          const { datos: borrador } = await recuperarBorradorRIC({
+            ric01Id, codigo: "RIC39", claveLocal: claveBorrador(ric01Id)
+          });
+          if (borrador) {
             if (Number.isInteger(borrador.etapa)) setEtapa(Math.min(borrador.etapa, ETAPAS.length - 1));
             if (borrador.actual) setActual(borrador.actual);
             if (borrador.inspecciones) setInspecciones(borrador.inspecciones);
@@ -235,6 +238,38 @@ export default function RIC39({ setVista, personal }) {
     if (etapa === 3) { setEtapa(2); return setActual((p) => ({ ...p, HIPERTENSO: 7 })); }
     if (etapa === 4) { setEtapa(3); return setActual((p) => ({ ...p, BRADICARDIA: 7 })); }
     setEtapa((e) => Math.max(0, e - 1));
+  };
+
+  const datosBorrador = () => ({ etapa, actual, inspecciones, mediciones, observaciones });
+
+  const guardarAvance = async () => {
+    if (!borradorCargado || !datos.ric01_id) throw new Error("Todavía no se cargó el mantenimiento preventivo.");
+    await guardarBorradorRIC({
+      ric01Id: datos.ric01_id, codigo: "RIC39",
+      datos: datosBorrador(), claveLocal: claveBorrador(datos.ric01_id)
+    });
+  };
+
+  const guardarAvanceManual = async () => {
+    try {
+      await guardarAvance();
+      alert("Avance de RIC39 guardado en PostgreSQL. El preventivo sigue abierto.");
+    } catch (e) { setError(e.message || "No se pudo guardar el avance."); }
+  };
+
+  const cancelarConEliminacion = async () => {
+    if (!datos.ric01_id || ric39Id || tareaFinalizada) {
+      alert("El informe ya fue guardado o no se identificó la tarea. No se puede cancelar desde este formulario.");
+      return;
+    }
+    if (!window.confirm("¿Cancelar definitivamente el preventivo RIC39? Se eliminarán la tarea y el borrador.")) return;
+    try {
+      await cancelarPreventivoRIC(datos.ric01_id);
+      localStorage.removeItem(claveBorrador(datos.ric01_id));
+      localStorage.removeItem("tareaActiva");
+      if (datos.numero_serie) localStorage.setItem("equipoActualizado", datos.numero_serie);
+      setVista("equipos");
+    } catch (e) { setError(e.message || "No se pudo cancelar."); }
   };
 
   const guardar = async () => {
@@ -492,7 +527,7 @@ export default function RIC39({ setVista, personal }) {
               </div>
             )}
 
-            <CorrectivoDerivado codigo="RIC39" datos={datos} personal={personal} resultado={resumen.resultado} noConformes={resumen.noConformes} observaciones={[observaciones, inspecciones?.observaciones].filter(Boolean).join("\n")} guardado={Boolean(ric39Id)} finalizado={tareaFinalizada} setVista={setVista} />
+            <CorrectivoDerivado codigo="RIC39" datos={datos} personal={personal} resultado={resumen.resultado} noConformes={resumen.noConformes} observaciones={[observaciones, inspecciones?.observaciones].filter(Boolean).join("\n")} guardado={Boolean(ric39Id)} finalizado={tareaFinalizada} setVista={setVista} antesDeCrear={guardarAvance} />
             <BloqueRIC37Preventivo control={seguridadElectrica} />
 
             <div className="flex flex-wrap gap-2">
