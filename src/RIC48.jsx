@@ -1,3 +1,4 @@
+import { recuperarBorradorRIC, guardarBorradorRIC } from "./protocolos/MotorRIC";
 import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
@@ -143,9 +144,8 @@ export default function RIC48({ setVista, personal }) {
         }));
 
         if (ric01Id) {
-          const borradorRaw = localStorage.getItem(claveBorrador(ric01Id));
-          if (borradorRaw) {
-            const borrador = JSON.parse(borradorRaw);
+          const { datos: borrador } = await recuperarBorradorRIC({ ric01Id, codigo: "RIC48", claveLocal: claveBorrador(ric01Id) });
+          if (borrador) {
             if (Number.isInteger(borrador.etapa)) setEtapa(Math.min(borrador.etapa, ETAPAS.length - 1));
             if (borrador.inspecciones) setInspecciones(borrador.inspecciones);
             if (Array.isArray(borrador.frecuencias)) setFrecuencias(borrador.frecuencias);
@@ -259,6 +259,29 @@ export default function RIC48({ setVista, personal }) {
     ].flatMap(([grupo, lista]) => lista.map((item, i) => ({ grupo, orden: i + 1, parametro: item.nombre, valor_nominal: item.nombre, medicion: item.resultado || null, rango_aceptacion: null, incertidumbre: grupo === "ARTEFACTOS" ? "± 1%" : null, conforme: item.conforme, no_aplica: item.noAplica })));
 
     return [...numericas, ...manuales];
+  };
+
+  const datosBorrador = () => ({
+    etapa, inspecciones, frecuencias, frecuenciaActual, amplitudes, amplitudActual,
+    gruposOnda, grupoActual, artefactos, artefactoActual, formasOnda, formaActual,
+    segmentoST, stActual, observaciones
+  });
+
+  const guardarAvance = async () => {
+    if (!borradorCargado || !datos.ric01_id) throw new Error("Espere a que cargue el preventivo.");
+    await guardarBorradorRIC({
+      ric01Id: datos.ric01_id, codigo: "RIC48",
+      datos: datosBorrador(), claveLocal: claveBorrador(datos.ric01_id)
+    });
+  };
+
+  const guardarAvanceManual = async () => {
+    try {
+      await guardarAvance();
+      alert("✅ Avance de RIC48 guardado en PostgreSQL; el preventivo sigue abierto.");
+    } catch (err) {
+      setError(err.message || "No se pudo guardar el avance.");
+    }
   };
 
   const guardarRIC48 = async () => {
@@ -408,7 +431,7 @@ export default function RIC48({ setVista, personal }) {
         {etapa === 5 && tarjetaManual("6. Forma de onda", formasOnda, formaActual, setFormasOnda, setFormaActual, 6, false)}
         {etapa === 6 && tarjetaManual("7. Desviación de segmento ST", segmentoST, stActual, setSegmentoST, setStActual, 7, true)}
 
-        {etapa === 7 && <div className="bg-white rounded-xl shadow p-4 space-y-4"><h2 className="text-xl font-bold">8. Resumen de la verificación</h2><div className={`border rounded-xl p-4 ${resumen.resultado === "CONFORME" ? "bg-green-50 border-green-400" : resumen.resultado === "NO CONFORME" ? "bg-red-50 border-red-400" : "bg-gray-50"}`}><p className={`font-bold text-lg ${resumen.resultado === "CONFORME" ? "text-green-700" : resumen.resultado === "NO CONFORME" ? "text-red-700" : "text-gray-700"}`}>{resumen.resultado === "CONFORME" ? "✅ VERIFICACIÓN CONFORME" : resumen.resultado === "NO CONFORME" ? "❌ VERIFICACIÓN NO CONFORME" : "⏳ VERIFICACIÓN PENDIENTE"}</p><p className="text-sm mt-2">Conformes: <b>{resumen.conformes}</b> · No conformes: <b>{resumen.noConformes.length + resumen.inspeccionesNC}</b> · No aplica: <b>{resumen.noAplica}</b></p></div>{resumen.noConformes.length > 0 && <div className="bg-red-50 border border-red-300 rounded-xl p-3 text-sm text-red-800"><p className="font-bold mb-2">Determinaciones no conformes</p>{resumen.noConformes.map((item, index) => <p key={`${item.nombre}-${index}`}>• {item.nombre}{item.resultado ? `: ${item.resultado}` : ""}</p>)}</div>}{inspecciones.observaciones?.trim() && <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-3 text-sm"><p className="font-bold mb-1">Observaciones de inspección</p><p className="whitespace-pre-wrap">{inspecciones.observaciones}</p></div>}<label className="font-semibold block">Observaciones generales</label><textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={5} placeholder="Ingrese observaciones generales de la verificación..." className="w-full border rounded-xl p-3" disabled={Boolean(ric48Id)} />{ric48Id && <div className={`rounded-xl p-3 text-sm font-semibold ${tareaFinalizada ? "bg-green-100 text-green-800" : "bg-blue-50 text-blue-800"}`}>{tareaFinalizada ? `✅ RIC48 #${ric48Id} guardado y tarea finalizada.` : `✅ RIC48 #${ric48Id} guardado. Seleccione el estado final del equipo para cerrar la tarea.`}</div>}<CorrectivoDerivado codigo="RIC48" datos={datos} personal={personal} resultado={resumen.resultado} noConformes={resumen.noConformes} observaciones={[observaciones, inspecciones?.observaciones].filter(Boolean).join("\n")} guardado={Boolean(ric48Id)} finalizado={tareaFinalizada} setVista={setVista} /><BloqueRIC37Preventivo control={seguridadElectrica} /><div className="flex flex-wrap gap-2">{!ric48Id && <button onClick={guardarRIC48} disabled={guardando || resumen.resultado === "PENDIENTE"} className="px-4 py-2 bg-green-600 disabled:bg-gray-300 text-white rounded-xl font-semibold">{guardando ? "Guardando..." : "💾 Guardar RIC48"}</button>}<button onClick={abrirPDF} disabled={!ric48Id} className="px-4 py-2 bg-blue-600 text-white rounded-xl disabled:opacity-40">📄 Ver PDF</button><button onClick={enviarDrive} disabled={!ric48Id || enviandoDrive} className="px-4 py-2 bg-green-700 text-white rounded-xl disabled:opacity-40">{enviandoDrive ? "☁️ Enviando..." : "☁️ Enviar a Drive"}</button>{ric48Id && !tareaFinalizada && <button onClick={() => setMostrarFinalizar(true)} className="px-4 py-2 bg-orange-600 text-white rounded-xl font-semibold">Finalizar tarea</button>}</div>{tareaFinalizada && <button onClick={volverAEquipos} className="w-full bg-slate-800 hover:bg-slate-900 text-white rounded-xl p-3 font-bold">← Volver a Equipos</button>}</div>}
+        {etapa === 7 && <div className="bg-white rounded-xl shadow p-4 space-y-4"><h2 className="text-xl font-bold">8. Resumen de la verificación</h2><div className={`border rounded-xl p-4 ${resumen.resultado === "CONFORME" ? "bg-green-50 border-green-400" : resumen.resultado === "NO CONFORME" ? "bg-red-50 border-red-400" : "bg-gray-50"}`}><p className={`font-bold text-lg ${resumen.resultado === "CONFORME" ? "text-green-700" : resumen.resultado === "NO CONFORME" ? "text-red-700" : "text-gray-700"}`}>{resumen.resultado === "CONFORME" ? "✅ VERIFICACIÓN CONFORME" : resumen.resultado === "NO CONFORME" ? "❌ VERIFICACIÓN NO CONFORME" : "⏳ VERIFICACIÓN PENDIENTE"}</p><p className="text-sm mt-2">Conformes: <b>{resumen.conformes}</b> · No conformes: <b>{resumen.noConformes.length + resumen.inspeccionesNC}</b> · No aplica: <b>{resumen.noAplica}</b></p></div>{resumen.noConformes.length > 0 && <div className="bg-red-50 border border-red-300 rounded-xl p-3 text-sm text-red-800"><p className="font-bold mb-2">Determinaciones no conformes</p>{resumen.noConformes.map((item, index) => <p key={`${item.nombre}-${index}`}>• {item.nombre}{item.resultado ? `: ${item.resultado}` : ""}</p>)}</div>}{inspecciones.observaciones?.trim() && <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-3 text-sm"><p className="font-bold mb-1">Observaciones de inspección</p><p className="whitespace-pre-wrap">{inspecciones.observaciones}</p></div>}<label className="font-semibold block">Observaciones generales</label><textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={5} placeholder="Ingrese observaciones generales de la verificación..." className="w-full border rounded-xl p-3" disabled={Boolean(ric48Id)} />{ric48Id && <div className={`rounded-xl p-3 text-sm font-semibold ${tareaFinalizada ? "bg-green-100 text-green-800" : "bg-blue-50 text-blue-800"}`}>{tareaFinalizada ? `✅ RIC48 #${ric48Id} guardado y tarea finalizada.` : `✅ RIC48 #${ric48Id} guardado. Seleccione el estado final del equipo para cerrar la tarea.`}</div>}<CorrectivoDerivado codigo="RIC48" datos={datos} personal={personal} resultado={resumen.resultado} noConformes={resumen.noConformes} observaciones={[observaciones, inspecciones?.observaciones].filter(Boolean).join("\n")} guardado={Boolean(ric48Id)} finalizado={tareaFinalizada} setVista={setVista} antesDeCrear={guardarAvance} /><BloqueRIC37Preventivo control={seguridadElectrica} /><div className="flex flex-wrap gap-2">{!ric48Id && <button onClick={guardarAvanceManual} className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold">💾 Guardar avance</button>}{!ric48Id && <button onClick={guardarRIC48} disabled={guardando || resumen.resultado === "PENDIENTE"} className="px-4 py-2 bg-green-600 disabled:bg-gray-300 text-white rounded-xl font-semibold">{guardando ? "Guardando..." : "💾 Guardar RIC48"}</button>}<button onClick={abrirPDF} disabled={!ric48Id} className="px-4 py-2 bg-blue-600 text-white rounded-xl disabled:opacity-40">📄 Ver PDF</button><button onClick={enviarDrive} disabled={!ric48Id || enviandoDrive} className="px-4 py-2 bg-green-700 text-white rounded-xl disabled:opacity-40">{enviandoDrive ? "☁️ Enviando..." : "☁️ Enviar a Drive"}</button>{ric48Id && !tareaFinalizada && <button onClick={() => setMostrarFinalizar(true)} className="px-4 py-2 bg-orange-600 text-white rounded-xl font-semibold">Finalizar tarea</button>}</div>{tareaFinalizada && <button onClick={volverAEquipos} className="w-full bg-slate-800 hover:bg-slate-900 text-white rounded-xl p-3 font-bold">← Volver a Equipos</button>}</div>}
       </div>
 
       {mostrarFinalizar && ric48Id && !tareaFinalizada && <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"><div className="bg-white rounded-2xl shadow-2xl p-5 w-full max-w-sm"><h2 className="text-xl font-bold text-gray-800">¿En qué estado queda el equipo?</h2><p className="text-sm text-gray-600 mt-1 mb-4">El RIC48 ya fue guardado. Al confirmar se finalizará la tarea #{datos.ric01_id}.</p><select value={estadoFinal} onChange={(e) => setEstadoFinal(e.target.value)} className="w-full border rounded-xl p-3 mb-4" disabled={finalizando}><option value="">Seleccionar estado</option>{estados.map((est) => <option key={est.id ?? est.estado} value={est.estado}>{est.estado}</option>)}</select><button onClick={finalizarTarea} disabled={finalizando || !estadoFinal} className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white py-3 rounded-xl font-bold">{finalizando ? "Finalizando..." : "Confirmar y finalizar tarea"}</button></div></div>}
