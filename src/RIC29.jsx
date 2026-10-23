@@ -1,3 +1,4 @@
+import NavegacionResumenRIC from "./protocolos/NavegacionResumenRIC";
 import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useState, useEffect } from "react";
 import { API_URL } from "./config";
@@ -2672,6 +2673,7 @@ console.log(
             <h2 className="text-xl font-bold mb-4">
               7. Resumen del mantenimiento
             </h2>
+<NavegacionResumenRIC etapas={etapas.slice(0, -1)} irAEtapa={setEtapa} deshabilitado={Boolean(ric29Id)} />
 
             {obtenerNoConformes().length === 0 ? (
 
