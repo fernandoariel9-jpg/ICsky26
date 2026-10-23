@@ -1,4 +1,3 @@
-import NavegacionResumenRIC from "./protocolos/NavegacionResumenRIC";
 import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
@@ -326,7 +325,7 @@ export default function RIC10({ setVista, personal }) {
 
         {etapa === 2 && (
           <TarjetaEtapa titulo="3. Resumen del mantenimiento">
-<NavegacionResumenRIC etapas={["Inspecciones", "Mediciones"]} irAEtapa={setEtapa} deshabilitado={Boolean(ric10Id)} />
+<button type="button" onClick={() => setEtapa((e) => Math.max(0, e - 1))} className="mb-4 rounded-xl bg-gray-600 px-4 py-2 text-white font-semibold">← Volver</button>
             {resumen.noConformes.length === 0 ? (
               <div className="bg-green-100 text-green-800 rounded-xl p-4 mb-5">
                 <p className="font-bold text-lg">✅ MANTENIMIENTO CONFORME</p>
