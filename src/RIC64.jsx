@@ -1,4 +1,3 @@
-import NavegacionResumenRIC from "./protocolos/NavegacionResumenRIC";
 import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
@@ -521,7 +520,7 @@ export default function RIC64({ setVista, personal }) {
         {etapa === 2 && (
           <div className="bg-white rounded-xl shadow p-4 space-y-4">
             <h2 className="text-xl font-bold">3. Resumen</h2>
-            <NavegacionResumenRIC etapas={ETAPAS.slice(0, -1)} irAEtapa={setEtapa} deshabilitado={Boolean(ric64Id)} />
+            <button type="button" onClick={() => setEtapa((e) => Math.max(0, e - 1))} className="mb-4 rounded-xl bg-gray-600 px-4 py-2 text-white font-semibold">← Volver</button>
 
             <div className={`border rounded-xl p-4 ${
               resumen.resultado === "CONFORME"
