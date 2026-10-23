@@ -80,3 +80,7 @@ export function vincularCorrectivoRIC(
     })
   });
 }
+
+export function cancelarPreventivoRIC(ric01Id) {
+  return solicitar(`/cancelar/${encodeURIComponent(ric01Id)}`, { method: "DELETE" });
+}
