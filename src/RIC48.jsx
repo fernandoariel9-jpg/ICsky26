@@ -124,6 +124,19 @@ export default function RIC48({ setVista, personal }) {
         const tarea = JSON.parse(raw);
         const ric01Id = tarea.ric01_id || tarea.id || "";
 
+        if (!ric01Id) throw new Error("La tarea no tiene ID. Volvé a Equipos para iniciar un mantenimiento válido.");
+        const verificacion = await fetch(`${API_URL.Base}/api/ric-preventivos/estado/${encodeURIComponent(ric01Id)}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("personal_token") || ""}` }
+        });
+        const estadoTarea = await verificacion.json().catch(() => ({}));
+        if (!verificacion.ok) throw new Error(estadoTarea.error || "No se pudo verificar la tarea.");
+        if (String(estadoTarea.tarea?.tipo_mantenimiento || "").toLowerCase() !== "preventivo" || estadoTarea.tarea?.fin) {
+          throw new Error("Esta tarea ya no es un mantenimiento preventivo abierto.");
+        }
+        if (String(estadoTarea.tarea.numero_serie || "") !== String(tarea.numero_serie || "")) {
+          throw new Error("La tarea no corresponde al equipo seleccionado. Volvé a Equipos.");
+        }
+
         let equipo = null;
         if (tarea.numero_serie) {
           const respuesta = await fetch(`${API_URL.BuscarEquipo}/${encodeURIComponent(tarea.numero_serie)}`);
@@ -428,7 +441,7 @@ export default function RIC48({ setVista, personal }) {
 
   if (cargando) return <div className="p-6 text-center"><p className="text-lg">⏳ Cargando datos del equipo...</p></div>;
 
-  if (error && !datos.numero_serie) return <div className="p-6 max-w-xl mx-auto"><div className="bg-red-100 text-red-700 p-4 rounded-xl">⚠️ {error}</div><button onClick={() => setVista("equipos")} className="w-full bg-gray-500 text-white rounded-xl p-3 mt-4">← Volver</button></div>;
+  if (error && (!datos.numero_serie || !borradorCargado)) return <div className="p-6 max-w-xl mx-auto"><div className="bg-red-100 text-red-700 p-4 rounded-xl">⚠️ {error}</div><button onClick={() => setVista("equipos")} className="w-full bg-gray-500 text-white rounded-xl p-3 mt-4">← Volver</button></div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
