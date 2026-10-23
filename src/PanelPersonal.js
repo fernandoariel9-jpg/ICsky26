@@ -337,8 +337,8 @@ export default function PanelPersonal({ personal, onLogout }) {
 
       {vista === "ric44" && <RIC44 setVista={setVista} personal={personal} />}
 
-      {ric48Montado && (
-        <div style={{ display: vista === "ric48" ? "block" : "none" }}>
+      {vista === "ric48" && (
+        <div>
           <RIC48 setVista={setVista} personal={personal} />
         </div>
       )}
