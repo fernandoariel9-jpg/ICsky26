@@ -54,9 +54,36 @@ function Main() {
   const iniciarPersonal = (datos) => {
     sessionStorage.removeItem("sky26_sesion_usuario");
     sessionStorage.setItem("sky26_sesion_personal", JSON.stringify(datos));
+    if (datos?.token) localStorage.setItem("personal_token", datos.token);
     setUsuario(null);
     setPersonal(datos);
   };
+
+  useEffect(() => {
+    if (!personal) return;
+    const token = personal.token || localStorage.getItem("personal_token");
+    if (!token) {
+      sessionStorage.removeItem("sky26_sesion_personal");
+      sessionStorage.removeItem("sky26_vista_personal");
+      setPersonal(null);
+      setModo("loginPersonal");
+      toast.info("Ingresá nuevamente para utilizar los protocolos RIC.");
+      return;
+    }
+
+    // Verificar la sesión al recuperarla y evitar peticiones con un JWT vencido.
+    fetch("https://sky26.onrender.com/personal/me", {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then((res) => {
+      if (res.status !== 401 && res.status !== 403) return;
+      sessionStorage.removeItem("sky26_sesion_personal");
+      sessionStorage.removeItem("sky26_vista_personal");
+      localStorage.removeItem("personal_token");
+      setPersonal(null);
+      setModo("loginPersonal");
+      toast.info("La sesión del personal venció. Ingresá nuevamente para continuar.");
+    }).catch((error) => console.warn("No se pudo comprobar la sesión de personal:", error));
+  }, [personal]);
 
   useEffect(() => {
     window.setModoGlobal = setModo;
@@ -66,6 +93,7 @@ function Main() {
     sessionStorage.removeItem("sky26_sesion_usuario");
     sessionStorage.removeItem("sky26_sesion_personal");
     sessionStorage.removeItem("sky26_vista_personal");
+    localStorage.removeItem("personal_token");
     setUsuario(null);
     setPersonal(null);
     setModo("menu");
