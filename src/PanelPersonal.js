@@ -102,26 +102,6 @@ export default function PanelPersonal({ personal, onLogout }) {
   useEffect(() => {
     sessionStorage.setItem("sky26_vista_personal", vista);
   }, [vista]);
-  const [ric10Montado, setRic10Montado] = useState(false);
-  const [ric29Montado, setRic29Montado] = useState(false);
-  const [ric39Montado, setRic39Montado] = useState(false);
-  const [ric48Montado, setRic48Montado] = useState(false);
-  const [ric56Montado, setRic56Montado] = useState(false);
-  const [ric59Montado, setRic59Montado] = useState(false);
-  const [ric64Montado, setRic64Montado] = useState(false);
-  const [ric71Montado, setRic71Montado] = useState(false);
-
-  useEffect(() => {
-    if (vista === "ric10") setRic10Montado(true);
-    if (vista === "ric29") setRic29Montado(true);
-    if (vista === "ric39") setRic39Montado(true);
-    if (vista === "ric48") setRic48Montado(true);
-    if (vista === "ric56") setRic56Montado(true);
-    if (vista === "ric59") setRic59Montado(true);
-    if (vista === "ric64") setRic64Montado(true);
-    if (vista === "ric71") setRic71Montado(true);
-  }, [vista]);
-
   const leerCampoEquipo = (contenedor, etiqueta) => {
     const parrafo = [...contenedor.querySelectorAll("p")].find((p) =>
       p.textContent.trim().startsWith(`${etiqueta}:`)
@@ -315,57 +295,25 @@ export default function PanelPersonal({ personal, onLogout }) {
       {vista === "stock" && <Stock setVista={setVista} personal={personal} />}
       {vista === "ric25" && <RIC25 setVista={setVista} personal={personal} />}
 
-      {ric10Montado && (
-        <div style={{ display: vista === "ric10" ? "block" : "none" }}>
-          <RIC10 setVista={setVista} personal={personal} />
-        </div>
-      )}
+      {vista === "ric10" && <RIC10 setVista={setVista} personal={personal} />}
 
-      {ric29Montado && (
-        <div style={{ display: vista === "ric29" ? "block" : "none" }}>
-          <RIC29 setVista={setVista} personal={personal} />
-        </div>
-      )}
+      {vista === "ric29" && <RIC29 setVista={setVista} personal={personal} />}
 
       {vista === "ric37" && <RIC37 setVista={setVista} personal={personal} />}
 
-      {ric39Montado && (
-        <div style={{ display: vista === "ric39" ? "block" : "none" }}>
-          <RIC39 setVista={setVista} personal={personal} />
-        </div>
-      )}
+      {vista === "ric39" && <RIC39 setVista={setVista} personal={personal} />}
 
       {vista === "ric44" && <RIC44 setVista={setVista} personal={personal} />}
 
-      {vista === "ric48" && (
-        <div>
-          <RIC48 setVista={setVista} personal={personal} />
-        </div>
-      )}
+      {vista === "ric48" && <RIC48 setVista={setVista} personal={personal} />}
 
-      {ric56Montado && (
-        <div style={{ display: vista === "ric56" ? "block" : "none" }}>
-          <RIC56 setVista={setVista} personal={personal} />
-        </div>
-      )}
+      {vista === "ric56" && <RIC56 setVista={setVista} personal={personal} />}
 
-      {ric59Montado && (
-        <div style={{ display: vista === "ric59" ? "block" : "none" }}>
-          <RIC59 setVista={setVista} personal={personal} />
-        </div>
-      )}
+      {vista === "ric59" && <RIC59 setVista={setVista} personal={personal} />}
 
-      {ric64Montado && (
-        <div style={{ display: vista === "ric64" ? "block" : "none" }}>
-          <RIC64 setVista={setVista} personal={personal} />
-        </div>
-      )}
+      {vista === "ric64" && <RIC64 setVista={setVista} personal={personal} />}
 
-      {ric71Montado && (
-        <div style={{ display: vista === "ric71" ? "block" : "none" }}>
-          <RIC71 setVista={setVista} personal={personal} />
-        </div>
-      )}
+      {vista === "ric71" && <RIC71 setVista={setVista} personal={personal} />}
 
       <RepuestosRICPortal vista={vista} personal={personal} />
     </>
