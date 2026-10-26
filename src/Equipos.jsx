@@ -296,6 +296,9 @@ export default function Equipos({ setVista, personal }) {
   const protocolosMantenimiento = [
     { protocolo: "RIC29", tipo: "preventivo", descripcion: "cardiodesfibrilador", vista: "ric29" },
     { protocolo: "RIC39", tipo: "preventivo", descripcion: "monitor multiparametrico", vista: "ric39" },
+    { protocolo: "RIC39", tipo: "preventivo", descripcion: "oximetro de pulso", vista: "ric39" },
+    { protocolo: "RIC39", tipo: "preventivo", descripcion: "saturometro", vista: "ric39" },
+    { protocolo: "RIC39", tipo: "preventivo", descripcion: "saturometro de pulso", vista: "ric39" },
     { protocolo: "RIC48", tipo: "preventivo", descripcion: "electrocardiografo", vista: "ric48" }
   ];
 
