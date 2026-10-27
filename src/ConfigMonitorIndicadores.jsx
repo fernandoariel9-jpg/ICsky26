@@ -7,7 +7,6 @@ const etiquetas = [
 ];
 export default function ConfigMonitorIndicadores() {
   const [config, setConfig] = useState(null);
-  const [clave, setClave] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [guardando, setGuardando] = useState(false);
   useEffect(() => {
@@ -17,19 +16,17 @@ export default function ConfigMonitorIndicadores() {
       .catch(e => setMensaje(e.message));
   }, []);
   const guardar = async () => {
-    if (!clave.trim()) { setMensaje("Ingresá la clave de administración del monitor."); return; }
     setGuardando(true);
     setMensaje("");
     try {
       const res = await fetch(`${API_URL.Base}/api/monitor-indicadores/config`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", "x-monitor-admin-key": clave },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${sessionStorage.getItem("sky26_supervision_token") || ""}` },
         body: JSON.stringify({ configuracion: config })
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "No se pudo guardar");
       setMensaje("Configuración guardada. El monitor la actualizará automáticamente.");
-      setClave("");
     } catch (e) { setMensaje(e.message); }
     finally { setGuardando(false); }
   };
@@ -47,9 +44,6 @@ export default function ConfigMonitorIndicadores() {
             </label>
           ))}
         </div>
-        <label className="block text-sm font-medium mb-1">Clave de administración del monitor</label>
-        <input type="password" autoComplete="off" value={clave} onChange={e => setClave(e.target.value)}
-          placeholder="Clave configurada en Render" className="w-full rounded-lg border p-2 mb-3" />
         <button type="button" onClick={guardar} disabled={guardando} className="bg-indigo-700 text-white rounded-lg px-4 py-2 font-semibold disabled:opacity-50">
           {guardando ? "Guardando..." : "Guardar configuración"}
         </button>
