@@ -31,37 +31,22 @@ import {
 function PanelLogin({ onLogin }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [recordar, setRecordar] = useState(false);
-  const PASS = "repliKat";
-
-  // ✅ Cargar contraseña guardada al iniciar
-  useEffect(() => {
-    const savedPass = localStorage.getItem("panelPassword");
-    if (savedPass) {
-      setPassword(savedPass);
-      setRecordar(true);
-    }
-  }, []);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      if (password === PASS) {
-        onLogin(true);
-        toast.success("Acceso concedido ✅");
-
-        // ✅ Si está marcada la casilla, guardar contraseña
-        if (recordar) {
-          localStorage.setItem("panelPassword", password);
-        } else {
-          localStorage.removeItem("panelPassword");
-        }
-      } else {
-        toast.error("Contraseña incorrecta ❌");
-      }
-      setLoading(false);
-    }, 1000);
+    try {
+      const res = await fetch(`${API_URL.Base}/api/monitor-indicadores/login`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Acceso denegado");
+      sessionStorage.setItem("sky26_supervision_token", data.token);
+      setPassword("");
+      onLogin(true);
+      toast.success("Acceso concedido ✅");
+    } catch (err) { toast.error(err.message || "No se pudo iniciar sesión"); }
+    finally { setLoading(false); }
   };
 
   return (
@@ -84,16 +69,6 @@ function PanelLogin({ onLogin }) {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-
-        <label className="flex items-center space-x-2 text-sm text-gray-600">
-          <input
-            type="checkbox"
-            checked={recordar}
-            onChange={(e) => setRecordar(e.target.checked)}
-            className="rounded border-gray-300"
-          />
-          <span>Recordar contraseña</span>
-        </label>
 
         <button type="submit" className="bg-green-500 text-white p-2 rounded-xl">
           Ingresar
@@ -1420,16 +1395,23 @@ const handleAreaClick = (areaName) => {
 
 // ---------- Wrapper ----------
 export default function Panel() {
-  const [loggedIn, setLoggedIn] = useState(
-    () => sessionStorage.getItem("sky26_sesion_supervision") === "true"
-  );
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [verificando, setVerificando] = useState(true);
   const [vista, setVista] = useState("panel");
-  const ingresar = (autorizado) => {
-    if (autorizado) sessionStorage.setItem("sky26_sesion_supervision", "true");
-    else sessionStorage.removeItem("sky26_sesion_supervision");
-    setLoggedIn(Boolean(autorizado));
-  };
+  useEffect(() => {
+    const token = sessionStorage.getItem("sky26_supervision_token");
+    if (!token) { setVerificando(false); return; }
+    fetch(`${API_URL.Base}/api/monitor-indicadores/sesion`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(r => {
+      if (!r.ok) throw new Error("vencido");
+      setLoggedIn(true);
+    }).catch(() => sessionStorage.removeItem("sky26_supervision_token"))
+      .finally(() => setVerificando(false));
+  }, []);
+  const ingresar = (autorizado) => setLoggedIn(Boolean(autorizado));
 
+  if (verificando) return <p className="p-4 text-center">Verificando sesión de supervisión...</p>;
   if (!loggedIn) return <PanelLogin onLogin={ingresar} />;
 
   if (vista === "usuario")
