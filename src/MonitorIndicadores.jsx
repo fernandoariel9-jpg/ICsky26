@@ -99,6 +99,22 @@ export default function MonitorIndicadores() {
   });
   const [error, setError] = useState("");
   const [ultimaActualizacion, setUltimaActualizacion] = useState(null);
+  const [modulos, setModulos] = useState({ estado_equipos: true, tareas_mantenimiento: true, envejecimiento_parque: true });
+  useEffect(() => {
+    let activo = true;
+    const leer = async () => {
+      try {
+        const r = await fetch(`${API_URL.Base}/api/monitor-indicadores/config`, { cache: "no-store" });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (activo && d.configuracion) setModulos(d.configuracion);
+      } catch (e) { console.error("Configuración de monitor:", e); }
+    };
+    leer();
+    const temporizador = setInterval(leer, 30000);
+    return () => { activo = false; clearInterval(temporizador); };
+  }, []);
+
 
   useEffect(() => {
     const html = document.documentElement;
@@ -346,8 +362,8 @@ export default function MonitorIndicadores() {
 
   return (
     <div className="fixed inset-0 bg-slate-950 text-white overflow-hidden">
-      <div className="absolute inset-0 grid grid-cols-[20%_80%] overflow-hidden">
-        <aside className="min-w-0 min-h-0 border-r border-white/10 bg-slate-900/95 p-2 flex flex-col overflow-hidden">
+      <div className="absolute inset-0 grid overflow-hidden" style={{ gridTemplateColumns: modulos.estado_equipos ? "20% 80%" : "0% 100%" }}>
+        <aside style={{ display: modulos.estado_equipos ? "flex" : "none" }} className="min-w-0 min-h-0 border-r border-white/10 bg-slate-900/95 p-2 flex flex-col overflow-hidden">
           <div className="flex items-center gap-2 mb-2 shrink-0">
             <img src="/logosmall_old.png" alt="Ingeniería Clínica" className="w-8 h-auto shrink-0" />
             <div className="min-w-0">
@@ -399,7 +415,7 @@ export default function MonitorIndicadores() {
 
         <main className="min-w-0 min-h-0 p-2 2xl:p-3 overflow-hidden">
           <div className="h-full w-full overflow-hidden">
-            <div className="mb-1.5">
+            <div style={{ display: modulos.tareas_mantenimiento ? "block" : "none" }}><div className="mb-1.5">
               <h2 className="text-sm 2xl:text-base font-black leading-tight">
                 Indicadores de tareas de mantenimiento
               </h2>
@@ -470,7 +486,8 @@ export default function MonitorIndicadores() {
               </div>
             </div>
 
-            <div className="mt-3 2xl:mt-4">
+            </div>
+            <div style={{ display: modulos.envejecimiento_parque ? "block" : "none" }} className="mt-3 2xl:mt-4">
               <h2 className="text-sm 2xl:text-base font-black leading-tight mb-1">
                 Envejecimiento del parque tecnológico
               </h2>
