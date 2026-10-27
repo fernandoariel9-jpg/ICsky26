@@ -1,3 +1,4 @@
+import ConfigMonitorIndicadores from "./ConfigMonitorIndicadores";
 // src/PanelLogin.js
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
@@ -560,6 +561,8 @@ const handleAreaClick = (areaName) => {
 </button>
     
       </div>
+
+      <ConfigMonitorIndicadores />
 
       {/* 📊 TABLERO DE CONTROL */}
       <div className="bg-white shadow-md rounded-xl p-4 mb-6">
