@@ -55,6 +55,7 @@ export default function EstadisticasEquipo({ equipo, className = "" }) {
   }
 
   const tmfDias = equipo.tmf?.dias ?? null;
+  const ipa = equipo.ipa ?? null;
   const fechaAlta = equipo.equipo?.fecha_alta ?? equipo.fecha_alta ?? null;
   const fechaAltaDate = fechaCalendario(fechaAlta);
   const tieneFechaAlta = Boolean(
@@ -161,7 +162,7 @@ export default function EstadisticasEquipo({ equipo, className = "" }) {
       </div>
 
       <div className="mt-2 rounded-lg border border-gray-100 bg-white px-3 py-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="rounded-lg bg-gray-50 border border-gray-100 px-3 py-3">
             <div className="text-xs font-semibold text-gray-800">
               Fecha de alta
@@ -177,6 +178,27 @@ export default function EstadisticasEquipo({ equipo, className = "" }) {
                 ? `${diasTotalesDesdeAlta} días`
                 : "Sin datos"}
             </div>
+          </div>
+
+          <div className="rounded-lg bg-gray-50 border border-gray-100 px-3 py-3">
+            <div className="text-xs font-semibold text-gray-800">IPA</div>
+            <div className="text-[10px] text-gray-500">
+              Índice de prioridad de atención
+            </div>
+            <div className="mt-2 text-base font-bold text-gray-800">
+              {ipa?.valor != null ? `${Number(ipa.valor).toFixed(1)} / 100` : "Sin clasificar"}
+            </div>
+            {ipa && (
+              <div className="mt-1 text-[10px] leading-relaxed text-gray-500"
+                title={`Riesgo clínico: ${ipa.factores.riesgo_clinico}/10 · Servicio: ${ipa.factores.servicio}/5 · Falta de respaldo: ${ipa.factores.falta_respaldo}/10`}>
+                {ipa.respaldos} respaldo(s) activo(s) del mismo tipo y servicio
+              </div>
+            )}
+            {!ipa && (
+              <div className="mt-1 text-[10px] text-amber-700">
+                Falta clasificar el tipo de equipo o el servicio.
+              </div>
+            )}
           </div>
 
           <div className="rounded-lg bg-gray-50 border border-gray-100 px-3 py-3">
