@@ -191,7 +191,14 @@ export default function EstadisticasEquipo({ equipo, className = "" }) {
             {ipa && (
               <div className="mt-1 text-[10px] leading-relaxed text-gray-500"
                 title={`Riesgo clínico: ${ipa.factores.riesgo_clinico}/10 · Servicio: ${ipa.factores.servicio}/5 · Falta de respaldo: ${ipa.factores.falta_respaldo}/10`}>
-                {ipa.respaldos} respaldo(s) activo(s) del mismo tipo y servicio
+                {ipa.respaldo_aplicable === false
+                  ? "Respaldo no aplicable a este registro"
+                  : `${ipa.respaldos} respaldo(s) activo(s) del mismo tipo y servicio`}
+              </div>
+            )}
+            {ipa?.estimado && (
+              <div className="mt-1 text-[10px] text-amber-700">
+                Puntuación provisional; pendiente de validación clínica.
               </div>
             )}
             {!ipa && (
