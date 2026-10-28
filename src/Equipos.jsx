@@ -143,7 +143,7 @@ export default function Equipos({ setVista, personal }) {
     }
     try {
       setCargandoEstadisticas(true);
-      const res = await fetch(`${API_URL.Base}/api/estadisticas/equipo/${encodeURIComponent(equipo.numero_serie)}`);
+      const res = await fetch(`${API_URL.Base}/api/estadisticas/equipo/${encodeURIComponent(equipo.numero_serie)}`, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No se pudieron obtener las estadísticas");
       setEstadisticasEquipo(data);
