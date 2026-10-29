@@ -978,7 +978,19 @@ if (busqueda.trim()) {
                 )}
 
                 <div className="flex-1">
-                  <p className="font-semibold text-base">🆔 #{t.id} — 📝 {t.tarea}</p>
+                  <p className="font-semibold text-base">🆔 #{t.id}{t.ipa != null && Number.isFinite(Number(t.ipa)) && (
+                    <span
+                      className={`ml-2 inline-block rounded px-2 py-0.5 text-xs font-bold align-middle ${
+                        Number(t.ipa) >= 85 ? "bg-red-100 text-red-700" :
+                        Number(t.ipa) >= 70 ? "bg-orange-100 text-orange-700" :
+                        Number(t.ipa) >= 45 ? "bg-yellow-100 text-yellow-800" :
+                        "bg-green-100 text-green-700"
+                      }`}
+                      title="Índice de prioridad de atención (IPA)"
+                    >
+                      IPA {Number(t.ipa).toFixed(1)}
+                    </span>
+                  )} — 📝 {t.tarea}</p>
                   <p className="text-sm text-gray-700">👤 Usuario: <span className="font-medium">{t.usuario}</span></p>
 
                   {t.movil && (
