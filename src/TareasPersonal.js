@@ -966,7 +966,14 @@ if (busqueda.trim()) {
         {tareasFiltradas.map((t) => {
           const tieneObservacion = t.observacion && t.observacion.trim() !== "";
           return (
-            <li key={t.id} className="p-3 rounded-xl shadow bg-white">
+            <li key={t.id} className={`p-3 rounded-xl shadow bg-white ${
+              t.ipa != null && Number.isFinite(Number(t.ipa))
+                ? Number(t.ipa) >= 85 ? "border-2 border-red-500"
+                : Number(t.ipa) >= 70 ? "border-2 border-orange-500"
+                : Number(t.ipa) >= 45 ? "border-2 border-yellow-500"
+                : "border-2 border-green-500"
+                : ""
+            }`}>
               <div className="flex items-start space-x-3">
                 {t.imagen && (
                   <img
