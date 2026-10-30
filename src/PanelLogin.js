@@ -128,6 +128,10 @@ const [resumenTiempos, setResumenTiempos] = useState([]);
   // Cargar tareas
   useEffect(() => {
     fetchTareas();
+    const intervalo = setInterval(() => {
+      if (!document.hidden) fetchTareas();
+    }, 5 * 60 * 1000);
+    return () => clearInterval(intervalo);
   }, []);
 
   useEffect(() => {
@@ -152,6 +156,10 @@ const [resumenTiempos, setResumenTiempos] = useState([]);
   }
 
   cargarResumenTiempos();
+  const intervalo = setInterval(() => {
+    if (!document.hidden) cargarResumenTiempos();
+  }, 5 * 60 * 1000);
+  return () => clearInterval(intervalo);
 }, []);
 
   useEffect(() => {
@@ -194,7 +202,7 @@ const [resumenTiempos, setResumenTiempos] = useState([]);
 }, [resumenTiempos]);
 
   useEffect(() => {
-  fetch(API_URL.ResumenTareas)
+  const cargarResumenTareas = () => fetch(API_URL.ResumenTareas)
     .then((res) => res.json())
     .then((data) => {
       const parsed = data.map((r) => ({
@@ -323,6 +331,11 @@ const datosPromediosConTendencia = (() => {
     .catch((err) =>
       console.error("❌ Error al obtener resumen de tareas:", err)
     );
+  cargarResumenTareas();
+  const intervalo = setInterval(() => {
+    if (!document.hidden) cargarResumenTareas();
+  }, 5 * 60 * 1000);
+  return () => clearInterval(intervalo);
 }, []);
 
   const fetchTareas = async () => {
