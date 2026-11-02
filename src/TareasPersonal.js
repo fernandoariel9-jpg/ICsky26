@@ -1024,7 +1024,7 @@ if (busqueda.trim()) {
                   {t.marca_modelo && <p className="text-sm text-green-600 mt-1">🔧 Marca: {t.marca_modelo}</p>}
                   {t.numero_serie && <p className="text-sm text-green-600 mt-1">🔧 N/S: {t.numero_serie}</p>}
 
-                  {!t.numero_serie && !t.fin && (
+                  {!t.fin && (
                     <RepuestosRIC
                       personal={personal}
                       tarea={t}
