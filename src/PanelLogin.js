@@ -899,10 +899,29 @@ const handleAreaClick = (areaName) => {
         .map((ta) => (
           <li
             key={ta.id}
-            className="border-b pb-1 relative group text-black"
+            className={`border-b pb-1 relative group text-black rounded-lg ${
+              ta.ipa != null && Number.isFinite(Number(ta.ipa))
+                ? Number(ta.ipa) >= 85 ? "border-2 border-red-500 px-2 py-1"
+                  : Number(ta.ipa) >= 70 ? "border-2 border-orange-500 px-2 py-1"
+                  : Number(ta.ipa) >= 45 ? "border-2 border-yellow-500 px-2 py-1"
+                  : "border-2 border-green-500 px-2 py-1"
+                : ""
+            }`}
           >
             <p>
-              #{ta.id} — <strong>{ta.asignado || "No asignado"}</strong> —{" "}
+              #{ta.id} {ta.ipa != null && Number.isFinite(Number(ta.ipa)) && (
+                      <span
+                        className={`ml-2 inline-block rounded px-2 py-0.5 text-xs font-bold align-middle ${
+                          Number(ta.ipa) >= 85 ? "bg-red-100 text-red-700" :
+                          Number(ta.ipa) >= 70 ? "bg-orange-100 text-orange-700" :
+                          Number(ta.ipa) >= 45 ? "bg-yellow-100 text-yellow-800" :
+                          "bg-green-100 text-green-700"
+                        }`}
+                        title="Índice de prioridad de atención (IPA)"
+                      >
+                        IPA {Number(ta.ipa).toFixed(1)}
+                      </span>
+                    )} — <strong>{ta.asignado || "No asignado"}</strong> —{" "}
               {ta.servicio || "Sin servicio"}
             </p>
 
@@ -1171,7 +1190,14 @@ const handleAreaClick = (areaName) => {
           {tareasPorTab.map((t) => (
             <motion.li
               key={t.id}
-              className="p-3 rounded-xl shadow bg-white"
+              className={`p-3 rounded-xl shadow bg-white ${
+                t.ipa != null && Number.isFinite(Number(t.ipa))
+                  ? Number(t.ipa) >= 85 ? "border-2 border-red-500"
+                    : Number(t.ipa) >= 70 ? "border-2 border-orange-500"
+                    : Number(t.ipa) >= 45 ? "border-2 border-yellow-500"
+                    : "border-2 border-green-500"
+                  : ""
+              }`}
               whileHover={{ scale: 1.02 }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1188,7 +1214,19 @@ const handleAreaClick = (areaName) => {
                 )}
                 <div>
                   <p className="font-semibold">
-                    #{t.id} — {t.usuario}: {t.tarea}
+                    #{t.id} {t.ipa != null && Number.isFinite(Number(t.ipa)) && (
+                      <span
+                        className={`ml-2 inline-block rounded px-2 py-0.5 text-xs font-bold align-middle ${
+                          Number(t.ipa) >= 85 ? "bg-red-100 text-red-700" :
+                          Number(t.ipa) >= 70 ? "bg-orange-100 text-orange-700" :
+                          Number(t.ipa) >= 45 ? "bg-yellow-100 text-yellow-800" :
+                          "bg-green-100 text-green-700"
+                        }`}
+                        title="Índice de prioridad de atención (IPA)"
+                      >
+                        IPA {Number(t.ipa).toFixed(1)}
+                      </span>
+                    )} — {t.usuario}: {t.tarea}
                   </p>
                   <p className="text-sm text-gray-700 mt-1">
                     🏢 Área: <span className="font-medium">{t.area || "—"}</span>
