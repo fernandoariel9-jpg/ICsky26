@@ -26,6 +26,7 @@ export function useRIC37Preventivo({ codigo, ric01Id, setVista }) {
   const [mostrarAviso, setMostrarAviso] = useState(false);
   const [noAplica, setNoAplica] = useState(false);
   const [motivoNoAplica, setMotivoNoAplica] = useState("");
+  const [noAplicaConfirmado, setNoAplicaConfirmado] = useState(false);
 
   const claveNoAplica = useMemo(
     () => ric01Id ? `preventivo:ric37-no-aplica:${ric01Id}` : "",
@@ -68,6 +69,7 @@ export function useRIC37Preventivo({ codigo, ric01Id, setVista }) {
       const data = JSON.parse(raw);
       setNoAplica(Boolean(data.noAplica));
       setMotivoNoAplica(String(data.motivo || ""));
+      setNoAplicaConfirmado(Boolean(data.confirmado));
     } catch (error) {
       console.warn("No se pudo recuperar la excepción RIC37:", error);
     }
@@ -87,9 +89,9 @@ export function useRIC37Preventivo({ codigo, ric01Id, setVista }) {
 
     localStorage.setItem(
       claveNoAplica,
-      JSON.stringify({ noAplica, motivo: motivoNoAplica })
+      JSON.stringify({ noAplica, motivo: motivoNoAplica, confirmado: noAplicaConfirmado })
     );
-  }, [requerido, claveNoAplica, realizado, noAplica, motivoNoAplica]);
+  }, [requerido, claveNoAplica, realizado, noAplica, motivoNoAplica, noAplicaConfirmado]);
 
   useEffect(() => {
     const actualizar = (event) => {
@@ -151,6 +153,8 @@ export function useRIC37Preventivo({ codigo, ric01Id, setVista }) {
     setNoAplica,
     motivoNoAplica,
     setMotivoNoAplica,
+    noAplicaConfirmado,
+    setNoAplicaConfirmado,
     abrirRIC37,
     validarAntesDeGuardar,
     agregarAObservaciones,
@@ -170,6 +174,8 @@ export function BloqueRIC37Preventivo({ control }) {
     setNoAplica,
     motivoNoAplica,
     setMotivoNoAplica,
+    noAplicaConfirmado,
+    setNoAplicaConfirmado,
     abrirRIC37
   } = control;
 
@@ -184,7 +190,7 @@ export function BloqueRIC37Preventivo({ control }) {
     );
   }
 
-  if (noAplica && motivoNoAplica.trim()) {
+  if (noAplica && noAplicaConfirmado && motivoNoAplica.trim()) {
     return (
       <div className="mt-4 rounded-xl border border-gray-300 bg-gray-50 p-4">
         <p className="font-bold text-gray-800">☑ RIC37 - No aplica</p>
@@ -196,6 +202,7 @@ export function BloqueRIC37Preventivo({ control }) {
           onClick={() => {
             setNoAplica(false);
             setMotivoNoAplica("");
+            setNoAplicaConfirmado(false);
           }}
           className="mt-3 text-sm text-blue-700 underline"
         >
@@ -254,6 +261,14 @@ export function BloqueRIC37Preventivo({ control }) {
                 className="w-full border rounded-xl p-3 bg-white"
                 placeholder="Motivo obligatorio..."
               />
+              <button
+                type="button"
+                disabled={!motivoNoAplica.trim()}
+                onClick={() => setNoAplicaConfirmado(true)}
+                className="mt-3 w-full rounded-xl bg-indigo-700 px-4 py-2 font-semibold text-white disabled:bg-gray-300"
+              >
+                Confirmar que no aplica
+              </button>
               {!motivoNoAplica.trim() && (
                 <p className="text-xs text-red-600 mt-1">
                   Debe indicar el motivo para continuar sin RIC37.
