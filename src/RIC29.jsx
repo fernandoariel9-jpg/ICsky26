@@ -1394,7 +1394,8 @@ const volver = () => {
   conforme:
     e.noAplica
       ? null
-      : e.conforme
+      : e.conforme,
+  no_aplica: Boolean(e.noAplica)
 })),
         // -----------------------------------------
         // CARGA
