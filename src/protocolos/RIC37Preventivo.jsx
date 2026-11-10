@@ -132,7 +132,7 @@ export function useRIC37Preventivo({ codigo, ric01Id, setVista }) {
 
   const textoObservacion = realizado
     ? ""
-    : noAplica && motivoNoAplica.trim()
+    : noAplica && noAplicaConfirmado && motivoNoAplica.trim()
       ? `RIC37 - Ensayo de seguridad eléctrica: NO APLICA. Motivo: ${motivoNoAplica.trim()}`
       : "";
 
