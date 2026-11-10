@@ -124,7 +124,7 @@ export function useRIC37Preventivo({ codigo, ric01Id, setVista }) {
   const validarAntesDeGuardar = () => {
     if (!requerido || realizado) return true;
 
-    if (noAplica && motivoNoAplica.trim()) return true;
+    if (noAplica && noAplicaConfirmado && motivoNoAplica.trim()) return true;
 
     setMostrarAviso(true);
     return false;
@@ -244,7 +244,7 @@ export function BloqueRIC37Preventivo({ control }) {
             <input
               type="checkbox"
               checked={noAplica}
-              onChange={(e) => setNoAplica(e.target.checked)}
+              onChange={(e) => { setNoAplica(e.target.checked); setNoAplicaConfirmado(false); if (!e.target.checked) setMotivoNoAplica(""); }}
             />
             No aplica
           </label>
