@@ -1,4 +1,5 @@
 import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
+import { recuperarBorradorRIC, useAutoguardadoRIC } from "./protocolos/MotorRIC";
 import { useState, useEffect } from "react";
 import { API_URL } from "./config";
 import { BloqueRIC37Preventivo, useRIC37Preventivo } from "./protocolos/RIC37Preventivo";
@@ -264,37 +265,41 @@ export default function RIC29({ setVista, personal }) {
 
   useEffect(() => {
     if (!datos.ric01_id || borradorRecuperado) return;
-    try {
-      const raw = localStorage.getItem(claveBorradorRIC29(datos.ric01_id));
-      if (raw) {
-        const b = JSON.parse(raw);
-        if (Number.isInteger(b.etapa)) setEtapa(b.etapa);
-        if (b.inspecciones) setInspecciones(b.inspecciones);
-        if (b.energia) setEnergia(b.energia);
-        if (Number.isInteger(b.energiaActual)) setEnergiaActual(b.energiaActual);
-        if (b.carga) setCarga(b.carga);
-        if (b.bateria) setBateria(b.bateria);
-        if (Number.isInteger(b.bateriaActual)) setBateriaActual(b.bateriaActual);
-        if (b.sincronismo) setSincronismo(b.sincronismo);
-        if (b.monitorizacion) setMonitorizacion(b.monitorizacion);
-        if (typeof b.observaciones === "string") setObservaciones(b.observaciones);
-        if (typeof b.observacionesInspecciones === "string") setObservacionesInspecciones(b.observacionesInspecciones);
+    let cancelado = false;
+    (async () => {
+      try {
+        const { datos: b } = await recuperarBorradorRIC({
+          ric01Id: datos.ric01_id, codigo: "RIC29", claveLocal: claveBorradorRIC29(datos.ric01_id)
+        });
+        if (cancelado) return;
+        if (b) {
+          if (Number.isInteger(b.etapa)) setEtapa(b.etapa);
+          if (b.inspecciones) setInspecciones(b.inspecciones);
+          if (b.energia) setEnergia(b.energia);
+          if (Number.isInteger(b.energiaActual)) setEnergiaActual(b.energiaActual);
+          if (b.carga) setCarga(b.carga);
+          if (b.bateria) setBateria(b.bateria);
+          if (Number.isInteger(b.bateriaActual)) setBateriaActual(b.bateriaActual);
+          if (b.sincronismo) setSincronismo(b.sincronismo);
+          if (b.monitorizacion) setMonitorizacion(b.monitorizacion);
+          if (typeof b.observaciones === "string") setObservaciones(b.observaciones);
+          if (typeof b.observacionesInspecciones === "string") setObservacionesInspecciones(b.observacionesInspecciones);
+        }
+      } catch (error) {
+        if (!cancelado) console.error("No se pudo recuperar el borrador RIC29:", error);
+      } finally {
+        if (!cancelado) setBorradorRecuperado(true);
       }
-    } catch (error) {
-      console.error("No se pudo recuperar el borrador RIC29:", error);
-    }
-    setBorradorRecuperado(true);
+    })();
+    return () => { cancelado = true; };
   }, [datos.ric01_id, borradorRecuperado]);
 
-  useEffect(() => {
-    if (!borradorRecuperado || !datos.ric01_id || ric29Id) return;
-    localStorage.setItem(claveBorradorRIC29(datos.ric01_id), JSON.stringify({
-      etapa, inspecciones, energia, energiaActual, carga, bateria,
-      bateriaActual, sincronismo, monitorizacion, observaciones, observacionesInspecciones
-    }));
-  }, [borradorRecuperado, datos.ric01_id, ric29Id, etapa, inspecciones,
-    energia, energiaActual, carga, bateria, bateriaActual, sincronismo,
-    monitorizacion, observaciones, observacionesInspecciones]);
+  useAutoguardadoRIC({
+    ric01Id: datos.ric01_id, codigo: "RIC29",
+    datos: { etapa, inspecciones, energia, energiaActual, carga, bateria, bateriaActual, sincronismo, monitorizacion, observaciones, observacionesInspecciones },
+    claveLocal: claveBorradorRIC29,
+    habilitado: borradorRecuperado && !ric29Id
+  });
 
   // =====================================================
   // CARGAR DATOS DEL EQUIPO
