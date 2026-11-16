@@ -1,4 +1,5 @@
 import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
+import { recuperarBorradorRIC, useAutoguardadoRIC } from "./protocolos/MotorRIC";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
 import {
@@ -103,50 +104,36 @@ export default function RIC71({ setVista, personal }) {
 
   useEffect(() => {
     if (!datos.ric01_id || borradorCargado) return;
-
-    try {
-      const raw = localStorage.getItem(claveBorrador(datos.ric01_id));
-      if (raw) {
-        const borrador = JSON.parse(raw);
-        if (Number.isInteger(borrador.etapa)) setEtapa(Math.min(borrador.etapa, 2));
-        if (Number.isInteger(borrador.indiceAccion)) setIndiceAccion(borrador.indiceAccion);
-        if (Number.isInteger(borrador.indiceVerificacion)) setIndiceVerificacion(borrador.indiceVerificacion);
-        if (Array.isArray(borrador.acciones)) setAcciones(borrador.acciones);
-        if (Array.isArray(borrador.verificaciones)) setVerificaciones(borrador.verificaciones);
-        if (typeof borrador.observaciones === "string") setObservaciones(borrador.observaciones);
+    let cancelado = false;
+    (async () => {
+      try {
+        const { datos: borrador } = await recuperarBorradorRIC({
+          ric01Id: datos.ric01_id, codigo: "RIC71", claveLocal: claveBorrador(datos.ric01_id)
+        });
+        if (cancelado) return;
+        if (borrador) {
+          if (Number.isInteger(borrador.etapa)) setEtapa(Math.min(borrador.etapa, 2));
+          if (Number.isInteger(borrador.indiceAccion)) setIndiceAccion(borrador.indiceAccion);
+          if (Number.isInteger(borrador.indiceVerificacion)) setIndiceVerificacion(borrador.indiceVerificacion);
+          if (Array.isArray(borrador.acciones)) setAcciones(borrador.acciones);
+          if (Array.isArray(borrador.verificaciones)) setVerificaciones(borrador.verificaciones);
+          if (typeof borrador.observaciones === "string") setObservaciones(borrador.observaciones);
+        }
+      } catch (err) {
+        if (!cancelado) setError("No se pudo recuperar el avance RIC71: " + err.message);
+      } finally {
+        if (!cancelado) setBorradorCargado(true);
       }
-    } catch (err) {
-      console.error("Error cargando borrador RIC71:", err);
-    } finally {
-      setBorradorCargado(true);
-    }
+    })();
+    return () => { cancelado = true; };
   }, [datos.ric01_id, borradorCargado]);
 
-  useEffect(() => {
-    if (!borradorCargado || !datos.ric01_id || ric71Id) return;
-
-    localStorage.setItem(
-      claveBorrador(datos.ric01_id),
-      JSON.stringify({
-        etapa,
-        indiceAccion,
-        indiceVerificacion,
-        acciones,
-        verificaciones,
-        observaciones
-      })
-    );
-  }, [
-    borradorCargado,
-    datos.ric01_id,
-    ric71Id,
-    etapa,
-    indiceAccion,
-    indiceVerificacion,
-    acciones,
-    verificaciones,
-    observaciones
-  ]);
+  useAutoguardadoRIC({
+    ric01Id: datos.ric01_id, codigo: "RIC71",
+    datos: { etapa, indiceAccion, indiceVerificacion, acciones, verificaciones, observaciones },
+    claveLocal: claveBorrador,
+    habilitado: borradorCargado && !ric71Id
+  });
 
   const accionActual = acciones[indiceAccion];
   const verificacionActual = verificaciones[indiceVerificacion];
