@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { guardarAvanceRIC, recuperarAvanceRIC } from "./apiPreventivos";
 
 /**
@@ -22,4 +23,38 @@ export async function guardarBorradorRIC({
   if (!datos || typeof datos !== "object") throw new Error("Borrador inválido.");
   if (claveLocal) localStorage.setItem(claveLocal, JSON.stringify(datos));
   return guardarAvanceRIC(ric01Id, codigo, datos, estado);
+}
+
+
+// Autoguardado común para todos los protocolos RIC.
+// Mantiene una copia local inmediata y sincroniza PostgreSQL con debounce.
+export function useAutoguardadoRIC({
+  ric01Id,
+  codigo,
+  datos,
+  claveLocal,
+  habilitado = true,
+  demora = 700
+}) {
+  const serializado = JSON.stringify(datos ?? null);
+
+  useEffect(() => {
+    if (!habilitado || !ric01Id || !serializado || serializado === "null") return;
+
+    try {
+      if (claveLocal) localStorage.setItem(claveLocal(ric01Id), serializado);
+    } catch (error) {
+      console.error(`No se pudo guardar el respaldo local de ${codigo}:`, error);
+    }
+
+    const timer = window.setTimeout(async () => {
+      try {
+        await guardarAvanceRIC(ric01Id, codigo, JSON.parse(serializado));
+      } catch (error) {
+        console.error(`No se pudo sincronizar el avance de ${codigo} con PostgreSQL:`, error);
+      }
+    }, demora);
+
+    return () => window.clearTimeout(timer);
+  }, [ric01Id, codigo, serializado, claveLocal, habilitado, demora]);
 }
