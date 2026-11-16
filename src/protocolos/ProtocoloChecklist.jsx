@@ -130,14 +130,6 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
     habilitado: borradorCargado && !protocoloId
   });
 
-  useEffect(() => {
-    if (!borradorCargado || !datos.ric01_id || protocoloId) return;
-    localStorage.setItem(
-      claveBorrador(datos.ric01_id),
-      JSON.stringify({ etapa, indiceActual, puntos, enUso, observaciones })
-    );
-  }, [borradorCargado, datos.ric01_id, protocoloId, etapa, indiceActual, puntos, enUso, observaciones]);
-
   const guardarAvanceManual = async () => {
     try {
       await guardarAvance();
