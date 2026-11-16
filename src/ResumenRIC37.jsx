@@ -96,35 +96,41 @@ export default function ResumenRIC37({ id, onCerrar }) {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border shadow-sm p-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-3">Determinaciones</h3>
-                {datos.determinaciones?.length ? (
-                  <div className="space-y-3">
-                    {datos.determinaciones.map((d) => (
-                      <div key={d.id} className="border rounded-xl p-3 bg-gray-50">
-                        <div className="flex flex-col md:flex-row md:justify-between gap-2">
-                          <div>
-                            <p className="font-semibold text-gray-800">{d.nombre || d.determinacion || "Determinación"}</p>
-                            {d.determinacion && <p className="text-xs text-gray-500">{d.determinacion}</p>}
-                          </div>
-                          <span className={`font-bold ${d.no_aplica ? "text-gray-500" : d.conforme === true ? "text-green-600" : d.conforme === false ? "text-red-600" : "text-gray-600"}`}>
-                            {d.no_aplica ? "NO APLICA" : d.conforme === true ? "✓ CONFORME" : d.conforme === false ? "✕ NO CONFORME" : "SIN RESULTADO"}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 text-sm">
-                          <p><strong>Medición:</strong> {d.medicion ?? "-"}</p>
-                          <p><strong>Rango:</strong> {d.rango_aceptacion ?? "-"}</p>
-                        </div>
-                        {d.observaciones && (
-                          <p className="text-sm mt-2 whitespace-pre-wrap"><strong>Observaciones:</strong> {d.observaciones}</p>
-                        )}
+              {(() => {
+                const registros = datos.determinaciones || [];
+                const determinaciones = registros.filter(d => (d.tipo_registro || "DETERMINACION") !== "PARTE_APLICABLE");
+                const partesAplicables = registros.filter(d => d.tipo_registro === "PARTE_APLICABLE");
+                const renderRegistro = (d, index, esParte = false) => (
+                  <div key={d.id || `${esParte ? "parte" : "det"}-${index}`} className="border rounded-xl p-3 bg-gray-50">
+                    <div className="flex flex-col md:flex-row md:justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-gray-800">{esParte ? `Medición ${d.numero_medicion || index + 1} - Parte aplicable` : d.nombre || d.determinacion || "Determinación"}</p>
+                        {d.determinacion && !esParte && <p className="text-xs text-gray-500">{d.determinacion}</p>}
                       </div>
-                    ))}
+                      <span className={`font-bold ${d.no_aplica ? "text-gray-500" : d.conforme === true ? "text-green-600" : d.conforme === false ? "text-red-600" : "text-gray-600"}`}>
+                        {d.no_aplica ? "NO APLICA" : d.conforme === true ? "✓ CONFORME" : d.conforme === false ? "✕ NO CONFORME" : "SIN RESULTADO"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 text-sm">
+                      <p><strong>Medición:</strong> {d.medicion ?? "-"}</p>
+                      <p><strong>Rango:</strong> {d.rango_aceptacion ?? "-"}</p>
+                    </div>
+                    {d.observaciones && <p className="text-sm mt-2 whitespace-pre-wrap"><strong>Observaciones:</strong> {d.observaciones}</p>}
                   </div>
-                ) : (
-                  <p className="text-gray-500">No hay determinaciones registradas.</p>
-                )}
-              </div>
+                );
+                return (
+                  <>
+                    <div className="bg-white rounded-xl border shadow-sm p-4">
+                      <h3 className="text-lg font-bold text-gray-800 mb-3">Determinaciones</h3>
+                      {determinaciones.length ? <div className="space-y-3">{determinaciones.map((d, i) => renderRegistro(d, i))}</div> : <p className="text-gray-500">No hay determinaciones registradas.</p>}
+                    </div>
+                    <div className="bg-white rounded-xl border shadow-sm p-4">
+                      <h3 className="text-lg font-bold text-gray-800 mb-3">Corriente de fuga de partes aplicables</h3>
+                      {partesAplicables.length ? <div className="space-y-3">{partesAplicables.map((d, i) => renderRegistro(d, i, true))}</div> : <p className="text-gray-500">No hay mediciones de partes aplicables registradas.</p>}
+                    </div>
+                  </>
+                );
+              })()}
 
               {datos.observaciones && (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
