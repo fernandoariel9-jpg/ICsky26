@@ -1,4 +1,4 @@
-import { recuperarBorradorRIC, guardarBorradorRIC } from "./protocolos/MotorRIC";
+import { recuperarBorradorRIC, guardarBorradorRIC, useAutoguardadoRIC } from "./protocolos/MotorRIC";
 import { cancelarPreventivoRIC } from "./protocolos/apiPreventivos";
 import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
@@ -186,29 +186,16 @@ export default function RIC48({ setVista, personal }) {
     })();
   }, [personal]);
 
-  useEffect(() => {
-    if (!borradorCargado || cargando || !datos.ric01_id || ric48Id) return;
-    localStorage.setItem(
-      claveBorrador(datos.ric01_id),
-      JSON.stringify({
-        etapa,
-        inspecciones,
-        frecuencias,
-        frecuenciaActual,
-        amplitudes,
-        amplitudActual,
-        gruposOnda,
-        grupoActual,
-        artefactos,
-        artefactoActual,
-        formasOnda,
-        formaActual,
-        segmentoST,
-        stActual,
-        observaciones
-      })
-    );
-  }, [borradorCargado, cargando, datos.ric01_id, ric48Id, etapa, inspecciones, frecuencias, frecuenciaActual, amplitudes, amplitudActual, gruposOnda, grupoActual, artefactos, artefactoActual, formasOnda, formaActual, segmentoST, stActual, observaciones]);
+  useAutoguardadoRIC({
+    ric01Id: datos.ric01_id, codigo: "RIC48",
+    datos: {
+      etapa, inspecciones, frecuencias, frecuenciaActual, amplitudes,
+      amplitudActual, gruposOnda, grupoActual, artefactos, artefactoActual,
+      formasOnda, formaActual, segmentoST, stActual, observaciones
+    },
+    claveLocal: claveBorrador,
+    habilitado: borradorCargado && !cargando && !ric48Id
+  });
 
   const resumen = useMemo(() => {
     const inspeccionesEvaluadas = [inspecciones.limpieza_exterior, inspecciones.papel_registro, inspecciones.estado_cables];
