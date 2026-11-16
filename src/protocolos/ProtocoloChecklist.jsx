@@ -92,9 +92,17 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
     if (!datos.ric01_id || borradorCargado) return;
     let cancelado = false;
     (async () => {
+      let remoto = null;
       try {
-        const remoto = await recuperarAvanceRIC(datos.ric01_id);
-        if (cancelado) return;
+        remoto = await recuperarAvanceRIC(datos.ric01_id);
+      } catch (err) {
+        if (!cancelado) {
+          console.warn(`No se pudo recuperar el avance ${codigo} desde PostgreSQL:`, err);
+          setErrorLocal("No se pudo consultar PostgreSQL; se intentará recuperar el respaldo local.");
+        }
+      }
+      if (cancelado) return;
+      try {
         if (remoto && remoto.codigo_ric !== codigo) {
           throw new Error("El avance guardado corresponde a otro protocolo RIC.");
         }
@@ -108,10 +116,10 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
           if (Number.isInteger(b.etapa)) setEtapa(Math.min(b.etapa, etapas.length - 1));
         }
       } catch (err) {
-        if (!cancelado) setErrorLocal("No se pudo recuperar el avance desde PostgreSQL: " + err.message);
-        return;
+        if (!cancelado) setErrorLocal("No se pudo recuperar el avance " + codigo + ": " + err.message);
+      } finally {
+        if (!cancelado) setBorradorCargado(true);
       }
-      if (!cancelado) setBorradorCargado(true);
     })();
     return () => { cancelado = true; };
   }, [datos.ric01_id, borradorCargado, codigo]);
