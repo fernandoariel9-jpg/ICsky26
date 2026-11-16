@@ -1,4 +1,4 @@
-import { recuperarBorradorRIC, guardarBorradorRIC } from "./protocolos/MotorRIC";
+import { recuperarBorradorRIC, guardarBorradorRIC, useAutoguardadoRIC } from "./protocolos/MotorRIC";
 import { cancelarPreventivoRIC } from "./protocolos/apiPreventivos";
 import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
@@ -193,13 +193,12 @@ export default function RIC39({ setVista, personal }) {
     })();
   }, [personal]);
 
-  useEffect(() => {
-    if (!borradorCargado || cargando || !datos.ric01_id || ric39Id) return;
-    localStorage.setItem(
-      claveBorrador(datos.ric01_id),
-      JSON.stringify({ etapa, actual, inspecciones, mediciones, observaciones })
-    );
-  }, [borradorCargado, cargando, datos.ric01_id, ric39Id, etapa, actual, inspecciones, mediciones, observaciones]);
+  useAutoguardadoRIC({
+    ric01Id: datos.ric01_id, codigo: "RIC39",
+    datos: { etapa, actual, inspecciones, mediciones, observaciones },
+    claveLocal: claveBorrador,
+    habilitado: borradorCargado && !cargando && !ric39Id
+  });
 
   const resumen = useMemo(() => {
     const evaluadas = mediciones.filter((m) => !m.no_aplica && m.conforme !== null);
