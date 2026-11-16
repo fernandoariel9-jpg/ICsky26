@@ -466,12 +466,24 @@ export default function Equipos({ setVista, personal }) {
     setVista("ric44");
   };
 
-  const continuarMantenimientoAbierto = (m) => {
+  const continuarMantenimientoAbierto = async (m) => {
+    const esPreventivo = String(m?.tipo_mantenimiento || "").trim().toLowerCase() === "preventivo";
+    const protocolo = esPreventivo
+      ? obtenerProtocoloMantenimiento("preventivo", equipo?.descripcion)
+      : null;
+
+    // Un preventivo con protocolo se retoma siempre desde su formulario RIC.
+    // Solo los preventivos sin protocolo y los correctivos usan el formulario general.
+    if (protocolo) {
+      await retomarPreventivoConRIC(m);
+      return;
+    }
+
     setMantenimientoEnEdicion(m);
     setTipoMantenimiento(m.tipo_mantenimiento || "");
     setDiagnosticoSeleccionado(m.diagnostico || "");
-    setObservaciones("");
-    setDescripcion("");
+    setObservaciones(m.solucion || "");
+    setDescripcion(m.descripcion || "");
     if ((m.tipo_mantenimiento || "").trim().toLowerCase() === "correctivo") cargarDiagnosticos();
     setMostrarForm(true);
   };
@@ -849,7 +861,7 @@ export default function Equipos({ setVista, personal }) {
         <button onClick={abrirRIC44} className="px-4 py-2 rounded-xl w-full mt-2 bg-orange-600 hover:bg-orange-700 text-white">♻️ RIC44 - Obsolescencia</button>
 
         {equipo.estado?.toLowerCase() !== "activo" && equipo.mantenimiento_id && <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2 text-sm"><p>🔧 Mantenimiento abierto #{equipo.mantenimiento_id}</p>{equipo.tipo_mantenimiento && <p>Tipo: {equipo.tipo_mantenimiento}</p>}{equipo.diagnostico && <p>Diagnóstico: {equipo.diagnostico}</p>}</div>}
-        {Array.isArray(equipo.mantenimientos_abiertos) && equipo.mantenimientos_abiertos.length > 0 && <div className="mt-3"><p className="font-bold text-gray-800 mb-2">🔧 Mantenimientos abiertos ({equipo.mantenimientos_abiertos.length})</p><div className="space-y-2">{equipo.mantenimientos_abiertos.map((m) => <div key={m.id} className="border border-yellow-300 bg-yellow-50 rounded-xl p-3 text-sm"><div className="flex justify-between items-center"><strong>Mantenimiento #{m.id}</strong><span className="text-orange-600 font-semibold">ABIERTO</span></div><p><strong>Tipo:</strong> {m.tipo_mantenimiento || "Sin especificar"}</p>{String(m.diagnostico || "").toUpperCase().includes("RIC37") && <p className="mt-1 font-semibold text-blue-800">⚡ Correctivo generado por RIC37 - Seguridad eléctrica</p>}{m.diagnostico && <p><strong>Diagnóstico:</strong> {m.diagnostico}</p>}{Array.isArray(m.consumos) && m.consumos.length > 0 && <div className="mt-2 bg-cyan-50 border border-cyan-200 rounded-lg p-2"><p className="font-bold text-cyan-900">🔩 Repuestos e insumos utilizados</p>{m.consumos.map(x => <p key={x.id} className="text-xs mt-1">{x.codigo ? x.codigo + " · " : ""}{x.descripcion} — {x.cantidad} {x.unidad || "unidad"}{x.personal_nombre ? " · " + x.personal_nombre : ""}</p>)}</div>}{Array.isArray(m.consumos) && m.consumos.length > 0 && <div className="mt-2 rounded-lg border border-cyan-200 bg-cyan-50 p-2"><p className="font-bold text-cyan-800 mb-1">🔩 Repuestos e insumos utilizados</p>{m.consumos.map(consumo => <p key={consumo.id} className="text-xs">{consumo.codigo ? `${consumo.codigo} · ` : ""}{consumo.descripcion} — {consumo.cantidad} {consumo.unidad || "unidad"}{consumo.personal_nombre ? ` · ${consumo.personal_nombre}` : ""}</p>)}</div>}{m.fecha && <p><strong>Inicio:</strong> {formatTimestamp(m.fecha)}</p>}{m.asignado && <p><strong>Técnico:</strong> {m.asignado}</p>}{String(m.tipo_mantenimiento || "").toLowerCase() === "preventivo" && <button onClick={() => retomarPreventivoConRIC(m)} className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl font-semibold">↩️ Retomar RIC preventivo original</button>}<div className="grid grid-cols-2 gap-2 mt-2"><button onClick={() => continuarMantenimientoAbierto(m)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-xl font-semibold">🔧 Continuar</button><button onClick={() => abrirFinalizarMantenimiento(m)} className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-xl font-semibold">✅ Finalizar</button><button onClick={() => abrirRepuestos(m)} className="col-span-2 bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-2 rounded-xl font-semibold">🔩 Usar repuestos</button></div></div>)}</div></div>}
+        {Array.isArray(equipo.mantenimientos_abiertos) && equipo.mantenimientos_abiertos.length > 0 && <div className="mt-3"><p className="font-bold text-gray-800 mb-2">🔧 Mantenimientos abiertos ({equipo.mantenimientos_abiertos.length})</p><div className="space-y-2">{equipo.mantenimientos_abiertos.map((m) => <div key={m.id} className="border border-yellow-300 bg-yellow-50 rounded-xl p-3 text-sm"><div className="flex justify-between items-center"><strong>Mantenimiento #{m.id}</strong><span className="text-orange-600 font-semibold">ABIERTO</span></div><p><strong>Tipo:</strong> {m.tipo_mantenimiento || "Sin especificar"}</p>{String(m.diagnostico || "").toUpperCase().includes("RIC37") && <p className="mt-1 font-semibold text-blue-800">⚡ Correctivo generado por RIC37 - Seguridad eléctrica</p>}{m.diagnostico && <p><strong>Diagnóstico:</strong> {m.diagnostico}</p>}{Array.isArray(m.consumos) && m.consumos.length > 0 && <div className="mt-2 bg-cyan-50 border border-cyan-200 rounded-lg p-2"><p className="font-bold text-cyan-900">🔩 Repuestos e insumos utilizados</p>{m.consumos.map(x => <p key={x.id} className="text-xs mt-1">{x.codigo ? x.codigo + " · " : ""}{x.descripcion} — {x.cantidad} {x.unidad || "unidad"}{x.personal_nombre ? " · " + x.personal_nombre : ""}</p>)}</div>}{Array.isArray(m.consumos) && m.consumos.length > 0 && <div className="mt-2 rounded-lg border border-cyan-200 bg-cyan-50 p-2"><p className="font-bold text-cyan-800 mb-1">🔩 Repuestos e insumos utilizados</p>{m.consumos.map(consumo => <p key={consumo.id} className="text-xs">{consumo.codigo ? `${consumo.codigo} · ` : ""}{consumo.descripcion} — {consumo.cantidad} {consumo.unidad || "unidad"}{consumo.personal_nombre ? ` · ${consumo.personal_nombre}` : ""}</p>)}</div>}{m.fecha && <p><strong>Inicio:</strong> {formatTimestamp(m.fecha)}</p>}{m.asignado && <p><strong>Técnico:</strong> {m.asignado}</p>}<div className="grid grid-cols-2 gap-2 mt-2"><button onClick={() => continuarMantenimientoAbierto(m)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-xl font-semibold">{String(m.tipo_mantenimiento || "").trim().toLowerCase() === "preventivo" && obtenerProtocoloMantenimiento("preventivo", equipo?.descripcion) ? "↩️ Retomar protocolo RIC" : "🔧 Continuar"}</button><button onClick={() => abrirFinalizarMantenimiento(m)} className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-xl font-semibold">✅ Finalizar</button><button onClick={() => abrirRepuestos(m)} className="col-span-2 bg-cyan-700 hover:bg-cyan-800 text-white px-3 py-2 rounded-xl font-semibold">🔩 Usar repuestos</button></div></div>)}</div></div>}
       </div>}
 
       {error && <p className="text-red-500 mt-3">{error}</p>}
