@@ -1,4 +1,5 @@
 import { recuperarAvanceRIC, guardarAvanceRIC } from "./apiPreventivos";
+import { useAutoguardadoRIC } from "./MotorRIC";
 import CorrectivoDerivado from "./CorrectivoDerivado";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -122,25 +123,12 @@ export default function ProtocoloChecklist({ config, setVista, personal }) {
     });
   };
 
-  // Autoguardado en PostgreSQL: el avance no depende de que el técnico
-  // recuerde pulsar el botón manual antes de salir o cambiar de pantalla.
-  useEffect(() => {
-    if (!borradorCargado || !datos.ric01_id || protocoloId) return;
-    const timer = window.setTimeout(async () => {
-      try {
-        await guardarAvanceRIC(datos.ric01_id, codigo, {
-          etapa, indiceActual, puntos, enUso, observaciones
-        });
-        setErrorLocal((actual) =>
-          actual.startsWith("No se pudo autoguardar") ? "" : actual
-        );
-      } catch (error) {
-        console.error(`Error autoguardando ${codigo}:`, error);
-        setErrorLocal("No se pudo autoguardar el avance en PostgreSQL: " + error.message);
-      }
-    }, 800);
-    return () => window.clearTimeout(timer);
-  }, [borradorCargado, datos.ric01_id, codigo, protocoloId, etapa, indiceActual, puntos, enUso, observaciones]);
+  useAutoguardadoRIC({
+    ric01Id: datos.ric01_id, codigo,
+    datos: { etapa, indiceActual, puntos, enUso, observaciones },
+    claveLocal: claveBorrador,
+    habilitado: borradorCargado && !protocoloId
+  });
 
   useEffect(() => {
     if (!borradorCargado || !datos.ric01_id || protocoloId) return;
