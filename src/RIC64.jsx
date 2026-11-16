@@ -1,4 +1,5 @@
 import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
+import { recuperarBorradorRIC, useAutoguardadoRIC } from "./protocolos/MotorRIC";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
 import { BloqueRIC37Preventivo, useRIC37Preventivo } from "./protocolos/RIC37Preventivo";
@@ -149,27 +150,26 @@ export default function RIC64({ setVista, personal }) {
         }));
 
         if (ric01Id) {
-          const borradorRaw = localStorage.getItem(claveBorrador(ric01Id));
-          if (borradorRaw) {
-            const borrador = JSON.parse(borradorRaw);
+          const { datos: borrador } = await recuperarBorradorRIC({
+            ric01Id, codigo: "RIC64", claveLocal: claveBorrador(ric01Id)
+          });
+          if (borrador) {
             if (Number.isInteger(borrador.etapa)) setEtapa(Math.min(borrador.etapa, 2));
             if (Number.isInteger(borrador.temperaturaActual)) setTemperaturaActual(borrador.temperaturaActual);
             if (borrador.inspecciones) setInspecciones(borrador.inspecciones);
             if (Array.isArray(borrador.temperaturas)) {
-              setTemperaturas(
-                borrador.temperaturas.map((item, indice) => {
-                  const evaluacion = evaluarTemperatura(item.temp_seteada, item.temp_medida);
-                  return {
-                    ...crearTemperaturas()[indice],
-                    ...item,
-                    rango_min: evaluacion.rangoMin,
-                    rango_max: evaluacion.rangoMax,
-                    rango_aceptacion: evaluacion.rango,
-                    conforme: evaluacion.conforme,
-                    no_aplica: false
-                  };
-                })
-              );
+              setTemperaturas(borrador.temperaturas.map((item, indice) => {
+                const evaluacion = evaluarTemperatura(item.temp_seteada, item.temp_medida);
+                return {
+                  ...crearTemperaturas()[indice],
+                  ...item,
+                  rango_min: evaluacion.rangoMin,
+                  rango_max: evaluacion.rangoMax,
+                  rango_aceptacion: evaluacion.rango,
+                  conforme: evaluacion.conforme,
+                  no_aplica: false
+                };
+              }));
             }
             if (typeof borrador.observaciones === "string") setObservaciones(borrador.observaciones);
           }
@@ -183,13 +183,12 @@ export default function RIC64({ setVista, personal }) {
     })();
   }, [personal]);
 
-  useEffect(() => {
-    if (!borradorCargado || cargando || !datos.ric01_id || ric64Id) return;
-    localStorage.setItem(
-      claveBorrador(datos.ric01_id),
-      JSON.stringify({ etapa, temperaturaActual, inspecciones, temperaturas, observaciones })
-    );
-  }, [borradorCargado, cargando, datos.ric01_id, ric64Id, etapa, temperaturaActual, inspecciones, temperaturas, observaciones]);
+  useAutoguardadoRIC({
+    ric01Id: datos.ric01_id, codigo: "RIC64",
+    datos: { etapa, temperaturaActual, inspecciones, temperaturas, observaciones },
+    claveLocal: claveBorrador,
+    habilitado: borradorCargado && !cargando && !ric64Id
+  });
 
   const resumen = useMemo(() => {
     const inspeccionValores = [
