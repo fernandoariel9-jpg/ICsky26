@@ -1,4 +1,5 @@
 import CorrectivoDerivado from "./protocolos/CorrectivoDerivado";
+import { recuperarBorradorRIC, useAutoguardadoRIC } from "./protocolos/MotorRIC";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
 import {
@@ -107,28 +108,36 @@ export default function RIC10({ setVista, personal }) {
 
   useEffect(() => {
     if (!datos.ric01_id || borradorCargado) return;
-    try {
-      const raw = localStorage.getItem(claveBorrador(datos.ric01_id));
-      if (raw) {
-        const b = JSON.parse(raw);
-        if (Number.isInteger(b.etapa)) setEtapa(Math.min(b.etapa, 2));
-        if (Number.isInteger(b.indiceCheck)) setIndiceCheck(b.indiceCheck);
-        if (Number.isInteger(b.indiceMed)) setIndiceMed(b.indiceMed);
-        if (Array.isArray(b.checks)) setChecks(b.checks);
-        if (Array.isArray(b.mediciones)) setMediciones(b.mediciones);
-        if (typeof b.observaciones === "string") setObservaciones(b.observaciones);
+    let cancelado = false;
+    (async () => {
+      try {
+        const { datos: b } = await recuperarBorradorRIC({
+          ric01Id: datos.ric01_id, codigo: "RIC10", claveLocal: claveBorrador(datos.ric01_id)
+        });
+        if (cancelado) return;
+        if (b) {
+          if (Number.isInteger(b.etapa)) setEtapa(Math.min(b.etapa, 2));
+          if (Number.isInteger(b.indiceCheck)) setIndiceCheck(b.indiceCheck);
+          if (Number.isInteger(b.indiceMed)) setIndiceMed(b.indiceMed);
+          if (Array.isArray(b.checks)) setChecks(b.checks);
+          if (Array.isArray(b.mediciones)) setMediciones(b.mediciones);
+          if (typeof b.observaciones === "string") setObservaciones(b.observaciones);
+        }
+      } catch (e) {
+        if (!cancelado) setError("No se pudo recuperar el avance RIC10: " + e.message);
+      } finally {
+        if (!cancelado) setBorradorCargado(true);
       }
-    } catch (e) {
-      console.error("Error cargando borrador RIC10:", e);
-    } finally {
-      setBorradorCargado(true);
-    }
+    })();
+    return () => { cancelado = true; };
   }, [datos.ric01_id, borradorCargado]);
 
-  useEffect(() => {
-    if (!borradorCargado || !datos.ric01_id || ric10Id) return;
-    localStorage.setItem(claveBorrador(datos.ric01_id), JSON.stringify({ etapa, indiceCheck, indiceMed, checks, mediciones, observaciones }));
-  }, [borradorCargado, datos.ric01_id, ric10Id, etapa, indiceCheck, indiceMed, checks, mediciones, observaciones]);
+  useAutoguardadoRIC({
+    ric01Id: datos.ric01_id, codigo: "RIC10",
+    datos: { etapa, indiceCheck, indiceMed, checks, mediciones, observaciones },
+    claveLocal: claveBorrador,
+    habilitado: borradorCargado && !ric10Id
+  });
 
   const checkActual = checks[indiceCheck];
   const medActual = mediciones[indiceMed];
