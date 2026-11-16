@@ -5,6 +5,7 @@ import EquiposPorServicio from "./EquiposPorServicio";
 import EstadisticasEquipo from "./EstadisticasEquipo";
 import ResumenRIC37 from "./ResumenRIC37";
 import ResumenMantenimiento from "./ResumenMantenimiento";
+import { consultarCorrectivosRIC, recuperarAvanceRIC } from "./protocolos/apiPreventivos";
 
 const STOCK_API = `${API_URL.Base}/api/stock`;
 
@@ -299,7 +300,8 @@ export default function Equipos({ setVista, personal }) {
     { protocolo: "RIC39", tipo: "preventivo", descripcion: "oximetro de pulso", vista: "ric39" },
     { protocolo: "RIC39", tipo: "preventivo", descripcion: "saturometro", vista: "ric39" },
     { protocolo: "RIC39", tipo: "preventivo", descripcion: "saturometro de pulso", vista: "ric39" },
-    { protocolo: "RIC48", tipo: "preventivo", descripcion: "electrocardiografo", vista: "ric48" }
+    { protocolo: "RIC48", tipo: "preventivo", descripcion: "electrocardiografo", vista: "ric48" },
+    { protocolo: "RIC59", tipo: "preventivo", descripcion: "ecografo", vista: "ric59" }
   ];
 
   const normalizarTexto = (texto = "") =>
@@ -323,35 +325,62 @@ export default function Equipos({ setVista, personal }) {
       RIC48: "ric48", RIC56: "ric56", RIC59: "ric59",
       RIC64: "ric64", RIC71: "ric71"
     };
+
     try {
       let codigo = "";
-      const respuesta = await fetch(API_URL.Ric01, { cache: "no-store" });
-      if (respuesta.ok) {
-        const tareas = await respuesta.json();
-        const lista = Array.isArray(tareas) ? tareas : (tareas.tareas || []);
-        const derivada = lista.find((t) =>
-          String(t.numero_serie || "") === String(equipo.numero_serie) &&
-          String(t.tipo_mantenimiento || "").toLowerCase() === "correctivo" &&
-          String(t.diagnostico || "").includes(`mantenimiento preventivo #${origenId}.`)
-        );
-        const match = String(derivada?.diagnostico || "").match(/Correctivo originado en (RIC\d+)/i);
-        codigo = match?.[1]?.toUpperCase() || "";
+
+      // Primero se consulta el protocolo guardado en PostgreSQL.
+      // No se consulta GET /ric01: ese endpoint no existe.
+      try {
+        const avance = await recuperarAvanceRIC(origenId);
+        codigo = String(avance?.codigo_ric || "").toUpperCase();
+      } catch (error) {
+        console.warn("No se pudo consultar el avance del preventivo:", error);
       }
+
+      // Si todavía no hay avance, se busca el código en el vínculo con
+      // correctivos derivados del preventivo.
+      if (!codigo) {
+        try {
+          const resultado = await consultarCorrectivosRIC(origenId);
+          const vinculos = Array.isArray(resultado?.vinculos) ? resultado.vinculos : [];
+          codigo = String(vinculos[0]?.codigo_ric || "").toUpperCase();
+        } catch (error) {
+          console.warn("No se pudieron consultar los correctivos vinculados:", error);
+        }
+      }
+
+      // Compatibilidad con borradores guardados en el navegador.
       if (!codigo) {
         const disponibles = Object.keys(vistasRIC).filter((ric) =>
-          localStorage.getItem(`correctivo-derivado:${ric}:${origenId}`)
+          localStorage.getItem(`correctivo-derivado:${ric}:${origenId}`) ||
+          localStorage.getItem(`preventivo:${ric.toLowerCase()}:${origenId}`)
         );
         if (disponibles.length === 1) codigo = disponibles[0];
       }
+
+      // Para preventivos antiguos que aún no tienen avance ni vínculo,
+      // se determina el protocolo según el tipo de equipo.
+      if (!codigo) {
+        const protocolo = obtenerProtocoloMantenimiento("preventivo", equipo.descripcion);
+        codigo = String(protocolo?.protocolo || "").toUpperCase();
+      }
+
       if (!vistasRIC[codigo]) {
-        alert("No se encontró un RIC asociado a este preventivo. Verifique que el correctivo derivado se haya registrado.");
+        alert("No se pudo determinar el protocolo RIC de este preventivo. Verifique la clasificación del equipo.");
         return;
       }
+
       localStorage.setItem("tareaActiva", JSON.stringify({
-        ...m, id: m.id, ric01_id: m.id,
-        equipo_id: equipo.id, numero_serie: equipo.numero_serie,
-        descripcion: equipo.descripcion, marca_modelo: equipo.marca_modelo,
-        area: equipo.area, servicio: equipo.servicio,
+        ...m,
+        id: m.id,
+        ric01_id: m.id,
+        equipo_id: equipo.id,
+        numero_serie: equipo.numero_serie,
+        descripcion: equipo.descripcion,
+        marca_modelo: equipo.marca_modelo,
+        area: equipo.area,
+        servicio: equipo.servicio,
         sub_servicio: equipo.sub_servicio,
         tipo_mantenimiento: "Preventivo"
       }));
