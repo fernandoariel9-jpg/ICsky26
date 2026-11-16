@@ -7,13 +7,21 @@ import { guardarAvanceRIC, recuperarAvanceRIC } from "./apiPreventivos";
  * administra el ciclo de vida del borrador.
  */
 export async function recuperarBorradorRIC({ ric01Id, codigo, claveLocal }) {
-  const remoto = await recuperarAvanceRIC(ric01Id);
+  let remoto = null;
+  let errorRemoto = null;
+  try {
+    remoto = await recuperarAvanceRIC(ric01Id);
+  } catch (error) {
+    errorRemoto = error;
+  }
   if (remoto && remoto.codigo_ric !== codigo) {
     throw new Error("El avance pertenece a otro protocolo: " + remoto.codigo_ric);
   }
   const respaldo = claveLocal ? localStorage.getItem(claveLocal) : null;
-  const datos = remoto?.datos || (respaldo ? JSON.parse(respaldo) : null);
-  return { datos, origen: remoto ? "postgresql" : respaldo ? "local" : "nuevo" };
+  if (remoto?.datos) return { datos: remoto.datos, origen: "postgresql" };
+  if (respaldo) return { datos: JSON.parse(respaldo), origen: "local" };
+  if (errorRemoto) throw errorRemoto;
+  return { datos: null, origen: "nuevo" };
 }
 
 export async function guardarBorradorRIC({
