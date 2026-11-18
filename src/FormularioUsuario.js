@@ -254,7 +254,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
 
     try {
       const url = new URL(contenido);
-      const match = url.pathname.match(/\\/equipo\\/([^/?#]+)/i);
+      const match = url.pathname.match(/\/equipo\/([^/?#]+)/i);
 
       if (match?.[1]) {
         const numeroSerie = decodeURIComponent(match[1]);
