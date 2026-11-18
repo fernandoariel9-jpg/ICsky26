@@ -4,10 +4,10 @@ import QRCode from "qrcode";
 
 const FRONTEND_PUBLICO = "https://icsky26.onrender.com";
 const ESCALA_IMPRESION = 2;
-const ANCHO_LOGICO = 591;  // referencia de diseño
-const ALTO_LOGICO = 472;
-const ANCHO = ANCHO_LOGICO * ESCALA_IMPRESION; // 50 mm a ~600 dpi
-const ALTO = ALTO_LOGICO * ESCALA_IMPRESION;   // 40 mm a ~600 dpi
+const ANCHO_LOGICO = 472;  // 40 mm a 300 dpi
+const ALTO_LOGICO = 591;   // 50 mm a 300 dpi
+const ANCHO = ANCHO_LOGICO * ESCALA_IMPRESION; // render a ~600 dpi
+const ALTO = ALTO_LOGICO * ESCALA_IMPRESION;
 
 function obtenerSerieDesdeFicha() {
   const botones = Array.from(document.querySelectorAll("button"));
@@ -17,9 +17,13 @@ function obtenerSerieDesdeFicha() {
 
   const parrafos = Array.from(tarjeta.querySelectorAll("p"));
   const lineaSerie = parrafos.find((p) => /^Serie:/i.test((p.textContent || "").trim()));
+  const obtenerDato = (etiqueta) => {
+    const linea = parrafos.find((p) => new RegExp(`^${etiqueta}:`, "i").test((p.textContent || "").trim()));
+    return (linea?.textContent || "").replace(new RegExp(`^${etiqueta}:\\s*`, "i"), "").trim();
+  };
   const serie = (lineaSerie?.textContent || "").replace(/^Serie:\s*/i, "").trim();
   const portal = editar?.parentElement || null;
-  return { portal, serie };
+  return { portal, serie, descripcion: obtenerDato("Equipo"), marcaModelo: obtenerDato("Marca"), servicio: obtenerDato("Servicio") };
 }
 
 function cargarImagen(src) {
@@ -31,12 +35,12 @@ function cargarImagen(src) {
   });
 }
 
-async function generarEtiqueta(serie) {
+async function generarEtiqueta(serie, datos = {}) {
   const urlPublica = `${FRONTEND_PUBLICO}/equipo/${encodeURIComponent(serie)}`;
   const qrDataUrl = await QRCode.toDataURL(urlPublica, {
-    errorCorrectionLevel: "M",
-    margin: 3,
-    width: 550,
+    errorCorrectionLevel: "H",
+    margin: 4,
+    width: 900,
     color: { dark: "#000000", light: "#ffffff" }
   });
 
@@ -46,56 +50,36 @@ async function generarEtiqueta(serie) {
   canvas.height = ALTO;
   const ctx = canvas.getContext("2d");
 
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
+  ctx.imageSmoothingEnabled = false;
   ctx.scale(ESCALA_IMPRESION, ESCALA_IMPRESION);
-
-  ctx.fillStyle = "white";
+  ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, ANCHO_LOGICO, ALTO_LOGICO);
 
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 5;
-  ctx.strokeRect(9, 9, ANCHO_LOGICO - 18, ALTO_LOGICO - 18);
+  // QR dominante, con zona blanca de seguridad alrededor.
+  const qrTam = 438;
+  const qrX = Math.round((ANCHO_LOGICO - qrTam) / 2);
+  ctx.drawImage(qr, qrX, 8, qrTam, qrTam);
 
-  ctx.fillStyle = "black";
+  // Datos identificatorios en la franja inferior.
+  ctx.fillStyle = "#000000";
   ctx.textBaseline = "middle";
-
-  ctx.textAlign = "center";
-  ctx.font = "bold 31px Arial, sans-serif";
-  ctx.fillText("INGENIERÍA CLÍNICA", ANCHO_LOGICO / 2, 33);
-
-  ctx.font = "bold 22px Arial, sans-serif";
-  ctx.fillText("Escanear para información del equipo", ANCHO_LOGICO / 2, 64);
-
-  const qrTam = 275;
-  const qrX = 16;
-  const qrY = 88;
-  ctx.drawImage(qr, qrX, qrY, qrTam, qrTam);
-
-  const textoX = 312;
   ctx.textAlign = "left";
 
-  ctx.font = "bold 24px Arial, sans-serif";
-  ctx.fillText("EQUIPO", textoX, 125);
+  const dibujarLinea = (etiqueta, valor, y, tamano, negrita = false) => {
+    const texto = `${etiqueta}: ${String(valor || "-").trim()}`;
+    let fuente = tamano;
+    do {
+      ctx.font = `${negrita ? "bold " : ""}${fuente}px Arial, sans-serif`;
+      if (ctx.measureText(texto).width <= ANCHO_LOGICO - 28) break;
+      fuente -= 1;
+    } while (fuente > 11);
+    ctx.fillText(texto, 14, y, ANCHO_LOGICO - 28);
+  };
 
-  const textoSerie = String(serie || "").trim();
-  const anchoDisponibleSerie = ANCHO_LOGICO - textoX - 24;
-  let tamSerie = 38;
-
-  while (tamSerie > 18) {
-    ctx.font = `bold ${tamSerie}px Arial, sans-serif`;
-    if (ctx.measureText(textoSerie).width <= anchoDisponibleSerie) break;
-    tamSerie -= 2;
-  }
-
-  ctx.fillText(textoSerie, textoX, 180);
-
-  ctx.font = "18px Arial, sans-serif";
-  ctx.fillText("Compatible con Sky26", textoX, 235);
-  ctx.fillText("y con cámara del celular", textoX, 266);
-
-  ctx.font = "bold 26px Arial, sans-serif";
-  ctx.fillText("Sky26", textoX, 333);
+  dibujarLinea("Equipo", datos.descripcion, 465, 19, true);
+  dibujarLinea("Marca/modelo", datos.marcaModelo, 496, 17);
+  dibujarLinea("N/S", serie, 529, 21, true);
+  dibujarLinea("Servicio", datos.servicio, 561, 16);
 
   return canvas.toDataURL("image/png");
 }
@@ -103,6 +87,7 @@ async function generarEtiqueta(serie) {
 export default function EtiquetaQREquipoGlobal() {
   const [portal, setPortal] = useState(null);
   const [serie, setSerie] = useState("");
+  const [datosEquipo, setDatosEquipo] = useState({ descripcion: "", marcaModelo: "", servicio: "" });
   const [etiqueta, setEtiqueta] = useState("");
   const [generando, setGenerando] = useState(false);
 
@@ -111,6 +96,7 @@ export default function EtiquetaQREquipoGlobal() {
       const actual = obtenerSerieDesdeFicha();
       setPortal(actual.portal);
       setSerie(actual.serie);
+      setDatosEquipo({ descripcion: actual.descripcion, marcaModelo: actual.marcaModelo, servicio: actual.servicio });
     };
 
     localizar();
@@ -123,7 +109,7 @@ export default function EtiquetaQREquipoGlobal() {
     if (!serie) return;
     try {
       setGenerando(true);
-      setEtiqueta(await generarEtiqueta(serie));
+      setEtiqueta(await generarEtiqueta(serie, datosEquipo));
     } catch (error) {
       console.error("Error generando etiqueta QR:", error);
       alert("No se pudo generar la etiqueta QR.");
@@ -136,7 +122,7 @@ export default function EtiquetaQREquipoGlobal() {
     if (!etiqueta || !serie) return;
     const a = document.createElement("a");
     a.href = etiqueta;
-    a.download = `etiqueta-QR-${serie}-50x40mm.png`;
+    a.download = `etiqueta-QR-${serie}-40x50mm.png`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -160,7 +146,7 @@ export default function EtiquetaQREquipoGlobal() {
           <title>Etiqueta ${serie}</title>
           <style>
             @page {
-              size: 50mm 40mm;
+              size: 40mm 50mm;
               margin: 0;
             }
 
@@ -182,8 +168,8 @@ export default function EtiquetaQREquipoGlobal() {
               position: fixed;
               inset: 0;
               display: block;
-              width: 49.8mm;
-              height: 39.8mm;
+              width: 39.8mm;
+              height: 49.8mm;
               object-fit: fill;
               margin: 0;
               padding: 0;
@@ -225,7 +211,7 @@ export default function EtiquetaQREquipoGlobal() {
       disabled={generando}
       className="bg-slate-800 hover:bg-slate-900 disabled:bg-gray-400 text-white px-4 py-2 rounded-xl w-full mt-2 font-semibold"
     >
-      {generando ? "Generando QR..." : "🏷️ QR del equipo (50 × 40 mm)"}
+      {generando ? "Generando QR..." : "🏷️ QR del equipo (40 × 50 mm)"}
     </button>,
     portal
   ) : null;
@@ -239,13 +225,13 @@ export default function EtiquetaQREquipoGlobal() {
             <div className="flex justify-between items-center mb-3">
               <div>
                 <h2 className="font-bold text-lg">Etiqueta QR del equipo</h2>
-                <p className="text-sm text-gray-500">50 × 40 mm · alta definición · {serie}</p>
+                <p className="text-sm text-gray-500">40 × 50 mm · alta definición · {serie}</p>
               </div>
               <button onClick={() => setEtiqueta("")} className="text-gray-500 hover:text-red-600 text-xl font-bold">✕</button>
             </div>
 
             <div className="bg-gray-100 p-3 rounded-xl flex justify-center">
-              <img src={etiqueta} alt={`Etiqueta QR ${serie}`} className="w-[340px] h-[272px] object-contain bg-white shadow" />
+              <img src={etiqueta} alt={`Etiqueta QR ${serie}`} className="w-[272px] h-[340px] object-contain bg-white shadow" />
             </div>
 
             <div className="grid grid-cols-2 gap-2 mt-4">
