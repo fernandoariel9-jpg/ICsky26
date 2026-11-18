@@ -18,6 +18,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const [previewImagen, setPreviewImagen] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [modalQR, setModalQR] = useState(null);
   const [filtro, setFiltro] = useState("pendientes");
 
   useEffect(() => {
@@ -246,14 +247,14 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   };
 
   const handleScan = async (data) => {
-    if (!data) return;
+    if (!data || modalQR) return;
 
     const contenido = String(data.text || data).trim();
     if (!contenido) return;
 
     try {
       const url = new URL(contenido);
-      const match = url.pathname.match(/\/equipo\/([^/?#]+)/i);
+      const match = url.pathname.match(/\\/equipo\\/([^/?#]+)/i);
 
       if (match?.[1]) {
         const numeroSerie = decodeURIComponent(match[1]);
@@ -264,11 +265,9 @@ export default function FormularioUsuario({ usuario, onLogout }) {
           throw new Error(equipo.error || "No se pudo consultar el equipo");
         }
 
-        setNuevaTarea(
-          `Solicitud automática de asistencia para: ${equipo.descripcion || "Equipo"} - ${equipo.marca_modelo || ""} - N/S ${equipo.numero_serie || numeroSerie} - ${equipo.servicio || ""}`
-        );
-        toast.success("QR leído ✅ Tarea generada automáticamente");
+        const tarea = `Solicitud automática de asistencia para: ${equipo.descripcion || "Equipo"} - ${equipo.marca_modelo || ""} - N/S ${equipo.numero_serie || numeroSerie} - ${equipo.servicio || ""}`;
         setShowQR(false);
+        setModalQR({ equipo, tarea });
         return;
       }
     } catch (errorURL) {
@@ -282,11 +281,28 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       qrData = { info: contenido };
     }
 
-    setNuevaTarea(
-      `Solicitud automática de asistencia para: ${qrData.marca || qrData.marca_modelo || qrData.info || "Equipo"} - ${qrData.numeroSerie || qrData.numero_serie || ""} - ${qrData.servicio || ""}`
-    );
-    toast.success("QR leído ✅ Tarea generada automáticamente");
+    const tarea = `Solicitud automática de asistencia para: ${qrData.marca || qrData.marca_modelo || qrData.info || "Equipo"} - ${qrData.numeroSerie || qrData.numero_serie || ""} - ${qrData.servicio || ""}`;
     setShowQR(false);
+    setModalQR({
+      equipo: {
+        descripcion: qrData.descripcion || "",
+        marca_modelo: qrData.marca_modelo || qrData.marca || "",
+        numero_serie: qrData.numeroSerie || qrData.numero_serie || "",
+        servicio: qrData.servicio || "",
+      },
+      tarea,
+    });
+  };
+
+  const seleccionarReportarFalla = () => {
+    if (!modalQR?.tarea) return;
+    setNuevaTarea(modalQR.tarea);
+    setModalQR(null);
+    toast.success("QR leído ✅ Pedido de asistencia preparado");
+  };
+
+  const seleccionarMantenimientoUsuario = () => {
+    setModalQR((actual) => actual ? { ...actual, modo: "mantenimiento" } : null);
   };
 
   const handleError = (err) => {
@@ -438,6 +454,66 @@ export default function FormularioUsuario({ usuario, onLogout }) {
             </motion.li>
           ))}
         </ul>
+      )}
+
+      {modalQR && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+            {modalQR.modo === "mantenimiento" ? (
+              <>
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="text-2xl">🧰</span>
+                  <h2 className="text-xl font-bold text-gray-800">MANTENIMIENTO DE USUARIO</h2>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Equipo identificado correctamente. El checklist de mantenimiento de usuario se incorporará en la siguiente etapa.
+                </p>
+                <div className="mt-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
+                  <p><strong>Equipo:</strong> {modalQR.equipo?.descripcion || modalQR.equipo?.marca_modelo || "No informado"}</p>
+                  <p><strong>N.º de serie:</strong> {modalQR.equipo?.numero_serie || "No informado"}</p>
+                  <p><strong>Servicio:</strong> {modalQR.equipo?.servicio || "No informado"}</p>
+                </div>
+                <div className="mt-5 flex justify-end gap-2">
+                  <button type="button" onClick={() => setModalQR(null)} className="rounded-xl bg-gray-200 px-4 py-2 text-gray-700">
+                    Cerrar
+                  </button>
+                  <button type="button" onClick={() => setModalQR((actual) => actual ? { ...actual, modo: undefined } : null)} className="rounded-xl bg-purple-600 px-4 py-2 text-white">
+                    Volver
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className="mb-2 text-center text-xl font-bold text-gray-800">¿Qué desea realizar?</h2>
+                <p className="mb-4 text-center text-sm text-gray-600">
+                  {modalQR.equipo?.descripcion || modalQR.equipo?.marca_modelo || "Equipo identificado"}
+                  {modalQR.equipo?.numero_serie ? ` · N/S ${modalQR.equipo.numero_serie}` : ""}
+                </p>
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={seleccionarMantenimientoUsuario}
+                    className="w-full rounded-xl bg-emerald-600 px-4 py-4 text-left font-bold text-white shadow hover:bg-emerald-700"
+                  >
+                    <span className="block">1. MANTENIMIENTO DE USUARIO</span>
+                    <span className="mt-1 block text-sm font-normal text-emerald-50">Registrar el mantenimiento básico del equipo</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={seleccionarReportarFalla}
+                    className="w-full rounded-xl bg-blue-600 px-4 py-4 text-left font-bold text-white shadow hover:bg-blue-700"
+                  >
+                    <span className="block">2. REPORTAR FALLA</span>
+                    <span className="mt-1 block text-sm font-normal text-blue-50">Continuar con el pedido de asistencia habitual</span>
+                  </button>
+                </div>
+                <button type="button" onClick={() => setModalQR(null)} className="mt-4 w-full rounded-xl bg-gray-100 px-4 py-2 text-gray-700">
+                  Cancelar
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       <AnimatePresence>
