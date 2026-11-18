@@ -363,7 +363,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || `Error HTTP ${res.status}`);
 
-      toast.success("Mantenimiento de usuario registrado correctamente.");
+      toast.success(data.genero_tarea ? "Mantenimiento registrado y tarea correctiva creada." : "Mantenimiento de usuario registrado correctamente.");
       setModalQR(null);
     } catch (error) {
       console.error("Error guardando mantenimiento de usuario:", error);
