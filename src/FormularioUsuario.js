@@ -548,16 +548,24 @@ export default function FormularioUsuario({ usuario, onLogout }) {
                     ].map(item => (
                       <label key={item.key} className="mb-3 block text-sm text-gray-700">
                         <span className="mb-1 block font-medium">{item.label}</span>
-                        <select
-                          value={checklistUsuario[item.key]}
-                          onChange={e => setChecklistUsuario(prev => ({ ...prev, [item.key]: e.target.value }))}
-                          className="w-full rounded-lg border border-gray-300 bg-white p-2"
-                          required
-                        >
-                          <option value="">Seleccionar resultado</option>
-                          <option value="true">Conforme</option>
-                          <option value="false">No conforme</option>
-                        </select>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            aria-pressed={checklistUsuario[item.key] === "true"}
+                            onClick={() => setChecklistUsuario(prev => ({ ...prev, [item.key]: "true" }))}
+                            className={`rounded-lg border px-3 py-3 font-semibold text-green-700 transition ${checklistUsuario[item.key] === "true" ? "border-green-600 bg-green-50 ring-2 ring-green-200" : "border-gray-300 bg-white hover:bg-green-50"}`}
+                          >
+                            Conforme
+                          </button>
+                          <button
+                            type="button"
+                            aria-pressed={checklistUsuario[item.key] === "false"}
+                            onClick={() => setChecklistUsuario(prev => ({ ...prev, [item.key]: "false" }))}
+                            className={`rounded-lg border px-3 py-3 font-semibold text-red-700 transition ${checklistUsuario[item.key] === "false" ? "border-red-600 bg-red-50 ring-2 ring-red-200" : "border-gray-300 bg-white hover:bg-red-50"}`}
+                          >
+                            No conforme
+                          </button>
+                        </div>
                       </label>
                     ))}
                   </div>
@@ -568,16 +576,24 @@ export default function FormularioUsuario({ usuario, onLogout }) {
                   ].map(item => (
                     <label key={item.key} className="block rounded-lg border p-3 text-sm text-gray-700">
                       <span className="mb-2 block font-semibold">{item.label}</span>
-                      <select
-                        value={checklistUsuario[item.key]}
-                        onChange={e => setChecklistUsuario(prev => ({ ...prev, [item.key]: e.target.value }))}
-                        className="w-full rounded-lg border border-gray-300 bg-white p-2"
-                        required
-                      >
-                        <option value="">Seleccionar resultado</option>
-                        <option value="true">Conforme</option>
-                        <option value="false">No conforme</option>
-                      </select>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          aria-pressed={checklistUsuario[item.key] === "true"}
+                          onClick={() => setChecklistUsuario(prev => ({ ...prev, [item.key]: "true" }))}
+                          className={`rounded-lg border px-3 py-3 font-semibold text-green-700 transition ${checklistUsuario[item.key] === "true" ? "border-green-600 bg-green-50 ring-2 ring-green-200" : "border-gray-300 bg-white hover:bg-green-50"}`}
+                        >
+                          Conforme
+                        </button>
+                        <button
+                          type="button"
+                          aria-pressed={checklistUsuario[item.key] === "false"}
+                          onClick={() => setChecklistUsuario(prev => ({ ...prev, [item.key]: "false" }))}
+                          className={`rounded-lg border px-3 py-3 font-semibold text-red-700 transition ${checklistUsuario[item.key] === "false" ? "border-red-600 bg-red-50 ring-2 ring-red-200" : "border-gray-300 bg-white hover:bg-red-50"}`}
+                        >
+                          No conforme
+                        </button>
+                      </div>
                     </label>
                   ))}
 
