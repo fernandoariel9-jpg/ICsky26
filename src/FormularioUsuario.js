@@ -355,7 +355,7 @@ export default function FormularioUsuario({ usuario, onLogout }) {
 
     setGuardandoMantenimiento(true);
     try {
-      const res = await fetch(`${API_URL.Ric29}/mantenimientos-usuario`, {
+      const res = await fetch(`${API_URL.Base}/api/mantenimientos-usuario`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
