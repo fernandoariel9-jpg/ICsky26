@@ -19,6 +19,8 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   const [loading, setLoading] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [modalQR, setModalQR] = useState(null);
+  const [checklistUsuario, setChecklistUsuario] = useState({ limpieza_ok: "", integridad_ok: "", verificacion_funcional_ok: "", capacitacion_personal_ok: "", observaciones: "" });
+  const [guardandoMantenimiento, setGuardandoMantenimiento] = useState(false);
   const [filtro, setFiltro] = useState("pendientes");
 
   useEffect(() => {
@@ -302,7 +304,73 @@ export default function FormularioUsuario({ usuario, onLogout }) {
   };
 
   const seleccionarMantenimientoUsuario = () => {
+    setChecklistUsuario({
+      limpieza_ok: "",
+      integridad_ok: "",
+      verificacion_funcional_ok: "",
+      capacitacion_personal_ok: "",
+      observaciones: ""
+    });
     setModalQR((actual) => actual ? { ...actual, modo: "mantenimiento" } : null);
+  };
+
+  const guardarMantenimientoUsuario = async (e) => {
+    e.preventDefault();
+    if (!modalQR?.equipo) return;
+
+    const campos = [
+      checklistUsuario.limpieza_ok,
+      checklistUsuario.integridad_ok,
+      checklistUsuario.verificacion_funcional_ok,
+      checklistUsuario.capacitacion_personal_ok
+    ];
+
+    if (campos.some(valor => valor !== "true" && valor !== "false")) {
+      toast.error("Debe completar todos los puntos del checklist.");
+      return;
+    }
+
+    const hayNoConformidad = campos.some(valor => valor === "false");
+    if (hayNoConformidad && !checklistUsuario.observaciones.trim()) {
+      toast.error("Debe ingresar observaciones para los puntos no conformes.");
+      return;
+    }
+
+    const mailUsuario = typeof usuario === "object" ? String(usuario?.mail || "").trim() : "";
+    const nombreUsuario = typeof usuario === "object"
+      ? String(usuario?.nombre || usuario?.mail || "").trim()
+      : String(usuario || "").trim();
+
+    const payload = {
+      equipo_id: modalQR.equipo.id || null,
+      numero_serie: modalQR.equipo.numero_serie || "",
+      limpieza_ok: checklistUsuario.limpieza_ok === "true",
+      integridad_ok: checklistUsuario.integridad_ok === "true",
+      verificacion_funcional_ok: checklistUsuario.verificacion_funcional_ok === "true",
+      capacitacion_personal_ok: checklistUsuario.capacitacion_personal_ok === "true",
+      observaciones: checklistUsuario.observaciones.trim(),
+      usuario_nombre: nombreUsuario,
+      usuario_mail: mailUsuario
+    };
+
+    setGuardandoMantenimiento(true);
+    try {
+      const res = await fetch(`${API_URL.Ric29}/mantenimientos-usuario`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Error HTTP ${res.status}`);
+
+      toast.success("Mantenimiento de usuario registrado correctamente.");
+      setModalQR(null);
+    } catch (error) {
+      console.error("Error guardando mantenimiento de usuario:", error);
+      toast.error(error.message || "No se pudo guardar el mantenimiento.");
+    } finally {
+      setGuardandoMantenimiento(false);
+    }
   };
 
   const handleError = (err) => {
@@ -460,28 +528,83 @@ export default function FormularioUsuario({ usuario, onLogout }) {
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
             {modalQR.modo === "mantenimiento" ? (
-              <>
+              <form onSubmit={guardarMantenimientoUsuario}>
                 <div className="mb-3 flex items-center gap-2">
                   <span className="text-2xl">🧰</span>
                   <h2 className="text-xl font-bold text-gray-800">MANTENIMIENTO DE USUARIO</h2>
                 </div>
-                <p className="text-sm text-gray-600">
-                  Equipo identificado correctamente. El checklist de mantenimiento de usuario se incorporará en la siguiente etapa.
-                </p>
-                <div className="mt-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
+                <div className="mb-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
                   <p><strong>Equipo:</strong> {modalQR.equipo?.descripcion || modalQR.equipo?.marca_modelo || "No informado"}</p>
                   <p><strong>N.º de serie:</strong> {modalQR.equipo?.numero_serie || "No informado"}</p>
                   <p><strong>Servicio:</strong> {modalQR.equipo?.servicio || "No informado"}</p>
                 </div>
-                <div className="mt-5 flex justify-end gap-2">
-                  <button type="button" onClick={() => setModalQR(null)} className="rounded-xl bg-gray-200 px-4 py-2 text-gray-700">
-                    Cerrar
-                  </button>
-                  <button type="button" onClick={() => setModalQR((actual) => actual ? { ...actual, modo: undefined } : null)} className="rounded-xl bg-purple-600 px-4 py-2 text-white">
+
+                <div className="max-h-[55vh] space-y-4 overflow-y-auto pr-1">
+                  <div className="rounded-lg border p-3">
+                    <p className="mb-2 font-semibold text-gray-800">1. Inspección visual</p>
+                    {[
+                      { key: "limpieza_ok", label: "1-A. Limpieza OK" },
+                      { key: "integridad_ok", label: "1-B. Integridad OK" }
+                    ].map(item => (
+                      <label key={item.key} className="mb-3 block text-sm text-gray-700">
+                        <span className="mb-1 block font-medium">{item.label}</span>
+                        <select
+                          value={checklistUsuario[item.key]}
+                          onChange={e => setChecklistUsuario(prev => ({ ...prev, [item.key]: e.target.value }))}
+                          className="w-full rounded-lg border border-gray-300 bg-white p-2"
+                          required
+                        >
+                          <option value="">Seleccionar resultado</option>
+                          <option value="true">Conforme</option>
+                          <option value="false">No conforme</option>
+                        </select>
+                      </label>
+                    ))}
+                  </div>
+
+                  {[
+                    { key: "verificacion_funcional_ok", label: "2. Verificación funcional" },
+                    { key: "capacitacion_personal_ok", label: "3. Capacitación del personal" }
+                  ].map(item => (
+                    <label key={item.key} className="block rounded-lg border p-3 text-sm text-gray-700">
+                      <span className="mb-2 block font-semibold">{item.label}</span>
+                      <select
+                        value={checklistUsuario[item.key]}
+                        onChange={e => setChecklistUsuario(prev => ({ ...prev, [item.key]: e.target.value }))}
+                        className="w-full rounded-lg border border-gray-300 bg-white p-2"
+                        required
+                      >
+                        <option value="">Seleccionar resultado</option>
+                        <option value="true">Conforme</option>
+                        <option value="false">No conforme</option>
+                      </select>
+                    </label>
+                  ))}
+
+                  {["limpieza_ok", "integridad_ok", "verificacion_funcional_ok", "capacitacion_personal_ok"].some(key => checklistUsuario[key] === "false") && (
+                    <label className="block text-sm font-medium text-gray-700">
+                      Observaciones (obligatorio si hay puntos no conformes)
+                      <textarea
+                        value={checklistUsuario.observaciones}
+                        onChange={e => setChecklistUsuario(prev => ({ ...prev, observaciones: e.target.value }))}
+                        rows={3}
+                        required
+                        className="mt-1 w-full rounded-lg border border-gray-300 p-2"
+                        placeholder="Describa qué se encontró..."
+                      />
+                    </label>
+                  )}
+                </div>
+
+                <div className="mt-5 flex justify-between gap-2">
+                  <button type="button" onClick={() => setModalQR((actual) => actual ? { ...actual, modo: undefined } : null)} className="rounded-xl bg-gray-200 px-4 py-2 text-gray-700">
                     Volver
                   </button>
+                  <button type="submit" disabled={guardandoMantenimiento} className="rounded-xl bg-emerald-600 px-4 py-2 font-semibold text-white disabled:opacity-60">
+                    {guardandoMantenimiento ? "Guardando..." : "Guardar mantenimiento"}
+                  </button>
                 </div>
-              </>
+              </form>
             ) : (
               <>
                 <h2 className="mb-2 text-center text-xl font-bold text-gray-800">¿Qué desea realizar?</h2>
