@@ -15,6 +15,7 @@ import RIC56 from "./RIC56";
 import RIC59 from "./RIC59";
 import RIC64 from "./RIC64";
 import RIC71 from "./RIC71";
+import AptitudUsoCardio from "./AptitudUsoCardio";
 import RepuestosRICPortal from "./protocolos/RepuestosRICPortal";
 import { API_URL } from "./config";
 
@@ -92,7 +93,7 @@ export default function PanelPersonal({ personal, onLogout }) {
   const vistasPermitidas = [
     "tareas", "equipos", "seleccionarEquipo", "nuevoEquipo", "stock",
     "ric10", "ric25", "ric29", "ric37", "ric39", "ric44", "ric48",
-    "ric56", "ric59", "ric64", "ric71"
+    "ric56", "ric59", "ric64", "ric71", "au_cardio"
   ];
   const [vista, setVista] = useState(() => {
     const guardada = sessionStorage.getItem("sky26_vista_personal");
@@ -314,6 +315,8 @@ export default function PanelPersonal({ personal, onLogout }) {
       {vista === "ric64" && <RIC64 setVista={setVista} personal={personal} />}
 
       {vista === "ric71" && <RIC71 setVista={setVista} personal={personal} />}
+
+      {vista === "au_cardio" && <AptitudUsoCardio setVista={setVista} personal={personal} />}
 
       <RepuestosRICPortal vista={vista} personal={personal} />
     </>
