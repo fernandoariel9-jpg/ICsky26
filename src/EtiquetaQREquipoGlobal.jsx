@@ -23,7 +23,7 @@ function obtenerSerieDesdeFicha() {
   };
   const serie = (lineaSerie?.textContent || "").replace(/^Serie:\s*/i, "").trim();
   const portal = editar?.parentElement || null;
-  return { portal, serie, descripcion: obtenerDato("Equipo"), marcaModelo: obtenerDato("Marca"), servicio: obtenerDato("Servicio") };
+  return { portal, serie, descripcion: obtenerDato("Equipo"), marcaModelo: obtenerDato("Marca") };
 }
 
 function cargarImagen(src) {
@@ -76,10 +76,9 @@ async function generarEtiqueta(serie, datos = {}) {
     ctx.fillText(texto, 14, y, ANCHO_LOGICO - 28);
   };
 
-  dibujarLinea("Equipo", datos.descripcion, 465, 19, true);
-  dibujarLinea("Marca/modelo", datos.marcaModelo, 496, 17);
-  dibujarLinea("N/S", serie, 529, 21, true);
-  dibujarLinea("Servicio", datos.servicio, 561, 16);
+  dibujarLinea("Equipo", datos.descripcion, 472, 25, true);
+  dibujarLinea("Marca y modelo", datos.marcaModelo, 518, 23, true);
+  dibujarLinea("N° de serie", serie, 562, 26, true);
 
   return canvas.toDataURL("image/png");
 }
@@ -87,7 +86,7 @@ async function generarEtiqueta(serie, datos = {}) {
 export default function EtiquetaQREquipoGlobal() {
   const [portal, setPortal] = useState(null);
   const [serie, setSerie] = useState("");
-  const [datosEquipo, setDatosEquipo] = useState({ descripcion: "", marcaModelo: "", servicio: "" });
+  const [datosEquipo, setDatosEquipo] = useState({ descripcion: "", marcaModelo: "" });
   const [etiqueta, setEtiqueta] = useState("");
   const [generando, setGenerando] = useState(false);
 
@@ -96,7 +95,7 @@ export default function EtiquetaQREquipoGlobal() {
       const actual = obtenerSerieDesdeFicha();
       setPortal(actual.portal);
       setSerie(actual.serie);
-      setDatosEquipo({ descripcion: actual.descripcion, marcaModelo: actual.marcaModelo, servicio: actual.servicio });
+      setDatosEquipo({ descripcion: actual.descripcion, marcaModelo: actual.marcaModelo });
     };
 
     localizar();
