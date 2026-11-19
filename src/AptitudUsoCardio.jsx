@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
 import {
   BotonesNavegacion,
@@ -70,6 +70,44 @@ export default function AptitudUsoCardio({ setVista, personal }) {
   const [guardando, setGuardando] = useState(false);
   const [evaluacionId, setEvaluacionId] = useState(null);
   const [errorGuardado, setErrorGuardado] = useState("");
+  const [ultimaEvaluacion, setUltimaEvaluacion] = useState(null);
+  const [ultimasMediciones, setUltimasMediciones] = useState([]);
+  const [cargandoHistorial, setCargandoHistorial] = useState(true);
+  const [errorHistorial, setErrorHistorial] = useState("");
+
+
+  useEffect(() => {
+    let activo = true;
+    const cargarUltimaEvaluacion = async () => {
+      if (!equipo?.id) { setCargandoHistorial(false); return; }
+      setCargandoHistorial(true);
+      setErrorHistorial("");
+      try {
+        const token = localStorage.getItem("personal_token") || "";
+        const respuesta = await fetch(`${API_URL.AuCardio}/equipo/${equipo.id}/ultima`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok) throw new Error(data.error || "No se pudo cargar la última evaluación.");
+        if (activo) {
+          setUltimaEvaluacion(data.evaluacion || null);
+          setUltimasMediciones(Array.isArray(data.mediciones) ? data.mediciones : []);
+        }
+      } catch (error) {
+        if (activo) setErrorHistorial(error.message || "No se pudo cargar el historial.");
+      } finally {
+        if (activo) setCargandoHistorial(false);
+      }
+    };
+    cargarUltimaEvaluacion();
+    return () => { activo = false; };
+  }, [equipo?.id]);
+
+  const formatearFecha = (fecha) => {
+    if (!fecha) return "Fecha no disponible";
+    const valor = new Date(fecha);
+    return Number.isNaN(valor.getTime()) ? String(fecha) : valor.toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
+  };
 
   const limpiarContextoLocal = () => {
     localStorage.removeItem(CLAVE_EQUIPO);
@@ -384,6 +422,58 @@ export default function AptitudUsoCardio({ setVista, personal }) {
             </button>
           )}
         </div>
+      </TarjetaEtapa>
+
+      <TarjetaEtapa
+        titulo="Última evaluación de aptitud de uso"
+        ayuda="Registro más reciente guardado para este cardiodesfibrilador."
+      >
+        {cargandoHistorial ? (
+          <p className="text-sm text-gray-500">Consultando el historial del equipo...</p>
+        ) : errorHistorial ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">{errorHistorial}</div>
+        ) : !ultimaEvaluacion ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
+            Este equipo todavía no tiene evaluaciones de aptitud de uso registradas.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-gray-50 rounded-xl p-3">
+              <div>
+                <p className="text-xs text-gray-500">Registro #{ultimaEvaluacion.id}</p>
+                <p className="font-semibold text-gray-800">{formatearFecha(ultimaEvaluacion.fecha)}</p>
+                <p className="text-sm text-gray-600">Realizado por: {ultimaEvaluacion.tecnico || "No identificado"}</p>
+              </div>
+              <span className={`px-3 py-1 rounded-lg text-xs font-bold ${ultimaEvaluacion.resultado_general === "CONFORME" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                {ultimaEvaluacion.resultado_general}
+              </span>
+            </div>
+            <div className="space-y-2">
+              {ultimasMediciones.map((item, indice) => (
+                <article key={`${item.grupo}-${item.orden}-${indice}`} className="border rounded-xl p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h4 className="font-semibold text-sm text-gray-800">{item.parametro}</h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Resultado: <strong>{item.medicion ?? "Sin dato"}{item.unidad ? ` ${item.unidad}` : ""}</strong>
+                        {item.valor_nominal ? ` · Referencia: ${item.valor_nominal}${item.grupo === "ENERGIA" ? " J" : ""}` : ""}
+                      </p>
+                      {item.rango_aceptacion && <p className="text-xs text-gray-500 mt-1">Criterio: {item.rango_aceptacion}</p>}
+                    </div>
+                    <span className={`px-2 py-1 rounded-lg text-xs font-bold ${item.conforme ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                      {item.conforme ? "CONFORME" : "NO CONFORME"}
+                    </span>
+                  </div>
+                  {item.observaciones && (
+                    <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-2 text-sm text-amber-900">
+                      <strong>Observación:</strong> {item.observaciones}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
       </TarjetaEtapa>
     </ProtocoloLayout>
   );
