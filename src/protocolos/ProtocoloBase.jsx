@@ -158,7 +158,7 @@ export function useProtocoloBase({ codigo, personal, defaultDescripcion = "" }) 
   };
 }
 
-export function useFinalizacionRIC({ codigo, datos, personal }) {
+export function useFinalizacionRIC({ codigo, datos, personal, onFinalizado }) {
   const [finalizado, setFinalizado] = useState(false);
   const [estados, setEstados] = useState([]);
   const [mostrarEstadoFinal, setMostrarEstadoFinal] = useState(false);
@@ -208,6 +208,7 @@ export function useFinalizacionRIC({ codigo, datos, personal }) {
       }
 
       alert(`✅ ${codigo} guardado y tarea finalizada correctamente`);
+      if (typeof onFinalizado === "function") onFinalizado();
       return true;
     } catch (err) {
       console.error(`Error finalizando ${codigo}:`, err);
