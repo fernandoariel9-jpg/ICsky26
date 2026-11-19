@@ -9,6 +9,7 @@ import {
 const POTENCIAS_REFERENCIA = [50, 100, 200];
 const CLAVE_EQUIPO = "equipoAptitudCardio";
 const CLAVE_RIC37_AU_CARDIO = "au_cardio:ric37-contexto";
+const CLAVE_RESULTADO_RIC37 = (equipoId) => `au_cardio:ric37-result:${equipoId}`;
 const CLAVE_BORRADOR = (equipoId) => `au_cardio:borrador:${equipoId}`;
 const ETAPAS = ["Último mantenimiento de usuario", "Parámetros esenciales", "Etapa 3", "Etapa 4"];
 
@@ -103,9 +104,15 @@ export default function AptitudUsoCardio({ setVista, personal }) {
   }, [equipo?.id]);
 
   useEffect(() => {
+    try {
+      const resultadoGuardado = JSON.parse(localStorage.getItem(CLAVE_RESULTADO_RIC37(equipo?.id)) || "null");
+      if (resultadoGuardado) setRic37(resultadoGuardado);
+    } catch { /* Se ignora un resultado local inválido. */ }
     const actualizarRIC37 = (event) => {
       const detalle = event?.detail || {};
-      setRic37({ id: detalle.ric37Id, resultado: detalle.resultado });
+      const resultado = { id: detalle.ric37Id, resultado: detalle.resultado };
+      setRic37(resultado);
+      localStorage.setItem(CLAVE_RESULTADO_RIC37(equipo?.id), JSON.stringify(resultado));
       localStorage.removeItem(CLAVE_BORRADOR(equipo?.id));
       localStorage.removeItem(CLAVE_RIC37_AU_CARDIO);
     };
