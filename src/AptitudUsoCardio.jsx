@@ -79,7 +79,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
   const [cargandoMantenimientoUsuario, setCargandoMantenimientoUsuario] = useState(true);
   const [errorMantenimientoUsuario, setErrorMantenimientoUsuario] = useState("");
   const [ric37, setRic37] = useState(null);
-  const [iniciandoRIC37, setIniciandoRIC37] = useState(false);
+
 
 
   useEffect(() => {
@@ -213,56 +213,29 @@ export default function AptitudUsoCardio({ setVista, personal }) {
       : valor.toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
   };
 
-  const iniciarVerificacionRIC37 = async () => {
+  const iniciarVerificacionRIC37 = () => {
     if (!equipo?.id || !puedeContinuar) return;
-    setIniciandoRIC37(true);
     setErrorGuardado("");
-    try {
-      const token = localStorage.getItem("personal_token") || "";
-      const respuesta = await fetch(API_URL.Ric01, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          usuario: personal?.nombre || "",
-          fecha: new Date().toISOString(),
-          tarea: `AU Cardio - Verificación de seguridad eléctrica - ${equipo.descripcion || "Cardiodesfibrilador"} - Serie: ${equipo.numero_serie || ""}`,
-          diagnostico: "Verificación de seguridad eléctrica requerida para AU Cardio",
-          tipo_mantenimiento: "Correctivo",
-          descripcion: equipo.descripcion || "Cardiodesfibrilador",
-          marca_modelo: equipo.marca_modelo || "",
-          numero_serie: equipo.numero_serie || "",
-          area: equipo.area || personal?.area || "",
-          servicio: equipo.servicio || "",
-          subservicio: equipo.sub_servicio || equipo.subservicio || "",
-          asignado: personal?.nombre || "",
-          solicitado_por: personal?.nombre || "",
-          origen: "interno",
-          solucion: ""
-        })
-      });
-      const data = await respuesta.json().catch(() => ({}));
-      if (!respuesta.ok) throw new Error(data.error || "No se pudo crear la tarea para RIC37.");
-      const ric01Id = data.ric01_id || data.id;
-      if (!ric01Id) throw new Error("No se recibió el identificador de la tarea RIC37.");
-      localStorage.setItem("tareaActiva", JSON.stringify({
-        ...data, id: ric01Id, ric01_id: ric01Id, equipo_id: equipo.id,
-        numero_serie: equipo.numero_serie, descripcion: equipo.descripcion,
-        marca_modelo: equipo.marca_modelo, area: equipo.area || personal?.area || "",
-        servicio: equipo.servicio, sub_servicio: equipo.sub_servicio || equipo.subservicio,
-        tipo_mantenimiento: "Correctivo", asignado: personal?.nombre || "", origen_ric37: true
-      }));
-      localStorage.setItem(CLAVE_RIC37_AU_CARDIO, JSON.stringify({ vista: "au_cardio", ric01_id: Number(ric01Id) }));
-      localStorage.setItem(CLAVE_BORRADOR(equipo.id), JSON.stringify({
-        medicionesPotencia, potenciaMaxFabricante, potenciaMaxMedida, observacionesPotencia,
-        observacionPotenciaMax, sincronismo, observacionSincronismo, tipoOnda, ondaCoincide,
-        observacionOnda, tiempoCarga, observacionCarga
-      }));
-      setVista("ric37");
-    } catch (error) {
-      setErrorGuardado(error.message || "No se pudo iniciar RIC37.");
-    } finally {
-      setIniciandoRIC37(false);
-    }
+    localStorage.setItem(CLAVE_RIC37_AU_CARDIO, JSON.stringify({
+      origen: "au_cardio",
+      vista: "au_cardio",
+      equipo: {
+        id: equipo.id,
+        numero_serie: equipo.numero_serie || "",
+        descripcion: equipo.descripcion || "Cardiodesfibrilador",
+        marca_modelo: equipo.marca_modelo || "",
+        area: equipo.area || personal?.area || "",
+        servicio: equipo.servicio || "",
+        sub_servicio: equipo.sub_servicio || equipo.subservicio || "",
+        encargado: equipo.encargado || ""
+      }
+    }));
+    localStorage.setItem(CLAVE_BORRADOR(equipo.id), JSON.stringify({
+      medicionesPotencia, potenciaMaxFabricante, potenciaMaxMedida, observacionesPotencia,
+      observacionPotenciaMax, sincronismo, observacionSincronismo, tipoOnda, ondaCoincide,
+      observacionOnda, tiempoCarga, observacionCarga
+    }));
+    setVista("ric37");
   };
 
   const limpiarContextoLocal = () => {
@@ -644,8 +617,8 @@ export default function AptitudUsoCardio({ setVista, personal }) {
           ) : (
             <p className="mt-3 text-sm text-amber-800">RIC37 pendiente. La etapa 2 no podrá guardarse hasta finalizarlo.</p>
           )}
-          <button type="button" onClick={iniciarVerificacionRIC37} disabled={!puedeContinuar || iniciandoRIC37 || Boolean(evaluacionId)} className="w-full mt-3 bg-blue-700 hover:bg-blue-800 disabled:bg-gray-300 text-white rounded-xl p-3 font-bold">
-            {iniciandoRIC37 ? "Iniciando RIC37..." : ric37 ? "Volver a realizar verificación RIC37" : "⚡ Realizar verificación de seguridad eléctrica"}
+          <button type="button" onClick={iniciarVerificacionRIC37} disabled={!puedeContinuar || Boolean(evaluacionId)} className="w-full mt-3 bg-blue-700 hover:bg-blue-800 disabled:bg-gray-300 text-white rounded-xl p-3 font-bold">
+            {ric37 ? "Volver a realizar verificación RIC37" : "⚡ Realizar verificación de seguridad eléctrica"}
           </button>
         </div>
 
