@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { API_URL } from "./config";
 import {
   BotonesNavegacion,
   ProtocoloLayout,
@@ -66,20 +67,118 @@ export default function AptitudUsoCardio({ setVista, personal }) {
   const [observacionOnda, setObservacionOnda] = useState("");
   const [tiempoCarga, setTiempoCarga] = useState("");
   const [observacionCarga, setObservacionCarga] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [evaluacionId, setEvaluacionId] = useState(null);
+  const [errorGuardado, setErrorGuardado] = useState("");
 
-  const cancelar = () => {
-    const confirmar = window.confirm(
-      "¿Cancelar la aptitud de uso? Se descartarán todas las mediciones y observaciones ingresadas. Esta acción no se puede deshacer."
-    );
-    if (!confirmar) return;
-
-    // AU Cardio todavía no crea registros ni borradores en el servidor.
-    // Solo se elimina su contexto local, sin tocar una eventual tareaActiva de otro flujo.
+  const limpiarContextoLocal = () => {
     localStorage.removeItem(CLAVE_EQUIPO);
     Object.keys(localStorage)
       .filter((clave) => clave.startsWith("au_cardio:"))
       .forEach((clave) => localStorage.removeItem(clave));
-    setVista("equipos");
+  };
+
+  const cancelar = async () => {
+    const mensaje = evaluacionId
+      ? "¿Cancelar esta evaluación guardada? Se eliminará definitivamente el informe y todas sus mediciones."
+      : "¿Cancelar la aptitud de uso? Se descartarán todas las mediciones y observaciones ingresadas.";
+    if (!window.confirm(mensaje)) return;
+
+    try {
+      if (evaluacionId) {
+        const token = localStorage.getItem("personal_token") || "";
+        const respuesta = await fetch(`${API_URL.AuCardio}/${evaluacionId}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok) throw new Error(data.error || "No se pudo eliminar la evaluación.");
+      }
+      limpiarContextoLocal();
+      setVista("equipos");
+    } catch (error) {
+      setErrorGuardado(error.message || "No se pudo cancelar la evaluación.");
+    }
+  };
+
+  const guardarEvaluacion = async () => {
+    setErrorGuardado("");
+    if (evaluacionId) return;
+    const pendientes = [
+      ...estadosPotencia.filter((x) => x.conforme === null).map((x) => `${x.referencia} J`),
+      ...(estadoPotenciaMax === null ? ["Potencia máxima"] : []),
+      ...(estadoSincronismo === null ? ["Sincronismo"] : []),
+      ...(estadoOnda === null ? ["Forma de onda"] : []),
+      ...(estadoCarga === null ? ["Tiempo de carga"] : [])
+    ];
+    if (pendientes.length) {
+      setErrorGuardado(`Complete los siguientes parámetros: ${pendientes.join(", ")}.`);
+      return;
+    }
+
+    const observacionesFaltantes = [
+      ...estadosPotencia.filter((x) => x.conforme === false && !String(observacionesPotencia[x.referencia] || "").trim()).map((x) => `${x.referencia} J`),
+      ...(estadoPotenciaMax === false && !observacionPotenciaMax.trim() ? ["Potencia máxima"] : []),
+      ...(estadoSincronismo === false && !observacionSincronismo.trim() ? ["Sincronismo"] : []),
+      ...(estadoOnda === false && !observacionOnda.trim() ? ["Forma de onda"] : []),
+      ...(estadoCarga === false && !observacionCarga.trim() ? ["Tiempo de carga"] : [])
+    ];
+    if (observacionesFaltantes.length) {
+      setErrorGuardado(`Agregue una observación para: ${observacionesFaltantes.join(", ")}.`);
+      return;
+    }
+
+    let ric01Id = null;
+    try {
+      const tareaRaw = localStorage.getItem("tareaActiva");
+      if (tareaRaw) {
+        const tarea = JSON.parse(tareaRaw);
+        if (String(tarea.numero_serie || "") === String(equipo.numero_serie || "")) {
+          ric01Id = tarea.ric01_id || tarea.id || null;
+        }
+      }
+    } catch {
+      ric01Id = null;
+    }
+
+    const payload = {
+      equipo: { id: equipo.id, numero_serie: equipo.numero_serie },
+      ric01_id: ric01Id,
+      mediciones: {
+        potencias: medicionesPotencia,
+        observaciones_potencia: observacionesPotencia,
+        potencia_max_fabricante: potenciaMaxFabricante,
+        potencia_max_medida: potenciaMaxMedida,
+        observacion_potencia_max: observacionPotenciaMax,
+        sincronismo_ms: sincronismo,
+        observacion_sincronismo: observacionSincronismo,
+        tipo_onda: tipoOnda,
+        onda_coincide: ondaCoincide === "si",
+        observacion_onda: observacionOnda,
+        tiempo_carga_s: tiempoCarga,
+        observacion_carga: observacionCarga
+      }
+    };
+
+    try {
+      setGuardando(true);
+      const token = localStorage.getItem("personal_token") || "";
+      const respuesta = await fetch(API_URL.AuCardio, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await respuesta.json().catch(() => ({}));
+      if (!respuesta.ok) throw new Error(data.error || "No se pudo guardar la evaluación.");
+      setEvaluacionId(data.id);
+    } catch (error) {
+      setErrorGuardado(error.message || "No se pudo guardar la evaluación.");
+    } finally {
+      setGuardando(false);
+    }
   };
 
   if (!equipo) {
@@ -251,14 +350,40 @@ export default function AptitudUsoCardio({ setVista, personal }) {
           </section>
         </div>
 
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-3 mt-4 text-sm">
-          Los resultados todavía no se guardan en la base de datos. La persistencia se implementará en una etapa posterior.
-        </div>
+        {errorGuardado && (
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl p-3 mt-4 text-sm" role="alert">
+            {errorGuardado}
+          </div>
+        )}
+        {evaluacionId && (
+          <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl p-3 mt-4 text-sm">
+            Evaluación guardada correctamente. Número de registro: <strong>#{evaluacionId}</strong>.
+          </div>
+        )}
 
-        <BotonesNavegacion
-          mostrarVolver={false}
-          onCancelar={cancelar}
-        />
+        <div className="flex flex-col sm:flex-row gap-2 mt-5">
+          <button
+            type="button"
+            onClick={cancelar}
+            disabled={guardando}
+            className="flex-1 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white rounded-xl p-3 font-semibold"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={guardarEvaluacion}
+            disabled={guardando || Boolean(evaluacionId)}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-xl p-3 font-semibold"
+          >
+            {guardando ? "Guardando..." : evaluacionId ? "Evaluación guardada" : "Guardar evaluación"}
+          </button>
+          {evaluacionId && (
+            <button type="button" onClick={() => { limpiarContextoLocal(); setVista("equipos"); }} className="flex-1 bg-gray-600 hover:bg-gray-700 text-white rounded-xl p-3 font-semibold">
+              Salir
+            </button>
+          )}
+        </div>
       </TarjetaEtapa>
     </ProtocoloLayout>
   );
