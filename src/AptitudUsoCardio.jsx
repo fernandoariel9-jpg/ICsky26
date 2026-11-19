@@ -8,6 +8,8 @@ import {
 
 const POTENCIAS_REFERENCIA = [50, 100, 200];
 const CLAVE_EQUIPO = "equipoAptitudCardio";
+const CLAVE_RIC37_AU_CARDIO = "au_cardio:ric37-contexto";
+const CLAVE_BORRADOR = (equipoId) => `au_cardio:borrador:${equipoId}`;
 const ETAPAS = ["Último mantenimiento de usuario", "Parámetros esenciales", "Etapa 3", "Etapa 4"];
 
 const numeroValido = (valor) => valor !== "" && Number.isFinite(Number(valor));
@@ -75,7 +77,41 @@ export default function AptitudUsoCardio({ setVista, personal }) {
   const [ultimoMantenimientoUsuario, setUltimoMantenimientoUsuario] = useState(null);
   const [cargandoMantenimientoUsuario, setCargandoMantenimientoUsuario] = useState(true);
   const [errorMantenimientoUsuario, setErrorMantenimientoUsuario] = useState("");
+  const [ric37, setRic37] = useState(null);
+  const [iniciandoRIC37, setIniciandoRIC37] = useState(false);
 
+
+  useEffect(() => {
+    if (!equipo?.id) return;
+    try {
+      const borrador = JSON.parse(localStorage.getItem(CLAVE_BORRADOR(equipo.id)) || "null");
+      if (borrador) {
+        setMedicionesPotencia(borrador.medicionesPotencia || { 50: "", 100: "", 200: "" });
+        setPotenciaMaxFabricante(borrador.potenciaMaxFabricante || "");
+        setPotenciaMaxMedida(borrador.potenciaMaxMedida || "");
+        setObservacionesPotencia(borrador.observacionesPotencia || {});
+        setObservacionPotenciaMax(borrador.observacionPotenciaMax || "");
+        setSincronismo(borrador.sincronismo || "");
+        setObservacionSincronismo(borrador.observacionSincronismo || "");
+        setTipoOnda(borrador.tipoOnda || "");
+        setOndaCoincide(borrador.ondaCoincide || "");
+        setObservacionOnda(borrador.observacionOnda || "");
+        setTiempoCarga(borrador.tiempoCarga || "");
+        setObservacionCarga(borrador.observacionCarga || "");
+      }
+    } catch { /* Se ignora un borrador local inválido. */ }
+  }, [equipo?.id]);
+
+  useEffect(() => {
+    const actualizarRIC37 = (event) => {
+      const detalle = event?.detail || {};
+      setRic37({ id: detalle.ric37Id, resultado: detalle.resultado });
+      localStorage.removeItem(CLAVE_BORRADOR(equipo?.id));
+      localStorage.removeItem(CLAVE_RIC37_AU_CARDIO);
+    };
+    window.addEventListener("au-cardio-ric37-finalizado", actualizarRIC37);
+    return () => window.removeEventListener("au-cardio-ric37-finalizado", actualizarRIC37);
+  }, [equipo?.id]);
 
   useEffect(() => {
     let activo = true;
@@ -170,8 +206,61 @@ export default function AptitudUsoCardio({ setVista, personal }) {
       : valor.toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
   };
 
+  const iniciarVerificacionRIC37 = async () => {
+    if (!equipo?.id || !puedeContinuar) return;
+    setIniciandoRIC37(true);
+    setErrorGuardado("");
+    try {
+      const token = localStorage.getItem("personal_token") || "";
+      const respuesta = await fetch(API_URL.Ric01, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          usuario: personal?.nombre || "",
+          fecha: new Date().toISOString(),
+          tarea: `AU Cardio - Verificación de seguridad eléctrica - ${equipo.descripcion || "Cardiodesfibrilador"} - Serie: ${equipo.numero_serie || ""}`,
+          diagnostico: "Verificación de seguridad eléctrica requerida para AU Cardio",
+          tipo_mantenimiento: "Correctivo",
+          descripcion: equipo.descripcion || "Cardiodesfibrilador",
+          marca_modelo: equipo.marca_modelo || "",
+          numero_serie: equipo.numero_serie || "",
+          area: equipo.area || personal?.area || "",
+          servicio: equipo.servicio || "",
+          subservicio: equipo.sub_servicio || equipo.subservicio || "",
+          asignado: personal?.nombre || "",
+          solicitado_por: personal?.nombre || "",
+          origen: "interno",
+          solucion: ""
+        })
+      });
+      const data = await respuesta.json().catch(() => ({}));
+      if (!respuesta.ok) throw new Error(data.error || "No se pudo crear la tarea para RIC37.");
+      const ric01Id = data.ric01_id || data.id;
+      if (!ric01Id) throw new Error("No se recibió el identificador de la tarea RIC37.");
+      localStorage.setItem("tareaActiva", JSON.stringify({
+        ...data, id: ric01Id, ric01_id: ric01Id, equipo_id: equipo.id,
+        numero_serie: equipo.numero_serie, descripcion: equipo.descripcion,
+        marca_modelo: equipo.marca_modelo, area: equipo.area || personal?.area || "",
+        servicio: equipo.servicio, sub_servicio: equipo.sub_servicio || equipo.subservicio,
+        tipo_mantenimiento: "Correctivo", asignado: personal?.nombre || "", origen_ric37: true
+      }));
+      localStorage.setItem(CLAVE_RIC37_AU_CARDIO, JSON.stringify({ vista: "au_cardio", ric01_id: Number(ric01Id) }));
+      localStorage.setItem(CLAVE_BORRADOR(equipo.id), JSON.stringify({
+        medicionesPotencia, potenciaMaxFabricante, potenciaMaxMedida, observacionesPotencia,
+        observacionPotenciaMax, sincronismo, observacionSincronismo, tipoOnda, ondaCoincide,
+        observacionOnda, tiempoCarga, observacionCarga
+      }));
+      setVista("ric37");
+    } catch (error) {
+      setErrorGuardado(error.message || "No se pudo iniciar RIC37.");
+    } finally {
+      setIniciandoRIC37(false);
+    }
+  };
+
   const limpiarContextoLocal = () => {
     localStorage.removeItem(CLAVE_EQUIPO);
+    localStorage.removeItem(CLAVE_RIC37_AU_CARDIO);
     Object.keys(localStorage)
       .filter((clave) => clave.startsWith("au_cardio:"))
       .forEach((clave) => localStorage.removeItem(clave));
@@ -207,6 +296,10 @@ export default function AptitudUsoCardio({ setVista, personal }) {
     if (evaluacionId) return;
     if (!puedeContinuar) {
       setErrorGuardado("No se puede guardar la etapa 2: el último mantenimiento de usuario debe estar registrado y completamente conforme.");
+      return;
+    }
+    if (!ric37 || ric37.resultado !== "CONFORME") {
+      setErrorGuardado("Antes de guardar la etapa 2 debe completar y finalizar el RIC37 con resultado CONFORME.");
       return;
     }
     const pendientes = [
@@ -534,6 +627,21 @@ export default function AptitudUsoCardio({ setVista, personal }) {
         </div>
         </fieldset>
 
+        <div className="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-4">
+          <h3 className="font-bold text-gray-900">7. Verificación de seguridad eléctrica</h3>
+          <p className="text-sm text-gray-700 mt-1">La seguridad eléctrica se verifica mediante el protocolo RIC37 existente. Debe completarse y finalizarse antes de guardar la etapa 2.</p>
+          {ric37 ? (
+            <div className={`mt-3 rounded-lg p-3 text-sm font-semibold ${ric37.resultado === "CONFORME" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+              {ric37.resultado === "CONFORME" ? "✅" : "❌"} RIC37 #{ric37.id || "—"} — {ric37.resultado}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-amber-800">RIC37 pendiente. La etapa 2 no podrá guardarse hasta finalizarlo.</p>
+          )}
+          <button type="button" onClick={iniciarVerificacionRIC37} disabled={!puedeContinuar || iniciandoRIC37 || Boolean(evaluacionId)} className="w-full mt-3 bg-blue-700 hover:bg-blue-800 disabled:bg-gray-300 text-white rounded-xl p-3 font-bold">
+            {iniciandoRIC37 ? "Iniciando RIC37..." : ric37 ? "Volver a realizar verificación RIC37" : "⚡ Realizar verificación de seguridad eléctrica"}
+          </button>
+        </div>
+
         {errorGuardado && (
           <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl p-3 mt-4 text-sm" role="alert">
             {errorGuardado}
@@ -573,10 +681,10 @@ export default function AptitudUsoCardio({ setVista, personal }) {
           <button
             type="button"
             onClick={guardarEvaluacion}
-            disabled={guardando || cargandoEvaluacion || Boolean(evaluacionId) || !puedeContinuar}
+            disabled={guardando || cargandoEvaluacion || Boolean(evaluacionId) || !puedeContinuar || ric37?.resultado !== "CONFORME"}
             className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-xl p-3 font-semibold"
           >
-            {guardando ? "Guardando..." : cargandoEvaluacion ? "Recuperando evaluación..." : evaluacionId ? "Etapa 2 guardada" : "Guardar etapa 2 (aptitud pendiente)"}
+            {guardando ? "Guardando..." : cargandoEvaluacion ? "Recuperando evaluación..." : evaluacionId ? "Etapa 2 guardada" : ric37?.resultado !== "CONFORME" ? "Complete RIC37 para guardar" : "Guardar etapa 2 (aptitud pendiente)"}
           </button>
           {evaluacionId && (
             <button type="button" onClick={() => { limpiarContextoLocal(); setVista("equipos"); }} className="flex-1 bg-gray-600 hover:bg-gray-700 text-white rounded-xl p-3 font-semibold">
