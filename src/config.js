@@ -23,6 +23,7 @@ export const API_URL = {
   Ric01: `${API_BASE_URL}/ric01`,
   Ric10: `${API_BASE_URL}/api/ric39/ric10`,
   Ric29: `${API_BASE_URL}/api/ric29`,
+  AuCardio: `${API_BASE_URL}/api/au-cardio`,
   Ric39: `${API_BASE_URL}/api/ric39`,
   Ric48: `${API_BASE_URL}/api/ric39/ric48`,
   Ric56: `${API_BASE_URL}/api/ric39/ric56`,
