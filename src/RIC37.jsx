@@ -202,6 +202,10 @@ export default function RIC37({ setVista, personal }) {
 
   const volver = () => {
     if (etapa === 0) {
+      if (contextoPreventivo?.origen === "au_cardio") {
+        localStorage.removeItem("au_cardio:ric37-contexto");
+        return setVista("au_cardio");
+      }
       if (contextoPreventivo?.vista) {
         localStorage.removeItem(RIC37_CONTEXTO_PREVENTIVO_KEY);
         return setVista(contextoPreventivo.vista);
@@ -273,8 +277,14 @@ export default function RIC37({ setVista, personal }) {
       const idGuardado = data.ric37_id || data.id || null;
       setRic37Id(idGuardado);
 
-      if (contextoPreventivo?.vista === "au_cardio") {
-        setMostrarEstadoFinal(true);
+      if (contextoPreventivo?.origen === "au_cardio") {
+        const resultado = noConformes.length === 0 ? "CONFORME" : "NO CONFORME";
+        localStorage.setItem(`au_cardio:ric37-result:${datos.equipo_id}`, JSON.stringify({ id: idGuardado, resultado }));
+        window.dispatchEvent(new CustomEvent("au-cardio-ric37-finalizado", {
+          detail: { ric37Id: idGuardado, resultado }
+        }));
+        localStorage.removeItem("au_cardio:ric37-contexto");
+        setVista("au_cardio");
       } else if (contextoPreventivo?.vista) {
         alert("RIC37 guardado correctamente ✅");
         window.dispatchEvent(new CustomEvent("ric37-actualizado", {
@@ -309,7 +319,7 @@ export default function RIC37({ setVista, personal }) {
 
   if (cargando) return <div className="p-6 text-center"><p className="text-lg">⏳ Cargando datos del equipo...</p></div>;
 
-  if (error && !datos.ric01_id) return (
+  if (error && !datos.ric01_id && contextoPreventivo?.origen !== "au_cardio") return (
     <div className="p-6 max-w-xl mx-auto">
       <div className="bg-red-100 text-red-700 p-4 rounded-xl">⚠️ {error}</div>
       <button onClick={salir} className="w-full bg-gray-500 text-white rounded-xl p-3 mt-4">← Volver</button>
