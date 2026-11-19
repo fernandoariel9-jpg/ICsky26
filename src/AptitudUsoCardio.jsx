@@ -273,7 +273,6 @@ export default function AptitudUsoCardio({ setVista, personal }) {
 
   const guardarEvaluacion = async () => {
     setErrorGuardado("");
-    if (evaluacionId) return;
     if (!puedeContinuar) {
       setErrorGuardado("No se puede guardar la etapa 2: el último mantenimiento de usuario debe estar registrado y completamente conforme.");
       return;
@@ -320,6 +319,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
     }
 
     const payload = {
+      evaluacion_id: evaluacionId || null,
       equipo: { id: equipo.id, numero_serie: equipo.numero_serie },
       ric01_id: ric01Id,
       mantenimiento_usuario_id: ultimoMantenimientoUsuario?.id || null,
@@ -353,7 +353,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
       const data = await respuesta.json().catch(() => ({}));
       if (!respuesta.ok) throw new Error(data.error || "No se pudo guardar la evaluación.");
       setEvaluacionId(data.id);
-      setEvaluacionNueva(true);
+      setEvaluacionNueva(!evaluacionId);
     } catch (error) {
       setErrorGuardado(error.message || "No se pudo guardar la evaluación.");
     } finally {
@@ -617,7 +617,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
           ) : (
             <p className="mt-3 text-sm text-amber-800">RIC37 pendiente. La etapa 2 no podrá guardarse hasta finalizarlo.</p>
           )}
-          <button type="button" onClick={iniciarVerificacionRIC37} disabled={!puedeContinuar || Boolean(evaluacionId)} className="w-full mt-3 bg-blue-700 hover:bg-blue-800 disabled:bg-gray-300 text-white rounded-xl p-3 font-bold">
+          <button type="button" onClick={iniciarVerificacionRIC37} disabled={!puedeContinuar || cargandoEvaluacion} className="w-full mt-3 bg-blue-700 hover:bg-blue-800 disabled:bg-gray-300 text-white rounded-xl p-3 font-bold">
             {ric37 ? "Volver a realizar verificación RIC37" : "⚡ Realizar verificación de seguridad eléctrica"}
           </button>
         </div>
@@ -661,7 +661,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
           <button
             type="button"
             onClick={guardarEvaluacion}
-            disabled={guardando || cargandoEvaluacion || Boolean(evaluacionId) || !puedeContinuar || ric37?.resultado !== "CONFORME"}
+            disabled={guardando || cargandoEvaluacion || !puedeContinuar || ric37?.resultado !== "CONFORME"}
             className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-xl p-3 font-semibold"
           >
             {guardando ? "Guardando..." : cargandoEvaluacion ? "Recuperando evaluación..." : evaluacionId ? "Etapa 2 guardada" : ric37?.resultado !== "CONFORME" ? "Complete RIC37 para guardar" : "Guardar etapa 2 (aptitud pendiente)"}
