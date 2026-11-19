@@ -69,6 +69,8 @@ export default function AptitudUsoCardio({ setVista, personal }) {
   const [observacionCarga, setObservacionCarga] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [evaluacionId, setEvaluacionId] = useState(null);
+  const [evaluacionNueva, setEvaluacionNueva] = useState(false);
+  const [cargandoEvaluacion, setCargandoEvaluacion] = useState(true);
   const [errorGuardado, setErrorGuardado] = useState("");
   const [ultimoMantenimientoUsuario, setUltimoMantenimientoUsuario] = useState(null);
   const [cargandoMantenimientoUsuario, setCargandoMantenimientoUsuario] = useState(true);
@@ -99,6 +101,67 @@ export default function AptitudUsoCardio({ setVista, personal }) {
     return () => { activo = false; };
   }, [equipo?.id]);
 
+
+  useEffect(() => {
+    let activo = true;
+    const cargarUltimaEvaluacion = async () => {
+      if (!equipo?.id) {
+        setCargandoEvaluacion(false);
+        return;
+      }
+      setCargandoEvaluacion(true);
+      try {
+        const token = localStorage.getItem("personal_token") || "";
+        const respuesta = await fetch(`${API_URL.AuCardio}/equipo/${equipo.id}/ultima`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok) throw new Error(data.error || "No se pudo recuperar la última evaluación AU Cardio.");
+        const evaluacion = data.evaluacion;
+        if (!activo || !evaluacion) return;
+
+        const filas = evaluacion.mediciones || [];
+        const energia = (orden) => filas.find((item) => item.grupo === "ENERGIA" && Number(item.orden) === orden);
+        const sincronismoGuardado = filas.find((item) => item.grupo === "SINCRONISMO");
+        const ondaGuardada = filas.find((item) => item.grupo === "FORMA_ONDA");
+        const cargaGuardada = filas.find((item) => item.grupo === "CARGA");
+        const energia50 = energia(50);
+        const energia100 = energia(100);
+        const energia200 = energia(200);
+        const potenciaMax = energia(4);
+
+        setMedicionesPotencia({
+          50: energia50?.medicion ?? "",
+          100: energia100?.medicion ?? "",
+          200: energia200?.medicion ?? ""
+        });
+        setObservacionesPotencia({
+          50: energia50?.observaciones || "",
+          100: energia100?.observaciones || "",
+          200: energia200?.observaciones || ""
+        });
+        setPotenciaMaxFabricante(potenciaMax?.valor_nominal ?? "");
+        setPotenciaMaxMedida(potenciaMax?.medicion ?? "");
+        setObservacionPotenciaMax(potenciaMax?.observaciones || "");
+        setSincronismo(sincronismoGuardado?.medicion ?? "");
+        setObservacionSincronismo(sincronismoGuardado?.observaciones || "");
+        setTipoOnda(ondaGuardada?.valor_nominal || "");
+        setOndaCoincide(ondaGuardada?.conforme === true ? "si" : ondaGuardada?.conforme === false ? "no" : "");
+        setObservacionOnda(ondaGuardada?.observaciones || "");
+        setTiempoCarga(cargaGuardada?.medicion ?? "");
+        setObservacionCarga(cargaGuardada?.observaciones || "");
+        setEvaluacionId(evaluacion.id);
+        setEvaluacionNueva(false);
+      } catch (error) {
+        if (activo) setErrorGuardado(error.message || "No se pudo recuperar la evaluación AU Cardio.");
+      } finally {
+        if (activo) setCargandoEvaluacion(false);
+      }
+    };
+    cargarUltimaEvaluacion();
+    return () => { activo = false; };
+  }, [equipo?.id]);
+
   const formatearFecha = (fecha) => {
     if (!fecha) return "Fecha no disponible";
     const valor = new Date(fecha);
@@ -115,13 +178,15 @@ export default function AptitudUsoCardio({ setVista, personal }) {
   };
 
   const cancelar = async () => {
-    const mensaje = evaluacionId
-      ? "¿Cancelar esta evaluación guardada? Se eliminará definitivamente el informe y todas sus mediciones."
-      : "¿Cancelar la aptitud de uso? Se descartarán todas las mediciones y observaciones ingresadas.";
+    const mensaje = evaluacionId && evaluacionNueva
+      ? "¿Cancelar esta evaluación recién guardada? Se eliminará definitivamente el informe y todas sus mediciones."
+      : evaluacionId
+        ? "¿Salir de la evaluación recuperada? El registro histórico no será eliminado."
+        : "¿Cancelar la aptitud de uso? Se descartarán todas las mediciones y observaciones ingresadas.";
     if (!window.confirm(mensaje)) return;
 
     try {
-      if (evaluacionId) {
+      if (evaluacionId && evaluacionNueva) {
         const token = localStorage.getItem("personal_token") || "";
         const respuesta = await fetch(`${API_URL.AuCardio}/${evaluacionId}`, {
           method: "DELETE",
@@ -215,6 +280,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
       const data = await respuesta.json().catch(() => ({}));
       if (!respuesta.ok) throw new Error(data.error || "No se pudo guardar la evaluación.");
       setEvaluacionId(data.id);
+      setEvaluacionNueva(true);
     } catch (error) {
       setErrorGuardado(error.message || "No se pudo guardar la evaluación.");
     } finally {
@@ -507,10 +573,10 @@ export default function AptitudUsoCardio({ setVista, personal }) {
           <button
             type="button"
             onClick={guardarEvaluacion}
-            disabled={guardando || Boolean(evaluacionId) || !puedeContinuar}
+            disabled={guardando || cargandoEvaluacion || Boolean(evaluacionId) || !puedeContinuar}
             className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-xl p-3 font-semibold"
           >
-            {guardando ? "Guardando..." : evaluacionId ? "Etapa 2 guardada" : "Guardar etapa 2 (aptitud pendiente)"}
+            {guardando ? "Guardando..." : cargandoEvaluacion ? "Recuperando evaluación..." : evaluacionId ? "Etapa 2 guardada" : "Guardar etapa 2 (aptitud pendiente)"}
           </button>
           {evaluacionId && (
             <button type="button" onClick={() => { limpiarContextoLocal(); setVista("equipos"); }} className="flex-1 bg-gray-600 hover:bg-gray-700 text-white rounded-xl p-3 font-semibold">
