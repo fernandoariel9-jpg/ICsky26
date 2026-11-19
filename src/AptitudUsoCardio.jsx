@@ -507,10 +507,10 @@ export default function AptitudUsoCardio({ setVista, personal }) {
           <button
             type="button"
             onClick={guardarEvaluacion}
-            disabled={guardando || Boolean(evaluacionId)}
+            disabled={guardando || Boolean(evaluacionId) || !puedeContinuar}
             className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-xl p-3 font-semibold"
           >
-            {guardando ? "Guardando..." : evaluacionId ? "Evaluación guardada" : "Guardar evaluación"}
+            {guardando ? "Guardando..." : evaluacionId ? "Etapa 2 guardada" : "Guardar etapa 2 (aptitud pendiente)"}
           </button>
           {evaluacionId && (
             <button type="button" onClick={() => { limpiarContextoLocal(); setVista("equipos"); }} className="flex-1 bg-gray-600 hover:bg-gray-700 text-white rounded-xl p-3 font-semibold">
