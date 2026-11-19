@@ -50,9 +50,9 @@ export default function RIC37({ setVista, personal }) {
     personal,
     onFinalizado: () => {
       if (contextoPreventivo?.vista === "au_cardio") {
-        window.dispatchEvent(new CustomEvent("au-cardio-ric37-finalizado", {
-          detail: { ric37Id, resultado: obtenerNoConformes().length === 0 ? "CONFORME" : "NO CONFORME" }
-        }));
+        const resultadoRIC37 = { id: ric37Id, resultado: obtenerNoConformes().length === 0 ? "CONFORME" : "NO CONFORME" };
+        localStorage.setItem(`au_cardio:ric37-result:${datos.equipo_id}`, JSON.stringify(resultadoRIC37));
+        window.dispatchEvent(new CustomEvent("au-cardio-ric37-finalizado", { detail: { ric37Id, resultado: resultadoRIC37.resultado } }));
         localStorage.removeItem(RIC37_CONTEXTO_PREVENTIVO_KEY);
         setVista("au_cardio");
       }
