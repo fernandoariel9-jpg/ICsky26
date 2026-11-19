@@ -62,9 +62,28 @@ export default function RIC37({ setVista, personal }) {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
+        const contextoAU = JSON.parse(localStorage.getItem("au_cardio:ric37-contexto") || "null");
+        if (contextoAU?.origen === "au_cardio" && contextoAU.equipo?.id) {
+          const equipoAU = contextoAU.equipo;
+          setContextoPreventivo({ vista: "au_cardio", origen: "au_cardio" });
+          setTareaGeneradaRIC37(false);
+          setDatos({
+            ric01_id: "",
+            equipo_id: equipoAU.id,
+            numero_serie: equipoAU.numero_serie || "",
+            descripcion: equipoAU.descripcion || "",
+            marca_modelo: equipoAU.marca_modelo || "",
+            area: equipoAU.area || "",
+            servicio: equipoAU.servicio || "",
+            sub_servicio: equipoAU.sub_servicio || "",
+            encargado: equipoAU.encargado || "",
+            tecnico: personal?.nombre || ""
+          });
+          return;
+        }
+
         const tareaGuardada = localStorage.getItem("tareaActiva");
         if (!tareaGuardada) throw new Error("No existe un mantenimiento activo.");
-
         const tarea = JSON.parse(tareaGuardada);
 
         setTareaGeneradaRIC37(
@@ -85,7 +104,6 @@ export default function RIC37({ setVista, personal }) {
         }
 
         let equipo = null;
-
         if (tarea.numero_serie) {
           const res = await fetch(`${API_URL.BuscarEquipo}/${encodeURIComponent(tarea.numero_serie)}`);
           if (res.ok) equipo = await res.json();
@@ -200,7 +218,7 @@ export default function RIC37({ setVista, personal }) {
   };
 
   const validarFormulario = () => {
-    if (!datos.ric01_id) return "No se encontró el mantenimiento asociado.";
+    if (!datos.ric01_id && contextoPreventivo?.origen !== "au_cardio") return "No se encontró el mantenimiento asociado.";
     if (!clase) return "Seleccione la clase del equipo.";
     if (!tipoProteccion) return "Seleccione el tipo de protección.";
     if (!validarDeterminaciones()) return "Complete las determinaciones antes de guardar.";
@@ -277,6 +295,10 @@ export default function RIC37({ setVista, personal }) {
   };
 
   const salir = () => {
+    if (contextoPreventivo?.origen === "au_cardio") {
+      localStorage.removeItem("au_cardio:ric37-contexto");
+      return setVista("au_cardio");
+    }
     if (contextoPreventivo?.vista) {
       localStorage.removeItem(RIC37_CONTEXTO_PREVENTIVO_KEY);
       return setVista(contextoPreventivo.vista);
@@ -442,7 +464,7 @@ export default function RIC37({ setVista, personal }) {
           </div>
         )}
       </div>
-      <ModalEstadoFinal
+      {contextoPreventivo?.origen !== "au_cardio" && <ModalEstadoFinal
         abierto={mostrarEstadoFinal}
         estados={estados}
         estadoFinal={estadoFinal}
@@ -450,7 +472,7 @@ export default function RIC37({ setVista, personal }) {
         finalizando={finalizando}
         onCerrar={() => setMostrarEstadoFinal(false)}
         onConfirmar={finalizarMantenimiento}
-      />
+      />}
     </div>
   );
 }
