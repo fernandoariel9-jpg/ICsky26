@@ -8,7 +8,7 @@ import {
 
 const POTENCIAS_REFERENCIA = [50, 100, 200];
 const CLAVE_EQUIPO = "equipoAptitudCardio";
-const ETAPAS = ["Parámetros esenciales"];
+const ETAPAS = ["Último mantenimiento de usuario", "Parámetros esenciales", "Etapa 3", "Etapa 4"];
 
 const numeroValido = (valor) => valor !== "" && Number.isFinite(Number(valor));
 
@@ -224,7 +224,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
         tituloCorto="Aptitud de uso"
         etapas={ETAPAS}
         etapa={0}
-        progreso={100}
+        progreso={25}
         datos={{ descripcion: "Cardiodesfibrilador", marca_modelo: "", numero_serie: "", area: "", servicio: "" }}
         error="No se encontraron los datos del equipo seleccionado."
       >
@@ -252,6 +252,19 @@ export default function AptitudUsoCardio({ setVista, personal }) {
   const estadoOnda = ondaCoincide === "" ? null : ondaCoincide === "si";
   const estadoCarga = numeroValido(tiempoCarga) ? Number(tiempoCarga) < 15 : null;
 
+  const controlesMantenimientoUsuario = ultimoMantenimientoUsuario
+    ? [ultimoMantenimientoUsuario.limpieza_ok, ultimoMantenimientoUsuario.integridad_ok,
+       ultimoMantenimientoUsuario.verificacion_funcional_ok, ultimoMantenimientoUsuario.capacitacion_personal_ok]
+    : [];
+  const estadoMantenimientoUsuario = cargandoMantenimientoUsuario || errorMantenimientoUsuario || !ultimoMantenimientoUsuario
+    ? "PENDIENTE"
+    : controlesMantenimientoUsuario.some((valor) => valor === false)
+      ? "NO CONFORME"
+      : controlesMantenimientoUsuario.every((valor) => valor === true)
+        ? "CONFORME"
+        : "PENDIENTE";
+  const puedeContinuar = estadoMantenimientoUsuario === "CONFORME";
+
   const actualizarMedicionPotencia = (referencia, valor) => {
     setMedicionesPotencia((actual) => ({ ...actual, [referencia]: valor }));
   };
@@ -270,13 +283,76 @@ export default function AptitudUsoCardio({ setVista, personal }) {
       tituloCorto="Aptitud de uso"
       etapas={ETAPAS}
       etapa={0}
-      progreso={100}
+      progreso={25}
       datos={datosEquipo}
     >
       <TarjetaEtapa
-        titulo="Aptitud de uso - Cardiodesfibrilador"
+        titulo="1. Último mantenimiento de usuario"
+        ayuda="Último checklist de mantenimiento de usuario registrado para este equipo."
+      >
+        {cargandoMantenimientoUsuario ? (
+          <p className="text-sm text-gray-500">Consultando el último mantenimiento de usuario...</p>
+        ) : errorMantenimientoUsuario ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">{errorMantenimientoUsuario}</div>
+        ) : !ultimoMantenimientoUsuario ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
+            Este equipo todavía no tiene mantenimientos de usuario registrados.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="bg-gray-50 rounded-xl p-3">
+              <p className="text-xs text-gray-500">Registro #{ultimoMantenimientoUsuario.id}</p>
+              <p className="font-semibold text-gray-800">{formatearFecha(ultimoMantenimientoUsuario.fecha)}</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Realizado por: <strong>{ultimoMantenimientoUsuario.usuario_nombre || "Usuario no identificado"}</strong>
+              </p>
+              {ultimoMantenimientoUsuario.usuario_mail && (
+                <p className="text-xs text-gray-500">{ultimoMantenimientoUsuario.usuario_mail}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              {[
+                ["Limpieza", ultimoMantenimientoUsuario.limpieza_ok],
+                ["Integridad", ultimoMantenimientoUsuario.integridad_ok],
+                ["Verificación funcional", ultimoMantenimientoUsuario.verificacion_funcional_ok],
+                ["Capacitación del personal", ultimoMantenimientoUsuario.capacitacion_personal_ok]
+              ].map(([nombre, conforme]) => (
+                <div key={nombre} className="flex flex-wrap items-center justify-between gap-2 border rounded-xl p-3">
+                  <span className="text-sm font-medium text-gray-700">{nombre}</span>
+                  <span className={`px-2 py-1 rounded-lg text-xs font-bold ${conforme === true ? "bg-green-100 text-green-700" : conforme === false ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600"}`}>
+                    {conforme === true ? "CONFORME" : conforme === false ? "NO CONFORME" : "SIN DATO"}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {ultimoMantenimientoUsuario.observaciones && (
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900">
+                <strong>Observaciones:</strong>
+                <p className="mt-1 whitespace-pre-wrap">{ultimoMantenimientoUsuario.observaciones}</p>
+              </div>
+            )}
+          </div>
+        )}
+        <div className={`mt-4 rounded-xl p-3 text-sm font-bold ${estadoMantenimientoUsuario === "CONFORME" ? "bg-green-100 text-green-800" : estadoMantenimientoUsuario === "NO CONFORME" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
+          ETAPA 1: {estadoMantenimientoUsuario}
+          {estadoMantenimientoUsuario === "CONFORME" && " — Puede continuar con los parámetros esenciales."}
+        </div>
+      </TarjetaEtapa>
+
+      <TarjetaEtapa
+        titulo="2. Parámetros esenciales"
         ayuda={`Parámetros esenciales · Responsable de la evaluación: ${personal?.nombre || "No identificado"}`}
       >
+        {!puedeContinuar && (
+          <div className={`rounded-xl border p-3 mb-4 text-sm ${estadoMantenimientoUsuario === "NO CONFORME" ? "bg-red-50 border-red-200 text-red-800" : "bg-amber-50 border-amber-200 text-amber-800"}`}>
+            {estadoMantenimientoUsuario === "NO CONFORME"
+              ? "El último mantenimiento de usuario tiene puntos no conformes. No se puede continuar con los parámetros esenciales hasta resolverlos y registrar un nuevo mantenimiento conforme."
+              : "La etapa 1 todavía no está conforme. Se necesita un último mantenimiento de usuario registrado y con todos sus controles conformes para habilitar esta etapa."}
+          </div>
+        )}
+        <fieldset disabled={!puedeContinuar} className={!puedeContinuar ? "opacity-50" : ""}>
         <div className="space-y-3">
           <section className="bg-gray-50 rounded-lg p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -385,6 +461,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
             </select>
           </section>
         </div>
+        </fieldset>
 
         {errorGuardado && (
           <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl p-3 mt-4 text-sm" role="alert">
@@ -397,6 +474,22 @@ export default function AptitudUsoCardio({ setVista, personal }) {
           </div>
         )}
 
+
+      </TarjetaEtapa>
+
+      <TarjetaEtapa titulo="3. Etapa 3 — Pendiente de definición" ayuda="Esta etapa se incorporará cuando definamos sus controles y criterios de conformidad.">
+        <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+          Etapa pendiente de diseño. No puede considerarse conforme ni habilitar el Apto de Uso.
+        </div>
+      </TarjetaEtapa>
+
+      <TarjetaEtapa titulo="4. Etapa 4 — Pendiente de definición" ayuda="Esta etapa se incorporará cuando definamos sus controles y criterios de conformidad.">
+        <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+          Etapa pendiente de diseño. No puede considerarse conforme ni habilitar el Apto de Uso.
+        </div>
+      </TarjetaEtapa>
+
+      <TarjetaEtapa titulo="Acciones de la evaluación">
         <div className="flex flex-col sm:flex-row gap-2 mt-5">
           <button
             type="button"
@@ -420,57 +513,6 @@ export default function AptitudUsoCardio({ setVista, personal }) {
             </button>
           )}
         </div>
-      </TarjetaEtapa>
-
-      <TarjetaEtapa
-        titulo="Último mantenimiento de usuario"
-        ayuda="Último checklist de mantenimiento de usuario registrado para este equipo."
-      >
-        {cargandoMantenimientoUsuario ? (
-          <p className="text-sm text-gray-500">Consultando el último mantenimiento de usuario...</p>
-        ) : errorMantenimientoUsuario ? (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">{errorMantenimientoUsuario}</div>
-        ) : !ultimoMantenimientoUsuario ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
-            Este equipo todavía no tiene mantenimientos de usuario registrados.
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="bg-gray-50 rounded-xl p-3">
-              <p className="text-xs text-gray-500">Registro #{ultimoMantenimientoUsuario.id}</p>
-              <p className="font-semibold text-gray-800">{formatearFecha(ultimoMantenimientoUsuario.fecha)}</p>
-              <p className="text-sm text-gray-600 mt-1">
-                Realizado por: <strong>{ultimoMantenimientoUsuario.usuario_nombre || "Usuario no identificado"}</strong>
-              </p>
-              {ultimoMantenimientoUsuario.usuario_mail && (
-                <p className="text-xs text-gray-500">{ultimoMantenimientoUsuario.usuario_mail}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              {[
-                ["Limpieza", ultimoMantenimientoUsuario.limpieza_ok],
-                ["Integridad", ultimoMantenimientoUsuario.integridad_ok],
-                ["Verificación funcional", ultimoMantenimientoUsuario.verificacion_funcional_ok],
-                ["Capacitación del personal", ultimoMantenimientoUsuario.capacitacion_personal_ok]
-              ].map(([nombre, conforme]) => (
-                <div key={nombre} className="flex flex-wrap items-center justify-between gap-2 border rounded-xl p-3">
-                  <span className="text-sm font-medium text-gray-700">{nombre}</span>
-                  <span className={`px-2 py-1 rounded-lg text-xs font-bold ${conforme === true ? "bg-green-100 text-green-700" : conforme === false ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600"}`}>
-                    {conforme === true ? "CONFORME" : conforme === false ? "NO CONFORME" : "SIN DATO"}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {ultimoMantenimientoUsuario.observaciones && (
-              <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900">
-                <strong>Observaciones:</strong>
-                <p className="mt-1 whitespace-pre-wrap">{ultimoMantenimientoUsuario.observaciones}</p>
-              </div>
-            )}
-          </div>
-        )}
       </TarjetaEtapa>
     </ProtocoloLayout>
   );
