@@ -140,6 +140,10 @@ export default function AptitudUsoCardio({ setVista, personal }) {
   const guardarEvaluacion = async () => {
     setErrorGuardado("");
     if (evaluacionId) return;
+    if (!puedeContinuar) {
+      setErrorGuardado("No se puede guardar la etapa 2: el último mantenimiento de usuario debe estar registrado y completamente conforme.");
+      return;
+    }
     const pendientes = [
       ...estadosPotencia.filter((x) => x.conforme === null).map((x) => `${x.referencia} J`),
       ...(estadoPotenciaMax === null ? ["Potencia máxima"] : []),
@@ -180,6 +184,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
     const payload = {
       equipo: { id: equipo.id, numero_serie: equipo.numero_serie },
       ric01_id: ric01Id,
+      mantenimiento_usuario_id: ultimoMantenimientoUsuario?.id || null,
       mediciones: {
         potencias: medicionesPotencia,
         observaciones_potencia: observacionesPotencia,
