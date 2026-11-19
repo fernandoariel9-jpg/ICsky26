@@ -47,7 +47,16 @@ export default function RIC37({ setVista, personal }) {
   } = useFinalizacionRIC({
     codigo: "RIC37",
     datos,
-    personal
+    personal,
+    onFinalizado: () => {
+      if (contextoPreventivo?.vista === "au_cardio") {
+        window.dispatchEvent(new CustomEvent("au-cardio-ric37-finalizado", {
+          detail: { ric37Id, resultado: obtenerNoConformes().length === 0 ? "CONFORME" : "NO CONFORME" }
+        }));
+        localStorage.removeItem(RIC37_CONTEXTO_PREVENTIVO_KEY);
+        setVista("au_cardio");
+      }
+    }
   });
 
   useEffect(() => {
@@ -246,7 +255,9 @@ export default function RIC37({ setVista, personal }) {
       const idGuardado = data.ric37_id || data.id || null;
       setRic37Id(idGuardado);
 
-      if (contextoPreventivo?.vista) {
+      if (contextoPreventivo?.vista === "au_cardio") {
+        setMostrarEstadoFinal(true);
+      } else if (contextoPreventivo?.vista) {
         alert("RIC37 guardado correctamente ✅");
         window.dispatchEvent(new CustomEvent("ric37-actualizado", {
           detail: { ric01Id: Number(datos.ric01_id), ric37Id: idGuardado }
