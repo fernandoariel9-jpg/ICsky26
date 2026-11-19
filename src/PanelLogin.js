@@ -359,17 +359,19 @@ const datosPromediosConTendencia = (() => {
   const verPersonal = async () => {
   try {
     const res = await fetch(API_URL.personal);
+    if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
     setPersonal(data);
     setMostrarPersonal(true);
   } catch (err) {
+    console.error(err);
     toast.error("Error cargando personal");
   }
 };
 
   const guardarCambiosPersonal = async () => {
   try {
-    await fetch(`${API_URL.personal}/${editPersonal.id}`, {
+    const res = await fetch(`${API_URL.personal}/${editPersonal.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -379,15 +381,35 @@ const datosPromediosConTendencia = (() => {
         password: nuevaPassword || undefined,
       }),
     });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "No se pudieron guardar los cambios");
 
     toast.success("Personal actualizado");
     setPersonalSeleccionado(null);
     setNuevaPassword("");
-    verPersonal();
-  } catch {
-    toast.error("Error al guardar cambios");
+    await verPersonal();
+  } catch (err) {
+    console.error(err);
+    toast.error(err.message || "Error al guardar cambios");
   }
 };
+
+  const blanquearPasswordPersonal = async () => {
+    if (!window.confirm(`¿Blanquear la contraseña de ${editPersonal.nombre}? Deberá crear una nueva al ingresar.`)) return;
+    try {
+      const res = await fetch(`${API_URL.personal}/${editPersonal.id}/blanquear-password`, {
+        method: "PATCH",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "No se pudo blanquear la contraseña");
+      toast.success("Contraseña blanqueada. Deberá crear una nueva al ingresar.");
+      setPersonalSeleccionado(null);
+      setNuevaPassword("");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Error al blanquear contraseña");
+    }
+  };
 
   // Recalcular promedios cuando cambian las tareas
   useEffect(() => {
@@ -1393,6 +1415,13 @@ const handleAreaClick = (areaName) => {
           className="w-full py-2 rounded-lg bg-green-600 text-white font-semibold"
         >
           Guardar Cambios
+        </button>
+
+        <button
+          onClick={blanquearPasswordPersonal}
+          className="w-full py-2 rounded-lg bg-amber-600 text-white font-semibold"
+        >
+          Blanquear contraseña
         </button>
 
         <button
