@@ -16,7 +16,7 @@ const ETAPAS = ["Último mantenimiento de usuario", "Parámetros esenciales", "E
 
 function TarjetaEtapa({ titulo, ayuda, children }) {
   return (
-    <div className="rounded-xl border-2 border-black bg-gray-100 p-4 shadow-sm">
+    <div className="mb-4 rounded-xl border-2 border-black bg-gray-100 p-4 shadow-sm">
       <h2 className="mb-2 text-xl font-bold text-gray-900">{titulo}</h2>
       {ayuda && <p className="mb-4 rounded-lg bg-white/70 p-3 text-sm text-gray-600">{ayuda}</p>}
       {children}
