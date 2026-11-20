@@ -313,8 +313,8 @@ export default function AptitudUsoCardio({ setVista, personal }) {
 
   const guardarEvaluacion = async () => {
     setErrorGuardado("");
-    if (!puedeContinuar) {
-      setErrorGuardado("No se puede guardar la etapa 2: el último mantenimiento de usuario debe estar registrado y completamente conforme.");
+    if (!puedeContinuarParametros || !parametrosConformes) {
+      setErrorGuardado("No se puede completar la etapa 3: el preventivo, el mantenimiento de usuario y todos los parámetros esenciales deben estar conformes.");
       return;
     }
     if (!ric37 || ric37.resultado !== "CONFORME") {
@@ -548,8 +548,15 @@ export default function AptitudUsoCardio({ setVista, personal }) {
         )}
       </div>
 
+      <div className={`mb-4 rounded-xl p-3 text-sm font-bold ${estadoPreventivo === "CONFORME" ? "bg-green-100 text-green-800" : estadoPreventivo === "NO CONFORME" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
+        ETAPA 1: {estadoPreventivo}
+        {estadoPreventivo === "CONFORME" && " — Puede continuar con mantenimiento de usuario."}
+        {estadoPreventivo === "NO CONFORME" && " — El mantenimiento preventivo está vencido; debe regularizarse antes de continuar."}
+        {estadoPreventivo === "PENDIENTE" && " — No se pudo confirmar que el mantenimiento preventivo esté al día."}
+      </div>
+
       <TarjetaEtapa
-        titulo="1. Último mantenimiento de usuario"
+        titulo="2. Último mantenimiento de usuario"
         ayuda="Último checklist de mantenimiento de usuario registrado para este equipo."
       >
         {cargandoMantenimientoUsuario ? (
@@ -598,13 +605,13 @@ export default function AptitudUsoCardio({ setVista, personal }) {
           </div>
         )}
         <div className={`mt-4 rounded-xl p-3 text-sm font-bold ${estadoMantenimientoUsuario === "CONFORME" ? "bg-green-100 text-green-800" : estadoMantenimientoUsuario === "NO CONFORME" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
-          ETAPA 1: {estadoMantenimientoUsuario}
+          ETAPA 2: {estadoMantenimientoUsuario}
           {estadoMantenimientoUsuario === "CONFORME" && " — Puede continuar con los parámetros esenciales."}
         </div>
       </TarjetaEtapa>
 
       <TarjetaEtapa
-        titulo="2. Parámetros esenciales"
+        titulo="3. Parámetros esenciales"
         ayuda={`Parámetros esenciales · Responsable de la evaluación: ${personal?.nombre || "No identificado"}`}
       >
         {!puedeContinuarParametros && (
@@ -745,6 +752,12 @@ export default function AptitudUsoCardio({ setVista, personal }) {
             {errorGuardado}
           </div>
         )}
+        <div className={`mt-4 rounded-xl p-3 text-sm font-bold ${estadoEtapa3 === "CONFORME" ? "bg-green-100 text-green-800" : estadoEtapa3 === "NO CONFORME" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
+          ETAPA 3: {estadoEtapa3}
+          {estadoEtapa3 === "CONFORME" && " — Puede continuar con verificación funcional."}
+          {estadoEtapa3 !== "CONFORME" && " — Para conformar esta etapa deben estar conformes todos los parámetros esenciales y el RIC37."}
+        </div>
+
         {evaluacionId && (
           <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl p-3 mt-4 text-sm">
             Evaluación guardada correctamente. Número de registro: <strong>#{evaluacionId}</strong>.
@@ -754,7 +767,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
 
       </TarjetaEtapa>
 
-      <TarjetaEtapa titulo="4. Verificación funcional — Pendiente de definición" ayuda="Esta etapa se incorporará cuando definamos sus controles y criterios de conformidad.">
+      <TarjetaEtapa titulo="4. Verificación funcional" ayuda="Esta etapa se incorporará cuando definamos sus controles y criterios de conformidad.">
         <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
           Etapa pendiente de diseño. No puede considerarse conforme ni habilitar el Apto de Uso.
         </div>
@@ -779,7 +792,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
           <button
             type="button"
             onClick={guardarEvaluacion}
-            disabled={guardando || cargandoEvaluacion || !puedeContinuarParametros || ric37?.resultado !== "CONFORME"}
+            disabled={guardando || cargandoEvaluacion || !puedeContinuarParametros || !parametrosConformes || ric37?.resultado !== "CONFORME"}
             className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-xl p-3 font-semibold"
           >
             {guardando ? "Guardando..." : cargandoEvaluacion ? "Recuperando evaluación..." : evaluacionId ? "Etapa 3 guardada" : ric37?.resultado !== "CONFORME" ? "Complete RIC37 para guardar" : "Guardar etapa 3 (aptitud pendiente)"}
