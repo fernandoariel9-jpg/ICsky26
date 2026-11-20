@@ -144,10 +144,31 @@ export default function AptitudUsoCardio({ setVista, personal }) {
   }, [equipo?.id]);
 
   useEffect(() => {
-    try {
-      const resultadoGuardado = JSON.parse(localStorage.getItem(CLAVE_RESULTADO_RIC37(equipo?.id)) || "null");
-      if (resultadoGuardado) setRic37(resultadoGuardado);
-    } catch { /* Se ignora un resultado local inválido. */ }
+    let activo = true;
+    const cargarResultadoRIC37 = async () => {
+      if (!equipo?.id) return;
+      try {
+        const respuesta = await fetch(`${API_URL.Base}/api/ric37/por-equipo/${equipo.id}`, { cache: "no-store" });
+        const data = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok) throw new Error(data.error || "No se pudo recuperar el RIC37.");
+        if (activo && data.realizado && data.ric37) {
+          const resultado = { id: data.ric37.id, resultado: data.ric37.resultado_general, fecha: data.ric37.fecha };
+          setRic37(resultado);
+          localStorage.setItem(CLAVE_RESULTADO_RIC37(equipo.id), JSON.stringify(resultado));
+        } else if (activo && !data.realizado) {
+          setRic37(null);
+          localStorage.removeItem(CLAVE_RESULTADO_RIC37(equipo.id));
+        }
+      } catch (error) {
+        try {
+          const resultadoGuardado = JSON.parse(localStorage.getItem(CLAVE_RESULTADO_RIC37(equipo.id)) || "null");
+          if (activo && resultadoGuardado) setRic37(resultadoGuardado);
+        } catch { /* Se ignora un resultado local inválido. */ }
+        console.warn("No se pudo recuperar el RIC37 desde el servidor:", error);
+      }
+    };
+    cargarResultadoRIC37();
+
     const actualizarRIC37 = (event) => {
       const detalle = event?.detail || {};
       const resultado = { id: detalle.ric37Id, resultado: detalle.resultado };
@@ -157,7 +178,10 @@ export default function AptitudUsoCardio({ setVista, personal }) {
       localStorage.removeItem(CLAVE_RIC37_AU_CARDIO);
     };
     window.addEventListener("au-cardio-ric37-finalizado", actualizarRIC37);
-    return () => window.removeEventListener("au-cardio-ric37-finalizado", actualizarRIC37);
+    return () => {
+      activo = false;
+      window.removeEventListener("au-cardio-ric37-finalizado", actualizarRIC37);
+    };
   }, [equipo?.id]);
 
   useEffect(() => {
