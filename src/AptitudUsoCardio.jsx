@@ -546,13 +546,12 @@ export default function AptitudUsoCardio({ setVista, personal }) {
             );
           })()
         )}
-      </div>
-
       <div className={`mb-4 rounded-xl p-3 text-sm font-bold ${estadoPreventivo === "CONFORME" ? "bg-green-100 text-green-800" : estadoPreventivo === "NO CONFORME" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
         ETAPA 1: {estadoPreventivo}
         {estadoPreventivo === "CONFORME" && " — Puede continuar con mantenimiento de usuario."}
         {estadoPreventivo === "NO CONFORME" && " — El mantenimiento preventivo está vencido; debe regularizarse antes de continuar."}
         {estadoPreventivo === "PENDIENTE" && " — No se pudo confirmar que el mantenimiento preventivo esté al día."}
+      </div>
       </div>
 
       <TarjetaEtapa
