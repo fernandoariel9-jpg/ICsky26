@@ -4,7 +4,7 @@ import { fechaCalendario, mostrarFecha } from "./utils/fechas";
 import {
   BotonesNavegacion,
   ProtocoloLayout,
-  TarjetaEtapa
+  TarjetaEtapa as TarjetaEtapaBase
 } from "./protocolos/ProtocoloBase";
 
 const POTENCIAS_REFERENCIA = [50, 100, 200];
@@ -13,6 +13,17 @@ const CLAVE_RIC37_AU_CARDIO = "au_cardio:ric37-contexto";
 const CLAVE_RESULTADO_RIC37 = (equipoId) => `au_cardio:ric37-result:${equipoId}`;
 const CLAVE_BORRADOR = (equipoId) => `au_cardio:borrador:${equipoId}`;
 const ETAPAS = ["Último mantenimiento de usuario", "Parámetros esenciales", "Etapa 3", "Etapa 4"];
+
+function TarjetaEtapa({ titulo, ayuda, children }) {
+  return (
+    <div className="rounded-xl border-2 border-black bg-gray-100 p-4 shadow-sm">
+      <h2 className="mb-2 text-xl font-bold text-gray-900">{titulo}</h2>
+      {ayuda && <p className="mb-4 rounded-lg bg-white/70 p-3 text-sm text-gray-600">{ayuda}</p>}
+      {children}
+    </div>
+  );
+}
+
 
 const numeroValido = (valor) => valor !== "" && Number.isFinite(Number(valor));
 
@@ -459,7 +470,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
       progreso={25}
       datos={datosEquipo}
     >
-      <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+      <div className="mb-4 rounded-xl border-2 border-black bg-gray-100 p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">
           <div>
             <h3 className="text-sm font-bold text-slate-800">Resumen técnico del equipo</h3>
