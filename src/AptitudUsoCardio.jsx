@@ -318,7 +318,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
       return;
     }
     if (!ric37 || ric37.resultado !== "CONFORME") {
-      setErrorGuardado("Antes de guardar la etapa 2 debe completar y finalizar el RIC37 con resultado CONFORME.");
+      setErrorGuardado("Antes de completar la etapa 3 debe finalizar el RIC37 con resultado CONFORME.");
       return;
     }
     const pendientes = [
@@ -606,7 +606,8 @@ export default function AptitudUsoCardio({ setVista, personal }) {
         )}
         <div className={`mt-4 rounded-xl p-3 text-sm font-bold ${estadoMantenimientoUsuario === "CONFORME" ? "bg-green-100 text-green-800" : estadoMantenimientoUsuario === "NO CONFORME" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
           ETAPA 2: {estadoMantenimientoUsuario}
-          {estadoMantenimientoUsuario === "CONFORME" && " — Puede continuar con los parámetros esenciales."}
+          {estadoMantenimientoUsuario === "CONFORME" && puedeContinuarParametros && " — Puede continuar con los parámetros esenciales."}
+          {estadoMantenimientoUsuario === "CONFORME" && !puedeContinuarParametros && " — Los controles están conformes, pero primero debe regularizar la etapa 1."}
         </div>
       </TarjetaEtapa>
 
@@ -740,7 +741,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
               {ric37.resultado === "CONFORME" ? "✅" : "❌"} RIC37 #{ric37.id || "—"} — {ric37.resultado}
             </div>
           ) : (
-            <p className="mt-3 text-sm text-amber-800">RIC37 pendiente. La etapa 2 no podrá guardarse hasta finalizarlo.</p>
+            <p className="mt-3 text-sm text-amber-800">RIC37 pendiente. La etapa 3 no podrá completarse hasta finalizarlo.</p>
           )}
           <button type="button" onClick={iniciarVerificacionRIC37} disabled={!puedeContinuarParametros || cargandoEvaluacion} className="w-full mt-3 bg-blue-700 hover:bg-blue-800 disabled:bg-gray-300 text-white rounded-xl p-3 font-bold">
             {ric37 ? "Volver a realizar verificación RIC37" : "⚡ Realizar verificación de seguridad eléctrica"}
