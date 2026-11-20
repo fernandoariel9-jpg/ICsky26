@@ -12,7 +12,7 @@ const CLAVE_EQUIPO = "equipoAptitudCardio";
 const CLAVE_RIC37_AU_CARDIO = "au_cardio:ric37-contexto";
 const CLAVE_RESULTADO_RIC37 = (equipoId) => `au_cardio:ric37-result:${equipoId}`;
 const CLAVE_BORRADOR = (equipoId) => `au_cardio:borrador:${equipoId}`;
-const ETAPAS = ["Último mantenimiento de usuario", "Parámetros esenciales", "Etapa 3", "Etapa 4"];
+const ETAPAS = ["Resumen técnico del equipo", "Último mantenimiento de usuario", "Parámetros esenciales", "Verificación funcional", "Etapa 5"];
 
 function TarjetaEtapa({ titulo, ayuda, children }) {
   return (
@@ -254,7 +254,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
   };
 
   const iniciarVerificacionRIC37 = () => {
-    if (!equipo?.id || !puedeContinuar) return;
+    if (!equipo?.id || !puedeContinuarParametros) return;
     setErrorGuardado("");
     localStorage.setItem(CLAVE_RIC37_AU_CARDIO, JSON.stringify({
       origen: "au_cardio",
@@ -408,7 +408,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
         tituloCorto="Aptitud de uso"
         etapas={ETAPAS}
         etapa={0}
-        progreso={25}
+        progreso={20}
         datos={{ descripcion: "Cardiodesfibrilador", marca_modelo: "", numero_serie: "", area: "", servicio: "" }}
         error="No se encontraron los datos del equipo seleccionado."
       >
@@ -447,7 +447,36 @@ export default function AptitudUsoCardio({ setVista, personal }) {
       : controlesMantenimientoUsuario.every((valor) => valor === true)
         ? "CONFORME"
         : "PENDIENTE";
-  const puedeContinuar = estadoMantenimientoUsuario === "CONFORME";
+  const datosEstadisticas = estadisticasEquipo?.equipo || {};
+  const fechaPreventivoEvaluada = fechaCalendario(datosEstadisticas.ultimo_mant);
+  const periodoPreventivo = Number(datosEstadisticas.periodo);
+  let vencimientoPreventivo = null;
+  if (fechaPreventivoEvaluada && Number.isFinite(periodoPreventivo) && periodoPreventivo > 0) {
+    vencimientoPreventivo = new Date(fechaPreventivoEvaluada);
+    vencimientoPreventivo.setDate(vencimientoPreventivo.getDate() + periodoPreventivo);
+  }
+  const hoyPreventivo = new Date();
+  hoyPreventivo.setHours(0, 0, 0, 0);
+  const estadoPreventivo = cargandoEstadisticas || errorEstadisticas || !fechaPreventivoEvaluada || !vencimientoPreventivo
+    ? "PENDIENTE"
+    : vencimientoPreventivo < hoyPreventivo
+      ? "NO CONFORME"
+      : "CONFORME";
+  const estadoEtapa2 = estadoMantenimientoUsuario;
+  const puedeContinuarUsuario = estadoPreventivo === "CONFORME";
+  const puedeContinuarParametros = puedeContinuarUsuario && estadoEtapa2 === "CONFORME";
+  const estadosTodosParametros = [
+    ...estadosPotencia.map((x) => x.conforme),
+    estadoPotenciaMax,
+    estadoSincronismo,
+    estadoOnda,
+    estadoCarga
+  ];
+  const parametrosCompletos = estadosTodosParametros.every((valor) => valor === true || valor === false);
+  const parametrosConformes = estadosTodosParametros.every((valor) => valor === true);
+  const estadoEtapa3 = !puedeContinuarParametros || !parametrosCompletos || ric37?.resultado !== "CONFORME"
+    ? estadosTodosParametros.some((valor) => valor === false) ? "NO CONFORME" : "PENDIENTE"
+    : parametrosConformes ? "CONFORME" : "NO CONFORME";
 
   const actualizarMedicionPotencia = (referencia, valor) => {
     setMedicionesPotencia((actual) => ({ ...actual, [referencia]: valor }));
@@ -578,14 +607,14 @@ export default function AptitudUsoCardio({ setVista, personal }) {
         titulo="2. Parámetros esenciales"
         ayuda={`Parámetros esenciales · Responsable de la evaluación: ${personal?.nombre || "No identificado"}`}
       >
-        {!puedeContinuar && (
+        {!puedeContinuarParametros && (
           <div className={`rounded-xl border p-3 mb-4 text-sm ${estadoMantenimientoUsuario === "NO CONFORME" ? "bg-red-50 border-red-200 text-red-800" : "bg-amber-50 border-amber-200 text-amber-800"}`}>
             {estadoMantenimientoUsuario === "NO CONFORME"
               ? "El último mantenimiento de usuario tiene puntos no conformes. No se puede continuar con los parámetros esenciales hasta resolverlos y registrar un nuevo mantenimiento conforme."
               : "La etapa 1 todavía no está conforme. Se necesita un último mantenimiento de usuario registrado y con todos sus controles conformes para habilitar esta etapa."}
           </div>
         )}
-        <fieldset disabled={!puedeContinuar} className={!puedeContinuar ? "opacity-50" : ""}>
+        <fieldset disabled={!puedeContinuarParametros} className={!puedeContinuarParametros ? "opacity-50" : ""}>
         <div className="space-y-3">
           <section className="bg-gray-50 rounded-lg p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -706,7 +735,7 @@ export default function AptitudUsoCardio({ setVista, personal }) {
           ) : (
             <p className="mt-3 text-sm text-amber-800">RIC37 pendiente. La etapa 2 no podrá guardarse hasta finalizarlo.</p>
           )}
-          <button type="button" onClick={iniciarVerificacionRIC37} disabled={!puedeContinuar || cargandoEvaluacion} className="w-full mt-3 bg-blue-700 hover:bg-blue-800 disabled:bg-gray-300 text-white rounded-xl p-3 font-bold">
+          <button type="button" onClick={iniciarVerificacionRIC37} disabled={!puedeContinuarParametros || cargandoEvaluacion} className="w-full mt-3 bg-blue-700 hover:bg-blue-800 disabled:bg-gray-300 text-white rounded-xl p-3 font-bold">
             {ric37 ? "Volver a realizar verificación RIC37" : "⚡ Realizar verificación de seguridad eléctrica"}
           </button>
         </div>
@@ -725,13 +754,13 @@ export default function AptitudUsoCardio({ setVista, personal }) {
 
       </TarjetaEtapa>
 
-      <TarjetaEtapa titulo="3. Etapa 3 — Pendiente de definición" ayuda="Esta etapa se incorporará cuando definamos sus controles y criterios de conformidad.">
+      <TarjetaEtapa titulo="4. Verificación funcional — Pendiente de definición" ayuda="Esta etapa se incorporará cuando definamos sus controles y criterios de conformidad.">
         <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
           Etapa pendiente de diseño. No puede considerarse conforme ni habilitar el Apto de Uso.
         </div>
       </TarjetaEtapa>
 
-      <TarjetaEtapa titulo="4. Etapa 4 — Pendiente de definición" ayuda="Esta etapa se incorporará cuando definamos sus controles y criterios de conformidad.">
+      <TarjetaEtapa titulo="5. Etapa 5 — Pendiente de definición" ayuda="Esta etapa se incorporará cuando definamos sus controles y criterios de conformidad.">
         <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
           Etapa pendiente de diseño. No puede considerarse conforme ni habilitar el Apto de Uso.
         </div>
@@ -750,10 +779,10 @@ export default function AptitudUsoCardio({ setVista, personal }) {
           <button
             type="button"
             onClick={guardarEvaluacion}
-            disabled={guardando || cargandoEvaluacion || !puedeContinuar || ric37?.resultado !== "CONFORME"}
+            disabled={guardando || cargandoEvaluacion || !puedeContinuarParametros || ric37?.resultado !== "CONFORME"}
             className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-xl p-3 font-semibold"
           >
-            {guardando ? "Guardando..." : cargandoEvaluacion ? "Recuperando evaluación..." : evaluacionId ? "Etapa 2 guardada" : ric37?.resultado !== "CONFORME" ? "Complete RIC37 para guardar" : "Guardar etapa 2 (aptitud pendiente)"}
+            {guardando ? "Guardando..." : cargandoEvaluacion ? "Recuperando evaluación..." : evaluacionId ? "Etapa 3 guardada" : ric37?.resultado !== "CONFORME" ? "Complete RIC37 para guardar" : "Guardar etapa 3 (aptitud pendiente)"}
           </button>
           {evaluacionId && (
             <button type="button" onClick={() => { limpiarContextoLocal(); setVista("equipos"); }} className="flex-1 bg-gray-600 hover:bg-gray-700 text-white rounded-xl p-3 font-semibold">
