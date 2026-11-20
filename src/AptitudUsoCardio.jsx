@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "./config";
+import { fechaCalendario, mostrarFecha } from "./utils/fechas";
 import {
   BotonesNavegacion,
   ProtocoloLayout,
@@ -79,8 +80,36 @@ export default function AptitudUsoCardio({ setVista, personal }) {
   const [cargandoMantenimientoUsuario, setCargandoMantenimientoUsuario] = useState(true);
   const [errorMantenimientoUsuario, setErrorMantenimientoUsuario] = useState("");
   const [ric37, setRic37] = useState(null);
+  const [estadisticasEquipo, setEstadisticasEquipo] = useState(null);
+  const [cargandoEstadisticas, setCargandoEstadisticas] = useState(true);
+  const [errorEstadisticas, setErrorEstadisticas] = useState("");
 
 
+
+  useEffect(() => {
+    let activo = true;
+    const cargarEstadisticas = async () => {
+      if (!equipo?.numero_serie) {
+        setCargandoEstadisticas(false);
+        setErrorEstadisticas("No se pudo identificar el número de serie del equipo.");
+        return;
+      }
+      setCargandoEstadisticas(true);
+      setErrorEstadisticas("");
+      try {
+        const respuesta = await fetch(`${API_URL.Base}/api/estadisticas/equipo/${encodeURIComponent(equipo.numero_serie)}`, { cache: "no-store" });
+        const data = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok) throw new Error(data.error || "No se pudieron cargar las estadísticas del equipo.");
+        if (activo) setEstadisticasEquipo(data);
+      } catch (error) {
+        if (activo) setErrorEstadisticas(error.message || "No se pudieron cargar las estadísticas del equipo.");
+      } finally {
+        if (activo) setCargandoEstadisticas(false);
+      }
+    };
+    cargarEstadisticas();
+    return () => { activo = false; };
+  }, [equipo?.numero_serie]);
 
   useEffect(() => {
     if (!equipo?.id) return;
@@ -430,6 +459,55 @@ export default function AptitudUsoCardio({ setVista, personal }) {
       progreso={25}
       datos={datosEquipo}
     >
+      <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div>
+            <h3 className="text-sm font-bold text-slate-800">Resumen técnico del equipo</h3>
+            <p className="text-[11px] text-slate-500">Indicadores del inventario y mantenimiento preventivo</p>
+          </div>
+          {cargandoEstadisticas && <span className="text-[11px] text-slate-500">Actualizando...</span>}
+        </div>
+        {errorEstadisticas ? (
+          <p className="rounded-lg bg-amber-50 p-2 text-xs text-amber-800">{errorEstadisticas}</p>
+        ) : (
+          (() => {
+            const datos = estadisticasEquipo?.equipo || {};
+            const fechaAlta = datos.fecha_alta;
+            const fechaAltaDate = fechaCalendario(fechaAlta);
+            const diasDesdeAlta = fechaAltaDate ? Math.max(0, Math.floor((Date.now() - fechaAltaDate.getTime()) / 86400000)) : null;
+            const ipa = estadisticasEquipo?.ipa;
+            const tmf = estadisticasEquipo?.tmf?.dias;
+            const fechaPreventivo = datos.ultimo_mant;
+            const fechaPreventivoDate = fechaCalendario(fechaPreventivo);
+            const periodo = Number(datos.periodo);
+            let vencimiento = null;
+            if (fechaPreventivoDate && Number.isFinite(periodo) && periodo > 0) {
+              vencimiento = new Date(fechaPreventivoDate);
+              vencimiento.setDate(vencimiento.getDate() + periodo);
+            }
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            const vencido = vencimiento ? vencimiento < hoy : null;
+            const Celda = ({ titulo, valor, detalle, estado }) => (
+              <div className="min-w-0 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{titulo}</div>
+                <div className="mt-1 break-words text-base font-bold text-slate-800">{valor}</div>
+                {detalle && <div className="mt-1 text-[10px] leading-snug text-slate-500">{detalle}</div>}
+                {estado && <div className={`mt-1 text-[10px] font-bold ${estado.ok ? "text-green-700" : "text-red-700"}`}>{estado.texto}</div>}
+              </div>
+            );
+            return (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <Celda titulo="Fecha de alta" valor={mostrarFecha(fechaAlta, "Sin datos")} detalle={diasDesdeAlta != null ? `Tiempo desde el alta: ${diasDesdeAlta} días` : "Antigüedad no disponible"} />
+                <Celda titulo="IPA" valor={ipa?.valor != null ? `${Number(ipa.valor).toFixed(1)} / 100` : "Sin clasificar"} detalle={ipa ? (ipa.respaldo_aplicable === false ? "Respaldo no aplicable" : `${ipa.respaldos ?? 0} respaldo(s) activo(s)`) : "Sin datos de clasificación"} />
+                <Celda titulo="TMF" valor={tmf != null ? `${Number(tmf).toFixed(1)} días` : "Sin datos"} detalle={tmf == null ? "No hay datos suficientes de fallas" : "Tiempo medio entre fallas"} />
+                <Celda titulo="Último preventivo" valor={mostrarFecha(fechaPreventivo, "Sin datos")} detalle={periodo > 0 ? `Periodicidad: cada ${periodo} días` : "Periodicidad no definida"} estado={vencido == null ? null : { ok: !vencido, texto: vencido ? "MANTENIMIENTO VENCIDO" : "AL DÍA" }} />
+              </div>
+            );
+          })()
+        )}
+      </div>
+
       <TarjetaEtapa
         titulo="1. Último mantenimiento de usuario"
         ayuda="Último checklist de mantenimiento de usuario registrado para este equipo."
